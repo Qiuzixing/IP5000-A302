@@ -1,0 +1,77 @@
+
+menu "LED devices"
+
+config NEW_LEDS
+	bool "LED Support"
+	help
+	  Say Y to enable Linux LED support.  This allows control of supported
+	  LEDs from both userspace and optionally, by kernel events (triggers).
+
+	  This is not related to standard keyboard LEDs which are controlled
+	  via the input system.
+
+config LEDS_CLASS
+	tristate "LED Class Support"
+	depends NEW_LEDS
+	help
+	  This option enables the led sysfs class in /sys/class/leds.  You'll
+	  need this to do anything useful with LEDs.  If unsure, say N.
+
+comment "LED drivers"
+
+config LEDS_S3C24XX
+	tristate "LED Support for Samsung S3C24XX GPIO LEDs"
+	depends on LEDS_CLASS && ARCH_S3C2410
+	help
+	  This option enables support for LEDs connected to GPIO lines
+	  on Samsung S3C24XX series CPUs, such as the S3C2410 and S3C2440.
+
+config LEDS_AST1500
+	tristate "LED Support for AST1500 GPIO LEDs"
+	help
+	  This option enables support for LEDs connected to GPIO lines
+	  on AST1500.
+
+comment "LED Triggers"
+
+config LEDS_TRIGGERS
+	bool "LED Trigger support"
+	depends NEW_LEDS
+	help
+	  This option enables trigger support for the leds class.
+	  These triggers allow kernel events to drive the LEDs and can
+	  be configured via sysfs. If unsure, say Y.
+
+config LEDS_TRIGGER_TIMER
+	tristate "LED Timer Trigger"
+	depends LEDS_TRIGGERS
+	help
+	  This allows LEDs to be controlled by a programmable timer
+	  via sysfs. If unsure, say Y.
+
+config LEDS_TRIGGER_HEARTBEAT
+	tristate "LED Heartbeat Trigger"
+	depends on LEDS_TRIGGERS
+	help
+	  This allows LEDs to be controlled by a CPU load average.
+	  The flash frequency is a hyperbolic function of the 1-minute
+	  load average.
+	  If unsure, say Y.
+
+config LEDS_TRIGGER_PUSHBUTTON
+	tristate "GPIO Push Button Trigger"
+	depends on LEDS_TRIGGERS
+	help
+	  This is a tricky implementation to use GPIO Push Button
+	  through the LED class framework.
+
+config LEDS_TRIGGER_SWITCH
+	tristate "GPIO Switch Trigger"
+	default y
+	depends on LEDS_TRIGGERS
+	help
+	  This is a tricky implementation to use GPIO Switch
+	  through the LED class framework.
+
+endmenu
+

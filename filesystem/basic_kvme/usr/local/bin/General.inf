@@ -1,0 +1,13 @@
+EnableVideoM= 0
+SkipEmptyFrame= 0
+MemBurstLength= 0
+VerLineBufferEN= 1
+DataType= 0
+CenterMode= 0
+CRCEnable= 0
+CRCPrimaryPolynomial= 13135004
+CRCSecondaryPolynomial= 13266590
+CRCHighOnly= 0
+CRCMaxCount= 200
+RC4_NO_RESET_FRAME=0
+RC4_TEST_MODE=0

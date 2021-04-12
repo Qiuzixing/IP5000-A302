@@ -1,0 +1,3 @@
+This directory holds header files created by Aspeed.
+These files hold SW macro definitions and function prototypes.
+Header files in this directory should only refer to header files subordinate to the "include" directory.

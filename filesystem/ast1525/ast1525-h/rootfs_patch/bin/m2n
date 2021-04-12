@@ -1,0 +1,96 @@
+#!/bin/sh
+
+UPATH="/usr/local/bin"
+
+CMD_SH_HEAD()
+{
+	printf "#!/bin/sh\n"
+	printf "cd $UPATH\n"
+}
+CMD_multicast_ip()
+{
+	printf "./astparam s multicast_ip 225.0.%d.%d%d%d\n" $1 $2 $3 $4
+}
+CMD_ch_select()
+{
+	printf "./astparam s ch_select %d%d%d%d\n" $1 $2 $3 $4
+}
+
+CMD_send_event()
+{
+	printf "./ast_send_event -1 %s\n" $1
+}
+
+gen_B()
+{
+	B0=$1
+	B1=$2
+	B2=$3
+	B3=$4
+}
+
+gen_c_m2n()
+{
+	CMD_SH_HEAD > cmd.sh
+	CMD_multicast_ip $1 $2 $3 $4 >> cmd.sh
+	CMD_ch_select $1 $2 $3 $4 >> cmd.sh
+	CMD_send_event e_reconnect >> cmd.sh
+}
+
+send_cmd()
+{
+	if nc $1 25 < cmd.sh 2>/dev/null 1>/dev/null ; then
+		echo "P"
+	else
+		echo "F"
+	fi
+}
+
+B0=0
+B1=0
+B2=0
+B3=0
+REMOTE="ast-client$1.local"
+
+if [ "$2" = '0' ]; then
+	gen_B 0 0 0 0
+elif [ "$2" = '1' ]; then
+	gen_B 0 0 0 1
+elif [ "$2" = '2' ]; then
+	gen_B 0 0 1 0
+elif [ "$2" = '3' ]; then
+	gen_B 0 0 1 1
+elif [ "$2" = '4' ]; then
+	gen_B 0 1 0 0
+elif [ "$2" = '5' ]; then
+	gen_B 0 1 0 1
+elif [ "$2" = '6' ]; then
+	gen_B 0 1 1 0
+elif [ "$2" = '7' ]; then
+	gen_B 0 1 1 1
+elif [ "$2" = '8' ]; then
+	gen_B 1 0 0 0
+elif [ "$2" = '9' ]; then
+	gen_B 1 0 0 1
+elif [ "$2" = '10' ]; then
+	gen_B 1 0 1 0
+elif [ "$2" = '11' ]; then
+	gen_B 1 0 1 1
+elif [ "$2" = '12' ]; then
+	gen_B 1 1 0 0
+elif [ "$2" = '13' ]; then
+	gen_B 1 1 0 1
+elif [ "$2" = '14' ]; then
+	gen_B 1 1 1 0
+elif [ "$2" = '15' ]; then
+	gen_B 1 1 1 1
+else
+	gen_B 0 0 0 0
+fi
+
+#echo "Switch $REMOTE to $B0$B1$B2$B3"
+gen_c_m2n $B0 $B1 $B2 $B3
+send_cmd $REMOTE
+
+
+

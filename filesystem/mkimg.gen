@@ -1,0 +1,27 @@
+
+include $(AST_SDK_ROOT)/ast.cfg
+
+
+TARGET_FOLDER_NAME=$(TARGET)-$(CONFIG)
+IMAGE_FOLDER=$(AST_SDK_ROOT)/images/$(TARGET_FOLDER_NAME)
+
+default:
+	@echo "Image Build ..."
+	@( \
+		export FLASH_SIZE=$(FLASH_SIZE); \
+		export ALL_IMAGE=$(ALL_IMAGE); \
+		export IMAGE_FOLDER=$(IMAGE_FOLDER); \
+		export IMG_PARTITION=$(IMG_PARTITION); \
+		mkbin.sh || exit 1; \
+	)
+	@cp -f $(IMAGE_FOLDER)/$(ALL_IMAGE) /tftpboot/
+
+host:
+	make T=host default
+
+client:
+	make T=client default
+
+clean:
+	@echo "Images Clean ..."
+	@rm -rf $(IMAGE_FOLDER)/$(ALL_IMAGE)

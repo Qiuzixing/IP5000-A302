@@ -1,0 +1,1561 @@
+#!/bin/sh
+
+##
+## Copyright (c) 2017
+## ASPEED Technology Inc. All Rights Reserved
+## Proprietary and Confidential
+##
+## By using this code you acknowledge that you have signed and accepted
+## the terms of the ASPEED SDK license agreement.
+##
+
+stop_all_service()
+{
+	## A7 TBD
+	echo "TBD"
+}
+
+# NOTICE: This function run on different process scope. (not in state_machine scope)
+# Bruce130123. Now moved into state_machine scope.
+do_s_init()
+{
+	echo "Memory Controller Setting:"
+	echo "0x1e6e2040:"
+	/usr/local/bin/io 0 0x1e6e2040
+	echo "0x1e6e0068:"
+	/usr/local/bin/io 0 0x1e6e0068
+
+	case $SOC_VER in
+		1)
+			# If CPU frequency down to 266MHz, the board's memory is bad.
+			if { /usr/local/bin/io 0 0x1e6e2024 | grep -iq "44120"; }; then
+				echo "ERROR!!!!!! Board Memory Test FAIL!"
+				if [ "$STOP_ON_BOOT_TEST_FAIL" = 'y' ]; then
+					ast_send_event -1 e_kill
+					return 1
+				fi
+			fi
+		;;
+		2)
+			if ! boot_test_v2.sh; then
+				if [ "$STOP_ON_BOOT_TEST_FAIL" = 'y' ]; then
+					ast_send_event -1 e_kill
+					return 1
+				fi
+			fi
+		;;
+		3)
+			source calc_ring.sh
+			echo "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR"
+			echo "MCLK Ring"
+			calc_oscclk mclk
+			printf "Ring SCU10[29:16]: 0x%X, $RING_HZ Hz, $RING_NS ns\n" $RING
+			echo "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR"
+			echo "DLY32 Ring"
+			calc_oscclk dly32
+			printf "Ring SCU10[29:16]: 0x%X, $RING_HZ Hz, $RING_NS ns\n" $RING
+			echo "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR"
+		;;
+		*)
+			echo "" > /dev/null
+		;;
+	esac
+
+	if [ "$EN_LOG" = 'n' ]; then
+		/usr/local/bin/log.sh off
+	fi
+	# Indicate that system is stable.
+	if [ "$PWR_LED_TYPE" = 'share_usb' ]; then
+		led_off $LED_PWR
+	else
+		led_on $LED_PWR
+	fi
+
+	#ast_send_event "$EM_PID" "e_sys_init_ok"
+	post_ip_addr
+}
+
+warn()
+{
+	echo "!!!!! $1 !!!!!"
+	#to_s_error
+}
+
+to_s_error()
+{
+	echo "Last state=$STATE event=$event"
+	STATE='s_error'
+	echo $STATE > $DEVICE_STATUS_FILE
+	update_node_info STATE $STATE
+	handle_e_kill
+}
+
+_do_start_srv()
+{
+	if [ "$NO_VIDEO" = 'n' ]; then
+		ipc @v_lm_set s ve_start:$CH_SELECT_V
+	fi
+	if [ "$NO_USB" = 'n' ] || [ "$NO_KMOIP" = 'n' ]; then
+		USB_CLIENT_IP='0.0.0.0'
+		ipc @u_lm_set s ue_start:$CH_SELECT_U
+		if [ "$PWR_LED_TYPE" = 'share_usb' ]; then
+			led_on $LED_PWR
+		fi
+	fi
+	if [ "$NO_I2S" = 'n' ]; then
+		ipc @a_lm_set s ae_start:$CH_SELECT_A
+	fi
+	if [ "$NO_IR" = 'n' ]; then
+		ipc @r_lm_set s re_start:$CH_SELECT_R
+	fi
+	if [ "$NO_SOIP" = 'n' ]; then
+		ipc @s_lm_set s se_start:$CH_SELECT_S
+	fi
+	if [ "$NO_PWRBTN" = 'n' ]; then
+		ipc @p_lm_set s pe_start:$CH_SELECT_P
+	fi
+	if [ "$NO_CEC" = 'n' ]; then
+		ipc @c_lm_set s ce_start:$CH_SELECT_C
+	fi
+}
+
+do_start_srv()
+{
+	led_blink $LED_LINK
+
+	_do_start_srv
+
+	to_s_srv_on
+}
+
+to_s_srv_on()
+{
+	STATE='s_srv_on'
+	echo $STATE > $DEVICE_STATUS_FILE
+	update_node_info STATE $STATE
+	led_on $LED_LINK
+
+	if [ $NO_VIDEO = 'n' ]; then
+		# vLM may not load VE driver yet.
+		if ! [ -f "${VIDEO_SYS_PATH}/State" ]; then
+			to_s_attaching
+		elif ! { cat ${VIDEO_SYS_PATH}/State | grep -q "OPERATING"; }; then
+			to_s_attaching
+		fi
+	fi
+}
+
+to_s_attaching()
+{
+	STATE='s_attaching'
+	echo $STATE > $DEVICE_STATUS_FILE
+	update_node_info STATE $STATE
+	led_blink $LED_LINK
+
+	if [ $NO_VIDEO = 'y' ]; then
+		led_on $LED_LINK
+	fi
+}
+
+do_stop_srv()
+{
+	led_blink $LED_LINK
+
+	if [ "$NO_VIDEO" = 'n' ]; then
+		ipc @v_lm_set s ve_stop
+	fi
+	if [ "$NO_USB" = 'n' ] || [ "$NO_KMOIP" = 'n' ]; then
+		ipc @u_lm_set s ue_stop
+		if [ "$PWR_LED_TYPE" = 'share_usb' ]; then
+			led_off $LED_PWR
+		fi
+	fi
+	if [ "$NO_I2S" = 'n' ]; then
+		ipc @a_lm_set s ae_stop
+	fi
+	if [ "$NO_IR" = 'n' ]; then
+		ipc @r_lm_set s re_stop
+	fi
+	if [ "$NO_SOIP" = 'n' ]; then
+		ipc @s_lm_set s se_stop
+	fi
+	if [ "$NO_PWRBTN" = 'n' ]; then
+		ipc @p_lm_set s pe_stop
+	fi
+	if [ "$NO_CEC" = 'n' ]; then
+		ipc @c_lm_set s ce_stop
+	fi
+
+	do_ready_to_go
+}
+
+to_s_idle()
+{
+	STATE='s_idle'
+	echo $STATE > $DEVICE_STATUS_FILE
+	update_node_info STATE $STATE
+
+	led_off $LED_LINK
+
+	if [ $NO_VIDEO = 'n' ]; then
+		ipc @v_lm_set s ve_start_loopback
+	fi
+}
+
+do_ready_to_go()
+{
+	if eth_link_is_off ; then
+		echo "Network link is down"
+		to_s_idle
+	elif [ "$ACCESS_ON" = 'n' ]; then
+		echo "Press the link button to connect"
+		to_s_idle
+	else
+		# for "$ACCESS_ON" == 'y'
+		do_start_srv
+	fi
+}
+
+handle_e_sys_init_ok()
+{
+	if [ "$STATE" = 's_init' ]; then
+		# Init variables.
+		USB_CLIENT_IP='0.0.0.0'
+		V_LOOPBACK_ENABLED=$LOOPBACK_DEFAULT_ON
+
+		# A7 disable watchdog after sys_init_ok
+		disable_watchdog
+
+		# Export LM params to /var/lm. So that sub-LM can import.
+		handle_e_var
+
+		update_node_info
+		# start node_responser
+		node_responser --mac $MY_MAC &
+
+		# Start heartbeat service
+		heartbeat &
+
+		if [ "$NO_VIDEO" = 'n' ]; then
+			# display-related (crt) configuration for video
+			set_display_config
+			# Start vLM
+			link_mgrh_video.sh
+			# Start of apply_profile_config() related init.
+			# Note, apply_profile_config() must be called after VE driver loaded.
+			if [ "$SOC_VER" -ge '3' ]; then
+				if [ "$V_DUAL_INPUT" = 'undefined' ]; then
+					V_DUAL_INPUT=`cat $VIDEO_SYS_PATH/has_dual_input`
+				fi
+				# Note sysfs 'scu board_info' only available on SoC Ver >= 3
+				case `cat  $SCU_SYS_PATH/board_info | grep "Video Type"` in
+					*VGA*)
+						V_TYPE='0'
+					;;
+					*Disable*)
+						V_TYPE='1'
+					;;
+					*HDMI*)
+						V_TYPE='2'
+					;;
+					*DVI*)
+						V_TYPE='3'
+					;;
+					*)
+						V_TYPE='2'
+					;;
+				esac
+			fi
+			apply_profile_config `select_v_input refresh`
+		fi
+		if [ "$NO_I2S" = 'n' ]; then
+			# Start aLM
+			link_mgrh_audio.sh
+			select_audio_input `select_a_input`
+		fi
+		if [ "$NO_USB" = 'n' ] || [ "$NO_KMOIP" = 'n' ]; then
+			# Start uLM
+			link_mgrh_usb.sh
+		fi
+		if [ "$NO_IR" = 'n' ]; then
+			# Start rLM
+			link_mgrh_ir.sh
+		fi
+		if [ "$NO_SOIP" = 'n' ]; then
+			# Start sLM
+			link_mgrh_serial.sh
+		fi
+		if [ "$NO_PWRBTN" = 'n' ]; then
+			# Start pLM
+			link_mgrh_pushbutton.sh
+		fi
+		if [ "$NO_CEC" = 'n' ]; then
+			# Start pLM
+			link_mgrh_cec.sh
+		fi
+
+		do_ready_to_go
+
+		set_igmp_leave_force
+	fi
+}
+
+handle_e_button_link_1()
+{
+	if [ "$IGNORE_E_BUTTON_LINK_1" = 'y' ]; then
+		return
+	fi
+
+	if [ "$STATE" = 's_idle' ] && eth_link_is_off && [ "$BTN1_LONG_ON_ETH_OFF" != 'e_btn_ignore' ]; then
+		handle_"$BTN1_LONG_ON_ETH_OFF"
+		return
+	fi
+
+	handle_"$BTN1_LONG"
+}
+
+_link_on_off()
+{
+	# Save the state into flash
+	if [ "$ACCESS_ON" = 'y' ]; then
+		ACCESS_ON='n'
+		#astparam s astaccess n
+	else
+		ACCESS_ON='y'
+		#astparam s astaccess y
+	fi
+	update_node_info ACCESS_ON $ACCESS_ON
+
+	case "$STATE" in
+		s_idle)
+			do_ready_to_go
+		;;
+		s_srv_on | s_attaching)
+			echo "Stop link STATE=$STATE"
+			do_stop_srv
+		;;
+		*)
+			warn "Wrong state?! $STATE"
+		;;
+	esac
+}
+
+handle_e_button_link()
+{
+	if [ "$IGNORE_E_BUTTON_LINK" = 'y' ]; then
+		return
+	fi
+
+	if [ "$STATE" = 's_idle' ] && eth_link_is_off && [ "$BTN1_SHORT_ON_ETH_OFF" != 'e_btn_ignore' ]; then
+		handle_"$BTN1_SHORT_ON_ETH_OFF"
+		return
+	fi
+
+	handle_"$BTN1_SHORT"
+}
+
+
+handle_e_button_pairing()
+{
+	if [ "$STATE" = 's_idle' ] && eth_link_is_off && [ "$BTN2_SHORT_ON_ETH_OFF" != 'e_btn_ignore' ]; then
+		handle_"$BTN2_SHORT_ON_ETH_OFF"
+		return
+	fi
+
+	handle_"$BTN2_SHORT"
+}
+
+# Used to save the host's position layout for WebUI. Set once when performing basic setup.
+handle_e_vw_pos_layout()
+{
+	# Parse e_vw_pos_layout_${_VW_VAR_POS_MAX_ROW}_${_VW_VAR_POS_MAX_COL}
+	#_VW_VAR_POS_MAX_ROW=`expr "$1" : 'e_vw_pos_layout_\([[:alnum:]]\{1,\}\)_[[:alnum:]]\{1,\}'`
+	#_VW_VAR_POS_MAX_COL=`expr "$1" : 'e_vw_pos_layout_[[:alnum:]]\{1,\}_\([[:alnum:]]\{1,\}\)'`
+	_IFS="$IFS";IFS='_';set -- $*;shift 4;IFS="$_IFS"
+	_VW_VAR_POS_MAX_ROW=$1
+	_VW_VAR_POS_MAX_COL=$2
+
+	if [ -z "$_VW_VAR_POS_MAX_ROW" ]; then
+		_VW_VAR_POS_MAX_ROW='x'
+	fi
+	if [ -z "$_VW_VAR_POS_MAX_COL" ]; then
+		_VW_VAR_POS_MAX_COL='x'
+	fi
+
+	if [ "$_VW_VAR_POS_MAX_ROW" = 'd' ]; then
+		VW_VAR_POS_MAX_ROW="$VW_VAR_POS_IDX"
+	elif [ "$_VW_VAR_POS_MAX_ROW" != 'x' ]; then
+		VW_VAR_POS_MAX_ROW="$_VW_VAR_POS_MAX_ROW"
+	fi
+
+	if [ "$_VW_VAR_POS_MAX_COL" = 'd' ]; then
+		VW_VAR_POS_MAX_COL="$VW_VAR_POS_IDX"
+	elif [ "$_VW_VAR_POS_MAX_COL" != 'x' ]; then
+		VW_VAR_POS_MAX_COL="$_VW_VAR_POS_MAX_COL"
+	fi
+
+	astparam s vw_pos_max_row "$VW_VAR_POS_MAX_ROW"
+	astparam s vw_pos_max_col "$VW_VAR_POS_MAX_COL"
+	astparam save
+}
+
+handle_e_button_pairing_1()
+{
+	if [ "$STATE" = 's_idle' ] && eth_link_is_off && [ "$BTN2_LONG_ON_ETH_OFF" != 'e_btn_ignore' ]; then
+		handle_"$BTN2_LONG_ON_ETH_OFF"
+		return
+	fi
+
+	handle_"$BTN2_LONG"
+}
+
+
+handle_e_kill()
+{
+	## A7 TBD.
+	kill "$EM_PID"
+
+	stop_all_service
+	led_off $LED_LINK
+
+	disable_watchdog
+	to_mfg_mode
+
+	exit 0;
+}
+
+_chg_hostname()
+{
+	/sbin/avahi-daemon -k 2>/dev/null
+
+	local _HOSTNAME_ID="$1"
+
+	HOSTNAME="${HOSTNAME_PREFIX}${HOSTNAME_TX_MIDDLE}${_HOSTNAME_ID}"
+
+	echo "HOSTNAME=$HOSTNAME"
+	astsetname $HOSTNAME
+	echo $HOSTNAME > /etc/hostname
+	hostname -F /etc/hostname
+
+	/sbin/avahi-daemon -D 2>/dev/null
+
+	update_node_info HOSTNAME $HOSTNAME
+}
+
+handle_e_chg_hostname()
+{
+	#start avahi-daemon
+	# The $HOSTNAME_ID is now decided in refresh_hostname_params()
+	refresh_4bits_ch
+	refresh_ch_params
+	refresh_hostname_params
+
+	if [ "$HOSTNAMEBYDIPSWITCH" = 'y' ]; then
+		ast_send_event -1 e_reconnect::"$HOSTNAME_ID"
+	else
+		_chg_hostname "$HOSTNAME_ID"
+	fi
+}
+
+handle_e_stop_link()
+{
+	ACCESS_ON='n'
+	update_node_info ACCESS_ON $ACCESS_ON
+
+	case "$STATE" in
+		s_idle)
+			echo "Already stopped"
+		;;
+		s_srv_on | s_attaching)
+			echo "Stop link STATE=$STATE"
+			do_stop_srv
+		;;
+		*)
+			warn "Wrong state?! $STATE"
+		;;
+	esac
+}
+
+do_e_reconnect()
+{
+	ACCESS_ON='y'
+	update_node_info ACCESS_ON $ACCESS_ON
+	# Update CH_SELECT node_info on e_reconnect
+	# Should update before stop link so that next time client node_query will get the new CH_SELECT value.
+	update_node_info CH_SELECT $CH_SELECT
+
+	case "$STATE" in
+		s_idle)
+			do_ready_to_go
+		;;
+		s_srv_on | s_attaching)
+			do_stop_srv
+		;;
+		*)
+			warn "Wrong state?! $STATE"
+		;;
+	esac
+}
+
+handle_e_reconnect_refresh()
+{
+	refresh_4bits_ch
+	refresh_ch_params
+
+	# Bruce171024. In case user is still using legacy A6 API,
+	# we call refresh_hostname_params() to refresh CH_SELECT.
+	refresh_hostname_params
+
+	do_e_reconnect
+}
+
+handle_e_reconnect()
+{
+	#
+	# e_reconnect::$ch_select
+	#
+	# $ch_select can be:
+	#  0000~9999: channel format
+	#
+
+	case "$STATE" in
+		s_idle | s_srv_on | s_attaching)
+			# typical case
+		;;
+		*)
+			# s_init
+			warn "Wrong state?! $STATE"
+			return
+		;;
+	esac
+
+	# if there is no $who, it means legacy command without parameters.
+	#
+	if [ "$*" = 'e_reconnect' ]; then
+		handle_e_reconnect_refresh
+		return
+	fi
+
+	_IFS="$IFS";IFS=':';set -- $*;shift 2;IFS="$_IFS"
+	local _ch_select=$1
+
+	_ch_select=`foolproof_ch_select $_ch_select`
+	CH_SELECT=$_ch_select
+	# Still need to set astparam here because handle_e_reconnect_refresh()::refresh_ch_params() need it.
+	astparam s ch_select $CH_SELECT
+	# Optimize astparam access. Do save astparam if RESET_CH_ON_BOOT is y.
+	if [ "$RESET_CH_ON_BOOT" = 'n' ]; then
+		astparam save
+	fi
+	CH_SELECT_V=$CH_SELECT
+	CH_SELECT_U=$CH_SELECT
+	CH_SELECT_A=$CH_SELECT
+	CH_SELECT_S=$CH_SELECT
+	CH_SELECT_R=$CH_SELECT
+	CH_SELECT_P=$CH_SELECT
+	CH_SELECT_C=$CH_SELECT
+
+	do_e_reconnect
+	# Host update hostname.
+	if [ "$HOSTNAMEBYDIPSWITCH" = 'y' ]; then
+		HOSTNAME_ID="$CH_SELECT"
+		_chg_hostname "$HOSTNAME_ID"
+	fi
+}
+
+handle_e_video_start_working()
+{
+	case "$STATE" in
+		s_srv_on | s_start_srv)
+			echo "Video start capture"
+			# We stay in s_srv_on state, but stop blinking the LED_LINK
+			#led_on $LED_LINK
+		;;
+		s_attaching)
+			echo "Video start capture"
+			# We change state to s_srv_on state, but stop blinking the LED_LINK
+			to_s_srv_on
+		;;
+		s_stop_srv)
+			# Firmware >= A6.2.0, VE will restart immediately after suspended.
+			echo "Video restarted"
+		;;
+		*)
+			warn "Wrong state?! ($STATE)"
+		;;
+	esac
+	ipc @v_lm_set s ve_post_config
+}
+
+handle_e_video_stop_working()
+{
+	case "$STATE" in
+		s_srv_on)
+			echo "Video stop capture"
+			# We change to s_attaching state, and start blinking the LED_LINK
+			to_s_attaching
+		;;
+		s_attaching)
+			echo "Ignore this case" > /dev/null
+		;;
+		*)
+			warn "Wrong state?! $STATE"
+		;;
+	esac
+}
+
+handle_e_ip_got()
+{
+	# Parse 'e_ip_got::xxx.xxx.xxx.xx'
+	#MY_IP=`expr "$*" : 'e_ip_got::\(.*\)'`
+	_IFS="$IFS";IFS=':';set -- $*;shift 2;IFS="$_IFS"
+	MY_IP=$1
+
+	case "$IP_MODE" in
+	autoip)
+		# I statically set the value here.
+		MY_NETMASK='255.255.0.0'
+		MY_GATEWAYIP='169.254.0.254'
+		route add default gw '169.254.0.254'
+	;;
+	dhcp)
+		#MY_NETMASK and $MY_GATEWAYIP will be assigned in /usr/share/udhcpc/default.script
+		;;
+	static)
+		MY_NETMASK="$NETMASK"
+		MY_GATEWAYIP="$GATEWAYIP"
+	;;
+	*)
+	;;
+	esac
+
+	if [ "$STATE" = 's_init' ]; then
+		## A7 TBD. tickle_watchdog here?
+		#tickle_watchdog
+		if [ "$SOC_OP_MODE" -ge '2' ]; then
+			tcp.sh
+			set_mtu
+		else
+			tcp.sh
+		fi
+		# The $HOSTNAME_ID is now decided in init_share_param_from_flash()
+		HOSTNAME="${HOSTNAME_PREFIX}${HOSTNAME_TX_MIDDLE}${HOSTNAME_ID}"
+
+		echo "HOSTNAME=$HOSTNAME"
+		astsetname $HOSTNAME
+		echo $HOSTNAME > /etc/hostname
+		hostname -F /etc/hostname
+
+		route add -net 224.0.0.0 netmask 240.0.0.0 dev eth0
+		# Force IGMP version to Version 2
+		echo 2 > /proc/sys/net/ipv4/conf/eth0/force_igmp_version
+
+		avahi-daemon -D
+		name_service -thost
+		httpd -h /www &
+		# Start telnetd
+		start_telnetd
+
+		ast_send_event -1 "e_sys_init_ok"
+	fi
+
+	set_igmp_report
+}
+
+handle_e_debug()
+{
+	dump_parameters
+
+	# set -x is annoying. Disable it.
+	return
+
+	if [ "$DBG" = '0' ]; then
+		DBG='1'
+		set -x
+	else
+		DBG='0'
+		set +x
+	fi
+}
+
+handle_e_debug_json()
+{
+	dump_parameters_json
+}
+
+handle_e_eth_link_off()
+{
+	set_mtu
+
+	case "$STATE" in
+		s_init | s_idle)
+			#  Actually, eth_link_off event can be ignored under s_init state.
+			return
+		;;
+		s_srv_on | s_attaching)
+			echo "Network link is down"
+			# Link off triggers reconnect (stop and start link).
+			do_stop_srv
+		;;
+		*)
+			warn "Wrong state?! $STATE"
+		;;
+	esac
+}
+
+handle_e_eth_link_on()
+{
+	# Double check
+	if eth_link_is_off ; then
+		echo "Network link is down again"
+		return
+	fi
+	set_mtu
+
+	case "$STATE" in
+		s_init)
+			#  Actually, eth_link_off event can be ignored under s_init state.
+			return
+		;;
+		s_idle)
+			# Bug. avahi-daemon may not respond to astresname if eth link on/off frequently.
+			# To resolve this issue, we try to reload avahi-daemon on each eth link on.
+			# avahi-daemon -k
+			# From my test, wait for 1 second after link on and load avahi-daemon can
+			# resolve the problem that "can't find the host after link down for 10 minutes (SMC switch)".
+			{ avahi-daemon -k 2>/dev/null; sleep 1; avahi-daemon -D; } &
+
+			# Eth link mode may change. Should update profile based on new Eth link mode.
+			apply_profile_config `select_v_input refresh`
+			if [ "$ACCESS_ON" = 'y' ]; then
+				handle_e_reconnect_refresh
+			fi
+		;;
+		*)
+			warn "Wrong state?! $STATE"
+		;;
+	esac
+
+	set_igmp_leave_force
+
+	set_igmp_report
+}
+
+handle_e_vw_enable()
+{
+	#_VW_VAR_MAX_ROW=`expr "$1" : 'e_vw_enable_\([[:alnum:]]\{1,\}\)_[[:alnum:]]\{1,\}_[[:alnum:]]\{1,\}_[[:alnum:]]\{1,\}'`
+	#_VW_VAR_MAX_COLUMN=`expr "$1" : 'e_vw_enable_[[:alnum:]]\{1,\}_\([[:alnum:]]\{1,\}\)_[[:alnum:]]\{1,\}_[[:alnum:]]\{1,\}'`
+	#_VW_VAR_ROW=`expr "$1" : 'e_vw_enable_[[:alnum:]]\{1,\}_[[:alnum:]]\{1,\}_\([[:alnum:]]\{1,\}\)_[[:alnum:]]\{1,\}'`
+	#_VW_VAR_COLUMN=`expr "$1" : 'e_vw_enable_[[:alnum:]]\{1,\}_[[:alnum:]]\{1,\}_[[:alnum:]]\{1,\}_\([[:alnum:]]\{1,\}\)'`
+	_IFS="$IFS";IFS='_';set -- $*;shift 3;IFS="$_IFS"
+	_VW_VAR_MAX_ROW=$1
+	_VW_VAR_MAX_COLUMN=$2
+	_VW_VAR_ROW=$3
+	_VW_VAR_COLUMN=$4
+
+	if [ -z "$_VW_VAR_MAX_ROW" ]; then
+		_VW_VAR_MAX_ROW='x'
+	fi
+	if [ -z "$_VW_VAR_MAX_COLUMN" ]; then
+		_VW_VAR_MAX_COLUMN='x'
+	fi
+	if [ -z "$_VW_VAR_ROW" ]; then
+		_VW_VAR_ROW='x'
+	fi
+	if [ -z "$_VW_VAR_COLUMN" ]; then
+		_VW_VAR_COLUMN='x'
+	fi
+	if [ "$_VW_VAR_MAX_ROW" = 'd' ]; then
+		VW_VAR_MAX_ROW="$VW_VAR_POS_IDX"
+	elif [ "$_VW_VAR_MAX_ROW" != 'x' ]; then
+		VW_VAR_MAX_ROW="$_VW_VAR_MAX_ROW"
+	fi
+	if [ "$_VW_VAR_MAX_COLUMN" = 'd' ]; then
+		VW_VAR_MAX_COLUMN="$VW_VAR_POS_IDX"
+	elif [ "$_VW_VAR_MAX_COLUMN" != 'x' ]; then
+		VW_VAR_MAX_COLUMN="$_VW_VAR_MAX_COLUMN"
+	fi
+
+	if [ "$_VW_VAR_ROW" = 'd' ]; then
+		VW_VAR_ROW="$VW_VAR_POS_IDX"
+	elif [ "$_VW_VAR_ROW" != 'x' ]; then
+		VW_VAR_ROW="$_VW_VAR_ROW"
+		#VW_VAR_ROW=`expr $VW_VAR_ROW % \( $VW_VAR_MAX_ROW + 1 \)`
+		VW_VAR_ROW=$(( $VW_VAR_ROW % $(( $VW_VAR_MAX_ROW + 1 )) ))
+		if [ -z "$VW_VAR_ROW" ]; then
+			VW_VAR_ROW='0'
+		fi
+	fi
+	if [ "$_VW_VAR_COLUMN" = 'd' ]; then
+		VW_VAR_COLUMN='0'
+	elif [ "$_VW_VAR_COLUMN" != 'x' ]; then
+		VW_VAR_COLUMN="$_VW_VAR_COLUMN"
+		#VW_VAR_COLUMN=`expr $VW_VAR_COLUMN % \( $VW_VAR_MAX_COLUMN + 1 \)`
+		VW_VAR_COLUMN=$(( $VW_VAR_COLUMN % $(( $VW_VAR_MAX_COLUMN + 1 )) ))
+		if [ -z "$VW_VAR_COLUMN" ]; then
+			VW_VAR_COLUMN='0'
+		fi
+	fi
+	#VW_VAR_LAYOUT=`expr $VW_VAR_MAX_ROW + 1`x`expr $VW_VAR_MAX_COLUMN + 1`
+	VW_VAR_LAYOUT=$(( $VW_VAR_MAX_ROW + 1 ))x$(( $VW_VAR_MAX_COLUMN + 1 ))
+
+	vw_enable
+	./astparam s vw_max_row ${VW_VAR_MAX_ROW}
+	./astparam s vw_max_column ${VW_VAR_MAX_COLUMN}
+	./astparam s vw_row ${VW_VAR_ROW}
+	./astparam s vw_column ${VW_VAR_COLUMN}
+	./astparam save
+}
+
+handle_e_vw_moninfo()
+{
+	#VW_VAR_MONINFO_HA=`expr "$1" : 'e_vw_moninfo_\([[:digit:]]\{1,\}\)_[[:digit:]]\{1,\}_[[:digit:]]\{1,\}_[[:digit:]]\{1,\}'`
+	#VW_VAR_MONINFO_HT=`expr "$1" : 'e_vw_moninfo_[[:digit:]]\{1,\}_\([[:digit:]]\{1,\}\)_[[:digit:]]\{1,\}_[[:digit:]]\{1,\}'`
+	#VW_VAR_MONINFO_VA=`expr "$1" : 'e_vw_moninfo_[[:digit:]]\{1,\}_[[:digit:]]\{1,\}_\([[:digit:]]\{1,\}\)_[[:digit:]]\{1,\}'`
+	#VW_VAR_MONINFO_VT=`expr "$1" : 'e_vw_moninfo_[[:digit:]]\{1,\}_[[:digit:]]\{1,\}_[[:digit:]]\{1,\}_\([[:digit:]]\{1,\}\)'`
+	_IFS="$IFS";IFS='_';set -- $*;shift 3;IFS="$_IFS"
+	VW_VAR_MONINFO_HA=$1
+	VW_VAR_MONINFO_HT=$2
+	VW_VAR_MONINFO_VA=$3
+	VW_VAR_MONINFO_VT=$4
+
+	echo "HA=$VW_VAR_MONINFO_HA HT=$VW_VAR_MONINFO_HT VA=$VW_VAR_MONINFO_VA VT=$VW_VAR_MONINFO_VT"
+	if [ -z "$VW_VAR_MONINFO_HA" ]; then
+		VW_VAR_MONINFO_HA='0'
+	fi
+	if [ -z "$VW_VAR_MONINFO_HT" ]; then
+		VW_VAR_MONINFO_HT='0'
+	fi
+	if [ -z "$VW_VAR_MONINFO_VA" ]; then
+		VW_VAR_MONINFO_VA='0'
+	fi
+	if [ -z "$VW_VAR_MONINFO_VT" ]; then
+		VW_VAR_MONINFO_VT='0'
+	fi
+	echo "$VW_VAR_MONINFO_HA $VW_VAR_MONINFO_HT $VW_VAR_MONINFO_VA $VW_VAR_MONINFO_VT" > "$VIDEO_SYS_PATH"/vw_frame_comp
+
+	astparam s vw_moninfo_ha "$VW_VAR_MONINFO_HA"
+	astparam s vw_moninfo_ht "$VW_VAR_MONINFO_HT"
+	astparam s vw_moninfo_va "$VW_VAR_MONINFO_VA"
+	astparam s vw_moninfo_vt "$VW_VAR_MONINFO_VT"
+	astparam save
+}
+
+#
+# e_vw_refresh_pos_idx_start_$RowCnt_$ColCnt
+# e_vw_refresh_pos_idx_head_$TheMac_$PosIdx
+# e_vw_refresh_pos_idx_tail_$TheMac_$TailIdx
+#
+# e_vw_refresh_pos_idx_force_$PosIdx_$TailIdx
+#
+handle_e_vw_refresh_pos_idx()
+{
+	_cmd=$*
+
+	case "$_cmd" in
+		e_vw_refresh_pos_idx_start_?*)
+			## A7 to be removed. Drop rs232 chain support
+			return
+		;;
+		e_vw_refresh_pos_idx_force_?*)
+			#VW_VAR_POS_IDX=`expr $* : 'e_vw_refresh_pos_idx_force_\([[:alnum:]]\{1,\}\)_[[:alnum:]]\{1,\}'`
+			#VW_VAR_TAIL_IDX=`expr $* : 'e_vw_refresh_pos_idx_force_[[:alnum:]]\{1,\}_\([[:alnum:]]\{1,\}\)'`
+			_IFS="$IFS";IFS='_';set -- $_cmd;shift 6;IFS="$_IFS"
+			VW_VAR_POS_IDX=$1
+			VW_VAR_TAIL_IDX=$2
+			VW_VAR_THE_MAX_ROW="$VW_VAR_TAIL_IDX"
+			VW_VAR_POS_R="$VW_VAR_POS_IDX"
+			VW_VAR_POS_C='0'
+			THE_ROW_ID="$VW_VAR_POS_IDX"
+			astparam s vw_pos_idx "$VW_VAR_POS_IDX"
+			astparam s vw_tail_idx "$VW_VAR_TAIL_IDX"
+			astparam save
+			return
+		;;
+		e_vw_refresh_pos_idx_head_?* | e_vw_refresh_pos_idx_tail_?*)
+			## A7 to be removed. Drop rs232 chain support
+			return
+		;;
+		*)
+			return
+		;;
+	esac
+}
+
+handle_e_vw_v_shift_d()
+{
+	#VW_VAR_V_SHIFT=`expr "$*" : 'e_vw_v_shift_d_\([[:digit:]]\{1,\}\)'`
+	_IFS="$IFS";IFS='_';set -- $*;shift 5;IFS="$_IFS"
+	VW_VAR_V_SHIFT=$1
+
+	if [ -z "$VW_VAR_V_SHIFT" ]; then
+		VW_VAR_V_SHIFT='0'
+	fi
+	echo "$VW_VAR_V_SHIFT" > "$VIDEO_SYS_PATH"/vw_v_shift
+	astparam s vw_v_shift "$VW_VAR_V_SHIFT"
+	astparam save
+}
+handle_e_vw_v_shift_u()
+{
+	#VW_VAR_V_SHIFT=`expr "$*" : 'e_vw_v_shift_u_\([[:digit:]]\{1,\}\)'`
+	_IFS="$IFS";IFS='_';set -- $*;shift 5;IFS="$_IFS"
+	VW_VAR_V_SHIFT=$1
+
+	if [ -z "$VW_VAR_V_SHIFT" ]; then
+		VW_VAR_V_SHIFT='0'
+	fi
+	if [ "$VW_VAR_V_SHIFT" != '0' ]; then
+		VW_VAR_V_SHIFT="-$VW_VAR_V_SHIFT"
+	fi
+	echo "$VW_VAR_V_SHIFT" > "$VIDEO_SYS_PATH"/vw_v_shift
+	astparam s vw_v_shift "$VW_VAR_V_SHIFT"
+	astparam save
+}
+
+handle_e_vw_reset_to_pos()
+{
+	#_VW_VAR_MAX_ROW=`expr "$*" : 'e_vw_reset_to_pos_\([[:alnum:]]\{1,\}\)_[[:alnum:]]\{1,\}'`
+	#_VW_VAR_MAX_COLUMN=`expr "$*" : 'e_vw_reset_to_pos_[[:alnum:]]\{1,\}_\([[:alnum:]]\{1,\}\)'`
+	_IFS="$IFS";IFS='_';set -- $*;shift 5;IFS="$_IFS"
+	_VW_VAR_MAX_ROW=$1
+	_VW_VAR_MAX_COLUMN=$2
+
+	if [ -z "$_VW_VAR_MAX_ROW" ]; then
+		_VW_VAR_MAX_ROW='x'
+	fi
+	if [ -z "$_VW_VAR_MAX_COLUMN" ]; then
+		_VW_VAR_MAX_COLUMN='x'
+	fi
+
+	if [ "$_VW_VAR_MAX_ROW" = 'd' ]; then
+		VW_VAR_MAX_ROW="$VW_VAR_POS_IDX"
+	elif [ "$_VW_VAR_MAX_ROW" != 'x' ]; then
+		VW_VAR_MAX_ROW="$_VW_VAR_MAX_ROW"
+	fi
+	if [ "$_VW_VAR_MAX_COLUMN" = 'd' ]; then
+		VW_VAR_MAX_COLUMN="$VW_VAR_POS_IDX"
+	elif [ "$_VW_VAR_MAX_COLUMN" != 'x' ]; then
+		VW_VAR_MAX_COLUMN="$_VW_VAR_MAX_COLUMN"
+	fi
+
+	VW_VAR_ROW="$VW_VAR_POS_R"
+	VW_VAR_COLUMN="$VW_VAR_POS_C"
+	#VW_VAR_MONINFO_HA='0'
+	#VW_VAR_MONINFO_HT='0'
+	#VW_VAR_MONINFO_VA='0'
+	#VW_VAR_MONINFO_VT='0'
+	VW_VAR_H_SHIFT='0'
+	VW_VAR_V_SHIFT='0'
+	VW_VAR_H_SCALE='0'
+	VW_VAR_V_SCALE='0'
+	VW_VAR_DELAY_KICK='0'
+	echo "$VW_VAR_V_SHIFT" > "$VIDEO_SYS_PATH"/vw_v_shift
+	vw_enable
+	astparam s vw_max_row "$VW_VAR_MAX_ROW"
+	astparam s vw_max_column "$VW_VAR_MAX_COLUMN"
+	astparam s vw_row "$VW_VAR_ROW"
+	astparam s vw_column "$VW_VAR_COLUMN"
+	#astparam s vw_h_shift "$VW_VAR_H_SHIFT"
+	astparam s vw_v_shift "$VW_VAR_V_SHIFT"
+	#astparam s vw_h_scale "$VW_VAR_H_SCALE"
+	#astparam s vw_v_scale "$VW_VAR_V_SCALE"
+	#astparam s vw_delay_kick "$VW_VAR_DELAY_KICK"
+	astparam save
+}
+
+handle_e_vw_reset_to_pos_s()
+{
+	VW_VAR_MAX_ROW='0'
+	VW_VAR_MAX_COLUMN='0'
+	VW_VAR_ROW='0'
+	VW_VAR_COLUMN='0'
+	#VW_VAR_MONINFO_HA='0'
+	#VW_VAR_MONINFO_HT='0'
+	#VW_VAR_MONINFO_VA='0'
+	#VW_VAR_MONINFO_VT='0'
+	VW_VAR_H_SHIFT='0'
+	VW_VAR_V_SHIFT='0'
+	VW_VAR_H_SCALE='0'
+	VW_VAR_V_SCALE='0'
+	VW_VAR_DELAY_KICK='0'
+	echo "$VW_VAR_V_SHIFT" > "$VIDEO_SYS_PATH"/vw_v_shift
+	vw_enable
+	astparam s vw_max_row "$VW_VAR_MAX_ROW"
+	astparam s vw_max_column "$VW_VAR_MAX_COLUMN"
+	astparam s vw_row "$VW_VAR_ROW"
+	astparam s vw_column "$VW_VAR_COLUMN"
+	#astparam s vw_h_shift "$VW_VAR_H_SHIFT"
+	astparam s vw_v_shift "$VW_VAR_V_SHIFT"
+	#astparam s vw_h_scale "$VW_VAR_H_SCALE"
+	#astparam s vw_v_scale "$VW_VAR_V_SCALE"
+	#astparam s vw_delay_kick "$VW_VAR_DELAY_KICK"
+	astparam save
+}
+
+select_audio_input()
+{
+	# $1: hdmi, analog
+	local _type="$1"
+
+	if [ -f "$I2S_SYS_PATH/io_select" ]; then
+		echo "$_type" > $I2S_SYS_PATH/io_select
+	fi
+}
+
+handle_e_v_input_digital()
+{
+	apply_profile_config 'digital'
+	select_audio_input `select_a_input`
+}
+
+handle_e_v_input_analog()
+{
+	apply_profile_config 'analog'
+	select_audio_input `select_a_input`
+}
+
+handle_e_v_input_0()
+{
+	# Triggered by 'v_input' GPIO interrupt event.
+	# Digital port selected.
+
+	# For the design that astparam has higher priority than GPIO.
+	apply_profile_config `select_v_input gpio`
+
+	# User toggle GPIO has higher priority than astparam specific setting.
+	#apply_profile_config 'digital'
+
+	select_audio_input `select_a_input`
+}
+
+handle_e_v_input_1()
+{
+	# Triggered by 'v_input' GPIO interrupt event.
+	# Analog port selected.
+
+	# For the design that astparam has higher priority than GPIO.
+	apply_profile_config `select_v_input gpio`
+
+	# User toggle GPIO has higher priority than astparam specific setting.
+	#apply_profile_config 'analog'
+
+	select_audio_input `select_a_input`
+}
+
+handle_e_v_src_unavailable()
+{
+	apply_profile_config `select_v_input swap`
+	select_audio_input `select_a_input`
+}
+
+handle_e_a_input_0()
+{
+	# e_a_input_0 event is triggered by host line in hotplug GPIO
+	# Select a_input port 0 (digital)
+	select_audio_input `select_a_input`
+}
+
+handle_e_a_input_1()
+{
+	# e_a_input_1 event is triggered by host line in hotplug GPIO
+	# Select a_input port 1 (analog)
+	select_audio_input `select_a_input`
+}
+
+handle_e_vlm_notify_quality_mode_chg()
+{
+	# notified by vLM
+	V_QUALITY_MODE=`ipc @v_lm_query q ve_param_query:V_QUALITY_MODE`
+	astparam s ast_video_quality_mode "$V_QUALITY_MODE"
+	astparam save
+}
+
+handle_e_vlm_notify_anti_dither_mode_chg()
+{
+	# notified by vLM
+	V_BCD_THRESHOLD=`ipc @v_lm_query q ve_param_query:V_BCD_THRESHOLD`
+	astparam s v_bcd_threshold "$V_BCD_THRESHOLD"
+	astparam save
+}
+
+handle_e_vlm_notify_snoop_chg()
+{
+	# notified by vLM
+	V_LOOPBACK_ENABLED=`ipc @v_lm_query q ve_param_query:V_LOOPBACK_ENABLED`
+}
+
+handle_e_ulm_notify_chg()
+{
+	USB_CLIENT_IP=`ipc @u_lm_query q ue_param_query:U_USBIP_CLIENT`
+}
+
+handle_e_video_stat()
+{
+	case "$1" in
+		e_video_stat_mode:?*)
+			if [ "$NO_KMOIP" = 'y' ]; then
+				# break is used to terminate the execution of entire loop
+				# place 'break' here will break the loop in state_machine()
+				# use return instead
+				return
+			fi
+			# e_video_stat_mode::x::y
+			_IFS="$IFS";IFS=':';set -- $1;IFS="$_IFS"
+			local x=$3
+			local y=$5
+			echo "Video Resolution: ${x}x${y}"
+			ipc @u_lm_set s ue_kmr_chg:${x}:${y}
+		;;
+		*)
+		;;
+	esac
+}
+
+handle_e_sh()
+{
+	#_str=`expr "$*" : 'e_sh_\(.*\)'`
+	_IFS="$IFS";IFS='_';set -- $*;shift 2;_str="$*";IFS="$_IFS"
+	parse_n_exec "$_str"
+}
+
+handle_e_sh_jsonp()
+{
+	#_str=`expr "$*" : 'callback=.+&e_sh_\(.*\)'`
+	_IFS="$IFS";IFS='&';set -- $*;shift;_str="$*";IFS="$_IFS"
+	_IFS="$IFS";IFS='_';set -- $_str;shift 2;_str="$*";IFS="$_IFS"
+	parse_n_exec "$_str"
+}
+
+handle_e_button()
+{
+	case "$*" in
+		e_button_link)
+			handle_e_button_link
+		;;
+		e_button_link_1)
+			handle_e_button_link_1
+		;;
+		e_button_pairing)
+			handle_e_button_pairing
+		;;
+		e_button_pairing_1)
+			handle_e_button_pairing_1
+		;;
+		*)
+		;;
+	esac
+}
+
+handle_e_pwr_status_changed()
+{
+	_IFS="$IFS";IFS=':';set -- $*;shift 2;IFS="$_IFS"
+	ipc @p_lm_set s pe_pwr_status_changed:$1
+}
+
+handle_e_vw()
+{
+	case "$*" in
+		e_vw_pos_layout_?*)
+			handle_e_vw_pos_layout "$event"
+		;;
+		e_vw_enable_?*)
+			handle_e_vw_enable "$event"
+		;;
+		e_vw_moninfo_?*)
+			handle_e_vw_moninfo "$event"
+		;;
+		e_vw_v_shift_u_?*)
+			handle_e_vw_v_shift_u "$event"
+		;;
+		e_vw_v_shift_d_?*)
+			handle_e_vw_v_shift_d "$event"
+		;;
+		e_vw_reset_to_pos_s_?*)
+			handle_e_vw_reset_to_pos_s "$event"
+		;;
+		e_vw_reset_to_pos_?*)
+			handle_e_vw_reset_to_pos "$event"
+		;;
+		e_vw_refresh_pos_idx_?*)
+			handle_e_vw_refresh_pos_idx "$event"
+		;;
+		*)
+			echo "Unknown Video Wall event?! ($*)"
+		;;
+	esac
+}
+
+handle_e_var_dump()
+{
+	_var_dump "$*"
+}
+
+handle_e_var_get()
+{
+	_var_get "$*"
+}
+
+handle_e_var_set()
+{
+	_var_set "$*"
+}
+
+handle_e_patch()
+{
+	# Used to patch link_mgrX.sh itself.
+	if [ -f ./patch_lmh.sh ]; then
+		source ./patch_lmh.sh
+	fi
+}
+
+handle_e_var()
+{
+	# running in subshell to prevent my variables been modified.
+	(
+		# Unset specal variables which may cause parsing problem.
+		unset _IFS
+		unset IFS
+		# Save all internal variables (lmparam) into /var/lm_var
+		set > /var/lm_var
+		# Remove shell built-in read only variables. Otherwise other shell can't "source" it.
+		{
+			sed '/^BASH*=*/d' < /var/lm_var |
+			sed '/^UID=*/d' |
+			sed '/^EUID=*/d' |
+			sed '/^PPID=*/d' |
+			sed '/^SHELL*=*/d' |
+			sed '/^_.*=*/d'	> /var/lm_var
+		}
+	) &
+	wait $!
+}
+
+state_machine()
+{
+	# Bruce160308. Try to ignore all TERM signals.
+	trap signal_handler SIGTERM SIGPIPE SIGHUP SIGINT SIGALRM SIGUSR1 SIGUSR2 SIGPROF SIGVTALRM
+
+	start_network 2
+	do_s_init
+
+	while true; do
+		event=`lm_get_event 2>/dev/null`
+		#echo "Receive $event event on $STATE state "`cat /proc/uptime`
+		case "$event" in
+			tick)
+				sleep 0.001
+				tickle_watchdog
+				sleep 0.001
+			;;
+			e_reconnect*)
+				handle_e_reconnect "$event"
+			;;
+			e_button_?*)
+				handle_e_button "$event"
+			;;
+			e_ip_got::?*)
+				handle_e_ip_got "$event"
+			;;
+			e_vw_?*)
+				handle_e_vw "$event"
+			;;
+			# Bruce130110. shell 'case' will see 'r1_r1c2_' as rXcX case. Which is wrong.
+			#r?*c?*_?*)
+			#	handle_rXcX "$event"
+			#;;
+			# A7 to be removed.
+			#r[0-9x]*_?*)
+			#	if echo "$event" | grep -q -e "^r[[:digit:]x]\{1,\}c[[:digit:]x]\{1,\}_.*" ; then
+			#		handle_rXcX "$event"
+			#	else
+			#		handle_RIDX "$event"
+			#	fi
+			#;;
+			e_sh_?*)
+				handle_e_sh "$event"
+			;;
+			callback=*)
+				handle_e_sh_jsonp "$event"
+			;;
+			e_btn_?*)
+				handle_"$event" "$event"
+			;;
+			e_var_dump::?*::?*)
+				sleep 0.001
+				handle_e_var_dump "$event"
+			;;
+			e_var_get::?*)
+				sleep 0.001
+				handle_e_var_get "$event"
+			;;
+			e_var_set::?*::?*)
+				sleep 0.001
+				handle_e_var_set "$event"
+			;;
+			e_pwr_status_changed::?*)
+				handle_e_pwr_status_changed "$event"
+			;;
+			e_osd?*)
+				# host do nothing, this is for ir decode osd
+			;;
+			e_ir_decoded*)
+				handle_e_ir_decoded "$event"
+			;;
+			e_video_stat_?*)
+				handle_e_video_stat "$event"
+			;;
+			e_?*)
+				tickle_watchdog
+				handle_"$event"
+			;;
+			*)
+				echo "ERROR!!!! Invalid event ($event) received"
+				# Bruce160308. If the $event is an empty string, is should be some kind of error when reading from event pipe.
+				# Ignoring this event, not ack the pipe should be good to go.
+			;;
+		esac
+		#echo "End of $event event on $STATE state "`cat /proc/uptime`
+	done
+}
+
+init_param_from_flash()
+{
+	init_share_param_from_flash
+
+	LOOPBACK_DEFAULT_ON=`astparam g loopback_default_on`
+	if echo "$LOOPBACK_DEFAULT_ON" | grep -q "not defined" ; then
+		LOOPBACK_DEFAULT_ON=`astparam r loopback_default_on`
+		if echo "$LOOPBACK_DEFAULT_ON" | grep -q "not defined" ; then
+			LOOPBACK_DEFAULT_ON='y'
+		fi
+	fi
+	echo "loopback_default_on: $LOOPBACK_DEFAULT_ON"
+
+	LOOPBACK_EDID_PATCH=`astparam g loopback_edid_patch`
+	if echo "$LOOPBACK_EDID_PATCH" | grep -q "not defined" ; then
+		LOOPBACK_EDID_PATCH=`astparam r loopback_edid_patch`
+		if echo "$LOOPBACK_EDID_PATCH" | grep -q "not defined" ; then
+			if [ "$SOC_OP_MODE" = '1' ]; then
+				LOOPBACK_EDID_PATCH='00000000'
+			else
+				LOOPBACK_EDID_PATCH='00000000'
+			fi
+		fi
+	fi
+	echo "LOOPBACK_EDID_PATCH=$LOOPBACK_EDID_PATCH"
+
+	REMOTE_EDID_PATCH=`astparam g remote_edid_patch`
+	if echo "$REMOTE_EDID_PATCH" | grep -q "not defined" ; then
+		REMOTE_EDID_PATCH=`astparam r remote_edid_patch`
+		if echo "$REMOTE_EDID_PATCH" | grep -q "not defined" ; then
+			case "$SOC_OP_MODE" in
+			1)
+				REMOTE_EDID_PATCH='00230017'
+			;;
+			2)
+				REMOTE_EDID_PATCH='00000005'
+			;;
+			3)
+				REMOTE_EDID_PATCH='00000001'
+			;;
+			*)
+				REMOTE_EDID_PATCH='00000001'
+			;;
+			esac
+		fi
+	fi
+	echo "REMOTE_EDID_PATCH=$REMOTE_EDID_PATCH"
+
+#	DEFAULT_KSV=`astparam g default_ksv`
+#	if echo "$DEFAULT_KSV" | grep -q "not defined" ; then
+#		DEFAULT_KSV=`astparam r default_ksv`
+#		if echo "$DEFAULT_KSV" | grep -q "not defined" ; then
+#			DEFAULT_KSV='unavailable'
+#		fi
+#	fi
+
+	HDCP2_DCP_PUBLIC_KEY=`astparam g hdcp2_dcp_public_key`
+	if echo "$HDCP2_DCP_PUBLIC_KEY" | grep -q "not defined" ; then
+		HDCP2_DCP_PUBLIC_KEY=`astparam r hdcp2_dcp_public_key`
+		if echo "$HDCP2_DCP_PUBLIC_KEY" | grep -q "not defined" ; then
+			HDCP2_DCP_PUBLIC_KEY='unavailable'
+		fi
+	fi
+
+	# Bruce120712. NO_USB should act as the main ON/OFF switch
+	#if [ "$SHARE_USB" = 'y' ]; then
+	#	echo "Host force NO_USB=n under SHARE_USB mode"
+	#	NO_USB='n'
+	#fi
+
+	USB_SET_ADDR_HACK=`astparam g usb_set_addr_hack`
+	if echo "$USB_SET_ADDR_HACK" | grep -q "not defined" ; then
+		USB_SET_ADDR_HACK=`astparam r usb_set_addr_hack`
+		if echo "$USB_SET_ADDR_HACK" | grep -q "not defined" ; then
+			USB_SET_ADDR_HACK='0'
+		fi
+	fi
+
+	USB_HID_URB_INTERVAL=`astparam g usb_hid_urb_interval`
+	if echo "$USB_HID_URB_INTERVAL" | grep -q "not defined" ; then
+		USB_HID_URB_INTERVAL=`astparam r usb_hid_urb_interval`
+		if echo "$USB_HID_URB_INTERVAL" | grep -q "not defined" ; then
+			#USB_HID_URB_INTERVAL='35' # Set to 35 to resolve some USB HID long latency issue
+			USB_HID_URB_INTERVAL='0'
+		fi
+	fi
+
+	USB_QUIRK=`astparam g usb_quirk`
+	if echo "$USB_QUIRK" | grep -q "not defined" ; then
+		USB_QUIRK=`astparam r usb_quirk`
+		if echo "$USB_QUIRK" | grep -q "not defined" ; then
+			# VHUB_QUIRK_BULK_SSPLIT (0x1UL << 0)
+			USB_QUIRK='0'
+		fi
+	fi
+
+	V_RX_DRV=`astparam g v_rx_drv`
+	if echo "$V_RX_DRV" | grep -q "not defined" ; then
+		V_RX_DRV=`astparam r v_rx_drv`
+		if echo "$V_RX_DRV" | grep -q "not defined" ; then
+			if [ "$SOC_VER" = '1' ] || [ "$SOC_VER" = '2' ]; then
+				# FIXME. This is actually platform dependent
+				V_RX_DRV='cat6023'
+			else
+				case "$BOARD_REVISION" in
+				31*)
+					V_RX_DRV='it6805'
+				;;
+				*)
+					V_RX_DRV='it6802'
+				;;
+				esac
+			fi
+		fi
+	fi
+	# Update $HDMIRX_SYS_PATH
+	HDMIRX_SYS_PATH="/sys/devices/platform/$V_RX_DRV"
+
+	V_FRAME_RATE=`astparam g v_frame_rate`
+	if echo "$V_FRAME_RATE" | grep -q "not defined" ; then
+		V_FRAME_RATE=`astparam r v_frame_rate`
+		if echo "$V_FRAME_RATE" | grep -q "not defined" ; then
+			#V_FRAME_RATE='0' means off. Range: 0~60
+			V_FRAME_RATE='0'
+		fi
+	fi
+
+	V_ANALOG_EDGE_DETECT=`astparam g v_analog_edge_detect`
+	if echo "$V_ANALOG_EDGE_DETECT" | grep -q "not defined" ; then
+		V_ANALOG_EDGE_DETECT=`astparam r v_analog_edge_detect`
+		if echo "$V_ANALOG_EDGE_DETECT" | grep -q "not defined" ; then
+			#V_ANALOG_EDGE_DETECT Range: 0~255
+			V_ANALOG_EDGE_DETECT='0x25'
+		fi
+	fi
+
+	V_INPUT_SELECT=`astparam g v_input_select`
+	if echo "$V_INPUT_SELECT" | grep -q "not defined" ; then
+		V_INPUT_SELECT=`astparam r v_input_select`
+		if echo "$V_INPUT_SELECT" | grep -q "not defined" ; then
+			# Options: auto, detect_sync, fixed
+			V_INPUT_SELECT='auto'
+		fi
+	fi
+
+	V_DUAL_INPUT=`astparam g v_dual_input`
+	if echo "$V_DUAL_INPUT" | grep -q "not defined" ; then
+		V_DUAL_INPUT=`astparam r v_dual_input`
+		if echo "$V_DUAL_INPUT" | grep -q "not defined" ; then
+			V_DUAL_INPUT='undefined'
+		fi
+	fi
+
+	# Print the final parameters
+	echo_parameters
+}
+
+signal_handler()
+{
+	echo ""
+	echo ""
+	echo ""
+	echo "ERROR!!!! LM received signal!!!!!! Ignore it."
+	echo ""
+	echo ""
+	echo ""
+}
+
+#set -x
+#### main #####
+export PATH="${PATH}":/usr/local/bin
+cd /usr/local/bin
+. ./include.sh
+. ./ir_decode.sh
+# Used to patch link_mgrX.sh itself.
+if [ -f ./patch_lmh.sh ]; then
+	. ./patch_lmh.sh
+fi
+
+init_watchdog
+
+#mknod $PIPE_INFO_LOCAL p    TBD
+#mknod $PIPE_INFO_REMOTE p   TBD
+
+ifconfig lo up
+# initialize parameters
+init_param_from_flash
+
+# overwrite parameters from pssed in parameters
+while [ -n "$1" ]; do
+	if [ "$1" = "no_video" ]; then
+		echo "NO_VIDEO"
+		NO_VIDEO='y'
+	elif [ "$1" = "no_usb" ]; then
+		echo "NO_USB"
+		NO_USB='y'
+	elif [ "$1" = "no_i2s" ]; then
+		echo "NO_I2S"
+		NO_I2S='y'
+	elif [ "$1" = "no_ir" ]; then
+		echo "NO_IR"
+		NO_IR='y'
+	elif [ "$1" = "debug" ]; then
+		echo "DBG"
+		DBG='1'
+		set -x
+	fi
+	shift 1
+done
+
+# $AST_PLATFORM = ast1500hv4 or ptv1500hv2 or pce1500hv3
+echo ""
+echo "#### platform info:$AST_PLATFORM ####"
+if [ -z "$AST_PLATFORM" ]; then
+	echo "ERROR! no AST_PLATFORM info."
+	exit 1;
+fi
+
+handle_button_on_boot
+
+# start event_monitor
+ast_event_monitor &
+EM_PID=$!
+
+STATE='s_init'
+echo $STATE > $DEVICE_STATUS_FILE
+update_node_info STATE $STATE
+
+# Disable OOM Killer
+echo 1 > /proc/sys/vm/overcommit_memory
+
+# Start state machine in another process scope
+state_machine &
+
+# Bruce130123. Moved to state_machine. Avoid parameter scope problem.
+#start_network 2
+#do_s_init
+
+# A7 to be removed. I stopped watchdog for development A7
+# disable watchdog after 'sys_init_ok', let system reboot if it cannot get IP address from DHCP
+#disable_watchdog

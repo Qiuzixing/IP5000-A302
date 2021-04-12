@@ -1,0 +1,5 @@
+#!/bin/bash
+
+CEC_SYSFS_PATH_TOPOLOGY_RAW=/sys/devices/platform/cec/topology_raw
+
+cat $CEC_SYSFS_PATH_TOPOLOGY_RAW

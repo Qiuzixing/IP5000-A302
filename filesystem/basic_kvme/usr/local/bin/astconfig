@@ -1,0 +1,56 @@
+#!/bin/sh
+
+if [ "$1" = "channel" ]; then
+	#Query the gpio value by writing 0 to it
+	echo 0 > /sys/class/leds/ch0/brightness 2>/dev/null
+	echo 0 > /sys/class/leds/ch1/brightness 2>/dev/null
+	echo 0 > /sys/class/leds/ch2/brightness 2>/dev/null
+	echo 0 > /sys/class/leds/ch3/brightness 2>/dev/null
+	#Get the value now
+	ch0=`cat /sys/class/leds/ch0/brightness 2>/dev/null`
+	ch1=`cat /sys/class/leds/ch1/brightness 2>/dev/null`
+	ch2=`cat /sys/class/leds/ch2/brightness 2>/dev/null`
+	ch3=`cat /sys/class/leds/ch3/brightness 2>/dev/null`
+
+	echo "$ch0""$ch1""$ch2""$ch3"
+elif [ "$1" = "address" ]; then
+	#Query the gpio value by writing 0 to it
+	echo 0 > /sys/class/leds/as0/brightness 2>/dev/null
+	echo 0 > /sys/class/leds/as1/brightness 2>/dev/null
+	echo 0 > /sys/class/leds/as2/brightness 2>/dev/null
+	echo 0 > /sys/class/leds/as3/brightness 2>/dev/null
+	echo 0 > /sys/class/leds/as4/brightness 2>/dev/null
+	echo 0 > /sys/class/leds/as5/brightness 2>/dev/null
+	echo 0 > /sys/class/leds/as6/brightness 2>/dev/null
+	echo 0 > /sys/class/leds/as7/brightness 2>/dev/null
+	#Get the value now
+	as0=`cat /sys/class/leds/as0/brightness 2>/dev/null`
+	as1=`cat /sys/class/leds/as1/brightness 2>/dev/null`
+	as2=`cat /sys/class/leds/as2/brightness 2>/dev/null`
+	as3=`cat /sys/class/leds/as3/brightness 2>/dev/null`
+	as4=`cat /sys/class/leds/as4/brightness 2>/dev/null`
+	as5=`cat /sys/class/leds/as5/brightness 2>/dev/null`
+	as6=`cat /sys/class/leds/as6/brightness 2>/dev/null`
+	as7=`cat /sys/class/leds/as7/brightness 2>/dev/null`
+
+	echo "$as0""$as1""$as2""$as3""$as4""$as5""$as6""$as7"
+elif [ "$1" = "mac" ]; then
+	#_mac_str=`/usr/local/bin/astparam r ethaddr`
+	#if [ "$_mac_str" = "\"ethaddr\" not defined" ]; then
+	#	#echo "ERROR!!! MAC addr not defined!"
+	#	_mac_str='00:01:02:03:04:06'
+	#fi
+
+	_mac_str=`ifconfig | grep "eth0      Link encap:Ethernet  HWaddr"`
+	_mac_str=`expr "$_mac_str" : 'eth0      Link encap:Ethernet  HWaddr \(.................\)'`
+	
+	_mac0=`expr "$_mac_str" : '\(..\):..:..:..:..:..'`
+	_mac1=`expr "$_mac_str" : '..:\(..\):..:..:..:..'`
+	_mac2=`expr "$_mac_str" : '..:..:\(..\):..:..:..'`
+	_mac3=`expr "$_mac_str" : '..:..:..:\(..\):..:..'`
+	_mac4=`expr "$_mac_str" : '..:..:..:..:\(..\):..'`
+	_mac5=`expr "$_mac_str" : '..:..:..:..:..:\(..\)'`
+	
+	echo "$_mac0""$_mac1""$_mac2""$_mac3""$_mac4""$_mac5"
+fi
+

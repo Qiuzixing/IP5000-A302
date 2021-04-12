@@ -1,0 +1,6 @@
+#!/bin/bash
+
+CEC_SYSFS_PATH_PA_REQ=/sys/devices/platform/SiI9136/pa_req
+if [ -e $CEC_SYSFS_PATH_PA_REQ ]; then
+echo 1 > $CEC_SYSFS_PATH_PA_REQ
+fi

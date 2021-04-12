@@ -1,0 +1,49 @@
+ 
+# Please modify here or set environments.
+# KSOURCE should be pointed to the build directory of your kernel.
+# 
+#DEBUG ?= n 
+#KSOURCE ?= ../../../kernel/linux-2.6.15.7
+#KSOURCE=$(KERNELDIR)
+
+PWD       := $(shell pwd)
+
+%.x:%.c
+	arm-aspeed-linux-gnu-gcc -o $@ $<
+
+KBUILD_VERBOSE:=1
+
+i2s-objs 	  := 1500_i2s.o
+
+obj-m += 1500_i2s.o
+
+ifdef CONFIG_ARCH_AST1500_CLIENT
+	EXTRA_CFLAGS += -DI2S_CLIENT
+endif
+
+default:
+	#make -C $(KSOURCE) LANG=C KBUILD_VERBOSE=${KBUILD_VERBOSE}  M=$(PWD) modules
+	cp -f 1500_i2s.ko ../../../rootfs/usr/local/bin
+	cp -f 1500_i2s.ko /tftpboot
+
+host:
+	make KSOURCE=../../../kernel/host default
+	cp -f 1500_i2s.ko ../../drivers/host
+
+client:
+	make KSOURCE=../../../kernel/client default
+	cp -f 1500_i2s.ko ../../drivers/client
+
+check:
+	#make -C $(KSOURCE) LANG=C KBUILD_VERBOSE=${KBUILD_VERBOSE} C=1 M=`pwd` modules checkstack namespacecheck headers_check
+	make -C $(KSOURCE) LANG=C KBUILD_VERBOSE=${KBUILD_VERBOSE} C=1 M=`pwd` modules
+
+.PHONY: cscope
+cscope:
+	cscope -b -k -R
+
+.PHONY: clean
+clean:
+	#rm -rf *.o *~ core .depend .*.cmd *.ko *.mod.c .tmp_versions
+	rm -rf *.o *~ core .depend .*.cmd *.mod.c .tmp_versions
+

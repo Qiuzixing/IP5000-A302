@@ -1,0 +1,130 @@
+
+
+<div id="tab-panel-system">
+	<div id="accordion_sys" style="display:none">
+	<div>
+		<h3 id="accordion_sys_ver_info"><a href="#">Version Information:</a></h3>
+		<div>
+			<iframe src="version.html" name="fw version" width=100% frameborder=0>
+			Can't display firmware version
+			</iframe>
+		</div>
+		<h3 id="accordion_sys_update_fw"><a href="#">Update Firmware:</a></h3>
+		<div>
+			<iframe src="index_fw.html" name="update fw" height=500px width=100% frameborder=0>
+			Can't display firmware update page
+			</iframe>
+		</div>
+		<h3 id="accordion_sys_utilities"><a href="#">Utilities:</a></h3>
+		<div>
+			<fieldset>
+				<legend>Commands</legend>
+				<div>
+					<button id="button_sys_reset2default_apply">Factory Default</button>
+					<button id="button_sys_reboot_apply">Reboot</button>
+					<p></p><hr />
+				</div>
+				<div id="field_func_edid" style="display:none">
+					<div class="ID_video_default_edid gen-div" style="display:none">
+						<label> Reset EDID to Default Value:</label>
+						<div class="ID_video_default_edid_type gen-div gen-indent-l1">
+							<input type="radio" class="HDMI" name="default_edid" value="hdmi" checked="checked"><label> Default HDMI EDID</label><br />
+							<input type="radio" class="DVI" name="default_edid" value="dvi"><label> Default DVI EDID</label><br />
+							<input type="radio" class="VGA" name="default_edid" value="vga"><label> Default VGA EDID</label><br />
+						</div>
+						<div class="gen-div">
+						<button class="gen-button-apply">Apply</button><br /><br />
+						</div>
+						<p></p><hr />
+					</div>
+				</div>
+
+			</fieldset>
+			<fieldset>
+				<legend>Console API Command</legend>
+				<p>
+					<!--<label for="text_sys_console_api">Console API Command:</label><br />-->
+					<input type="text" id="text_sys_console_api" value="" class="input-text-long"> 
+					<button id="button_sys_console_api_apply" class="button-sys-apply">Apply</button>
+				</p>
+				<p>
+					<fieldset>
+					<legend>Output</legend>
+					<div id="console_api_stdout" style="overflow:auto; max-width:590px">
+					</div>
+					</fieldset>
+				</p>
+			</fieldset>
+		</div>
+		<h3 id="accordion_sys_statistics"><a href="#">Statistics:</a></h3>
+		<div id="sys_statistics">
+			<fieldset class="ID_field_lm_stat" style="display: none">
+				<legend>State Machine</legend>
+				<div style="overflow:auto; max-width:590px">
+					State: <span class="ID_lm_stat"></span>
+				</div>
+			</fieldset>
+			<fieldset class="ID_field_net_stat" style="display: none">
+				<legend>Network</legend>
+				<p><div style="overflow:auto; max-width:590px">
+					ID (Host Name): <span class="ID_net_hostname_id"></span>
+				</div></p>
+				<p><div style="overflow:auto; max-width:590px">
+					IP Address: <span class="ID_net_stat_ip"></span>
+				</div></p>
+				<p><div style="overflow:auto; max-width:590px">
+					Subnet Mask: <span class="ID_net_stat_netmask"></span>
+				</div></p>
+				<p><div style="overflow:auto; max-width:590px">
+					Default Gateway: <span class="ID_net_stat_gatewayip"></span>
+				</div></p>
+				<p><div style="overflow:auto; max-width:590px">
+					MAC Address: <span class="ID_net_stat_mac"></span>
+				</div></p>
+				<p><div style="overflow:auto; max-width:590px">
+					Casting Mode: <span class="ID_net_stat_casting"></span>
+				</div></p>
+				<p><div style="overflow:auto; max-width:590px">
+					Link Status: <span class="ID_net_stat_link_state"></span>
+				</div></p>
+				<p><div style="overflow:auto; max-width:590px">
+					Link Mode: <span class="ID_net_stat_link_mode"></span>
+				</div></p>
+			</fieldset>
+			<fieldset class="ID_field_video_stat" style="display: none">
+				<legend>Video</legend>
+				<p>
+				<div style="overflow:auto; max-width:590px; display: none">
+					EDID Used:
+					<div class="ID_video_stat_edid">
+					</div>
+				</div>
+				</p>
+				<hr />
+				<p>
+				<div style="overflow:auto; max-width:590px">
+					Local Video Output:
+					<div class="ID_video_stat_monitor_info">
+					</div>
+				</div>
+				</p>
+				<hr />
+				<p>
+				<div style="overflow:auto; max-width:590px">
+					Video Timing Information:
+					<div class="ID_video_stat_timing_info">
+					</div>
+				</div>
+				</p>
+			</fieldset>
+		</div>
+	</div>
+	</div>
+	<!-- accordion ------------------------------------------------ -->
+	<script type="text/javascript">
+		$("#accordion_sys").accordion({
+			header: "h3",
+			autoHeight: false
+		}).show();
+	</script>
+</div>

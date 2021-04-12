@@ -1,0 +1,40 @@
+
+/*
+button.button-whole-col,
+#btn_all_host
+{
+	width: 4.5em;
+}
+*/
+#target_selection input[type='checkbox']+[role='button'] {
+	width: 4.5em;
+}
+
+#tb_vw_adv_target_select,
+#tb_vw_adv_target_select_host,
+#tb_vw_adv_target_select_client
+{
+	table-layout: auto;
+	width: auto;
+}
+
+#tb_vw_adv_target_select_host td,
+#tb_vw_adv_target_select_client td
+{
+	//background: #E5ECF9;
+	background: #C3D9FF;
+}
+
+#tb_vw_adv_target_select_host .tb-button,
+#tb_vw_adv_target_select_client .tb-button
+{
+	background: #E5ECF9;
+	//background: white;
+}
+
+#tb_vw_adv_target_select_host thead th,
+#tb_vw_adv_target_select_client thead th
+{
+	background: #E5ECF9;
+	//background: white;
+}

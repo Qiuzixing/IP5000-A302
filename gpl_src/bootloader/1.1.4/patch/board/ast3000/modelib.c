@@ -1,0 +1,956 @@
+/*
+ * (C) Copyright 2002
+ * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
+ *
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
+ */
+
+/*
+ * Diagnostics support
+ */
+#include <common.h>
+#include <command.h>
+#include <post.h>
+#include "slt.h"
+
+#if (((CFG_CMD_SLT & CFG_CMD_OSDTEST)  || (CFG_CMD_SLT & CFG_CMD_2DTEST) || (CFG_CMD_SLT & CFG_CMD_HWCTEST)) && defined(CONFIG_SLT))
+#include "modelib.h"
+
+/* CH7301 Modules */
+#define I2C_BASE	0x1e78A000
+#define I2C_OFFSET1	(0x40 * 3)		/* port3 (CRT1) */
+#define I2C_DEVICEADDR1	0x0EA			/* slave addr */
+#define I2C_OFFSET2	(0x40 * 3)		/* port3 (CRT2) */
+#define I2C_DEVICEADDR2	0x0EC			/* slave addr */
+
+void SetChrontelReg(UCHAR jIndex, UCHAR jData, USHORT usWhichOne )
+{
+    ULONG ulData;	
+    ULONG ulI2CBase, ulDeviceAddr;
+
+    if (usWhichOne == CRT2 )
+    {
+        ulI2CBase = I2C_BASE + I2C_OFFSET2;
+        ulDeviceAddr = (ULONG) I2C_DEVICEADDR2;
+    }
+    else
+    {
+        ulI2CBase = I2C_BASE + I2C_OFFSET1;
+        ulDeviceAddr = (ULONG) I2C_DEVICEADDR1;
+    }
+        
+    *(ULONG *) (ulI2CBase + 0x00) = 0x0;
+    *(ULONG *) (ulI2CBase + 0x04) = 0x77743355;
+    *(ULONG *) (ulI2CBase + 0x08) = 0x0;
+    *(ULONG *) (ulI2CBase + 0x10) = 0xffffffff;
+    *(ULONG *) (ulI2CBase + 0x00) = 0x1;
+    *(ULONG *) (ulI2CBase + 0x0C) = 0xAF;
+    *(ULONG *) (ulI2CBase + 0x20) = ulDeviceAddr;
+    *(ULONG *) (ulI2CBase + 0x14) = 0x03;
+    do {
+        ulData = *(volatile ULONG *) (ulI2CBase + 0x10);
+    } while (!(ulData & 0x01));    
+    *(ULONG *) (ulI2CBase + 0x10) = 0xffffffff;
+    *(ULONG *) (ulI2CBase + 0x20) = (ULONG) jIndex;
+    *(ULONG *) (ulI2CBase + 0x14) = 0x02;
+    do {
+        ulData = *(volatile ULONG *) (ulI2CBase + 0x10);
+    } while (!(ulData & 0x01));    
+    *(ULONG *) (ulI2CBase + 0x10) = 0xffffffff;
+    *(ULONG *) (ulI2CBase + 0x20) = (ULONG) jData;
+    *(ULONG *) (ulI2CBase + 0x14) = 0x02;
+    do {
+        ulData = *(volatile ULONG *) (ulI2CBase + 0x10);
+    } while (!(ulData & 0x01));    
+    *(ULONG *) (ulI2CBase + 0x10) = 0xffffffff;
+    *(ULONG *) (ulI2CBase + 0x0C) |= 0x10;
+    *(ULONG *) (ulI2CBase + 0x14) = 0x20;
+    do {
+        ulData = *(volatile ULONG *) (ulI2CBase + 0x10);
+    } while (!(ulData & 0x10));
+    *(ULONG *) (ulI2CBase + 0x0C) &= 0xffffffef;        
+    *(ULONG *) (ulI2CBase + 0x10) = 0xffffffff;
+    
+}
+
+UCHAR GetChrontelReg(UCHAR jIndex, USHORT usWhichOne )
+{
+    UCHAR jData;
+    ULONG ulData;	
+    ULONG ulI2CBase, ulDeviceAddr;
+
+    if (usWhichOne == CRT2 )
+    {
+        ulI2CBase = I2C_BASE + I2C_OFFSET2;
+        ulDeviceAddr = (ULONG) I2C_DEVICEADDR2;
+    }
+    else
+    {
+        ulI2CBase = I2C_BASE + I2C_OFFSET1;
+        ulDeviceAddr = (ULONG) I2C_DEVICEADDR1;
+    }
+            	
+    *(ULONG *) (ulI2CBase + 0x00) = 0x0;
+    *(ULONG *) (ulI2CBase + 0x04) = 0x77743355;
+    *(ULONG *) (ulI2CBase + 0x08) = 0x0;
+    *(ULONG *) (ulI2CBase + 0x10) = 0xffffffff;
+    *(ULONG *) (ulI2CBase + 0x00) = 0x1;
+    *(ULONG *) (ulI2CBase + 0x0C) = 0xAF;
+    *(ULONG *) (ulI2CBase + 0x20) = ulDeviceAddr;
+    *(ULONG *) (ulI2CBase + 0x14) = 0x03;
+    do {
+        ulData = *(volatile ULONG *) (ulI2CBase + 0x10);
+    } while (!(ulData & 0x01));    
+    *(ULONG *) (ulI2CBase + 0x10) = 0xffffffff;
+    *(ULONG *) (ulI2CBase + 0x20) = (ULONG) jIndex;
+    *(ULONG *) (ulI2CBase + 0x14) = 0x02;
+    do {
+        ulData = *(volatile ULONG *) (ulI2CBase + 0x10);
+    } while (!(ulData & 0x01));    
+    *(ULONG *) (ulI2CBase + 0x10) = 0xffffffff;
+    *(ULONG *) (ulI2CBase + 0x20) = ulDeviceAddr + 1;
+    *(ULONG *) (ulI2CBase + 0x14) = 0x1B;
+    do {
+        ulData = *(volatile ULONG *) (ulI2CBase + 0x10);
+    } while (!(ulData & 0x04));    
+    *(ULONG *) (ulI2CBase + 0x10) = 0xffffffff;
+    *(ULONG *) (ulI2CBase + 0x0C) |= 0x10;
+    *(ULONG *) (ulI2CBase + 0x14) = 0x20;
+    do {
+        ulData = *(volatile ULONG *) (ulI2CBase + 0x10);
+    } while (!(ulData & 0x10));
+    *(ULONG *) (ulI2CBase + 0x0C) &= 0xffffffef;        
+    *(ULONG *) (ulI2CBase + 0x10) = 0xffffffff;
+    jData = (UCHAR) ((*(ULONG *) (ulI2CBase + 0x20) & 0xFF00) >> 8);
+    
+    return (jData);	
+}
+
+/*---------------------------------------------------------------------*/
+
+/* Mode Parameter Table */
+VBIOS_STDTABLE_STRUCT StdTable[] = {
+    /* MD_2_3_400 */
+    {
+        0x67,						
+        {0x00,0x03,0x00,0x02},				
+        {0x5f,0x4f,0x50,0x82,0x55,0x81,0xbf,0x1f,	
+         0x00,0x4f,0x0d,0x0e,0x00,0x00,0x00,0x00,
+         0x9c,0x8e,0x8f,0x28,0x1f,0x96,0xb9,0xa3,
+         0xff},
+        {0x00,0x01,0x02,0x03,0x04,0x05,0x14,0x07,	
+         0x38,0x39,0x3a,0x3b,0x3c,0x3d,0x3e,0x3f,
+         0x0c,0x00,0x0f,0x08},
+        {0x00,0x00,0x00,0x00,0x00,0x10,0x0e,0x00,	
+         0xff}
+    },   
+    /* Mode12/ExtEGATable */
+    {
+        0xe3, 						
+        {0x01,0x0f,0x00,0x06},				
+        {0x5f,0x4f,0x50,0x82,0x55,0x81,0x0b,0x3e,       
+         0x00,0x40,0x00,0x00,0x00,0x00,0x00,0x00,       
+         0xe9,0x8b,0xdf,0x28,0x00,0xe7,0x04,0xe3,       
+         0xff},                                         
+        {0x00,0x01,0x02,0x03,0x04,0x05,0x14,0x07,       
+         0x38,0x39,0x3a,0x3b,0x3c,0x3d,0x3e,0x3f,       
+         0x01,0x00,0x0f,0x00},                          
+        {0x00,0x00,0x00,0x00,0x00,0x00,0x05,0x0f,       
+         0xff}                                          
+    },
+    /* ExtVGATable */
+    {
+        0x2f,						
+        {0x01,0x0f,0x00,0x0e},                          
+        {0x5f,0x4f,0x50,0x82,0x54,0x80,0x0b,0x3e,       
+         0x00,0x40,0x00,0x00,0x00,0x00,0x00,0x00,       
+         0xea,0x8c,0xdf,0x28,0x40,0xe7,0x04,0xa3,       
+         0xff},                                         
+        {0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,       
+         0x08,0x09,0x0a,0x0b,0x0c,0x0d,0x0e,0x0f,       
+         0x01,0x00,0x00,0x00},                          
+        {0x00,0x00,0x00,0x00,0x00,0x40,0x05,0x0f,       
+         0xff}
+    },
+    /* ExtHiCTable */
+    {
+        0x2f,						
+        {0x01,0x0f,0x00,0x0e},                          
+        {0x5f,0x4f,0x50,0x82,0x54,0x80,0x0b,0x3e,       
+         0x00,0x40,0x00,0x00,0x00,0x00,0x00,0x00,       
+         0xea,0x8c,0xdf,0x28,0x40,0xe7,0x04,0xa3,       
+         0xff},                                         
+        {0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,       
+         0x08,0x09,0x0a,0x0b,0x0c,0x0d,0x0e,0x0f,       
+         0x01,0x00,0x00,0x00},                          
+        {0x00,0x00,0x00,0x00,0x00,0x00,0x05,0x0f,       
+         0xff}
+    },     
+    /* ExtTrueCTable */
+    {
+        0x2f,						
+        {0x01,0x0f,0x00,0x0e},                          
+        {0x5f,0x4f,0x50,0x82,0x54,0x80,0x0b,0x3e,       
+         0x00,0x40,0x00,0x00,0x00,0x00,0x00,0x00,       
+         0xea,0x8c,0xdf,0x28,0x40,0xe7,0x04,0xa3,       
+         0xff},                                         
+        {0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,       
+         0x08,0x09,0x0a,0x0b,0x0c,0x0d,0x0e,0x0f,       
+         0x01,0x00,0x00,0x00},                          
+        {0x00,0x00,0x00,0x00,0x00,0x00,0x05,0x0f,       
+         0xff}
+    },  
+};
+
+VBIOS_ENHTABLE_STRUCT  Res640x480Table[] = {
+    { 800, 640, 8, 96, 525, 480, 2, 2, VCLK25_175,	/* 60Hz */
+      (SyncNN | HBorder | VBorder | Charx8Dot), 60, 1, 0x2E },
+    { 832, 640, 16, 40, 520, 480, 1, 3, VCLK31_5,	/* 72Hz */
+      (SyncNN | HBorder | VBorder | Charx8Dot), 72, 2, 0x2E  },
+    { 840, 640, 16, 64, 500, 480, 1, 3, VCLK31_5,	/* 75Hz */
+      (SyncNN | Charx8Dot) , 75, 3, 0x2E },      
+    { 832, 640, 56, 56, 509, 480, 1, 3, VCLK36,		/* 85Hz */
+      (SyncNN | Charx8Dot) , 85, 4, 0x2E },
+    { 832, 640, 56, 56, 509, 480, 1, 3, VCLK36,		/* end */
+      (SyncNN | Charx8Dot) , 0xFF, 4, 0x2E },              	      			
+};
+
+
+VBIOS_ENHTABLE_STRUCT  Res800x600Table[] = {
+    {1024, 800, 24, 72, 625, 600, 1, 2, VCLK36,		/* 56Hz */
+      (SyncPP | Charx8Dot), 56, 1, 0x30 },	      
+    {1056, 800, 40, 128, 628, 600, 1, 4, VCLK40,	/* 60Hz */ 
+      (SyncPP | Charx8Dot), 60, 2, 0x30 },
+    {1040, 800, 56, 120, 666, 600, 37, 6, VCLK50,	/* 72Hz */ 
+      (SyncPP | Charx8Dot), 72, 3, 0x30 },            
+    {1056, 800, 16, 80, 625, 600, 1, 3, VCLK49_5,	/* 75Hz */ 
+      (SyncPP | Charx8Dot), 75, 4, 0x30 },  	  			
+    {1048, 800, 32, 64, 631, 600, 1, 3, VCLK56_25,	/* 85Hz */ 
+      (SyncPP | Charx8Dot), 85, 5, 0x30 },  
+    {1048, 800, 32, 64, 631, 600, 1, 3, VCLK56_25,	/* end */ 
+      (SyncPP | Charx8Dot), 0xFF, 5, 0x30 },           
+};
+
+
+VBIOS_ENHTABLE_STRUCT  Res1024x768Table[] = {	
+    {1344, 1024, 24, 136, 806, 768, 3, 6, VCLK65,	/* 60Hz */ 
+      (SyncNN | Charx8Dot), 60, 1, 0x31 },	
+    {1328, 1024, 24, 136, 806, 768, 3, 6, VCLK75,	/* 70Hz */ 
+      (SyncNN | Charx8Dot), 70, 2, 0x31 },
+    {1312, 1024, 16, 96, 800, 768, 1, 3, VCLK78_75,	/* 75Hz */ 
+      (SyncPP | Charx8Dot), 75, 3, 0x31 },      
+    {1376, 1024, 48, 96, 808, 768, 1, 3, VCLK94_5,	/* 85Hz */ 
+      (SyncPP | Charx8Dot), 85, 4, 0x31 },  
+    {1376, 1024, 48, 96, 808, 768, 1, 3, VCLK94_5,	/* end */ 
+      (SyncPP | Charx8Dot), 0xFF, 4, 0x31 },             
+};
+
+VBIOS_ENHTABLE_STRUCT  Res1280x1024Table[] = {	
+    {1688, 1280, 48, 112, 1066, 1024, 1, 3, VCLK108,	/* 60Hz */ 
+      (SyncPP | Charx8Dot), 60, 1, 0x32 }, 
+    {1688, 1280, 16, 144, 1066, 1024, 1, 3, VCLK135,	/* 75Hz */ 
+      (SyncPP | Charx8Dot), 75, 2, 0x32 },  
+    {1728, 1280, 64, 160, 1072, 1024, 1, 3, VCLK157_5,	/* 85Hz */ 
+      (SyncPP | Charx8Dot), 85, 3, 0x32 },    
+    {1728, 1280, 64, 160, 1072, 1024, 1, 3, VCLK157_5,	/* end */ 
+      (SyncPP | Charx8Dot), 0xFF, 3, 0x32 },                        
+};
+
+VBIOS_ENHTABLE_STRUCT  Res1600x1200Table[] = {	
+    {2160, 1600, 64, 192, 1250, 1200, 1, 3, VCLK162,	/* 60Hz */ 
+      (SyncPP | Charx8Dot), 60, 1, 0x33 }, 
+    {2160, 1600, 64, 192, 1250, 1200, 1, 3, VCLK162,	/* end */ 
+      (SyncPP | Charx8Dot), 0xff, 1, 0x33 },         
+};
+
+VBIOS_ENHTABLE_STRUCT  Res1680x1050Table[] = {	
+    {1840, 1680, 48, 032, 1080, 1050, 3, 6, VCLK119,	/* 60Hz */ 
+      (SyncPP | Charx8Dot), 60, 1, 0x33 }, 
+    {1840, 1680, 48, 032, 1080, 1050, 3, 6, VCLK119,	/* end */ 
+      (SyncPP | Charx8Dot), 0xff, 1, 0x33 }, 
+  };
+
+ULONG AST3000DCLKTable [] = {
+    0x00046515,						/* 00: VCLK25_175	*/		
+    0x00047255,				        	/* 01: VCLK28_322	*/
+    0x0004682a,				        	/* 02: VCLK31_5         */
+    0x0004672a,				        	/* 03: VCLK36         	*/
+    0x00046c50,				        	/* 04: VCLK40          	*/
+    0x00046842, 		        		/* 05: VCLK49_5        	*/
+    0x00006c32,                        	        	/* 06: VCLK50          	*/
+    0x00006a2f,                        	        	/* 07: VCLK56_25       	*/
+    0x00006c41,                        	        	/* 08: VCLK65		*/
+    0x00006832,                        	        	/* 09: VCLK75	        */
+    0x0000672e,				        	/* 0A: VCLK78_75       	*/
+    0x0000683f,                        	        	/* 0B: VCLK94_5        	*/
+    0x00004824,                        	        	/* 0C: VCLK108         	*/
+    0x0000482d,                        	        	/* 0D: VCLK135         	*/
+    0x0000472e,                        	        	/* 0E: VCLK157_5       	*/
+    0x00004836,				        	/* 0F: VCLK162         	*/
+    0x00004723,				        	/* 10: VCLK119         	*/    
+};
+
+VBIOS_DAC_INFO DAC_TEXT[] = {
+ { 0x00, 0x00, 0x00 },  { 0x00, 0x00, 0x2a },  { 0x00, 0x2a, 0x00 },  { 0x00, 0x2a, 0x2a }, 
+ { 0x2a, 0x00, 0x00 },  { 0x2a, 0x00, 0x2a },  { 0x2a, 0x2a, 0x00 },  { 0x2a, 0x2a, 0x2a }, 
+ { 0x00, 0x00, 0x15 },  { 0x00, 0x00, 0x3f },  { 0x00, 0x2a, 0x15 },  { 0x00, 0x2a, 0x3f }, 
+ { 0x2a, 0x00, 0x15 },  { 0x2a, 0x00, 0x3f },  { 0x2a, 0x2a, 0x15 },  { 0x2a, 0x2a, 0x3f }, 
+ { 0x00, 0x15, 0x00 },  { 0x00, 0x15, 0x2a },  { 0x00, 0x3f, 0x00 },  { 0x00, 0x3f, 0x2a }, 
+ { 0x2a, 0x15, 0x00 },  { 0x2a, 0x15, 0x2a },  { 0x2a, 0x3f, 0x00 },  { 0x2a, 0x3f, 0x2a }, 
+ { 0x00, 0x15, 0x15 },  { 0x00, 0x15, 0x3f },  { 0x00, 0x3f, 0x15 },  { 0x00, 0x3f, 0x3f }, 
+ { 0x2a, 0x15, 0x15 },  { 0x2a, 0x15, 0x3f },  { 0x2a, 0x3f, 0x15 },  { 0x2a, 0x3f, 0x3f }, 
+ { 0x15, 0x00, 0x00 },  { 0x15, 0x00, 0x2a },  { 0x15, 0x2a, 0x00 },  { 0x15, 0x2a, 0x2a }, 
+ { 0x3f, 0x00, 0x00 },  { 0x3f, 0x00, 0x2a },  { 0x3f, 0x2a, 0x00 },  { 0x3f, 0x2a, 0x2a }, 
+ { 0x15, 0x00, 0x15 },  { 0x15, 0x00, 0x3f },  { 0x15, 0x2a, 0x15 },  { 0x15, 0x2a, 0x3f }, 
+ { 0x3f, 0x00, 0x15 },  { 0x3f, 0x00, 0x3f },  { 0x3f, 0x2a, 0x15 },  { 0x3f, 0x2a, 0x3f }, 
+ { 0x15, 0x15, 0x00 },  { 0x15, 0x15, 0x2a },  { 0x15, 0x3f, 0x00 },  { 0x15, 0x3f, 0x2a }, 
+ { 0x3f, 0x15, 0x00 },  { 0x3f, 0x15, 0x2a },  { 0x3f, 0x3f, 0x00 },  { 0x3f, 0x3f, 0x2a }, 
+ { 0x15, 0x15, 0x15 },  { 0x15, 0x15, 0x3f },  { 0x15, 0x3f, 0x15 },  { 0x15, 0x3f, 0x3f }, 
+ { 0x3f, 0x15, 0x15 },  { 0x3f, 0x15, 0x3f },  { 0x3f, 0x3f, 0x15 },  { 0x3f, 0x3f, 0x3f }, 	
+};
+
+VBIOS_DAC_INFO DAC_EGA[] = {
+ { 0x00, 0x00, 0x00 },  { 0x00, 0x00, 0x2a },  { 0x00, 0x2a, 0x00 },  { 0x00, 0x2a, 0x2a }, 
+ { 0x2a, 0x00, 0x00 },  { 0x2a, 0x00, 0x2a },  { 0x2a, 0x2a, 0x00 },  { 0x2a, 0x2a, 0x2a }, 
+ { 0x00, 0x00, 0x15 },  { 0x00, 0x00, 0x3f },  { 0x00, 0x2a, 0x15 },  { 0x00, 0x2a, 0x3f }, 
+ { 0x2a, 0x00, 0x15 },  { 0x2a, 0x00, 0x3f },  { 0x2a, 0x2a, 0x15 },  { 0x2a, 0x2a, 0x3f }, 
+ { 0x00, 0x15, 0x00 },  { 0x00, 0x15, 0x2a },  { 0x00, 0x3f, 0x00 },  { 0x00, 0x3f, 0x2a }, 
+ { 0x2a, 0x15, 0x00 },  { 0x2a, 0x15, 0x2a },  { 0x2a, 0x3f, 0x00 },  { 0x2a, 0x3f, 0x2a }, 
+ { 0x00, 0x15, 0x15 },  { 0x00, 0x15, 0x3f },  { 0x00, 0x3f, 0x15 },  { 0x00, 0x3f, 0x3f }, 
+ { 0x2a, 0x15, 0x15 },  { 0x2a, 0x15, 0x3f },  { 0x2a, 0x3f, 0x15 },  { 0x2a, 0x3f, 0x3f }, 
+ { 0x15, 0x00, 0x00 },  { 0x15, 0x00, 0x2a },  { 0x15, 0x2a, 0x00 },  { 0x15, 0x2a, 0x2a }, 
+ { 0x3f, 0x00, 0x00 },  { 0x3f, 0x00, 0x2a },  { 0x3f, 0x2a, 0x00 },  { 0x3f, 0x2a, 0x2a }, 
+ { 0x15, 0x00, 0x15 },  { 0x15, 0x00, 0x3f },  { 0x15, 0x2a, 0x15 },  { 0x15, 0x2a, 0x3f }, 
+ { 0x3f, 0x00, 0x15 },  { 0x3f, 0x00, 0x3f },  { 0x3f, 0x2a, 0x15 },  { 0x3f, 0x2a, 0x3f }, 
+ { 0x15, 0x15, 0x00 },  { 0x15, 0x15, 0x2a },  { 0x15, 0x3f, 0x00 },  { 0x15, 0x3f, 0x2a }, 
+ { 0x3f, 0x15, 0x00 },  { 0x3f, 0x15, 0x2a },  { 0x3f, 0x3f, 0x00 },  { 0x3f, 0x3f, 0x2a }, 
+ { 0x15, 0x15, 0x15 },  { 0x15, 0x15, 0x3f },  { 0x15, 0x3f, 0x15 },  { 0x15, 0x3f, 0x3f }, 
+ { 0x3f, 0x15, 0x15 },  { 0x3f, 0x15, 0x3f },  { 0x3f, 0x3f, 0x15 },  { 0x3f, 0x3f, 0x3f }, 	
+};
+
+VBIOS_DAC_INFO DAC_VGA[] = {
+ { 0x00, 0x00, 0x00 },  { 0x00, 0x00, 0x2a },  { 0x00, 0x2a, 0x00 },  { 0x00, 0x2a, 0x2a }, 
+ { 0x2a, 0x00, 0x00 },  { 0x2a, 0x00, 0x2a },  { 0x2a, 0x15, 0x00 },  { 0x2a, 0x2a, 0x2a }, 
+ { 0x15, 0x15, 0x15 },  { 0x15, 0x15, 0x3f },  { 0x15, 0x3f, 0x15 },  { 0x15, 0x3f, 0x3f }, 
+ { 0x3f, 0x15, 0x15 },  { 0x3f, 0x15, 0x3f },  { 0x3f, 0x3f, 0x15 },  { 0x3f, 0x3f, 0x3f }, 
+ { 0x00, 0x00, 0x00 },  { 0x05, 0x05, 0x05 },  { 0x08, 0x08, 0x08 },  { 0x0b, 0x0b, 0x0b }, 
+ { 0x0e, 0x0e, 0x0e },  { 0x11, 0x11, 0x11 },  { 0x14, 0x14, 0x14 },  { 0x18, 0x18, 0x18 }, 
+ { 0x1c, 0x1c, 0x1c },  { 0x20, 0x20, 0x20 },  { 0x24, 0x24, 0x24 },  { 0x28, 0x28, 0x28 }, 
+ { 0x2d, 0x2d, 0x2d },  { 0x32, 0x32, 0x32 },  { 0x38, 0x38, 0x38 },  { 0x3f, 0x3f, 0x3f }, 
+ { 0x00, 0x00, 0x3f },  { 0x10, 0x00, 0x3f },  { 0x1f, 0x00, 0x3f },  { 0x2f, 0x00, 0x3f }, 
+ { 0x3f, 0x00, 0x3f },  { 0x3f, 0x00, 0x2f },  { 0x3f, 0x00, 0x1f },  { 0x3f, 0x00, 0x10 }, 
+ { 0x3f, 0x00, 0x00 },  { 0x3f, 0x10, 0x00 },  { 0x3f, 0x1f, 0x00 },  { 0x3f, 0x2f, 0x00 }, 
+ { 0x3f, 0x3f, 0x00 },  { 0x2f, 0x3f, 0x00 },  { 0x1f, 0x3f, 0x00 },  { 0x10, 0x3f, 0x00 }, 
+ { 0x00, 0x3f, 0x00 },  { 0x00, 0x3f, 0x10 },  { 0x00, 0x3f, 0x1f },  { 0x00, 0x3f, 0x2f }, 
+ { 0x00, 0x3f, 0x3f },  { 0x00, 0x2f, 0x3f },  { 0x00, 0x1f, 0x3f },  { 0x00, 0x10, 0x3f }, 
+ { 0x1f, 0x1f, 0x3f },  { 0x27, 0x1f, 0x3f },  { 0x2f, 0x1f, 0x3f },  { 0x37, 0x1f, 0x3f }, 
+ { 0x3f, 0x1f, 0x3f },  { 0x3f, 0x1f, 0x37 },  { 0x3f, 0x1f, 0x2f },  { 0x3f, 0x1f, 0x27 }, 
+ { 0x3f, 0x1f, 0x1f },  { 0x3f, 0x27, 0x1f },  { 0x3f, 0x2f, 0x1f },  { 0x3f, 0x37, 0x1f }, 
+ { 0x3f, 0x3f, 0x1f },  { 0x37, 0x3f, 0x1f },  { 0x2f, 0x3f, 0x1f },  { 0x27, 0x3f, 0x1f }, 
+ { 0x1f, 0x3f, 0x1f },  { 0x1f, 0x3f, 0x27 },  { 0x1f, 0x3f, 0x2f },  { 0x1f, 0x3f, 0x37 }, 
+ { 0x1f, 0x3f, 0x3f },  { 0x1f, 0x37, 0x3f },  { 0x1f, 0x2f, 0x3f },  { 0x1f, 0x27, 0x3f }, 
+ { 0x2d, 0x2d, 0x3f },  { 0x31, 0x2d, 0x3f },  { 0x36, 0x2d, 0x3f },  { 0x3a, 0x2d, 0x3f }, 
+ { 0x3f, 0x2d, 0x3f },  { 0x3f, 0x2d, 0x3a },  { 0x3f, 0x2d, 0x36 },  { 0x3f, 0x2d, 0x31 }, 
+ { 0x3f, 0x2d, 0x2d },  { 0x3f, 0x31, 0x2d },  { 0x3f, 0x36, 0x2d },  { 0x3f, 0x3a, 0x2d }, 
+ { 0x3f, 0x3f, 0x2d },  { 0x3a, 0x3f, 0x2d },  { 0x36, 0x3f, 0x2d },  { 0x31, 0x3f, 0x2d }, 
+ { 0x2d, 0x3f, 0x2d },  { 0x2d, 0x3f, 0x31 },  { 0x2d, 0x3f, 0x36 },  { 0x2d, 0x3f, 0x3a }, 
+ { 0x2d, 0x3f, 0x3f },  { 0x2d, 0x3a, 0x3f },  { 0x2d, 0x36, 0x3f },  { 0x2d, 0x31, 0x3f }, 
+ { 0x00, 0x00, 0x1c },  { 0x07, 0x00, 0x1c },  { 0x0e, 0x00, 0x1c },  { 0x15, 0x00, 0x1c }, 
+ { 0x1c, 0x00, 0x1c },  { 0x1c, 0x00, 0x15 },  { 0x1c, 0x00, 0x0e },  { 0x1c, 0x00, 0x07 }, 
+ { 0x1c, 0x00, 0x00 },  { 0x1c, 0x07, 0x00 },  { 0x1c, 0x0e, 0x00 },  { 0x1c, 0x15, 0x00 }, 
+ { 0x1c, 0x1c, 0x00 },  { 0x15, 0x1c, 0x00 },  { 0x0e, 0x1c, 0x00 },  { 0x07, 0x1c, 0x00 }, 
+ { 0x00, 0x1c, 0x00 },  { 0x00, 0x1c, 0x07 },  { 0x00, 0x1c, 0x0e },  { 0x00, 0x1c, 0x15 }, 
+ { 0x00, 0x1c, 0x1c },  { 0x00, 0x15, 0x1c },  { 0x00, 0x0e, 0x1c },  { 0x00, 0x07, 0x1c }, 
+ { 0x0e, 0x0e, 0x1c },  { 0x11, 0x0e, 0x1c },  { 0x15, 0x0e, 0x1c },  { 0x18, 0x0e, 0x1c }, 
+ { 0x1c, 0x0e, 0x1c },  { 0x1c, 0x0e, 0x18 },  { 0x1c, 0x0e, 0x15 },  { 0x1c, 0x0e, 0x11 }, 
+ { 0x1c, 0x0e, 0x0e },  { 0x1c, 0x11, 0x0e },  { 0x1c, 0x15, 0x0e },  { 0x1c, 0x18, 0x0e }, 
+ { 0x1c, 0x1c, 0x0e },  { 0x18, 0x1c, 0x0e },  { 0x15, 0x1c, 0x0e },  { 0x11, 0x1c, 0x0e }, 
+ { 0x0e, 0x1c, 0x0e },  { 0x0e, 0x1c, 0x11 },  { 0x0e, 0x1c, 0x15 },  { 0x0e, 0x1c, 0x18 }, 
+ { 0x0e, 0x1c, 0x1c },  { 0x0e, 0x18, 0x1c },  { 0x0e, 0x15, 0x1c },  { 0x0e, 0x11, 0x1c }, 
+ { 0x14, 0x14, 0x1c },  { 0x16, 0x14, 0x1c },  { 0x18, 0x14, 0x1c },  { 0x1a, 0x14, 0x1c }, 
+ { 0x1c, 0x14, 0x1c },  { 0x1c, 0x14, 0x1a },  { 0x1c, 0x14, 0x18 },  { 0x1c, 0x14, 0x16 }, 
+ { 0x1c, 0x14, 0x14 },  { 0x1c, 0x16, 0x14 },  { 0x1c, 0x18, 0x14 },  { 0x1c, 0x1a, 0x14 }, 
+ { 0x1c, 0x1c, 0x14 },  { 0x1a, 0x1c, 0x14 },  { 0x18, 0x1c, 0x14 },  { 0x16, 0x1c, 0x14 }, 
+ { 0x14, 0x1c, 0x14 },  { 0x14, 0x1c, 0x16 },  { 0x14, 0x1c, 0x18 },  { 0x14, 0x1c, 0x1a }, 
+ { 0x14, 0x1c, 0x1c },  { 0x14, 0x1a, 0x1c },  { 0x14, 0x18, 0x1c },  { 0x14, 0x16, 0x1c }, 
+ { 0x00, 0x00, 0x10 },  { 0x04, 0x00, 0x10 },  { 0x08, 0x00, 0x10 },  { 0x0c, 0x00, 0x10 }, 
+ { 0x10, 0x00, 0x10 },  { 0x10, 0x00, 0x0c },  { 0x10, 0x00, 0x08 },  { 0x10, 0x00, 0x04 }, 
+ { 0x10, 0x00, 0x00 },  { 0x10, 0x04, 0x00 },  { 0x10, 0x08, 0x00 },  { 0x10, 0x0c, 0x00 }, 
+ { 0x10, 0x10, 0x00 },  { 0x0c, 0x10, 0x00 },  { 0x08, 0x10, 0x00 },  { 0x04, 0x10, 0x00 }, 
+ { 0x00, 0x10, 0x00 },  { 0x00, 0x10, 0x04 },  { 0x00, 0x10, 0x08 },  { 0x00, 0x10, 0x0c }, 
+ { 0x00, 0x10, 0x10 },  { 0x00, 0x0c, 0x10 },  { 0x00, 0x08, 0x10 },  { 0x00, 0x04, 0x10 }, 
+ { 0x08, 0x08, 0x10 },  { 0x0a, 0x08, 0x10 },  { 0x0c, 0x08, 0x10 },  { 0x0e, 0x08, 0x10 }, 
+ { 0x10, 0x08, 0x10 },  { 0x10, 0x08, 0x0e },  { 0x10, 0x08, 0x0c },  { 0x10, 0x08, 0x0a }, 
+ { 0x10, 0x08, 0x08 },  { 0x10, 0x0a, 0x08 },  { 0x10, 0x0c, 0x08 },  { 0x10, 0x0e, 0x08 }, 
+ { 0x10, 0x10, 0x08 },  { 0x0e, 0x10, 0x08 },  { 0x0c, 0x10, 0x08 },  { 0x0a, 0x10, 0x08 }, 
+ { 0x08, 0x10, 0x08 },  { 0x08, 0x10, 0x0a },  { 0x08, 0x10, 0x0c },  { 0x08, 0x10, 0x0e }, 
+ { 0x08, 0x10, 0x10 },  { 0x08, 0x0e, 0x10 },  { 0x08, 0x0c, 0x10 },  { 0x08, 0x0a, 0x10 }, 
+ { 0x0b, 0x0b, 0x10 },  { 0x0c, 0x0b, 0x10 },  { 0x0d, 0x0b, 0x10 },  { 0x0f, 0x0b, 0x10 }, 
+ { 0x10, 0x0b, 0x10 },  { 0x10, 0x0b, 0x0f },  { 0x10, 0x0b, 0x0d },  { 0x10, 0x0b, 0x0c }, 
+ { 0x10, 0x0b, 0x0b },  { 0x10, 0x0c, 0x0b },  { 0x10, 0x0d, 0x0b },  { 0x10, 0x0f, 0x0b }, 
+ { 0x10, 0x10, 0x0b },  { 0x0f, 0x10, 0x0b },  { 0x0d, 0x10, 0x0b },  { 0x0c, 0x10, 0x0b }, 
+ { 0x0b, 0x10, 0x0b },  { 0x0b, 0x10, 0x0c },  { 0x0b, 0x10, 0x0d },  { 0x0b, 0x10, 0x0f }, 
+ { 0x0b, 0x10, 0x10 },  { 0x0b, 0x0f, 0x10 },  { 0x0b, 0x0d, 0x10 },  { 0x0b, 0x0c, 0x10 }, 
+ { 0x00, 0x00, 0x00 },  { 0x00, 0x00, 0x00 },  { 0x00, 0x00, 0x00 },  { 0x00, 0x00, 0x00 }, 
+ { 0x00, 0x00, 0x00 },  { 0x00, 0x00, 0x00 },  { 0x00, 0x00, 0x00 },  { 0x00, 0x00, 0x00 }, 	
+};
+
+BOOL bGetAST3000VGAModeInfo(_ModeInfo *ModeInfo, PVBIOS_MODE_INFO pVGAModeInfo, _LCDInfo *LCDInfo, USHORT usWhichOne)
+{
+    ULONG ulColorIndex, ulRefreshRate, ulRefreshRateIndex = 0;
+    USHORT usWidth;
+            
+    switch (ModeInfo->usBitPerPixel)
+    {
+    case 8:
+         return (FALSE);    
+         break;   
+    case 16:
+         pVGAModeInfo->pStdTableEntry = (PVBIOS_STDTABLE_STRUCT) &StdTable[HiCModeIndex];
+	 ulColorIndex = HiCModeIndex-1;                
+         break;
+    case 24:         
+    case 32:
+         pVGAModeInfo->pStdTableEntry = (PVBIOS_STDTABLE_STRUCT) &StdTable[TrueCModeIndex]; 
+	 ulColorIndex = TrueCModeIndex-1;                
+	 break;    
+    default:
+         return (FALSE);
+    }
+
+    /* CRT2 & Enable Scaling */
+    if ((LCDInfo->EnableScaling) && (usWhichOne == CRT2))
+        usWidth = LCDInfo->usWidth;
+    else
+        usWidth = ModeInfo->usWidth;
+        
+    /* switch (ModeInfo->usWidth) */
+    switch (usWidth)    
+    {
+    case 640:
+         pVGAModeInfo->pEnhTableEntry = (PVBIOS_ENHTABLE_STRUCT) &Res640x480Table[ulRefreshRateIndex];
+         break;
+    case 800:
+         pVGAModeInfo->pEnhTableEntry = (PVBIOS_ENHTABLE_STRUCT) &Res800x600Table[ulRefreshRateIndex];
+         break;         
+    case 1024:
+         pVGAModeInfo->pEnhTableEntry = (PVBIOS_ENHTABLE_STRUCT) &Res1024x768Table[ulRefreshRateIndex];
+         break;
+    case 1280:
+         pVGAModeInfo->pEnhTableEntry = (PVBIOS_ENHTABLE_STRUCT) &Res1280x1024Table[ulRefreshRateIndex];
+         break;
+    case 1600:
+         pVGAModeInfo->pEnhTableEntry = (PVBIOS_ENHTABLE_STRUCT) &Res1600x1200Table[ulRefreshRateIndex];
+         break;                  
+    case 1680:
+         pVGAModeInfo->pEnhTableEntry = (PVBIOS_ENHTABLE_STRUCT) &Res1680x1050Table[ulRefreshRateIndex];
+         break;                        
+    default:
+         return (FALSE);     
+    }
+
+    ulRefreshRate = ModeInfo->usRefreshRate;    
+    
+    while (pVGAModeInfo->pEnhTableEntry->ulRefreshRate < ulRefreshRate)
+    {
+        pVGAModeInfo->pEnhTableEntry++;
+        if ((pVGAModeInfo->pEnhTableEntry->ulRefreshRate > ulRefreshRate) || 
+            (pVGAModeInfo->pEnhTableEntry->ulRefreshRate == 0xFF)) 
+        {
+            pVGAModeInfo->pEnhTableEntry--;
+            break; 	
+        }    
+    }
+ 
+    return (TRUE);
+} /* bGetAST3000VGAModeInfo */
+	
+
+void vSetAST3000CRTCReg( _ModeInfo *ModeInfo, PVBIOS_MODE_INFO pVGAModeInfo, USHORT usWhichOne)
+{
+    PVBIOS_ENHTABLE_STRUCT pEnhModePtr;
+    ULONG HTIndex, HRIndex;
+    ULONG VTIndex, VRIndex;     
+    USHORT HT, HDE, HBS, HBE, HRS, HRE;
+    USHORT VT, VDE, VBS, VBE, VRS, VRE;    	
+    USHORT HT2, HDE2, HRS2, HRE2;
+    USHORT VT2, VDE2, VRS2, VRE2;    	
+
+    /* Reg. Index Select */
+    if (usWhichOne == CRT2 )
+    {
+        HTIndex =  AST3000_VGA2_HTREG;
+        HRIndex =  AST3000_VGA2_HRREG;  
+        VTIndex =  AST3000_VGA2_VTREG;
+        VRIndex =  AST3000_VGA2_VRREG;               
+    }
+    else
+    {
+        HTIndex =  AST3000_VGA1_HTREG;
+        HRIndex =  AST3000_VGA1_HRREG;
+        VTIndex =  AST3000_VGA1_VTREG;
+        VRIndex =  AST3000_VGA1_VRREG;          
+    }    
+    
+    /* Get CRTC Info */
+    pEnhModePtr = pVGAModeInfo->pEnhTableEntry; 
+    HT = pEnhModePtr->HT;
+    HDE= pEnhModePtr->HDE;
+    HBS= (pEnhModePtr->Flags & HBorder) ? HDE+1 : HDE;
+    HBE= (pEnhModePtr->Flags & HBorder) ? HT-1 : HT;    
+    HRS= HBS + pEnhModePtr->HFP;
+    HRE= HBS + pEnhModePtr->HFP + pEnhModePtr->HSYNC;
+    VT = pEnhModePtr->VT;
+    VDE= pEnhModePtr->VDE;
+    VBS= (pEnhModePtr->Flags & VBorder) ? VDE+1 : VDE;
+    VBE= (pEnhModePtr->Flags & VBorder) ? VT-1 : VT;    
+    VRS= VBS + pEnhModePtr->VFP;
+    VRE= VBS + pEnhModePtr->VFP + pEnhModePtr->VSYNC;           
+    
+    /* Calculate CRTC Reg Setting */
+    HT2  = HT - 1;
+    HDE2 = HDE - 1;
+    HRS2 = HRS - 1;
+    HRE2 = HRE - 1;
+    VT2  = VT  - 1;
+    VDE2 = VDE - 1;
+    VRS2 = VRS - 1;    
+    VRE2 = VRE - 1;
+    
+    /* Write Reg */
+    *(unsigned long *) (AST3000_VGAREG_BASE + HTIndex) = (ULONG)(HDE2 << 16) | (ULONG) (HT2);
+    *(unsigned long *) (AST3000_VGAREG_BASE + HRIndex) = (ULONG)(HRE2 << 16) | (ULONG) (HRS2);
+    *(unsigned long *) (AST3000_VGAREG_BASE + VTIndex) = (ULONG)(VDE2 << 16) | (ULONG) (VT2);
+    *(unsigned long *) (AST3000_VGAREG_BASE + VRIndex) = (ULONG)(VRE2 << 16) | (ULONG) (VRS2);
+                          	
+}
+
+void vSetAST3000OffsetReg(  _ModeInfo *ModeInfo, PVBIOS_MODE_INFO pVGAModeInfo, USHORT usWhichOne)
+{
+    ULONG ulVGARegOffset, ulOffsetIndex;
+    ULONG usOffset, usTermalCount;	
+    
+    /* Reg. Index Select */
+    if (usWhichOne == CRT2 )
+    {
+        ulOffsetIndex =  AST3000_VGA2_OFFSETREG;
+    }
+    else
+    {
+        ulOffsetIndex =  AST3000_VGA1_OFFSETREG;
+    }    
+    
+    usOffset = 	((ULONG) ModeInfo->usWidth *  ModeInfo->usBitPerPixel) >> 3; 		/* Unit: char */  
+    usTermalCount = ((ULONG) ModeInfo->usWidth *  ModeInfo->usBitPerPixel + 63 ) >> 6; 	/* Unit: quad char */  
+          
+    /* Write Reg */
+    *(unsigned long *) (AST3000_VGAREG_BASE + ulOffsetIndex) = (ULONG) (usTermalCount << 16) | (ULONG) (usOffset);
+
+}
+
+void vSetAST3000DCLKReg( _ModeInfo *ModeInfo, PVBIOS_MODE_INFO pVGAModeInfo, USHORT usWhichOne)
+{
+	
+    PVBIOS_ENHTABLE_STRUCT pEnhModePtr;
+    ULONG *pDCLKPtr, ulPLLIndex;
+         
+    pEnhModePtr = pVGAModeInfo->pEnhTableEntry;
+    pDCLKPtr = &AST3000DCLKTable[pEnhModePtr->DCLKIndex];
+
+    /* Reg. Index Select */
+    if (usWhichOne == CRT2 )
+    {
+        ulPLLIndex =  AST3000_VGA2_PLL;
+    }
+    else
+    {
+        ulPLLIndex =  AST3000_VGA1_PLL;      	
+    }
+        
+    /* Write Reg */
+    *(unsigned long *) (AST3000_VGAREG_BASE + ulPLLIndex) = *(ULONG *) pDCLKPtr;
+    
+}
+
+
+void vSetAST3000ExtReg( _ModeInfo *ModeInfo, PVBIOS_MODE_INFO pVGAModeInfo, _LCDInfo *LCDInfo, USHORT usWhichOne, ULONG ulFBBase)
+{
+    ULONG ulCtlRegIndex, ulCtlReg = 0x01;		/* enable display */
+    ULONG ulCtlReg2Index, ulCtlReg2 = 0xC1;    
+    ULONG ulThresholdRegIndex ;				/* Threshold */
+    ULONG ulStartAddressIndex, ulStartAddress;		/* ulStartAddress */
+
+    /* Reg. Index Select */
+    switch (usWhichOne)
+    {
+    case CRT2:
+    case DVI2:
+    case LVDS2:
+        ulCtlRegIndex =  AST3000_VGA2_CTLREG;
+        ulCtlReg2Index =  AST3000_VGA2_CTLREG2;        
+        ulThresholdRegIndex = AST3000_VGA2_THRESHOLD;
+        ulStartAddressIndex =  AST3000_VGA2_STARTADDR;
+        ulStartAddress = ulFBBase;              	
+/*        
+        if (LCDInfo->EnableScaling)
+            ulCtlReg |= 0x30;
+*/            
+        break;
+        
+    case CRT1:
+        ulCtlReg2 |= 0x01;				/* enable DAC */
+    case DVI1:
+    case LVDS1:    
+        ulCtlRegIndex =  AST3000_VGA1_CTLREG;
+        ulCtlReg2Index =  AST3000_VGA1_CTLREG2;                
+        ulThresholdRegIndex = AST3000_VGA1_THRESHOLD;
+        ulStartAddressIndex =  AST3000_VGA1_STARTADDR;
+        ulStartAddress = ulFBBase;
+        
+        break;              	
+    }
+
+    /* Mode Type Setting */	
+    switch (ModeInfo->usBitPerPixel) {
+    case 16:   
+        ulCtlReg |= 0x0;            	/* RGB565 */
+        break;    
+    case 32:
+        ulCtlReg |= 0x100;             	/* RGB888 */
+        break;
+    }	
+
+    /* Polarity */
+    /* undo */
+        
+    /* Write Reg */
+    *(unsigned long *) (AST3000_VGAREG_BASE + ulStartAddressIndex) = ulStartAddress;
+    *(unsigned long *) (AST3000_VGAREG_BASE + ulThresholdRegIndex) = ((ULONG) CRT_HIGH_THRESHOLD_VALUE << 8) | (ULONG) (CRT_LOW_THRESHOLD_VALUE);
+    *(unsigned long *) (AST3000_VGAREG_BASE + ulCtlRegIndex) = ulCtlReg;
+    *(unsigned long *) (AST3000_VGAREG_BASE + ulCtlReg2Index) = ulCtlReg2;
+  
+}
+
+void vSetChrontel( _ModeInfo *ModeInfo, PVBIOS_MODE_INFO pVGAModeInfo, USHORT usWhichOne)
+{
+        switch (usWhichOne)
+        {	
+        case CRT1:
+        case CRT2:	
+    	    SetChrontelReg( 0x21, 0x09, usWhichOne);
+    	    SetChrontelReg( 0x49, 0x00, usWhichOne);
+    	    SetChrontelReg( 0x56, 0x00, usWhichOne);    		
+    	    break;
+    	    
+    	case DVI1:
+    	case DVI2:
+    	    SetChrontelReg( 0x33, 0x08, usWhichOne);
+    	    SetChrontelReg( 0x34, 0x16, usWhichOne);
+    	    SetChrontelReg( 0x36, 0x60, usWhichOne);
+    	
+    	    SetChrontelReg( 0x49, 0xC0, usWhichOne);
+    	    break;
+    	    
+    	case LVDS1:
+    	case LVDS2:
+    	
+    	    break;    
+        }
+}
+
+#define lcd_ceil(x)	(x > (ULONG)(x) ? (ULONG)x + 1: (ULONG)x)
+
+void vSetScaleFactor( _ModeInfo *ModeInfo, _LCDInfo *LCDInfo)
+{
+    ULONG SrcWidth, SrcHeight;
+    ULONG PanelX, PanelY;	
+    double FactorX, FactorY;
+    double CofX[16], CofY[16];
+    ULONG ulData;
+    LONG i, j;
+    	
+    SrcWidth = (ULONG) (ModeInfo->usWidth);
+    SrcHeight = (ULONG) (ModeInfo->usHeight);
+    PanelX = (ULONG) (LCDInfo->usWidth);
+    PanelY = (ULONG) (LCDInfo->usHeight);
+    	    
+    /* calculate parameter */
+    FactorX = (double) (SrcWidth * 65536) / (double) PanelX;
+    FactorY = (double) (SrcHeight * 65536) / (double) PanelY;  
+
+    CofX[0] = CofY[0] = 12;
+    for (i=1; i< 16; i++)
+    {
+        CofX[i] = lcd_ceil ((double) PanelX*i / (double) SrcWidth + 0.5);
+        CofY[i] = lcd_ceil ((double) PanelY*i / (double) SrcHeight + 0.5);        	
+    }
+
+    /* set Reg */
+    *(unsigned long *) (AST3000_VGAREG_BASE + 0x8C) = (((ULONG) FactorY & 0xFFFF) << 16) | ((ULONG) (FactorX) & 0xFFFF);
+
+    for (i=0; i<2; i++)
+    {
+    	ulData = 0;
+        for (j=7; j>=0; j--)
+        {
+            ulData <<= 4;	
+            ulData |= (ULONG) CofX[i*8 + j] & 0x0F;
+        }
+        *(unsigned long *) (AST3000_VGAREG_BASE + 0xc0 + i*4) = ulData;
+            
+    }
+    
+    for (i=0; i<2; i++)
+    {
+    	ulData = 0;
+        for (j=7; j>=0; j--)
+        {
+            ulData <<= 4;	
+            ulData |= (ULONG) CofY[i*8 + j] & 0x0F;
+        }
+        *(unsigned long *) (AST3000_VGAREG_BASE + 0xc8 + i*4) = ulData;
+            
+    }
+                    
+}
+
+/* AST3000 Procedure */
+BOOL AST3000SetMode(_ModeInfo *ModeInfo, _LCDInfo *LCDInfo, USHORT usWhichOne, ULONG ulFBBase)
+{
+    VBIOS_MODE_INFO vgamodeinfo; 
+		
+    /* pre set mode */        		
+    bGetAST3000VGAModeInfo(ModeInfo, &vgamodeinfo, LCDInfo, usWhichOne & 0x01);  
+      
+    /* set mode */
+    vSetAST3000CRTCReg( ModeInfo, &vgamodeinfo, usWhichOne & 0x01);
+    vSetAST3000OffsetReg( ModeInfo, &vgamodeinfo, usWhichOne & 0x01);    
+    vSetAST3000DCLKReg( ModeInfo, &vgamodeinfo, usWhichOne & 0x01);
+/*    
+    if (LCDInfo->EnableScaling && (usWhichOne & 0x01))
+        vSetScaleFactor( ModeInfo, LCDInfo);
+*/        
+    vSetAST3000ExtReg( ModeInfo, &vgamodeinfo, LCDInfo, usWhichOne, ulFBBase);
+    vSetChrontel( ModeInfo, &vgamodeinfo, usWhichOne);
+    
+    return (TRUE);	
+}
+
+/* Set Mode Procedure */
+BOOL ASTSetMode(_ModeInfo *ModeInfo, _LCDInfo *LCDInfo, USHORT usWhichOne, ULONG ulFBBase)
+{
+    AST3000SetMode(ModeInfo, LCDInfo, usWhichOne, ulFBBase);    
+
+    return (TRUE);	
+}
+
+/*---------------------------------------------------------------------*/
+
+/* Mode Table */
+ModeInfoStruct ModeTable[] = {
+    {"640x480x8bpp@60",    0x00, 0x2e, 0x01, 0x01,  640,  480,  8, 60},
+    {"640x480x8bpp@72",    0x01, 0x2e, 0x01, 0x02,  640,  480,  8, 72},
+    {"640x480x8bpp@75",    0x02, 0x2e, 0x01, 0x03,  640,  480,  8, 75},
+    {"640x480x8bpp@85",    0x03, 0x2e, 0x02, 0x04,  640,  480,  8, 85},
+    {"640x480x15bpp@60",   0x04, 0x2e, 0x02, 0x01,  640,  480, 15, 60},
+    {"640x480x15bpp@72",   0x05, 0x2e, 0x02, 0x02,  640,  480, 15, 72},
+    {"640x480x15bpp@75",   0x06, 0x2e, 0x02, 0x03,  640,  480, 15, 75},
+    {"640x480x15bpp@85",   0x07, 0x2e, 0x02, 0x04,  640,  480, 15, 85},
+    {"640x480x16bpp@60",   0x08, 0x2e, 0x03, 0x01,  640,  480, 16, 60},
+    {"640x480x16bpp@72",   0x09, 0x2e, 0x03, 0x02,  640,  480, 16, 72},
+    {"640x480x16bpp@75",   0x0A, 0x2e, 0x03, 0x03,  640,  480, 16, 75},
+    {"640x480x16bpp@85",   0x0B, 0x2e, 0x03, 0x04,  640,  480, 16, 85},  
+    {"640x480x32bpp@60",   0x0C, 0x2e, 0x04, 0x01,  640,  480, 32, 60},
+    {"640x480x32bpp@72",   0x0D, 0x2e, 0x04, 0x02,  640,  480, 32, 72},
+    {"640x480x32bpp@75",   0x0E, 0x2e, 0x04, 0x03,  640,  480, 32, 75},
+    {"640x480x32bpp@85",   0x0F, 0x2e, 0x04, 0x04,  640,  480, 32, 85},  
+    {"800x600x8bpp@56",    0x10, 0x30, 0x01, 0x01,  800,  600,  8, 56},
+    {"800x600x8bpp@60",    0x11, 0x30, 0x01, 0x02,  800,  600,  8, 60},
+    {"800x600x8bpp@72",    0x12, 0x30, 0x01, 0x03,  800,  600,  8, 72},
+    {"800x600x8bpp@75",    0x13, 0x30, 0x01, 0x04,  800,  600,  8, 75},
+    {"800x600x8bpp@85",    0x14, 0x30, 0x01, 0x05,  800,  600,  8, 85},
+    {"800x600x15bpp@56",   0x15, 0x30, 0x02, 0x01,  800,  600, 15, 56},
+    {"800x600x15bpp@60",   0x16, 0x30, 0x02, 0x02,  800,  600, 15, 60},
+    {"800x600x15bpp@72",   0x17, 0x30, 0x02, 0x03,  800,  600, 15, 72},
+    {"800x600x15bpp@75",   0x18, 0x30, 0x02, 0x04,  800,  600, 15, 75},
+    {"800x600x15bpp@85",   0x19, 0x30, 0x02, 0x05,  800,  600, 15, 85},
+    {"800x600x16bpp@56",   0x1A, 0x30, 0x03, 0x01,  800,  600, 16, 56},
+    {"800x600x16bpp@60",   0x1B, 0x30, 0x03, 0x02,  800,  600, 16, 60},
+    {"800x600x16bpp@72",   0x1C, 0x30, 0x03, 0x03,  800,  600, 16, 72},
+    {"800x600x16bpp@75",   0x1D, 0x30, 0x03, 0x04,  800,  600, 16, 75},
+    {"800x600x16bpp@85",   0x1E, 0x30, 0x03, 0x05,  800,  600, 16, 85},        
+    {"800x600x32bpp@56",   0x1F, 0x30, 0x04, 0x01,  800,  600, 32, 56},
+    {"800x600x32bpp@60",   0x20, 0x30, 0x04, 0x02,  800,  600, 32, 60},
+    {"800x600x32bpp@72",   0x21, 0x30, 0x04, 0x03,  800,  600, 32, 72},
+    {"800x600x32bpp@75",   0x22, 0x30, 0x04, 0x04,  800,  600, 32, 75},
+    {"800x600x32bpp@85",   0x23, 0x30, 0x04, 0x05,  800,  600, 32, 85},   
+    {"1024x768x8bpp@60",   0x24, 0x31, 0x01, 0x01, 1024,  768,  8, 60},        
+    {"1024x768x8bpp@70",   0x25, 0x31, 0x01, 0x02, 1024,  768,  8, 70},        
+    {"1024x768x8bpp@75",   0x26, 0x31, 0x01, 0x03, 1024,  768,  8, 75},        
+    {"1024x768x8bpp@85",   0x27, 0x31, 0x01, 0x04, 1024,  768,  8, 85},        
+    {"1024x768x15bpp@60",  0x28, 0x31, 0x02, 0x01, 1024,  768, 15, 60},        
+    {"1024x768x15bpp@70",  0x29, 0x31, 0x02, 0x02, 1024,  768, 15, 70},        
+    {"1024x768x15bpp@75",  0x2A, 0x31, 0x02, 0x03, 1024,  768, 15, 75},        
+    {"1024x768x15bpp@85",  0x2B, 0x31, 0x02, 0x04, 1024,  768, 15, 85},        
+    {"1024x768x16bpp@60",  0x2C, 0x31, 0x03, 0x01, 1024,  768, 16, 60},        
+    {"1024x768x16bpp@70",  0x2D, 0x31, 0x03, 0x02, 1024,  768, 16, 70},        
+    {"1024x768x16bpp@75",  0x2E, 0x31, 0x03, 0x03, 1024,  768, 16, 75},        
+    {"1024x768x16bpp@85",  0x2F, 0x31, 0x03, 0x04, 1024,  768, 16, 85},        
+    {"1024x768x32bpp@60",  0x30, 0x31, 0x04, 0x01, 1024,  768, 32, 60},        
+    {"1024x768x32bpp@70",  0x31, 0x31, 0x04, 0x02, 1024,  768, 32, 70},        
+    {"1024x768x32bpp@75",  0x32, 0x31, 0x04, 0x03, 1024,  768, 32, 75},        
+    {"1024x768x32bpp@85",  0x33, 0x31, 0x04, 0x04, 1024,  768, 32, 85},
+    {"1280x1024x8bpp@60",  0x34, 0x32, 0x01, 0x01, 1280, 1024,  8, 60},        
+    {"1280x1024x8bpp@75",  0x35, 0x32, 0x01, 0x02, 1280, 1024,  8, 75},        
+    {"1280x1024x8bpp@85",  0x36, 0x32, 0x01, 0x03, 1280, 1024,  8, 85},        
+    {"1280x1024x15bpp@60", 0x37, 0x32, 0x02, 0x01, 1280, 1024, 15, 60},        
+    {"1280x1024x15bpp@75", 0x38, 0x32, 0x02, 0x02, 1280, 1024, 15, 75},        
+    {"1280x1024x15bpp@85", 0x39, 0x32, 0x02, 0x03, 1280, 1024, 15, 85},        
+    {"1280x1024x16bpp@60", 0x3A, 0x32, 0x03, 0x01, 1280, 1024, 16, 60},        
+    {"1280x1024x16bpp@75", 0x3B, 0x32, 0x03, 0x02, 1280, 1024, 16, 75},        
+    {"1280x1024x16bpp@85", 0x3C, 0x32, 0x03, 0x03, 1280, 1024, 16, 85},        
+    {"1280x1024x32bpp@60", 0x3D, 0x32, 0x04, 0x01, 1280, 1024, 32, 60},        
+    {"1280x1024x32bpp@75", 0x3E, 0x32, 0x04, 0x02, 1280, 1024, 32, 75},        
+    {"1280x1024x32bpp@85", 0x3F, 0x32, 0x04, 0x03, 1280, 1024, 32, 85},        
+    {"1600x1200x8bpp@60",  0x40, 0x33, 0x01, 0x01, 1600, 1200,  8, 60},        
+    {"1600x1200x15bpp@60", 0x41, 0x33, 0x02, 0x01, 1600, 1200, 15, 60},        
+    {"1600x1200x16bpp@60", 0x42, 0x33, 0x03, 0x01, 1600, 1200, 16, 60},        
+    {"1600x1200x32bpp@60", 0x43, 0x33, 0x04, 0x01, 1600, 1200, 32, 60},        
+    {"320x240x8bpp@60",    0x44, 0x50, 0x01, 0x01,  320,  240,  8, 60},        
+    {"320x240x15bpp@60",   0x45, 0x50, 0x02, 0x01,  320,  240, 15, 60},        
+    {"320x240x16bpp@60",   0x46, 0x50, 0x03, 0x01,  320,  240, 16, 60},        
+    {"320x240x32bpp@60",   0x47, 0x50, 0x04, 0x01,  320,  240, 32, 60},        
+    {"400x300x8bpp@60",    0x48, 0x51, 0x01, 0x01,  400,  300,  8, 60},        
+    {"400x300x15bpp@60",   0x49, 0x51, 0x02, 0x01,  400,  300, 15, 60},        
+    {"400x300x16bpp@60",   0x4A, 0x51, 0x03, 0x01,  400,  300, 16, 60},        
+    {"400x300x32bpp@60",   0x4B, 0x51, 0x04, 0x01,  400,  300, 32, 60},        
+    {"512x384x8bpp@60",    0x4C, 0x52, 0x01, 0x01,  512,  384,  8, 60},        
+    {"512x384x15bpp@60",   0x4D, 0x52, 0x02, 0x01,  512,  384, 15, 60},        
+    {"512x384x16bpp@60",   0x4E, 0x52, 0x03, 0x01,  512,  384, 16, 60},        
+    {"512x384x32bpp@60",   0x4F, 0x52, 0x04, 0x01,  512,  384, 32, 60},
+    {"1680x1050x8bpp@60",  0x50, 0x34, 0x01, 0x01, 1680, 1050,  8, 60},        
+    {"1680x1050x15bpp@60", 0x51, 0x34, 0x02, 0x01, 1680, 1050, 15, 60},        
+    {"1680x1050x16bpp@60", 0x52, 0x34, 0x03, 0x01, 1680, 1050, 16, 60},        
+    {"1680x1050x32bpp@60", 0x53, 0x34, 0x04, 0x01, 1680, 1050, 32, 60},        
+                                                                                                     
+    {"End of Moe",         0xff, 0xff, 0xff, 0xff, 0xff, 0xff,0xff,0xff},
+};
+
+/* External Function */
+int bSetSOCMode(unsigned char *ResInfo, _ModeInfo *ModeInfo, _LCDInfo *LCDInfo, USHORT usWhichOne, ULONG ulFBBase)
+{
+    ModeInfoStruct *ModePtr;      
+        	
+     /* Search Mode ID Entry */
+     ModePtr = ModeTable;    
+     while (ModePtr->usModeID != 0xFF)
+     {
+    	    if (!strcmp(ResInfo, ModePtr->ModeName))
+    	    {
+                ModeInfo->usModeIndex = ModePtr->usModeIndex;    	    	
+                ModeInfo->usWidth = ModePtr->usWidth;
+                ModeInfo->usHeight = ModePtr->usHeight;
+                ModeInfo->usBitPerPixel = ModePtr->usBitsPerPlane;                              	    	
+                ModeInfo->usRefreshRate = ModePtr->usRefreshRate;
+     
+                ASTSetMode(ModeInfo, LCDInfo, usWhichOne, ulFBBase);  
+		                                                        
+                return 1;
+            }    
+    	    ModePtr++;
+     }             
+     
+     return 0;
+ 
+} /* bSetSOCMode */
+
+void vInitAST3000SCURegForCRT(void)
+{
+    unsigned long ulData;
+
+    *(unsigned long *) (0x1e6e2000) = 0x1688A8A8;
+
+    /* Set Multi-Func. Pin */
+    ulData = *(unsigned long *)(0x1e6e2000 + 0x74);
+    ulData &= 0xFFFF7FFF;
+    ulData |= 0x00c30000;
+    *(unsigned long *) (0x1e6e2000 + 0x74) = ulData;         
+
+    /* Set Delay Compensation */
+    ulData = *(unsigned long *)(0x1e6e2000 + 0x0008);
+    ulData &= 0xFFFF00FF;
+    ulData |= 0x0000D500;
+    *(unsigned long *) (0x1e6e2000 + 0x0008) = ulData;         
+
+    /* Enable 2D Trapping after FPGA v9, ycchen@030807 */
+    ulData = *(unsigned long *)(0x1e6e2000 + 0x002C);
+    *(unsigned long *) (0x1e6e2000 + 0x002C) = ulData | 0x80;         
+      
+    ulData = *(unsigned long *)(0x1e6e2000 + 0x000c);
+    ulData &= 0xfffff3fd;
+    *(unsigned long *) (0x1e6e2000 + 0x000c) = ulData;    
+    udelay(100);
+    ulData = *(unsigned long *)(0x1e6e2000 + 0x0004);
+    ulData &= 0xffffdf7b;
+    *(unsigned long *) (0x1e6e2000 + 0x0004) = ulData;       	
+  
+} /* vInitAST3000SCUReg */
+
+void ClearScreen(ULONG ulFBBase)
+{
+    unsigned long i;
+    	
+    for (i=0; i<0x800000; i+=4)		// 8MB
+        *(unsigned long *) (ulFBBase + i) = 0;    
+       
+} /* ClearScreen */
+
+unsigned long bGetCRC(USHORT usWhichOne)
+{
+    unsigned long ulCtlRegIndex2, ulStatusRegIndex;
+    unsigned long ulCRC, ulData;
+    	
+    if ((usWhichOne & 0x01) == CRT2 )
+    {
+        ulCtlRegIndex2   =  AST3000_VGA1_CTLREG2;
+        ulStatusRegIndex =  AST3000_VGA1_STATUSREG;
+        
+    }
+    else
+    {
+        ulCtlRegIndex2   =  AST3000_VGA1_CTLREG2;
+        ulStatusRegIndex =  AST3000_VGA1_STATUSREG;            	
+    }
+
+    /* Trigger CRC */
+    *(unsigned long *) (AST3000_VGAREG_BASE + ulCtlRegIndex2) |= 0x04;
+    do {
+        ulData = *(volatile unsigned long *) (AST3000_VGAREG_BASE + ulCtlRegIndex2);    	
+    } while (ulData & 0x08);
+    udelay(1000*1000);	
+    ulCRC = *(unsigned long *) (AST3000_VGAREG_BASE + ulStatusRegIndex) & 0xFFFFFF00;
+    
+    /* Disable CRC */
+    *(unsigned long *) (AST3000_VGAREG_BASE + ulCtlRegIndex2) &= 0xFFFFFFFB;
+
+    return (ulCRC);
+    
+} /* bGetCRC */
+
+#endif /* CONFIG_SLT */

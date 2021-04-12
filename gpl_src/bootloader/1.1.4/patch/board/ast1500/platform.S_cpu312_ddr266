@@ -1,0 +1,926 @@
+/*
+ * Board specific setup info
+ *
+ * (C) Copyright 2003, ARM Ltd.
+ * Philippe Robin, <philippe.robin@arm.com>
+ *
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
+ */
+
+#include <config.h>
+#include <version.h>
+
+    .macro init_delay_timer
+    ldr r0, =0x1e782024                          @ Set Timer3 Reload
+    str r2, [r0]
+
+    ldr r0, =0x1e6c0038                          @ Clear Timer3 ISR
+    ldr r1, =0x00040000
+    str r1, [r0]
+
+    ldr r0, =0x1e782030                          @ Enable Timer3
+    ldr r1, [r0]
+    mov r2, #7
+    orr r1, r1, r2, lsl #8
+    str r1, [r0]
+
+    ldr r0, =0x1e6c0008                          @ Check ISR for Timer3 timeout
+    .endm
+
+    .macro check_delay_timer
+    ldr r1, [r0]
+    bic r1, r1, #0xFFFBFFFF
+    mov r2, r1, lsr #18
+    cmp r2, #0x01
+    .endm
+
+    .macro clear_delay_timer
+    ldr r0, =0x1e782030                          @ Disable Timer3
+    ldr r1, [r0]
+    bic r1, r1, #0x00000F00
+    str r1, [r0]
+
+    ldr r0, =0x1e6c0038                          @ Clear Timer3 ISR
+    ldr r1, =0x00040000
+    str r1, [r0]
+    .endm
+
+.globl lowlevel_init
+lowlevel_init:
+
+init_dram:
+    mov r4, lr		/* save lr */
+
+    /*Set Scratch register Bit 7 before initialize*/
+    /* *(scu1+ 0) = 0xa8 */
+    ldr r0, =0x1e6e2000
+    ldr r1, =0x1688a8a8
+    str r1, [r0]
+
+    ldr r0, =0x1e6e2040
+    ldr r1, [r0]
+    orr r1, r1, #0x80
+    str r1, [r0]
+
+    /*Check Stratch Register Bit 6*/
+    ldr r0, =0x1e6e2040
+    ldr r1, [r0]
+    bic r1, r1, #0xFFFFFFBF
+    mov r2, r1, lsr #6
+    cmp r2, #0x01
+    beq platform_exit
+
+    /* MCLK Setting for AST1500*/
+    ldr r0, =0x1e6e2004
+    ldr r1, [r0]
+    orr r1, r1, #0x01A0
+    str r1, [r0]
+
+    ldr r0, =0x1e6e2008
+    ldr r1, [r0]
+    orr r1, r1, #0x0C
+    str r1, [r0]
+
+    ldr r0, =0x1e6e200C
+    ldr r1, [r0]
+    orr r1, r1, #0x0130
+    str r1, [r0]
+
+    /* Enable 12MHz clock output for audio, client side only */
+    ldr r0, =0x1e6e2010
+    ldr r1, =0x00000000
+    str r1, [r0]
+
+    ldr r0, =0x1e6e2020
+#ifdef CONFIG_AST1500_CLIENT
+    ldr r1, =0x00004120     //12MHz   //Host: 0x00014120
+#else
+    ldr r1, =0x00014120     //12MHz
+#endif
+    str r1, [r0]
+
+#if CONFIG_AST1500_CLIENT //overclock
+    //Set CPU clock
+    ldr r0, =0x1e6e2024
+    //ldr r1, =0x000441F0    //200MHZ
+    //ldr r1, =0x00044120    //266MHZ
+    //ldr r1, =0x000442A1    //275MHZ
+    //ldr r1, =0x00044140    //288MHZ
+    //ldr r1, =0x000442E1    //300MHZ
+    ldr r1, =0x00044160    //312MHZ
+    //ldr r1, =0x00044321    //324MHZ
+    //ldr r1, =0x00044180    //336MHZ
+    //ldr r1, =0x00044361    //350MHZ
+    str r1, [r0]
+#else
+    //AHB/3
+    //ldr r0, =0x1e6e2070
+    //ldr r1, =0x00013002
+    //str r1, [r0]
+
+    //Set CPU clock
+    ldr r0, =0x1e6e2024
+    //ldr r1, =0x000441F0    //200MHZ
+    //ldr r1, =0x00044120    //266MHZ
+    //ldr r1, =0x000442A1    //275MHZ
+    //ldr r1, =0x00044140    //288MHZ
+    //ldr r1, =0x000442E1    //300MHZ
+    ldr r1, =0x00044160    //312MHZ
+    //ldr r1, =0x00044321    //324MHZ
+    //ldr r1, =0x00044180    //336MHZ
+    //ldr r1, =0x00044361    //350MHZ
+    str r1, [r0]
+#endif
+
+    ldr r0, =0x1e6e202C
+#ifdef CONFIG_AST1500_CLIENT
+    ldr r1, =0x00000012 //For C-Media OSCCLK
+#else
+    ldr r1, =0x00000010 //For GPIOD7
+#endif
+    str r1, [r0]
+
+    //This defualt value should be fine for PTV platform
+    ldr r0, =0x1e6e2074
+    ldr r1, =0x0
+    str r1, [r0]
+
+/* Debug - UART console message */
+    ldr r0, =0x1e78400c
+    mov r1, #0x83
+    str r1, [r0]
+
+    ldr r0, =0x1e6e202c
+    ldr r2, [r0]
+    mov r2, r2, lsr #12
+    tst r2, #0x01
+    ldr r0, =0x1e784000
+    moveq r1, #0x0D                              @ Baudrate 115200
+    movne r1, #0x01                              @ Baudrate 115200, div13
+    str r1, [r0]
+
+    ldr r0, =0x1e784004
+    mov r1, #0x00
+    str r1, [r0]
+
+    ldr r0, =0x1e78400c
+    mov r1, #0x03
+    str r1, [r0]
+
+    ldr r0, =0x1e784008
+    mov r1, #0x07
+    str r1, [r0]
+
+    ldr r0, =0x1e784000
+    mov r1, #0x0D                                @ '\r'
+    str r1, [r0]
+    mov r1, #0x0A                                @ '\n'
+    str r1, [r0]
+    mov r1, #0x44                                @ 'D'
+    str r1, [r0]
+    mov r1, #0x52                                @ 'R'
+    str r1, [r0]
+    mov r1, #0x41                                @ 'A'
+    str r1, [r0]
+    mov r1, #0x4D                                @ 'M'
+    str r1, [r0]
+    mov r1, #0x20                                @ ' '
+    str r1, [r0]
+    mov r1, #0x49                                @ 'I'
+    str r1, [r0]
+    mov r1, #0x6E                                @ 'n'
+    str r1, [r0]
+    mov r1, #0x69                                @ 'i'
+    str r1, [r0]
+    mov r1, #0x74                                @ 't'
+    str r1, [r0]
+    mov r1, #0x2D                                @ '-'
+    str r1, [r0]
+    mov r1, #0x44                                @ 'D'
+    str r1, [r0]
+    mov r1, #0x44                                @ 'D'
+    str r1, [r0]
+    mov r1, #0x52                                @ 'R'
+    str r1, [r0]
+    mov r1, #0x32                                @ '2'
+    str r1, [r0]
+    mov r1, #0x0D                                @ '\r'
+    str r1, [r0]
+    mov r1, #0x0A                                @ '\n'
+    str r1, [r0]
+/* Debug - UART console message */
+
+    /* Delay about 100us */
+    ldr r0, =0x1e782030                          @ Init Timer3 Control
+    ldr r1, [r0]
+    bic r1, r1, #0x00000F00
+    str r1, [r0]
+
+    ldr r2, =0x00000064                          @ Set Timer3 Reload = 100 us
+    init_delay_timer
+delay_0:
+    check_delay_timer
+    bne delay_0
+    clear_delay_timer
+    /* end delay 100us */
+
+    /* DRAM Setting */
+    ldr r0, =0x1e6e0000
+    ldr r1, =0xfc600309
+    str r1, [r0]
+
+    ldr r0, =0x1e6e006C
+    ldr r1, =0x00848484
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0064
+#ifdef CONFIG_AST1500_X32_RAM
+    ldr r1, =0x00070000 /* x32 RAM */
+#else //#ifdef CONFIG_AST1500_X32_RAM
+    ldr r1, =0x00050000 /* x16 RAM */
+#endif //#ifdef CONFIG_AST1500_X32_RAM
+    str r1, [r0]
+
+    /* Delay about 10us */
+    ldr r2, =0x0000000B                          @ Set Timer3 Reload = 10 us
+    init_delay_timer
+delay_1:
+    check_delay_timer
+    bne delay_1
+    clear_delay_timer
+    /* end delay 10us */
+
+    ldr r0, =0x1e6e0004
+#ifdef CONFIG_AST1500_X32_RAM
+    #ifdef CONFIG_AST1500_RAMSIZE_1Gb
+        ldr r1, =0x00000C8D     //          1Gb   X32 RAM
+    #elif defined (CONFIG_AST1500_RAMSIZE_512Mb)
+        ldr r1, =0x00000489     //          512Mb X32 RAM
+    #elif defined (CONFIG_AST1500_RAMSIZE_256Mb)
+        ldr r1, =0x00000484     //          256Mb X32  RAM
+    #endif
+#else //#ifdef CONFIG_AST1500_X32_RAM
+    #ifdef CONFIG_AST1500_RAMSIZE_1Gb
+        ldr r1, =0x00000D89     // CONFIG   1Gb   X16 RAM
+    #elif defined (CONFIG_AST1500_RAMSIZE_512Mb)
+        ldr r1, =0x00000585     //          512Mb X16 RAM
+    #elif defined (CONFIG_AST1500_RAMSIZE_256Mb)
+        ldr r1, =0x00000580     //          256Mb X16 RAM
+    #endif
+#endif //#ifdef CONFIG_AST1500_X32_RAM
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0008
+    ldr r1, =0x00000000		/* CRT */
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0010
+    //ldr r1, =0x22201725 /* For 200MHz CPU */
+    //ldr r1, =0x32302926 /* For 266MHz CPU */
+    ldr r1, =0x33302A27 /* For 312MHz CPU */
+    //ldr r1, =0x33302A27 /* For 324MHz CPU */
+    //ldr r1, =0x33302B27 /* For 336MHz CPU */
+    //ldr r1, =0x33302B27 /* For 350MHz CPU */
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0018
+    //ldr r1, =0x1E29011A /* For 200MHz CPU */
+    //ldr r1, =0x274c0122 /* For 266MHz CPU */
+    ldr r1, =0x2B6E0126 /* For 312MHz CPU */
+    //ldr r1, =0x2D6E0128 /* For 324MHz CPU */
+    //ldr r1, =0x2F6F0129 /* For 336MHz CPU */
+    //ldr r1, =0x316F012B /* For 350MHz CPU */
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0020
+    //ldr r1, =0x00C82222 /* For 200MHz CPU */
+    //ldr r1, =0x00ce2222 /* For 266MHz CPU */
+    ldr r1, =0x00D22222 /* For 312MHz CPU */
+    //ldr r1, =0x00D22222 /* For 324MHz CPU */
+    //ldr r1, =0x00D22222 /* For 336MHz CPU */
+    //ldr r1, =0x00D22222 /* For 350MHz CPU */
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0038
+    ldr r1, =0x00000000
+    str r1, [r0]
+
+    ldr r0, =0x1e6e003c
+    ldr r1, =0x00000000
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0040
+    ldr r1, =0x00F00000
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0044
+    ldr r1, =0x00000000
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0048
+    ldr r1, =0x00000000
+    str r1, [r0]
+
+    ldr r0, =0x1e6e004c
+    ldr r1, =0x00000000
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0050
+    ldr r1, =0x00000000
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0054
+    ldr r1, =0x00000000
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0058
+    ldr r1, =0x00000000
+    str r1, [r0]
+
+    ldr r0, =0x1e6e005c
+    ldr r1, =0x00000000
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0060
+#ifdef CONFIG_AST1500_X32_RAM
+    ldr r1, =0x0F2AA02A /* x32 RAM */
+#else
+    ldr r1, =0x032AA02A /* x16 RAM */
+#endif
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0064
+#ifdef CONFIG_AST1500_X32_RAM
+    ldr r1, =0x003F3005 /* x32 RAM */
+#else
+    ldr r1, =0x002D3000 /* x16 RAM */
+#endif
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0068
+    ldr r1, =0x00000000
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0070
+    ldr r1, =0x00000000
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0074
+    ldr r1, =0x00000000
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0078
+    ldr r1, =0x00000000
+    str r1, [r0]
+
+    ldr r0, =0x1e6e007c
+    ldr r1, =0x00000000
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0034
+    ldr r1, =0x00000001
+    str r1, [r0]
+
+    /* Delay about 400us */
+    ldr r2, =0x00000190                          @ Set Timer3 Reload = 400 us
+    init_delay_timer
+delay_2:
+    check_delay_timer
+    bne delay_2
+    clear_delay_timer
+    /* end delay 400us */
+
+    ldr r0, =0x1e6e002c
+    ldr r1, =0x00000952
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0030
+    ldr r1, =0x00000040
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0028
+    ldr r1, =0x00000005
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0028
+    ldr r1, =0x00000007
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0028
+    ldr r1, =0x00000003
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0028
+    ldr r1, =0x00000001
+    str r1, [r0]
+
+    ldr r0, =0x1e6e000c
+    ldr r1, =0x00005A08
+    str r1, [r0]
+
+    ldr r0, =0x1e6e002c
+    //ldr r1, =0x00000632 /* For 200MHz CPU */
+    //ldr r1, =0x00000842 /* For 266MHz CPU */
+    ldr r1, =0x00000852 /* For 312MHz CPU */
+    //ldr r1, =0x00000852 /* For 324MHz CPU */
+    //ldr r1, =0x00000A52 /* For 336MHz CPU */
+    //ldr r1, =0x00000A52 /* For 350MHz CPU */
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0028
+    ldr r1, =0x00000001
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0030
+    ldr r1, =0x000003C0
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0028
+    ldr r1, =0x00000003
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0030
+    ldr r1, =0x00000040
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0028
+    ldr r1, =0x00000003
+    str r1, [r0]
+
+    ldr r0, =0x1e6e000c
+    ldr r1, =0x00005D01
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0034
+    ldr r1, =0x00007C03
+    str r1, [r0]
+
+    b Calibration_Start
+/******************************************************************************
+ Calibration Code Start
+ ******************************************************************************/
+.LTORG
+
+/* PATTERN_TABLE, wait_engine_write_idle, wait_engine_read_idel,
+   set_dram_engine, load_pattern
+   load_dram_parameter and set_result are for DRAM calibration */
+
+PATTERN_TABLE:
+    .word    0xff00ff00
+    .word    0xcc33cc33
+    .word    0xaa55aa55
+    .word    0xfffe0001
+    .word    0x683501fe        @ 5
+    .word    0x0f1929b0
+    .word    0x2d4600fd
+    .word    0x2d0b4346
+    .word    0x60767f02
+    .word    0x6fbe36a6        @ 10
+    .word    0x3a253035
+    .word    0x3019686d
+    .word    0x41c6167e
+    .word    0x620152bf
+    .word    0x00000000        @ 15
+
+
+    .macro    wait_engine_write_idle
+    ldr        r0, =0x1e6e0070
+wait_write_idle:
+    ldr        r2, [r0]
+    tst        r2, #0x40        @ D[6] = idle bit
+    beq        wait_write_idle
+    .endm
+
+    .macro    wait_engine_read_idle
+    ldr        r0, =0x1e6e0070
+wait_read_idle:
+    ldr        r2, [r0]
+    tst        r2, #0x40        @ D[6] = idle bit
+    beq        wait_read_idle
+    .endm
+
+    .macro    set_dram_engine
+    ldr        r0, =0x1e6e0070
+    ldr        r3, =0x00000000
+    str        r3, [r0]
+
+    mov        r3, r1, lsl #3
+    orr        r3, r3, r2
+    str        r3, [r0]
+    .endm
+
+    .macro    load_pattern
+    ldr        r1, [r5]
+    ldr        r0, =0x1e6e007c
+    str        r1, [r0]
+    cmp        r1, #0x00
+    bne        load_end
+    cmp        r6, #0x00        @ last pattern. we will record it if
+                                @ it is the first passed parameter
+    bne        load_end
+    and        r8, r7, #0xff
+    sub        r8, r8, #0x01    @ we add one after loop check so we
+                                @ need to decrease 1
+    mov        r6, #0x01        @ set found parameter
+load_end:
+    .endm
+
+    .macro    load_dram_parameter
+    ldr        r0, =0x1e6e0068
+    str        r7, [r0]
+    /* Delay about 400us */
+    ldr r2, =0x00007000
+delay3:
+    nop
+    nop
+    subs r2, r2, #1          /* until source end addreee [r2]    */
+    bne delay3
+    .endm
+
+/* r7 = DLL max, r8 = DLL min */
+    .macro    set_result
+    cmp r8, #0x00
+    beq DLL_MIN_0
+/*
+    sub r7, r7, r8            @ DLL minimum != 0
+    ldr r2, =0x46
+    mul r1, r7, r2
+    mov r1, r1, asr #7        @ (max - min) * 70 / 128 ~=
+                              @ (max - min) * 0.546
+    add r7, r1, r8
+*/
+    add r7, r7, r8
+    mov r7, r7, lsr #1
+    b   set_register
+
+DLL_MIN_0:                    @ DLL minimum == 0
+    mov r7, r7, lsr #1        @ then DLL = DLL maximum / 2
+    b   set_register
+
+
+set_register:
+    mov r1, r7, lsl #0x08
+    add r7, r7, r1            @ D[7:0] --> D[15:8]
+    mov r1, r7, lsl #0x10
+    add r7, r7, r1            @ D[15:0] --> D[31:16]
+    ldr    r0, =0x1e6e0068
+    str    r7, [r0]
+    ldr    r0, =0x1e6e0070
+    mov    r7, #0x00
+    str    r7, [r0]
+    .endm
+/*****************************************************************************/
+
+Calibration_Start:
+    /* Delay about 10us */
+    ldr r2, =0x0000000B                          @ Set Timer3 Reload = 10 us
+    init_delay_timer
+delay_3:
+    check_delay_timer
+    bne delay_3
+    clear_delay_timer
+    /* end delay 10us */
+
+/* Set Test DRAM Size and Base. Default Size = 1KB - 1 and Base = 0MB. */
+    ldr r0, =0x1e6e0074
+    ldr r1, =0x000003FF
+    str r1, [r0]
+
+/* Debug - UART console message */
+    ldr r0, =0x1e784000
+    mov r1, #0x43                                @ 'C'
+    str r1, [r0]
+    mov r1, #0x42                                @ 'B'
+    str r1, [r0]
+    mov r1, #0x52                                @ 'R'
+    str r1, [r0]
+    mov r1, #0x31                                @ '1'
+    str r1, [r0]
+/* Debug - UART console message */
+
+/* Start
+  r5 = pattern table index
+  r6 = found passed parameter or not. 0 = not yet, 1 = found
+  r7 = dram parameter index (0x1e6e0068), max is 0x40
+  r8 = first passed parameter (DLL minimum), initialize to 0xff
+  r9 = fail counter, initialize to 10 (fail 10 times)
+  r10 = pattern fail counter, initialize to 10 (fail 10 times)
+*/
+retry:
+    mov r6, #0x00
+    mov r7, #0x00
+    mov r8, #0xff
+    mov r9, #10
+    mov r10, #10
+
+/* Debug - UART console message */
+    ldr r0, =0x1e784000
+    mov r1, #0x32                                @ '2'
+    str r1, [r0]
+/* Debug - UART console message */
+
+next_dram_parameter:
+    load_dram_parameter
+    ldr    r2, =0x40404040            @ parameter's max is to 0x40404040
+    cmp r7, r2
+    beq test_end
+    ldr    r2, =0x01010101
+    add    r7, r7, r2
+
+/* Debug - UART console message */
+    ldr r0, =0x1e784000
+    mov r1, #0x33                                @ '3'
+    str r1, [r0]
+/* Debug - UART console message */
+
+fail_retry:
+    adr r5, PATTERN_TABLE
+next_pattern:
+pattern_fail_retry:
+    load_pattern
+    cmp r1, #0x00                     @ the last data in pattern is 0x00
+    beq next_dram_parameter           @ pattern end so check next parameter
+    mov r1, #0x00                     @ initialize loop1 index, r1 is
+                                      @ loop1's index
+loop1:
+    mov r2, #0x01                     @ write
+    set_dram_engine
+    wait_engine_write_idle
+    mov r2, #0x03                     @ read
+    set_dram_engine
+    wait_engine_read_idle
+
+    ldr r0, =0x1e6e0070
+    ldr    r2, [r0]
+    tst r2, #0x80                     @ check pass/fail
+    beq next_test_mode                @ pass
+
+    subs r10, r10, #1
+    cmp r10, #0
+    bne pattern_fail_retry
+    mov r10, #10
+
+    subs r9, r9, #1
+    cmp r9, #0
+    beq fail_10_times
+    b    fail_retry
+
+fail_10_times:
+    cmp r6, #0x01
+    beq test_end                      @ fail and already store passed
+                                      @ parameter in r8 then test end
+    mov r9, #10
+    b    next_dram_parameter          @ fail but did not have any passed
+                                      @ parameter so check next one
+
+next_test_mode:
+    add r1, r1, #1                    @ increase the test mode index
+    cmp r1, #0x08                     @ there are 8 modes
+    bne loop1
+
+    add r5, r5, #0x04                 @ increase the test pattern index
+    b    next_pattern
+
+test_end:
+    and r7, r7, #0xff
+    sub r7, r7, #0x02                 @ we add one after loop check and the
+                                      @ last one test is failed also
+
+/* Below are for record min and max only, your code can skip this part */
+    ldr r0, =0x1e6e0014
+    mov r2, r7, lsl #8
+    orr r2, r2, r8                    @ record
+    str r2, [r0]
+/* record min and max end */
+
+    cmp r7, r8                        @ check DLL minimum(r8) and DLL
+                                      @ maximum (r7)
+    blt down_frequency                @ if r7 < r8, it means that there's no
+                                      @ passed parameter, we forced it to
+                                      @ down_frequency.
+    cmp r8, #0
+    beq DLL_0
+    sub r1, r7, r8
+    cmp r1, #7                        @ if (DLLmin != 0) && ((DLL maximum -
+                                      @ DLL minimum + 1) < 8), there's
+                                      @ something wrong on the board
+    blt down_frequency                @ jump to down_frequency
+DLL_0:
+    cmp r7, #6                        @ if (DLLmin == 0) && ((DLL maximum -
+                                      @ DLL minimum) < 6), there's something
+                                      @ wrong on the board
+    blt down_frequency                @ jump to down_frequency
+
+    set_result
+/* Debug - UART console message */
+    ldr r0, =0x1e784000
+    mov r1, #0x44                                @ 'D'
+    str r1, [r0]
+    mov r1, #0x6F                                @ 'o'
+    str r1, [r0]
+    mov r1, #0x6E                                @ 'n'
+    str r1, [r0]
+    mov r1, #0x65                                @ 'e'
+    str r1, [r0]
+    mov r1, #0x0D                                @ '\r'
+    str r1, [r0]
+    mov r1, #0x0A                                @ '\n'
+    str r1, [r0]
+/* Debug - UART console message */
+    b    set_scratch
+/* End codes for DRAM calibration */
+
+down_frequency:
+/* Debug - UART console message */
+    ldr r0, =0x1e784000
+    mov r1, #0x44                                @ 'D'
+    str r1, [r0]
+    mov r1, #0x6F                                @ 'o'
+    str r1, [r0]
+    mov r1, #0x77                                @ 'w'
+    str r1, [r0]
+    mov r1, #0x6E                                @ 'n'
+    str r1, [r0]
+    mov r1, #0x5F                                @ '_'
+    str r1, [r0]
+    mov r1, #0x66                                @ 'f'
+    str r1, [r0]
+    mov r1, #0x72                                @ 'r'
+    str r1, [r0]
+    mov r1, #0x65                                @ 'e'
+    str r1, [r0]
+    mov r1, #0x71                                @ 'q'
+    str r1, [r0]
+    mov r1, #0x0D                                @ '\r'
+    str r1, [r0]
+    mov r1, #0x0A                                @ '\n'
+    str r1, [r0]
+/* Debug - UART console message */
+
+    ldr r0, =0x1e6e0034
+    ldr r1, =0x00000000
+    str r1, [r0]
+
+    ldr r0, =0x1e6e000c
+    ldr r1, =0x00000000
+    str r1, [r0]
+#if 0
+    ldr r0, =0x1e6e2020
+    ldr r1, =0x000041F0        //200MHz
+    str r1, [r0]
+#else
+    /* AST1500 platform uses H-PLL as Memory clock. */
+    //Set H-PLL(CPU) clock
+    ldr r0, =0x1e6e2024
+//    ldr r1, =0x000441F0    //200MHZ
+    ldr r1, =0x00044120    //266MHZ
+    str r1, [r0]
+#endif
+
+    ldr r0, =0x1e6e0064
+    ldr r1, =0x00073005
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0010
+//    ldr r1, =0x22201725   //200MHz
+    ldr r1, =0x32302926   //266MHz
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0018
+//    ldr r1, =0x1E29011A   //200MHz
+    ldr r1, =0x274c0122   //266MHz
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0020
+//    ldr r1, =0x00C82222   //200MHz
+    ldr r1, =0x00ce2222   //266MHz
+    str r1, [r0]
+
+    /* Delay about 400us */
+    ldr r2, =0x00007000
+delay1:
+    nop
+    nop
+    subs r2, r2, #1          /* until source end addreee [r2]    */
+    bne delay1
+
+    ldr r0, =0x1e6e0064
+    ldr r1, =0x003F3005
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0068
+    ldr r1, =0x02020202
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0070
+    ldr r1, =0x00000000
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0034
+    ldr r1, =0x00000001
+    str r1, [r0]
+
+    /* Delay about 400us */
+    ldr r2, =0x00007000
+delay2:
+    nop
+    nop
+    subs r2, r2, #1          /* until source end addreee [r2]    */
+    bne delay2
+
+    ldr r0, =0x1e6e002c
+//    ldr r1, =0x00000732   //200MHz
+    ldr r1, =0x00000742   //266MHz
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0030
+    ldr r1, =0x00000040
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0028
+    ldr r1, =0x00000005
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0028
+    ldr r1, =0x00000007
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0028
+    ldr r1, =0x00000003
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0028
+    ldr r1, =0x00000001
+    str r1, [r0]
+
+    ldr r0, =0x1e6e000c
+    ldr r1, =0x00005A08
+    str r1, [r0]
+
+    ldr r0, =0x1e6e002c
+    ldr r1, =0x00000642
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0028
+    ldr r1, =0x00000001
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0030
+    ldr r1, =0x000003C0
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0028
+    ldr r1, =0x00000003
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0030
+    ldr r1, =0x00000040
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0028
+    ldr r1, =0x00000003
+    str r1, [r0]
+
+    ldr r0, =0x1e6e000c
+    ldr r1, =0x00005D01
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0034
+    ldr r1, =0x00007C03
+    str r1, [r0]
+
+    ldr r0, =0x1e6e0120            /* for AST2000 compatible */
+    ldr r1, =0x00004C81            /* 200MHz */
+    str r1, [r0]
+
+set_scratch:
+    /*Set Scratch register Bit 6 after ddr initial finished */
+/*
+    ldr r0, =0x1e6e2040
+    ldr r1, [r0]
+    orr r1, r1, #0x40
+    str r1, [r0]
+*/
+
+platform_exit:
+    mov lr, r4		/* restore lr */
+
+    /* back to arch calling code */
+    mov pc, lr
+

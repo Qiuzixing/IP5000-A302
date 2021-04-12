@@ -1,0 +1,4 @@
+!/release/*.ko
+!/release/**/*.ko
+!/release/*.o
+!/release/**/*.o

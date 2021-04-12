@@ -1,0 +1,27 @@
+1. Logo customization:
+	To create/modify logo, you need to manually create two .h files.
+	These two .h files are logo_bmp.h and ver_bmp.h.
+	They are created by "./convert.sh" from logo_xrgb8888.bmp and ver_xrgb8888.bmp.
+	"./convert.sh" will copy the created .h file to the driver directory.
+	After "./convert.sh", re-compile kernel and done.
+
+	BMP file requirement:
+	- The screen resolution is 640x480, your logo bmp file resolution is preferably less than 224x168 and the file size should not exceed 150 Kbyte
+	- BMP file MUST be in 32bit(xrgb8888) format.
+
+2. OSD customization:
+	To create/modify OSD message, you need to manually create some .h files.
+	These .h files are osd_0.h, osd_1.h, osd_2.h, osd_3.h and osd_4.h.
+	They are created by "./convert_osd.sh" from osdX_xrgb1555.bmp.
+	"./convert_osd.sh" will copy the created .h files to the driver directory.
+	After "./convert_osd.sh", re-compile kernel and done.
+
+	BMP file requirement:
+	- BMP width MUST be multiple of 16.
+	- Default BMP size is 352x50.
+	- BMP file MUST be 16bit(xrgb1555) format.
+	- Default Font Style: Arial+Bold size 30.
+	- Total number of colors in the BMP must under 16. 
+	  So, you must convert the BMP to 4bits(16color) first then
+	  convert it back to 16bits format
+

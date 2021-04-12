@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cec_send f0 44 6c
+cec_send f0 44 6c

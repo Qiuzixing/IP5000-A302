@@ -1,0 +1,201 @@
+
+if ARCH_AST1500
+
+menu "ASPEED AST1500 Implementation Options"
+
+config AST1500_SOC_VER
+	int "AST1500 Series SoC version (1~3)"
+	default 2
+	range 1 3
+	help
+	  AST1500 Series SoC version.
+	  1:AST1500
+	  2:AST1510
+	  3:AST1520
+
+config AST1500_SOC_DRAM_MAPPING_TYPE
+	int "AST1500 Series SoC DRAM Mapping Type (1~2)"
+	default 1
+	range 1 2
+	help
+	  AST1500 Series SoC DRAM Mapping Type (1~2)
+	  1:AST1500/AST1510 (0x40000000)
+	  2:AST1520 (0x80000000)
+
+config AST1500_SOC_FLASH_MAPPING_TYPE
+	int "AST1500 Series SoC FLASH Mapping Type (1~2)"
+	default 1
+	range 1 2
+	help
+	  AST1500 Series SoC FLASH Mapping Type (1~2)
+	  1:AST1500/AST1510 (CS_NUM 2)
+	  2:AST1520 (CS_NUM 0, New Controller Base Addr)
+
+choice
+	prompt "build type"
+
+config AST1500_DEBUG_BUILD
+	bool "AST1500 debug build"
+
+config AST1500_RELEASE_BUILD
+	bool "AST1500 release build"
+
+endchoice
+	
+choice
+	prompt "host/client"
+
+config ARCH_AST1500_HOST
+	bool "AST1500 Host"
+	select AST1500_GPIO
+
+config ARCH_AST1500_CLIENT
+	bool "AST1500 Client"
+	select PCI if (AST1500_SOC_VER = 1 || AST1500_SOC_VER = 2)
+	select DMABOUNCE if AST1500_SOC_VER = 1
+	select AST1500_GPIO
+
+endchoice
+	
+choice
+	prompt "Board type"
+
+config AST1500_BOARD_V3
+	bool "Board V3(PCE)"
+	depends AST1500_SOC_VER = 1
+	help
+	  AST1500 Board V3(PCE) specific
+
+config AST1500_BOARD_V4
+	bool "Board V4(v2.3)"
+	depends AST1500_SOC_VER = 1
+	help
+	  AST1500 Board V4(v2.3) specific
+
+config AST1500_BOARD_V5
+	bool "Board V5(v2.5)"
+	depends AST1500_SOC_VER = 1
+	help
+	  AST1500 Board V5(v2.5) specific
+
+config AST1510_BOARD_FPGA
+	bool "1510 FPGA board"
+	depends AST1500_SOC_VER = 2
+	help
+	  AST1510 FPGA board specific
+
+config AST1510_BOARD_EVA_V1
+	bool "2300 eva board"
+	depends AST1500_SOC_VER = 2
+	help
+	  AST2300 eva board
+
+config AST1510_BOARD_EVA_V2
+	bool "1510 eva board"
+	depends AST1500_SOC_VER = 2
+	help
+	  AST1510 eva board
+
+config AST1510_BOARD_EVA_V4
+	bool "AST1510 module"
+	depends AST1500_SOC_VER = 2
+	help
+	  AST1510 module + mother board
+
+config AST1510_BOARD_EVA_V5
+	bool "AST1510 demo board"
+	depends AST1500_SOC_VER = 2
+	help
+	  AST1510 demo board
+
+config AST1520_BOARD_FPGA_ARM9
+	bool "AST1520 FPGA board (2400)"
+	depends AST1500_SOC_VER = 3
+	help
+	  AST1520 FPGA board 2400 ARM9 FPGA
+
+config AST1520_BOARD_FPGA_ARM11
+	bool "AST1520 FPGA board (ARM11)"
+	depends AST1500_SOC_VER = 3
+	help
+	  AST1520 FPGA board with ARM11
+
+config AST1520_BOARD_EVA_V1
+	bool "AST1520 evalution board (A0)"
+	depends AST1500_SOC_VER = 3
+	help
+	  AST1520 eva board with A0 chip
+
+config AST1520_BOARD_EVA_V2
+	bool "AST1520 demo board (A0)"
+	depends AST1500_SOC_VER = 3
+	help
+	  AST1520 demo board with A0 chip
+
+config AST1520_BOARD_EVA_V3
+	bool "AST1520 demo board (A1)"
+	depends AST1500_SOC_VER = 3
+	help
+	  AST1520 demo board with A1 chip
+
+endchoice
+
+config AST1500_GPIO
+	bool
+	help
+	  GPIO code for AST1500 and similar processors
+
+comment "Feature Select"
+
+config AST1500_ANALOG_SOURCE
+	bool "(Feature) analog source"
+	depends on ARCH_AST1500_HOST
+	help
+	  enable analog source in host
+
+config AST1500_DIGITAL_SOURCE
+	bool "(Feature) digital source"
+	depends on ARCH_AST1500_HOST
+	help
+	  enable digital source in host
+
+config AST1500_ANALOG_SINK
+	bool "(Feature) analog sink"
+	depends on ARCH_AST1500_CLIENT
+	help
+	  enable analog sink in client
+
+config AST1500_DIGITAL_SINK
+	bool "(Feature) digital sink"
+	depends on ARCH_AST1500_CLIENT
+	help
+	  enable digital sink in client
+
+config AST1500_HOST_VIDEO_LOOPBACK
+	bool "(Feature) host video loopback support"
+	depends on ARCH_AST1500_HOST
+	help
+	  Host video loopback support for AST1500 and similar processors
+
+#choice
+#	prompt "USB HC type"
+#
+#config USBHC_NEC_5P
+#	bool "Use 5 ports NEC uPD720101 USB host controller"
+#	depends on ARCH_AST1500_CLIENT && AST1500_BOARD_V5
+#	default y
+#	help
+#	  This define is used in arch/pci.c to map PCI irq.
+#
+#config USBHC_NEC_3P
+#	bool "Use 3 ports NEC uPD720102 USB host controller"
+#	depends on ARCH_AST1500_CLIENT && AST1510_BOARD_EVA_V2
+#	default y
+#	help
+#	  This define is used in arch/pci.c to map PCI irq.
+#
+#endchoice
+
+endmenu
+
+endif

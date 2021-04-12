@@ -1,0 +1,89 @@
+#! /bin/sh
+
+#export FPGA_TEST='1'
+
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin
+export PATH			
+mount -a		
+
+export LD_LIBRARY_PATH="/lib:/usr/lib"
+export AST_PLATFORM="ast1520-h-v1"
+
+mknod /dev/ttyS0 c 4 64
+mknod /dev/ttyS1 c 4 65
+     
+mknod /dev/mtdblkkernel b 31 1
+mknod /dev/mtdblkrootfs b 31 2
+mknod /dev/mtdblkrootfsp b 31 3
+mknod /dev/mtdblklogo b 31 4
+mknod /dev/mtdblkparam b 31 5
+mknod /dev/mtdblkroparam b 31 6
+
+echo "Extracting rootfs patch..."
+tar zxf /dev/mtdblkrootfsp -C /
+
+if [ -f "/share/sysinit.sh" ]; then
+	chmod a+x /share/sysinit.sh
+	/share/sysinit.sh
+fi
+
+cd /usr/local/bin			
+./access_load		
+io_scratch
+
+ifconfig eth0 down
+
+_t=`astparam r random_mac`
+if [ "$_t" = "n" ]; then
+	macaddr=`astparam r ethaddr`
+	if [ "$macaddr" = "\"ethaddr\" not defined" ]; then
+		# Under this case macaddr will be different each time system boots up.
+		echo "ethaddr not set"
+		macaddr=`/usr/local/bin/random_mac -h`
+	fi
+else
+	# Default use random MAC
+	macaddr=`astparam g ethaddr`
+	if [ "$macaddr" = "\"ethaddr\" not defined" ]; then
+		# MAC is not generated yet.
+		macaddr=`/usr/local/bin/random_mac -h`
+		astparam s ethaddr "$macaddr"
+		astparam save
+		echo "generate new random MAC ($macaddr)"
+	fi
+fi
+
+ifconfig eth0 hw ether $macaddr
+ifconfig eth0 up
+#echo 1 > /proc/sys/net/ipv4/icmp_echo_ignore_all
+echo 1 > /proc/sys/net/ipv4/tcp_low_latency
+# default local port range overlap with AST service ports, change to 60000~65535
+echo 60000 65535 > /proc/sys/net/ipv4/ip_local_port_range
+
+# /proc/sys/kernel/printk_ratelimit (the number of seconds to wait before re-enabling messages) default:5
+# /proc/sys/kernel/printk_ratelimit_burst (the number of messages accepted before rate-limiting) default:10
+echo 1 > /proc/sys/kernel/printk_ratelimit
+echo 10 > /proc/sys/kernel/printk_ratelimit_burst
+
+# TCP retry timeout
+echo 4 > /proc/sys/net/ipv4/tcp_retries2
+
+no_lm=`astparam g astcleanboot`
+if echo "$no_lm" | grep -q "not defined" ; then
+	no_lm=`astparam r astcleanboot`
+	if echo "$no_lm" | grep -q "not defined" ; then
+		no_lm='n'
+	fi
+fi
+
+if [ "$no_lm" = "y" ]; then
+	if [ -d /sys/devices/platform/watchdog ]; then
+		#disable watchdog
+		echo no > /sys/devices/platform/watchdog/enable
+	fi
+	exit 0
+fi
+
+# Bruce160407. Lower LM priority so that it won't impact VideoIP thread.
+#link_mgrh.sh &
+nice -n 15 link_mgrh.sh

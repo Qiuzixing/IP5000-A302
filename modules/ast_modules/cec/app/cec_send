@@ -1,0 +1,5 @@
+#!/bin/bash
+
+CEC_SYSFS_PATH_SEND=/sys/devices/platform/cec/send
+
+echo $@ > $CEC_SYSFS_PATH_SEND

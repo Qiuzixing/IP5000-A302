@@ -1,0 +1,5 @@
+#!/bin/bash
+
+CEC_SYSFS_PATH_TOPOLOGY=/sys/devices/platform/cec/topology
+
+cat $CEC_SYSFS_PATH_TOPOLOGY

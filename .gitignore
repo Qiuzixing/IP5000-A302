@@ -1,0 +1,41 @@
+#
+# NOTE! Don't add files that are generated in specific
+# subdirectories here. Add them in the ".gitignore" file
+# in that subdirectory instead.
+#
+# Normal rules
+#
+#.*
+*.o
+*.a
+*.s
+*.ko
+*.mod.c
+*.d
+.tags
+.vscode
+
+*.ko.cmd
+*.mod.o.cmd
+*.o.cmd
+
+# Exception Files/folders. Ex. init.d/ folder must be included
+!**/*.d/
+
+# Ignore all temp folders
+/kernel/*-unpacked
+/bootloader/*-unpacked
+/application/gpl_app/*/*-unpacked
+*-ast-tgz/
+.tmp_versions/
+
+#
+# Top-level generic files/folders
+#
+/ast.cfg
+/ast-current.cfg
+/setenv.sh
+/build/
+/images/
+/x86_bin/mkimage
+

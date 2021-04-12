@@ -1,0 +1,234 @@
+##
+## Copyright (c) 2004-2012
+## ASPEED Technology Inc. All Rights Reserved
+## Proprietary and Confidential
+##
+## By using this code you acknowledge that you have signed and accepted
+## the terms of the ASPEED SDK license agreement.
+##
+include $(AST_SDK_ROOT)/ast.cfg
+
+
+TARGET_FOLDER_NAME=$(TARGET)-$(CONFIG)
+ROOTFS=$(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs
+ROOTFS_ADDON=$(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon
+IMAGE_FOLDER=$(AST_SDK_ROOT)/images/$(TARGET_FOLDER_NAME)
+
+# Set default FS_TEMPLATE_2 folder
+ifeq ($(FS_TEMPLATE_2),)
+	FS_TEMPLATE_2=$(TARGET)/$(TARGET_FOLDER_NAME)
+endif
+
+SIZE=$(shell expr $(RAMDISK_SIZE) \* 1024)
+SUDO ?= sudo -p "Enter root password for building dev nodes: "
+STRIP=$(CROSS_COMPILE)strip
+MAKE_ROOT=$(shell pwd)
+
+default:
+	make -f $(FS_MAKEFILE) rootfs
+	make -f $(FS_MAKEFILE) misc_img
+	make -f $(FS_MAKEFILE) image
+	make -f $(FS_MAKEFILE) web_img
+
+web_img:
+	#######################################################################
+	# Start Make webbin: $(IMAGE_FOLDER)/$(WEBBIN_IMAGE) from $(IMAGE_FOLDER)/webbin
+	#######################################################################
+	# Remove old webbin
+	rm -f $(IMAGE_FOLDER)/$(WEBBIN_IMAGE)
+	#######################################################################
+	# gz tar images...
+	tar zcvf $(IMAGE_FOLDER)/fw.tar.gz -C $(IMAGE_FOLDER)/webbin .
+	#######################################################################
+	# Done $(IMAGE_FOLDER)/$(WEBBIN_IMAGE)
+	mv -f $(IMAGE_FOLDER)/fw.tar.gz $(IMAGE_FOLDER)/$(WEBBIN_IMAGE)
+
+misc_img:
+	#######################################################################
+	# Cleanup webbin and misc images
+	make -f $(FS_MAKEFILE) clean_misc_img
+	mkdir -p $(IMAGE_FOLDER)/webbin
+	#######################################################################
+	# Create rootfs_patch
+	make -f $(FS_MAKEFILE) rootfs_patch
+	#######################################################################
+	# Create logo.bmp
+	if [ -n "$(LOGO_IMAGE)" ]; then cp -f $(MAKE_ROOT)/$(FS_TEMPLATE_2)/$(LOGO_IMAGE) $(IMAGE_FOLDER)/$(LOGO_IMAGE); fi
+	#######################################################################
+	# Create mtdblkroparam
+	( if [ -f "$(MAKE_ROOT)/$(FS_TEMPLATE_2)/astparam/astparam.sh" ]; then export IMAGE_FOLDER=$(IMAGE_FOLDER);$(MAKE_ROOT)/$(FS_TEMPLATE_2)/astparam/astparam.sh; fi )
+	#######################################################################
+	# Construct webbin
+	@[ -n "$(WEBBIN_ITEMS)" ] || (echo "ERROR!! need WEBBIN_ITEMS in ast.cfg"; exit 1)
+	cp -af $(MAKE_ROOT)/$(FS_TEMPLATE_2)/webbin/. $(IMAGE_FOLDER)/webbin/
+	@for B in $(WEBBIN_ITEMS) ; do \
+		case "$${B}" in \
+			b) \
+				echo "boot image"; \
+				cp -f $(IMAGE_FOLDER)/$(UBOOT_IMAGE) $(IMAGE_FOLDER)/webbin/mtdblkboot || exit 1;  \
+			;; \
+			k) \
+				echo "kernel image"; \
+				cp -f $(IMAGE_FOLDER)/$(KERNEL_IMAGE) $(IMAGE_FOLDER)/webbin/mtdblkkernel || exit 1;  \
+			;; \
+			r) \
+				echo "rootfs image"; \
+				cp -f $(IMAGE_FOLDER)/$(INITRDM_IMAGE) $(IMAGE_FOLDER)/webbin/mtdblkrootfs || exit 1;  \
+			;; \
+			p) \
+				echo "rootfs_patch image"; \
+				cp -f $(IMAGE_FOLDER)/$(ROOTFS_PATCH_IMAGE) $(IMAGE_FOLDER)/webbin/mtdblkrootfsp || exit 1; \
+			;; \
+			l) \
+				echo "logo image"; \
+				if [ -n "$(LOGO_IMAGE)" ]; then cp -f $(IMAGE_FOLDER)/$(LOGO_IMAGE) $(IMAGE_FOLDER)/webbin/mtdblklogo || exit 1; fi \
+			;; \
+		esac \
+	done \
+
+rootfs_patch:
+	# Create $(ROOTFS_PATCH_IMAGE) from folder: $(MAKE_ROOT)/$(FS_TEMPLATE_2)/rootfs_patch
+	tar zcvf $(IMAGE_FOLDER)/$(ROOTFS_PATCH_IMAGE) -C $(MAKE_ROOT)/$(FS_TEMPLATE_2)/rootfs_patch .
+
+rootfs:
+	@echo "Preparing..."
+	@make clean
+	@mkdir -p $(ROOTFS)
+	@echo "Constructing $(ROOTFS)/..."
+
+	#######################################################################
+	# Create rootfs from $(FS_TEMPLATE) and $(ROOTFS_ADDON)
+	#######################################################################
+	@# Copy $(FS_TEMPLATE) first, then 'rootfs_addon' overwrite and finally 'specific template' for overwriting again.
+	@cp -af $(FS_TEMPLATE)/. $(ROOTFS)/
+	@cp -af $(ROOTFS_ADDON)/. $(ROOTFS)/
+	@cp -af $(FS_TEMPLATE_2)/rootfs/. $(ROOTFS)/
+
+	#######################################################################
+	# Remove unnecessary files in 'rootfs_addon'
+	#######################################################################
+	@# 8.16MB
+	@# libstdc++.so* is used by qt GUI
+	@#rm -f $(ROOTFS)/lib/libstdc++.so*
+	@rm -f $(ROOTFS)/bin/xmlwf
+	@# Remove avahi-dnsconfd
+	@rm -f $(ROOTFS)/sbin/avahi-dnsconfd
+	@rm -f $(ROOTFS)/etc/avahi/avahi-dnsconfd.action
+	@# dummy usb.ids
+	@#echo -n "" > $(ROOTFS)/share/usbip/usb.ids
+	@# 8.04MB
+	@rm -f $(ROOTFS)/lib/*.a
+	@rm -f $(ROOTFS)/lib/*.la
+	@rm -rf $(ROOTFS)/lib/pkgconfig
+	# Remove vss file
+	@find $(ROOTFS) -name '*.scc' -type f -print -exec rm -f '{}' \;
+
+	#######################################################################
+	# Fix permission (for files copied from windows and lost file permission)
+	#######################################################################
+	@chmod a+x $(ROOTFS)/usr/local/bin/astconfig
+
+	#######################################################################
+	# strip apps and libs
+	#######################################################################
+	@$(STRIP) --strip-unneeded --strip-debug $(ROOTFS)/lib/* 2>/dev/null || echo "Ignore strip error"
+	@# 6.98MB
+	@$(STRIP) --strip-all $(ROOTFS)/usr/bin/* 2>/dev/null || echo "Ignore strip error"
+	@$(STRIP) --strip-all $(ROOTFS)/sbin/* 2>/dev/null || echo "Ignore strip error"
+	@$(STRIP) --strip-all $(ROOTFS)/www/cgi-bin/* 2>/dev/null || echo "Ignore strip error"
+	@# 6.90MB
+	@find $(ROOTFS)/usr/local/bin/ -name '*.ko' -type f -exec $(STRIP) --strip-unneeded --strip-debug '{}' ';' 2>/dev/null
+	@find $(ROOTFS)/usr/local/bin/ -not -name '*.ko' -type f -exec $(STRIP) --strip-all '{}' ';' 2>/dev/null
+	@#6.83MB
+
+	#######################################################################
+	# Create Version file
+	#######################################################################
+	@date -R  > $(IMAGE_FOLDER)/version-$(CONFIG)
+	@( \
+		cd $(IMAGE_FOLDER) && \
+		cksum $(UBOOT_IMAGE) >> $(IMAGE_FOLDER)/version-$(CONFIG) && \
+		cksum $(KERNEL_IMAGE) >> $(IMAGE_FOLDER)/version-$(CONFIG); \
+	) || exit 1
+	@echo `tar c -C $(ROOTFS) . | cksum` initrd2m >> $(IMAGE_FOLDER)/version-$(CONFIG)
+	@cat $(AST_SDK_ROOT)/version_tag >> $(IMAGE_FOLDER)/version-$(CONFIG)
+
+	#######################################################################
+	# Copy Version file
+	#######################################################################
+	@cp -f $(IMAGE_FOLDER)/version-$(CONFIG) $(ROOTFS)/etc/version
+	@# A not so good method to crate version file on Web UI
+	@echo "<pre>" > $(ROOTFS)/www/version.html
+	@cat $(IMAGE_FOLDER)/version-$(CONFIG) >> $(ROOTFS)/www/version.html
+	@echo "</pre>" >> $(ROOTFS)/www/version.html
+
+	#######################################################################
+	# Print out Version file
+	#######################################################################
+	@echo "==== Version Information ===="
+	@cat $(ROOTFS)/etc/version
+	@echo "============================="
+
+	#######################################################################
+	# Let's generate the rootfs image
+	#######################################################################
+	@echo "RAMDISK is $(SIZE) Kb"
+	@echo "Generating ramdisk image..."
+	@genext2fs -b $(SIZE) -i 1024 -d $(ROOTFS)/ -D $(FS_DEV_TABLE) -U -m 0 initrdm
+	@gzip -f -9 initrdm
+	@mkimage -A arm -O linux -T ramdisk -C gzip -a $(FS_ENTRY) -e $(FS_ENTRY) -d initrdm.gz $(INITRDM_IMAGE)
+	@rm initrdm.gz
+
+	#######################################################################
+	# Validate image size < $(FS_MAX_IMG_SIZE)
+	#######################################################################
+	@(check_size.sh $(INITRDM_IMAGE) $(FS_MAX_IMG_SIZE)) || exit 1
+
+	#######################################################################
+	# Image created!
+	#######################################################################
+	@mv $(INITRDM_IMAGE) $(IMAGE_FOLDER)/
+	@echo "Rootfs ramdisk image generated: $(IMAGE_FOLDER)/$(INITRDM_IMAGE)"
+
+
+clean:
+	@rm -f $(IMAGE_FOLDER)/$(INITRDM_IMAGE)
+	#@$(SUDO) rm -rf $(ROOTFS)
+	@rm -rf $(ROOTFS)
+	rm -f $(IMAGE_FOLDER)/version-$(CONFIG)
+	make -f $(FS_MAKEFILE) clean_misc_img
+	rm -f $(IMAGE_FOLDER)/$(WEBBIN_IMAGE)
+	make -f mkimg.gen clean
+
+
+clean_misc_img:
+	#######################################################################
+	# Cleanup webbin and misc images
+	rm -rf $(IMAGE_FOLDER)/webbin
+	rm -f $(IMAGE_FOLDER)/$(ROOTFS_PATCH_IMAGE)
+	if [ -n "$(LOGO_IMAGE)" ]; then rm -f $(IMAGE_FOLDER)/$(LOGO_IMAGE); fi
+
+mount:
+	@cp -f $(IMAGE_FOLDER)/$(INITRDM_IMAGE) ./
+	@if [ -f $(INITRDM_IMAGE) ]; then \
+		mkdir mnt; \
+		dd if=$(INITRDM_IMAGE) of=initrdm.gz bs=1 skip=64; \
+		gunzip initrdm.gz; \
+		$(SUDO) mount -o loop initrdm mnt; \
+		rm -f $(INITRDM_IMAGE); \
+	fi
+	@echo "Remember to 'make unmount'!!"
+
+unmount:
+	@$(SUDO) umount mnt
+	rmdir mnt
+	rm -f initrdm
+	rm -f $(INITRDM_IMAGE)
+
+image:
+	#######################################################################
+	# Create $(IMAGE_FOLDER)/$(ALL_IMAGE)
+	make -f mkimg.gen
+	cp -f $(IMAGE_FOLDER)/$(ALL_IMAGE) /tftpboot || exit 0
+
+

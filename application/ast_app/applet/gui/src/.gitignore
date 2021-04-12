@@ -1,0 +1,5 @@
+/GUI
+/Makefile
+/moc_dialog.cpp
+/qrc_resource.cpp
+/ui_dialog.h

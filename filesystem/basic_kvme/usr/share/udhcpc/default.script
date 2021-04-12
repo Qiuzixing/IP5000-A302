@@ -1,0 +1,71 @@
+#! /bin/sh
+	case "$1" in  
+		deconfig) 
+					echo "udhcpc deconfig"
+					#echo "Kill avahi-autoipd"
+					#/sbin/avahi-autoipd -k eth0
+					#ifconfig $interface:dhcp down
+					ifconfig $interface:dhcp 0.0.0.0 up
+					echo "dhcp deconfig" > /var/info_local 2>/dev/null
+					#ifconfig eth1 0.0.0.0
+					;;
+		bound)
+					echo "udhcpc bound"
+					[ -n "$broadcast" ] && BROADCAST="broadcast $broadcast"
+					[ -n "subnet" ] && NETMASK="netmask $subnet"
+					ifconfig $interface:dhcp $ip $BROADCAST $NETMASK up
+					if [ -n "$router" ]; then
+						while route del default gw 0.0.0.0 2>/dev/null; do
+							echo "deleting default gw..."
+						done
+					fi
+					for i in $router; do
+						route add default gw $i
+					done
+					/usr/local/bin/ast_send_event -1 "e_ip_got::$ip"
+					lmparam s MY_NETMASK $subnet
+					lmparam s MY_GATEWAYIP $i
+					#ifconfig eth1 $eth1
+					;;
+		leasefail)		
+					echo "udhcpc leasefail"
+					echo "dhcp client leasefail" > /var/info_local 2>/dev/null
+					#ifconfig eth0 $eth0 
+					#ifconfig eth1 $eth1
+					#echo "Start avahi-autoipd"
+					#/sbin/avahi-autoipd -wD eth0
+					;;
+		renew)
+					echo "udhcpc renew"
+					echo "dhcp renew" > /var/info_local 2>/dev/null
+					;;
+		nak)
+					echo "udhcpc nak"
+					echo "dhcp nak" > /var/info_local 2>/dev/null
+	esac	
+
+
+
+
+#        deconfig: This argument is used when udhcpc starts, and
+#       when a leases is lost. The script must put the interface in an
+#        up, but deconfigured state, ie: ifconfig $interface 0.0.0.0.
+
+#        bound: This argument is used when udhcpc moves from an
+#        unbound, to a bound state. All of the paramaters are set in
+#        enviromental variables, The script should configure the interface,
+#        and set any other relavent parameters (default gateway, dns server,
+#        etc).
+
+#        renew: This argument is used when a DHCP lease is renewed. All of
+#        the paramaters are set in enviromental variables. This argument is
+#        used when the interface is already configured, so the IP address,
+#        will not change, however, the other DHCP paramaters, such as the
+#        default gateway, subnet mask, and dns server may change.
+                                                                                
+#        nak: This argument is used with udhcpc receives a NAK message.
+#        The script with the deconfig argument will be called directly
+#        afterwards, so no changes to the network interface are neccessary.
+#        This hook is provided for purely informational purposes (the
+#        message option may contain a reason for the NAK).
+

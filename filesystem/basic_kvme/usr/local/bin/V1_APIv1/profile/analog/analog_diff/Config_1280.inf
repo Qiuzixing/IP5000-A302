@@ -1,0 +1,49 @@
+[general]
+DynamicQualityEnable= 0
+DefaultQualityMode= 1
+StreamBufPktSize=16
+StreamBufPktNum=16
+[text]
+NormalLumaTableSelection= 6
+NormalChromaTableSelection= 22
+HighQualityEnable= 1
+BestQualityEnable= 1
+HighDeValueOrHighLumaJpeg= 4
+BestDeValueOrHighChromaJpeg= 2
+CodecMode=1
+FrameRateControl= 1
+HorScale=1
+VerScale=1
+[high]
+NormalLumaTableSelection= 6
+NormalChromaTableSelection= 22
+HighQualityEnable= 1
+BestQualityEnable= 0
+HighDeValueOrHighLumaJpeg= 7
+BestDeValueOrHighChromaJpeg= 23
+CodecMode=0
+FrameRateControl= 1
+HorScale=1
+VerScale=1
+[med]
+NormalLumaTableSelection= 7
+NormalChromaTableSelection= 22
+HighQualityEnable= 1
+BestQualityEnable= 0
+HighDeValueOrHighLumaJpeg= 9
+BestDeValueOrHighChromaJpeg= 23
+CodecMode=0
+FrameRateControl= 1
+HorScale=2
+VerScale=1
+[low]
+NormalLumaTableSelection= 6
+NormalChromaTableSelection= 22
+HighQualityEnable= 1
+BestQualityEnable= 0
+HighDeValueOrHighLumaJpeg= 7
+BestDeValueOrHighChromaJpeg= 23
+CodecMode=0
+FrameRateControl= 1
+HorScale=2
+VerScale=1

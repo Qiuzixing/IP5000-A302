@@ -1,0 +1,10 @@
+#
+# Character device configuration
+#
+
+config I2C_ASPEED
+	tristate "I2C for ASPEED"
+	help
+	  ASPEED's I2C driver support.
+
+
