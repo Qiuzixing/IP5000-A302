@@ -15,7 +15,7 @@ default: build
 build: astresname
 	mkdir -p $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 	cp -f astresname $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
-	cp -f astresname /tftpboot
+	@#cp -f astresname /tftpboot
 
 astresname: astresname.o
 	$(cc) $(ldflags) -o astresname astresname.o

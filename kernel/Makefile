@@ -34,7 +34,7 @@ build:
 	@rm -f $(AST_SDK_ROOT)/images/$(TARGET_FOLDER_NAME)/$(KERNEL_IMAGE)
 	make $(KERNEL_IMAGE) -C $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/kernel
 	@mv $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/kernel/arch/arm/boot/$(KERNEL_IMAGE) $(AST_SDK_ROOT)/images/$(TARGET_FOLDER_NAME)/
-	@cp $(AST_SDK_ROOT)/images/$(TARGET_FOLDER_NAME)/$(KERNEL_IMAGE) /tftpboot/
+	@#cp $(AST_SDK_ROOT)/images/$(TARGET_FOLDER_NAME)/$(KERNEL_IMAGE) /tftpboot/
 
 clean:
 	@echo "$(KERNEL) Clean ..."

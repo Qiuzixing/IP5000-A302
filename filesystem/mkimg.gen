@@ -14,7 +14,7 @@ default:
 		export IMG_PARTITION=$(IMG_PARTITION); \
 		mkbin.sh || exit 1; \
 	)
-	@cp -f $(IMAGE_FOLDER)/$(ALL_IMAGE) /tftpboot/
+	@#cp -f $(IMAGE_FOLDER)/$(ALL_IMAGE) /tftpboot/
 
 host:
 	make T=host default

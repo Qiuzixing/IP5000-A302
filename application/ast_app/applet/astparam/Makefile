@@ -15,7 +15,7 @@ default: build
 build: astparam
 	mkdir -p $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 	cp -f astparam $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
-	cp -f astparam /tftpboot
+	@#cp -f astparam /tftpboot
 
 astparam: astparam.o
 	$(cc) $(ldflags) -o astparam astparam.o

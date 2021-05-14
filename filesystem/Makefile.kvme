@@ -229,6 +229,6 @@ image:
 	#######################################################################
 	# Create $(IMAGE_FOLDER)/$(ALL_IMAGE)
 	make -f mkimg.gen
-	cp -f $(IMAGE_FOLDER)/$(ALL_IMAGE) /tftpboot || exit 0
+	@#cp -f $(IMAGE_FOLDER)/$(ALL_IMAGE) /tftpboot || exit 0
 
 

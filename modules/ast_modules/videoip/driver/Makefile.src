@@ -24,7 +24,7 @@ default:
 	$(MAKE) -C $(KOBJDIR) LANG=C KBUILD_VERBOSE=${KBUILD_VERBOSE}  M=$(PWD) modules
 	mkdir -p $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 	cp -f videoip.ko $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
-	cp -f videoip.ko /tftpboot
+	@#cp -f videoip.ko /tftpboot
 	mkdir -p $(PWD)/release/$(TARGET_FOLDER_NAME)
 	mv -f videoip.ko $(PWD)/release/$(TARGET_FOLDER_NAME)/
 

@@ -15,7 +15,7 @@ default: build
 build: astsetname
 	mkdir -p $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 	cp -f astsetname $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
-	cp -f astsetname /tftpboot
+	@#cp -f astsetname /tftpboot
 
 astsetname: astsetname.o
 	$(cc) $(ldflags) -o astsetname astsetname.o

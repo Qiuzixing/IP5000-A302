@@ -31,7 +31,7 @@ default:
 		#cp -f ./$(APP_FOLDER_NAME)-unpacked/tools/env/fw_printenv $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/u-boot_bin/; \
 		#cp -f ./$(APP_FOLDER_NAME)-unpacked/tools/env/fw_setenv $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/u-boot_bin/; \
 		cp -f ./$(APP_FOLDER_NAME)-unpacked/tools/mkimage $(AST_SDK_ROOT)/x86_bin/; \
-		cp -f $(AST_SDK_ROOT)/images/$(TARGET_FOLDER_NAME)/$(UBOOT_IMAGE) /tftpboot/; \
+		#cp -f $(AST_SDK_ROOT)/images/$(TARGET_FOLDER_NAME)/$(UBOOT_IMAGE) /tftpboot/; \
 	) || exit 1;
 
 clean:
@@ -58,7 +58,7 @@ default_old:
 		#cp -f ./unpacked_src/tools/env/fw_printenv $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/u-boot_bin/; \
 		#cp -f ./unpacked_src/tools/env/fw_setenv $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/u-boot_bin/; \
 		cp -f ./unpacked_src/tools/mkimage $(AST_SDK_ROOT)/x86_bin/; \
-		cp -f $(AST_SDK_ROOT)/images/$(TARGET_FOLDER_NAME)/$(UBOOT_IMAGE) /tftpboot/; \
+		#cp -f $(AST_SDK_ROOT)/images/$(TARGET_FOLDER_NAME)/$(UBOOT_IMAGE) /tftpboot/; \
 	) || exit 1;
 
 unpack_old:

@@ -16,7 +16,7 @@ default: build
 
 build: msg_channel
 	cp -f msg_channel ../ast_heartbeat
-	cp -f msg_channel /tftpboot/ast_heartbeat
+	@#cp -f msg_channel /tftpboot/ast_heartbeat
 
 msg_channel: $(OBJ)
 	$(cc) $(ldflags) -o msg_channel $(OBJ)

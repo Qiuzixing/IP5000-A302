@@ -22,7 +22,7 @@ default: build
 build : heartbeat
 	mkdir -p $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 	cp -f heartbeat $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
-	cp -f heartbeat /tftpboot
+	@#cp -f heartbeat /tftpboot
 
 heartbeat: heartbeat.o uds_ipc.o astnetwork.o multi_timer.o ipc.o
 	$(cc) $(ldflags) -o heartbeat heartbeat.o uds_ipc.o astnetwork.o multi_timer.o ipc.o

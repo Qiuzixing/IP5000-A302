@@ -17,7 +17,7 @@ default: build
 build: msg_channel
 	mkdir -p $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 	cp -f msg_channel $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/ast_heartbeat
-	cp -f msg_channel /tftpboot/ast_heartbeat
+	@#cp -f msg_channel /tftpboot/ast_heartbeat
 
 msg_channel: $(OBJ)
 	$(cc) $(ldflags) -o msg_channel $(OBJ)

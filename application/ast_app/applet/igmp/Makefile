@@ -17,7 +17,7 @@ default: build
 build: igmp
 	mkdir -p $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 	cp -f igmp $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
-	cp -f igmp /tftpboot/
+	@#cp -f igmp /tftpboot/
 
 igmp: $(OBJ)
 	$(cc) $(ldflags) -o igmp $(OBJ)

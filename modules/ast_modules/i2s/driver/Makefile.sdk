@@ -24,7 +24,7 @@ endif
 default:
 	#make -C $(KSOURCE) LANG=C KBUILD_VERBOSE=${KBUILD_VERBOSE}  M=$(PWD) modules
 	cp -f 1500_i2s.ko ../../../rootfs/usr/local/bin
-	cp -f 1500_i2s.ko /tftpboot
+	@#cp -f 1500_i2s.ko /tftpboot
 
 host:
 	make KSOURCE=../../../kernel/host default

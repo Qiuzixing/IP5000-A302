@@ -18,9 +18,9 @@ build: clean node_query node_responser
 	mkdir -p $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 	cp -f node_query $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 	cp -f node_responser $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
-	cp -f node_query /tftpboot
-	cp -f node_responser /tftpboot
-	cp -f responser_emu.sh /tftpboot
+	@#cp -f node_query /tftpboot
+	@#cp -f node_responser /tftpboot
+	@#cp -f responser_emu.sh /tftpboot
 
 node_query: $(OBJ_QUERY)
 	$(cc) $(ldflags) -o node_query $(OBJ_QUERY)

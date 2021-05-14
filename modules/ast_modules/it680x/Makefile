@@ -44,7 +44,7 @@ ifeq ($(BUILD_TYPE),host)
 	$(MAKE) -C $(KOBJDIR) LANG=C KBUILD_VERBOSE=${KBUILD_VERBOSE}  M=$(PWD) modules
 	mkdir -p $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 	cp -f it6802.ko $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
-	cp -f it6802.ko /tftpboot
+	@#cp -f it6802.ko /tftpboot
 else
 	@echo "Not supported"
 endif

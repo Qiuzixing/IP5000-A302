@@ -22,9 +22,9 @@ default: build
 build : clean ipc ipc_server
 	mkdir -p $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 	cp -f ipc $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
-	cp -f ipc /tftpboot
+	@#cp -f ipc /tftpboot
 	cp -f ipc_server $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
-	cp -f ipc_server /tftpboot
+	@#cp -f ipc_server /tftpboot
 
 ipc : ipc.o uds_ipc.o
 	$(cc) $(ldflags) -o ipc ipc.o uds_ipc.o

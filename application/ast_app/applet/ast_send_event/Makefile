@@ -23,7 +23,7 @@ build: ast_send_event
 	mkdir -p $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 	cp -f ast_send_event $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 	@#chmod a+x $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/e
-	cp -f ast_send_event /tftpboot
+	@#cp -f ast_send_event /tftpboot
 
 ast_send_event: ast_send_event.o
 	$(cc) $(ldflags) -o ast_send_event ast_send_event.o
