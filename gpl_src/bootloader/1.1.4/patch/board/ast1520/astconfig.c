@@ -2,6 +2,43 @@
 #include <command.h>
 
 uchar *Config_Base = CFG_FLASH_BASE + CFG_ASTCONFIG_OFFSET;
+uchar *Misc_Base = CFG_FLASH_BASE + 0x70000;
+
+int matchMiscParam(char *s1, int i2)
+{
+	char *param = Misc_Base + 4;
+	while (*s1 == param[i2++])
+		if (*s1++ == '=')
+			return(i2);
+	if ((*s1 == '\0') && (param[i2 - 1] == '='))
+		return(i2);
+	return(-1);
+}
+
+char *getMiscParam(char *name)
+{
+	int i, j, nxt;
+	char *param = Misc_Base + 4;
+
+	j = -1;
+
+	for (i = 0; param[i] != '\0'; i = nxt+1) {
+		for (nxt = i; param[nxt] != '\0'; ++nxt)
+			;
+		j = matchMiscParam(name, i);
+		if (j < 0) {
+			continue;
+		}
+		//printf("%s", &param[j]);
+		return &param[j];
+		break;
+	}
+
+	if (j < 0) {
+		printf ("\"%s\" not defined\n", name);
+	}
+	return NULL;
+}
 
 int do_configdump(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 {

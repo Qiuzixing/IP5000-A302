@@ -21,23 +21,25 @@ mknod /dev/ttyS1 c 4 65
 mknod /dev/ttyS2 c 4 66
 mknod /dev/tty0 c 4 0
 ln -s /dev/fb/0 /dev/fb0
-     
-mknod /dev/mtdblkkernel b 31 1
-mknod /dev/mtdblkrootfs b 31 2
-mknod /dev/mtdblkrootfsp b 31 3
-mknod /dev/mtdblklogo b 31 4
-mknod /dev/mtdblkparam b 31 5
-mknod /dev/mtdblkroparam b 31 6
-
-echo "Extracting rootfs patch..."
-tar zxf /dev/mtdblkrootfsp -C /
+ 
+mknod /dev/mtdblkmisc b 31 1
+mknod /dev/mtdblkkernel b 31 2
+mknod /dev/mtdblkrootfs b 31 3
+mknod /dev/mtdblkkernel2 b 31 4
+mknod /dev/mtdblkrootfs2 b 31 5
+mknod /dev/mtdblkdata b 31 6
+mknod /dev/mtdblklogo b 31 7
+mknod /dev/mtdblkparam b 31 8
+mknod /dev/mtdblkroparam b 31 9
+#echo "Extracting rootfs patch..."
+#tar zxf /dev/mtdblkrootfsp -C /
 
 if [ -f "/share/sysinit.sh" ]; then
 	chmod a+x /share/sysinit.sh
 	/share/sysinit.sh
 fi
 
-cd /usr/local/bin			
+cd /usr/local/bin
 ./access_load
 
 ifconfig eth0 down

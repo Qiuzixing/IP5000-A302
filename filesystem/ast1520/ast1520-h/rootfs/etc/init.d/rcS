@@ -4,31 +4,33 @@
 
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin
 export PATH			
-mount -a		
+mount -a
 
 export LD_LIBRARY_PATH="/lib:/usr/lib"
 export AST_PLATFORM="ast1520-h-v1"
 
 mknod /dev/ttyS0 c 4 64
 mknod /dev/ttyS1 c 4 65
-     
-mknod /dev/mtdblkkernel b 31 1
-mknod /dev/mtdblkrootfs b 31 2
-mknod /dev/mtdblkrootfsp b 31 3
-mknod /dev/mtdblklogo b 31 4
-mknod /dev/mtdblkparam b 31 5
-mknod /dev/mtdblkroparam b 31 6
 
-echo "Extracting rootfs patch..."
-tar zxf /dev/mtdblkrootfsp -C /
+mknod /dev/mtdblkmisc b 31 1
+mknod /dev/mtdblkkernel b 31 2
+mknod /dev/mtdblkrootfs b 31 3
+mknod /dev/mtdblkkernel2 b 31 4
+mknod /dev/mtdblkrootfs2 b 31 5
+mknod /dev/mtdblkdata b 31 6
+mknod /dev/mtdblklogo b 31 7
+mknod /dev/mtdblkparam b 31 8
+mknod /dev/mtdblkroparam b 31 9
+#echo "Extracting rootfs patch..."
+#tar zxf /dev/mtdblkrootfsp -C /
 
 if [ -f "/share/sysinit.sh" ]; then
 	chmod a+x /share/sysinit.sh
 	/share/sysinit.sh
 fi
 
-cd /usr/local/bin			
-./access_load		
+cd /usr/local/bin
+./access_load
 io_scratch
 
 ifconfig eth0 down

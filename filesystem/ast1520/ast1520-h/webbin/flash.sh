@@ -7,12 +7,24 @@ FW_PATH="/dev/shm"
 FW_BOOT="mtdblkboot"
 FW_KERNEL="mtdblkkernel"
 FW_ROOTFS="mtdblkrootfs"
-FW_PATCH="mtdblkrootfsp"
+FW_KERNEL_DEV="mtdblkkernel2"
+FW_ROOTFS_DEV="mtdblkrootfs2"
 FW_LOGO="mtdblklogo"
 FW_EDID="EDID.txt"
 SYSFS_EDID="/sys/devices/platform/videoip/eeprom_content"
 FILE_FLAGS="flags.sh"
 FILE_THIS="flash.sh"
+
+cursys=`astparam misc g cursys`
+if [ "$cursys" == "b" ]; then
+    FW_KERNEL_DEV="mtdblkkernel"
+    FW_ROOTFS_DEV="mtdblkrootfs"
+else 
+    FW_KERNEL_DEV="mtdblkkernel2"
+    FW_ROOTFS_DEV="mtdblkrootfs2"
+fi
+echo "FW_KERNEL_DEV=$FW_KERNEL_DEV"
+echo "FW_ROOTFS_DEV=$FW_ROOTFS_DEV"
 
 total_fw_size()
 {
@@ -30,11 +42,6 @@ total_fw_size()
 	if [ -f "$FW_PATH/$FW_ROOTFS" ]; then
 		set -- `ls -l $FW_PATH/$FW_ROOTFS`
 		#echo "$FW_ROOTFS size $5 B"
-		fsize=`expr $fsize + $5`
-	fi
-	if [ -f "$FW_PATH/$FW_PATCH" ]; then
-		set -- `ls -l $FW_PATH/$FW_PATCH`
-		#echo "$FW_PATCH size $5 B"
 		fsize=`expr $fsize + $5`
 	fi
 	if [ -f "$FW_PATH/$FW_LOGO" ]; then
@@ -62,7 +69,6 @@ fail_out()
 	rm -f $FW_PATH/$FW_BOOT 2> /dev/null
 	rm -f $FW_PATH/$FW_KERNEL 2> /dev/null
 	rm -f $FW_PATH/$FW_ROOTFS 2> /dev/null
-	rm -f $FW_PATH/$FW_PATCH 2> /dev/null
 	rm -f $FW_PATH/$FILE_FLAGS 2> /dev/null
 	rm -f $FW_PATH/$FILE_THIS 2> /dev/null
 
@@ -134,10 +140,10 @@ fi
 html_set_fw_size_remain `total_fw_size`
 if [ -f "$FW_KERNEL" ]; then
 	html_info "programming kernel..."
-	if ! [ -e /dev/"$FW_KERNEL" ]; then
-		mknod /dev/"$FW_KERNEL" b 31 1
+	if ! [ -e /dev/"$FW_KERNEL_DEV" ]; then
+		mknod /dev/"$FW_KERNEL_DEV" b 31 1
 	fi
-	if ! dd if="$FW_KERNEL" of=/dev/"$FW_KERNEL" bs=64k; then
+	if ! dd if="$FW_KERNEL" of=/dev/"$FW_KERNEL_DEV" bs=64k; then
 		fail_out
 	else
 		rm -f "$FW_KERNEL"
@@ -146,25 +152,13 @@ fi
 html_set_fw_size_remain `total_fw_size`
 if [ -f "$FW_ROOTFS" ]; then
 	html_info "programming rootfs..."
-	if ! [ -e /dev/"$FW_ROOTFS" ]; then
-		mknod /dev/"$FW_ROOTFS" b 31 2
+	if ! [ -e /dev/"$FW_ROOTFS_DEV" ]; then
+		mknod /dev/"$FW_ROOTFS_DEV" b 31 2
 	fi
-	if ! dd if="$FW_ROOTFS" of=/dev/"$FW_ROOTFS" bs=64k; then
+	if ! dd if="$FW_ROOTFS" of=/dev/"$FW_ROOTFS_DEV" bs=64k; then
 		fail_out
 	else
 		rm -f "$FW_ROOTFS"
-	fi
-fi
-html_set_fw_size_remain `total_fw_size`
-if [ -f "$FW_PATCH" ]; then
-	html_info "programming rootfs patch..."
-	if ! [ -e /dev/"$FW_PATCH" ]; then
-		mknod /dev/"$FW_PATCH" b 31 3
-	fi
-	if ! dd if="$FW_PATCH" of=/dev/"$FW_PATCH" bs=64k; then
-		fail_out
-	else
-		rm -f "$FW_PATCH"
 	fi
 fi
 html_set_fw_size_remain `total_fw_size`
@@ -195,6 +189,13 @@ if [ -f "$FW_EDID" ]; then
 	fi
 fi
 html_set_fw_size_remain `total_fw_size`
+
+if [ "$cursys" == "b" ]; then
+    astparam misc s cursys a
+else
+    astparam misc s cursys b
+fi
+
 html_info "Programming completed"
 exit 0;
 

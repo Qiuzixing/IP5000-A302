@@ -131,11 +131,11 @@
 #define CFG_MAX_FLASH_SECT	(2048)		/* max number of sectors on one chip, for 1Gbit flash support, extend to 2048 */
 #endif
 
-#define CFG_ASTCONFIG_OFFSET		0xFE0000 	/* AST configuration sector starts here  */
+#define CFG_ASTCONFIG_OFFSET		0x1FE0000 	/* AST configuration sector starts here  */
 #define CFG_ASTCONFIG_SIZE		0x010000 	/* Total Size of AST configuration sector */
 
 #define CFG_ENV_IS_IN_FLASH	1
-#define CFG_ENV_OFFSET		0xFF0000 	/* environment starts here  */
+#define CFG_ENV_OFFSET		0x1FF0000 	/* environment starts here  */
 #define CFG_ENV_SIZE		0x010000 	/* Total Size of Environment Sector */
 
 #define __LITTLE_ENDIAN

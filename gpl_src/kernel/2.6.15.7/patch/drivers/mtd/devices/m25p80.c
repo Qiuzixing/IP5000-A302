@@ -47,6 +47,7 @@
 
 #define S25FL128P		0x012018
 #define MX25L12805D		0xC22018
+#define MX25L25635E		0xC22019
 #define W25Q128FV		0xEF4018
 #define MX66L1G45G		0xC2201b
 
@@ -274,7 +275,7 @@ static void reset_flash (struct m25p *flash)
 
 	ulCtrlData  = (0x0b0000) | (flash->tCK_Read << 8) | (flash->dummybyte << 6);
 	ulCtrlData |= FASTREAD;
-	*(volatile u32 *)(flash->AST_SMC_config_reg_addr) = ulCtrlData;        
+	*(volatile u32 *)(flash->AST_SMC_config_reg_addr) = ulCtrlData;
 }
 #endif
 
@@ -552,7 +553,7 @@ static int m25p80_read(struct mtd_info *mtd, loff_t from, size_t len,
 }
 
 #ifndef CONFIG_SPI_ASTSMC
-//use page program (0x02) command to program up to 256 bytes at a time 
+//use page program (0x02) command to program up to 256 bytes at a time
 static void flash_write_buffer(struct m25p *flash, const u8 *src, u32 addr, int len)
 {
 	u32	j;
@@ -713,9 +714,9 @@ static int m25p80_write(struct mtd_info *mtd, loff_t to, size_t len,
 		}
 	}
 #else
-	/* get lower aligned address */	
+	/* get lower aligned address */
 	if (to & (FLASH_PAGESIZE - 1)) {
-		count = len >= FLASH_PAGESIZE ? (FLASH_PAGESIZE - (to & (FLASH_PAGESIZE - 1))):len;	
+		count = len >= FLASH_PAGESIZE ? (FLASH_PAGESIZE - (to & (FLASH_PAGESIZE - 1))):len;
 		flash_write_buffer (flash, buf, to, count);
 		to += count;
 		buf += count;
@@ -723,8 +724,8 @@ static int m25p80_write(struct mtd_info *mtd, loff_t to, size_t len,
 		if (retlen)
 			*retlen += count;
 	}
-	
-	/* prog */		
+
+	/* prog */
 	while (len > 0) {
 		count = len >= FLASH_PAGESIZE ? FLASH_PAGESIZE:len;
 		flash_write_buffer (flash, buf, to, count);
@@ -733,7 +734,7 @@ static int m25p80_write(struct mtd_info *mtd, loff_t to, size_t len,
 		len -= count;
 		if (retlen)
 			*retlen += count;
-	} 		
+	}
 	reset_flash(flash);
 #endif
 
@@ -831,6 +832,7 @@ static struct flash_info __devinitdata m25p_data [] = {
 
 	/* MxIC -- */
 	{ "mx25l12805d", 0xc22018, 64 * 1024, 256, SECT_4K},
+    { "mx25l25635e", 0xc22019, 64 * 1024, 512, SECT_4K},
 	{ "mx66l1g45g",  0xc2201b, 64 * 1024, 2048, SECT_4K},
 };
 
@@ -885,33 +887,45 @@ static struct flash_info *__devinit jedec_probe(struct m25p *flash)
 static struct mtd_partition ast1500_flash_partitions[] = {
 	{
 		.name = "bootloader",
-		.size = 0x80000,
+		.size = 0x70000,
 		.offset = 0,
 		/*.mask_flags = MTD_CAP_ROM*/
 	}, {
+		.name = "misc",
+		.size = 0x10000,
+		.offset = 0x70000,
+	}, {
 		.name = "kernel",
 		.size = 0x380000,
-		.offset = 0x80000
+		.offset = 0x80000,
 	}, {
 		.name = "rootfs",
 		.size = 0xA00000,
-		.offset = 0x400000
+		.offset = 0x400000,
 	}, {
-		.name = "rootfs_patch",
-		.size = 0x1C0000,
-		.offset = 0xE00000
+		.name = "kernel2",
+		.size = 0x380000,
+		.offset = 0xE00000,
+	}, {
+		.name = "rootfs2",
+		.size = 0xA00000,
+		.offset = 0x1180000,
+	},	{
+		.name = "data",
+		.size = 0x440000,
+		.offset = 0x1B80000,
 	}, {
 		.name = "logo",
 		.size = 0x20000,
-		.offset = 0xFC0000
+		.offset = 0x1FC0000,
 	}, {
 		.name = "param",
 		.size = 0x10000,
-		.offset = 0xFE0000,
+		.offset = 0x1FE0000,
 	}, {
 		.name = "ROparam",
 		.size = 0x10000,
-		.offset = 0xFF0000,
+		.offset = 0x1FF0000,
 	}
 };
 
@@ -1090,9 +1104,12 @@ static int __devinit m25p_probe(struct platform_device *pdev)
 			ReadClk  = 100;
 			break;
 		case MX25L12805D:
+        case MX25L25635E:
 		case W25Q128FV: /* winbond 25Q128FV */
 			if (MX25L12805D == info->jedec_id)
 				printk("MX25L12805D\n");
+            else if (MX25L25635E == info->jedec_id)
+                printk("MX25L25635E\n");
 			else
 				printk("W25Q128FV\n");
 #if (CONFIG_AST1500_SOC_VER == 2)
@@ -1204,7 +1221,7 @@ static int __devinit m25p_probe(struct platform_device *pdev)
 		flash->tCK_Read = AST2300_SPICLK_DIV[div-1];
 
 #else
-		#error "SPI clock not defined!" 
+		#error "SPI clock not defined!"
 #endif //#if (CONFIG_AST1500_SOC_VER >= 2)
 
 	}
@@ -1364,7 +1381,7 @@ static int __devexit m25p_remove(struct platform_device *pdev)
 		status = del_mtd_partitions(&flash->mtd);
 	else
 		status = del_mtd_device(&flash->mtd);
-	
+
 #ifdef CONFIG_SPI_ASTSMC
 	if (status == 0)
 		kfree(flash);

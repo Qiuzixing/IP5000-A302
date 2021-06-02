@@ -28,6 +28,7 @@
 // This program assumes both RW and RO block uses the same size (64KB).
 #define BLOCK_SIZE 0x10000 //64KB
 
+#define FLASH_MISC_RW_NAME "/dev/mtdblkmisc"
 #define FLASH_RW_NAME "/dev/mtdblkparam"
 #define FLASH_RO_NAME "/dev/mtdblkroparam"
 #define TMP_RW_NAME "/dev/shm/rwparam"
@@ -165,7 +166,7 @@ static void getParam(char *name)
 				continue;
 			}
 
-#if 0//steven			
+#if 0//steven
 			puts (name);
 			putc ('=', stdout);
 			while (k < nxt)
@@ -180,7 +181,7 @@ static void getParam(char *name)
 #endif
 			break;
 		}
-		
+
 		if (k < 0) {
 			printf ("\"%s\" not defined", name);
 		}
@@ -200,7 +201,7 @@ static int setParam(int argc, char **argv)
 		return 1;
 #endif
 #if 0
-	printf("before deletion\n"); 
+	printf("before deletion\n");
 	for (i = 0; (env_data[i] != 0 || env_data[ i+ 1]) != 0; i++)
 	{
 		if (env_data[i] == 0)
@@ -240,7 +241,7 @@ static int setParam(int argc, char **argv)
 		}
 		*++env = '\0';
 #if 0
-		printf("after deletion\n"); 
+		printf("after deletion\n");
 		for (i = 0; (env_data[i] != 0 || env_data[ i+ 1]) != 0; i++)
 		{
 			if (env_data[i] == 0)
@@ -250,7 +251,7 @@ static int setParam(int argc, char **argv)
 		}
 #endif
 	}
-	
+
 	/* Delete only ? */
 	if (argc == 3){
 		printf("remove \"%s\"\n", name);
@@ -293,7 +294,7 @@ static int setParam(int argc, char **argv)
 	/* end is marked with double '\0' */
 	*++env = '\0';
 #if 0
-	printf("after insertion\n"); 
+	printf("after insertion\n");
 	for (i = 0; (env_data[i] != 0 || env_data[ i+ 1]) != 0; i++)
 	{
 		if (env_data[i] == 0)
@@ -442,7 +443,7 @@ int  main (int argc, char **argv)
 	if (strncmp(argv[1], "save", 4) == 0)
 	{
 		int ro = 0;
-		
+
 		if (argc != 2)
 		{
 			if (argc == 3 && (strncmp(argv[2], "ro", 4) == 0)) {
@@ -470,7 +471,7 @@ int  main (int argc, char **argv)
 				goto done;
 			}
 		}
-		
+
 		if (fd == NULL)
 		{
 			printf("failed to open %s\n", ro?(TMP_RO_NAME):(TMP_RW_NAME));
@@ -505,7 +506,7 @@ int  main (int argc, char **argv)
 		rewind(tmp_fd);
 		len = fwrite(buffer, 1, len_to_write, tmp_fd);
 		if (len != len_to_write) {
-			printf("failed to write %d Bytes data to %s\n", len_to_write, 
+			printf("failed to write %d Bytes data to %s\n", len_to_write,
 			                     ro?(SHADOW_RO_NAME):(SHADOW_RW_NAME));
 			ret = -6;
 			goto done;
@@ -551,7 +552,7 @@ int  main (int argc, char **argv)
 		char *param;
 		int ro = 0; //Use RO block
 		int use_tmp = 0;
-		
+
 		if (argc != 2)
 		{
 			if (argc == 3 && (strncmp(argv[2], "ro", 2) == 0)) {
@@ -579,10 +580,10 @@ int  main (int argc, char **argv)
 				fd = fopen(FLASH_RW_NAME, "r");
 			}
 		}
-			
+
 		if (fd == NULL)
 		{
-			printf("failed to open %s\n", 
+			printf("failed to open %s\n",
 			     ro?
 			     (use_tmp?(TMP_RO_NAME):(FLASH_RO_NAME)):
 			     (use_tmp?(TMP_RW_NAME):(FLASH_RW_NAME)));
@@ -601,7 +602,7 @@ int  main (int argc, char **argv)
 		len = fread(buffer, 1, BLOCK_SIZE, fd);
 		if (len != BLOCK_SIZE)
 		{
-			printf("failed to read 64K data from %s\n", 
+			printf("failed to read 64K data from %s\n",
 			     ro?
 			     (use_tmp?(TMP_RO_NAME):(FLASH_RO_NAME)):
 			     (use_tmp?(TMP_RW_NAME):(FLASH_RW_NAME)));
@@ -626,7 +627,7 @@ int  main (int argc, char **argv)
 			}
 		}
 
-		if (*(unsigned int*)buffer == 0 || 
+		if (*(unsigned int*)buffer == 0 ||
 		  *(unsigned int*)buffer != crc32(0, buffer + 4, BLOCK_SIZE - 4))
 		{
 			printf("Current CRC is incorrect!!!\n");
@@ -634,7 +635,7 @@ int  main (int argc, char **argv)
 			goto done;
 		}
 
-		printf("CRC = 0x%08X\n", *(unsigned int*)buffer);		
+		printf("CRC = 0x%08X\n", *(unsigned int*)buffer);
 		param = buffer + 4;
 		for (i = 0; (param[i] != 0 || param[ i+ 1]) != 0; i++)
 		{
@@ -654,7 +655,7 @@ int  main (int argc, char **argv)
 		char *param;
 		int use_tmp = 0;
 		int save = 0;
-		
+
 		if (argc != 2)
 		{
 			if (argc == 3 && (strncmp(argv[2], "save", 4) == 0)) {
@@ -672,7 +673,7 @@ int  main (int argc, char **argv)
 		} else {
 			fd = fopen(FLASH_RW_NAME, "r+");
 		}
-		
+
 		if (fd == NULL)
 		{
 			printf("failed to open %s\n", use_tmp?(TMP_RW_NAME):(FLASH_RW_NAME));
@@ -721,7 +722,7 @@ int  main (int argc, char **argv)
 				printf("failed to write 64K data to %s\n", TMP_RW_NAME);
 				ret = -6;
 				goto done;
-			}			
+			}
 		}
 		if (save) {
 #if 0 //Following code is buggy. Need merge from shadow.
@@ -738,7 +739,7 @@ int  main (int argc, char **argv)
 				printf("failed to write 64K data to %s\n", FLASH_RW_NAME);
 				ret = -8;
 				goto done;
-			}			
+			}
 #endif
 		}
 	}
@@ -747,7 +748,7 @@ int  main (int argc, char **argv)
 		int i;
 		char *param;
 		int ro = 0; //Use RO block
-		
+
 		if (argc != 2)
 		{
 			if (argc == 3 && (strncmp(argv[2], "ro", 2) == 0)) {
@@ -765,7 +766,7 @@ int  main (int argc, char **argv)
 		} else {
 			fd = fopen(FLASH_RW_NAME, "r");
 		}
-			
+
 		if (fd == NULL)
 		{
 			printf("failed to open %s\n", ro?(FLASH_RO_NAME):(FLASH_RW_NAME));
@@ -797,7 +798,7 @@ int  main (int argc, char **argv)
 			goto done;
 		}
 
-		printf("CRC = 0x%08X\n", *(unsigned int*)buffer);		
+		printf("CRC = 0x%08X\n", *(unsigned int*)buffer);
 		param = buffer + 4;
 		for (i = 0; (param[i] != 0 || param[ i+ 1]) != 0; i++)
 		{
@@ -828,7 +829,7 @@ int  main (int argc, char **argv)
 		} else {
 			fd = fopen(FLASH_RO_NAME, "r");
 		}
-		
+
 		if (fd == NULL)
 		{
 			printf("failed to open %s\n", use_tmp?(TMP_RO_NAME):(FLASH_RO_NAME));
@@ -868,7 +869,7 @@ int  main (int argc, char **argv)
 				goto done;
 			}
 		}
-		
+
 		if (*(unsigned int*)buffer == 0 ||
 		   *(unsigned int*)buffer != crc32(0, buffer + 4, BLOCK_SIZE - 4))
 		{
@@ -894,7 +895,7 @@ int  main (int argc, char **argv)
 		} else {
 			fd = fopen(FLASH_RO_NAME, "r+");
 		}
-		
+
 		if (fd == NULL)
 		{
 			printf("failed to open %s\n", use_tmp?(TMP_RO_NAME):(FLASH_RO_NAME));
@@ -948,9 +949,9 @@ int  main (int argc, char **argv)
 				printf("failed to write 64K data to %s\n", TMP_RO_NAME);
 				ret = -6;
 				goto done;
-			}			
+			}
 		}
-		
+
 	}
 	else if (strncmp(argv[1], "g", 1) == 0)
 	{
@@ -968,7 +969,7 @@ int  main (int argc, char **argv)
 		} else {
 			fd = fopen(FLASH_RW_NAME, "r");
 		}
-		
+
 		if (fd == NULL)
 		{
 			printf("failed to open %s\n", use_tmp?(TMP_RW_NAME):(FLASH_RW_NAME));
@@ -1008,7 +1009,7 @@ int  main (int argc, char **argv)
 				goto done;
 			}
 		}
-		
+
 		if (*(unsigned int*)buffer == 0 ||
 		   *(unsigned int*)buffer != crc32(0, buffer + 4, BLOCK_SIZE - 4))
 		{
@@ -1086,9 +1087,92 @@ int  main (int argc, char **argv)
 				printf("failed to write 64K data to %s\n", TMP_RW_NAME);
 				ret = -6;
 				goto done;
-			}			
+			}
 		}
 	}
+    else if (strncmp(argv[1], "misc", 4) == 0)
+    {
+        if (strncmp(argv[2], "g", 1) == 0)
+        {
+            fd = fopen(FLASH_MISC_RW_NAME, "r");
+            if (fd == NULL)
+            {
+                printf("failed to open %s\n", FLASH_MISC_RW_NAME);
+                ret = -2;
+                goto done;
+            }
+
+            buffer = malloc(BLOCK_SIZE);
+            if (buffer == NULL)
+            {
+                printf("failed to allocate 64K buffer\n");
+                ret = -3;
+                goto done;
+            }
+
+            len = fread(buffer, 1, BLOCK_SIZE, fd);
+            if (len != BLOCK_SIZE)
+            {
+                printf("failed to read 64K data from %s\n", FLASH_MISC_RW_NAME);
+                ret = -4;
+                goto done;
+            }
+
+            if (*(unsigned int*)buffer == 0 ||
+               *(unsigned int*)buffer != crc32(0, buffer + 4, BLOCK_SIZE - 4))
+            {
+                printf("\"%s\" not defined", argv[3]);
+                goto done;
+            }
+            getParam(argv[3]);
+
+        }
+        else if (strncmp(argv[2], "s", 1) == 0)
+        {
+            fd = fopen(FLASH_MISC_RW_NAME, "w+");
+            if (fd == NULL)
+            {
+                printf("failed to open %s\n", FLASH_MISC_RW_NAME);
+                ret = -2;
+                goto done;
+            }
+
+            buffer = malloc(BLOCK_SIZE);
+            if (buffer == NULL)
+            {
+                printf("failed to allocate 64K buffer\n");
+                ret = -3;
+                goto done;
+            }
+
+            len = fread(buffer, 1, BLOCK_SIZE, fd);
+            if (len != BLOCK_SIZE)
+            {
+                printf("failed to read 64K data from %s\n", FLASH_MISC_RW_NAME);
+                ret = -4;
+                goto done;
+            }
+
+            if (*(unsigned int*)buffer != crc32(0, buffer + 4, BLOCK_SIZE - 4))
+            {
+                printf("Current CRC is incorrect!!! Clear All.\n");
+                memset(buffer, 0, BLOCK_SIZE);
+            }
+
+            len_to_write = setParam(argc - 1, &argv[1]);
+            rewind(fd);
+            len = fwrite(buffer, 1, len_to_write, fd);
+            if (len != len_to_write) {
+                printf("failed to write 64K data to %s\n", FLASH_MISC_RW_NAME);
+                ret = -6;
+                goto done;
+            }
+        }
+        else
+        {
+            goto done;
+        }
+    }
 	else
 	{
 print_usage:
