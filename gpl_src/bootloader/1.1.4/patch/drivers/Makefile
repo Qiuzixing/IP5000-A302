@@ -27,7 +27,65 @@ include $(TOPDIR)/config.mk
 
 LIB	= libdrivers.a
 
-OBJS	= 3c589.o 5701rls.o ali512x.o \
+OBJS	= rtl8364/rtl8367c_asicdrv_misc.o \
+		rtl8364/rtl8367c_asicdrv_oam.o \
+		rtl8364/rtl8367c_asicdrv_mib.o \
+		rtl8364/stat.o \
+		rtl8364/rtl8367c_asicdrv_portIsolation.o \
+		rtl8364/smi.o \
+		rtl8364/rtl8367c_asicdrv_rma.o \
+		rtl8364/rtl8367c_asicdrv_eee.o \
+		rtl8364/rtl8367c_asicdrv_vlan.o \
+		rtl8364/rtl8367c_asicdrv_qos.o \
+		rtl8364/rtl8367c_asicdrv_mirror.o \
+		rtl8364/ptp.o \
+		rtl8364/acl.o \
+		rtl8364/oam.o \
+		rtl8364/svlan.o \
+		rtl8364/igmp.o \
+		rtl8364/rtl8367c_asicdrv_led.o \
+		rtl8364/rtl8367c_asicdrv_i2c.o \
+		rtl8364/port.o \
+		rtl8364/trap.o \
+		rtl8364/rldp.o \
+		rtl8364/rtl8367c_asicdrv_inbwctrl.o \
+		rtl8364/rtk_switch.o \
+		rtl8364/l2.o \
+		rtl8364/storm.o \
+		rtl8364/eee.o \
+		rtl8364/interrupt.o \
+		rtl8364/rtl8367c_asicdrv_cputag.o \
+		rtl8364/rtl8367c_asicdrv_lut.o \
+		rtl8364/rtl8367c_asicdrv_acl.o \
+		rtl8364/mirror.o \
+		rtl8364/rtl8367c_asicdrv_port.o \
+		rtl8364/rtl8367c_asicdrv_igmp.o \
+		rtl8364/vlan.o \
+		rtl8364/qos.o \
+		rtl8364/rate.o \
+		rtl8364/rtl8367c_asicdrv_dot1x.o \
+		rtl8364/rtl8367c_asicdrv_interrupt.o \
+		rtl8364/led.o \
+		rtl8364/leaky.o \
+		rtl8364/i2c.o \
+		rtl8364/rtl8367c_asicdrv_unknownMulticast.o \
+		rtl8364/rtl8367c_asicdrv_rldp.o \
+		rtl8364/rtl8367c_asicdrv.o \
+		rtl8364/rtl8367c_asicdrv_phy.o \
+		rtl8364/dot1x.o \
+		rtl8364/rtl8367c_asicdrv_storm.o \
+		rtl8364/rtl8364_i2c_driver.o \
+		rtl8364/rtl8367c_asicdrv_hsb.o \
+		rtl8364/rtl8367c_asicdrv_svlan.o \
+		rtl8364/cpu.o \
+		rtl8364/rtl8367c_asicdrv_trunking.o \
+		rtl8364/trunk.o \
+		rtl8364/rtl8367c_asicdrv_eav.o \
+		rtl8364/rtl8367c_asicdrv_fc.o \
+		rtl8364/rtl8367c_asicdrv_scheduling.o \
+		rtl8364/rtl8367c_asicdrv_meter.o \
+		rtl8364/rtl8367c_asicdrv_green.o \
+	  3c589.o 5701rls.o ali512x.o \
 	  bcm570x.o bcm570x_autoneg.o cfb_console.o cfi_flash.o \
 	  cs8900.o ct69000.o dataflash.o dc2114x.o dm9000x.o \
 	  e1000.o eepro100.o \

@@ -17,16 +17,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
  * MA 02111-1307 USA
  */
-
 #include <common.h>
+#include "faradaynic.h"
+#include "rtl8364/rtl8364_i2c_driver.h"
 
 #if (CONFIG_COMMANDS & CFG_CMD_NET) && defined(CONFIG_NET_MULTI) \
 	&& defined(CONFIG_FARADAYNIC)
-
-#include <malloc.h>
-#include <net.h>
-#include <pci.h>
-
 
 #define pci_find_devices         NULL
 #define pci_read_config_dword    NULL
@@ -454,12 +450,15 @@ static char rxRingSize;
 static char txRingSize;
 static unsigned int InstanceID = 0;
 static int Retry = 0;
+static struct eth_device* tmp;
 
 static int   faradaynic_init(struct eth_device* dev, bd_t* bis);
 static int   faradaynic_send(struct eth_device* dev, volatile void *packet, int length);
 static int   faradaynic_recv(struct eth_device* dev);
 static void  faradaynic_halt(struct eth_device* dev);
 static void  set_mac_address (struct eth_device* dev, bd_t* bis);
+extern void gb_rtl8367_phy_write_register(u16 Register_addr,u16 register_value);
+extern u16 gb_rtl8367_phy_read_register(u16 Register_addr);
 static void  phy_write_register (struct eth_device* dev, u8 PHY_Register, u8 PHY_Address, u16 PHY_Data);
 static u16   phy_read_register (struct eth_device* dev, u8 PHY_Register, u8 PHY_Address);
 static void  set_mac_control_register(struct eth_device* dev);
@@ -1548,6 +1547,49 @@ static void set_mac_address (struct eth_device* dev, bd_t* bis)
 
 }
 
+#define MDC_MDIO_PHY_ID 0
+#define MDC_MDIO_CTRL0_REG          31
+#define MDC_MDIO_START_REG          29
+#define MDC_MDIO_CTRL1_REG          21
+#define MDC_MDIO_ADDRESS_REG        23
+#define MDC_MDIO_DATA_WRITE_REG     24
+#define MDC_MDIO_DATA_READ_REG      25
+#define MDC_MDIO_PREAMBLE_LEN       32
+
+#define MDC_MDIO_START_OP          0xFFFF
+#define MDC_MDIO_ADDR_OP           0x000E
+#define MDC_MDIO_READ_OP           0x0001
+#define MDC_MDIO_WRITE_OP          0x0003
+
+u16 gb_rtl8367_phy_read_register(u16 Register_addr)
+{
+	/* Write address control code to register 31 */
+	phy_write_register(tmp,MDC_MDIO_CTRL0_REG,MDC_MDIO_PHY_ID,MDC_MDIO_ADDR_OP);
+
+	/* Write address to register 23 */
+	phy_write_register(tmp,MDC_MDIO_ADDRESS_REG,MDC_MDIO_PHY_ID,Register_addr);
+
+	/* Write read control code to register 21 */
+	phy_write_register(tmp,MDC_MDIO_CTRL1_REG,MDC_MDIO_PHY_ID,MDC_MDIO_READ_OP);
+
+	/* Read data from register 25 */
+	return phy_read_register(tmp,MDC_MDIO_DATA_READ_REG,MDC_MDIO_PHY_ID);
+}
+
+void gb_rtl8367_phy_write_register(u16 Register_addr,u16 register_value)
+{
+	/* Write address control code to register 31 */
+	phy_write_register(tmp,MDC_MDIO_CTRL0_REG,MDC_MDIO_PHY_ID,MDC_MDIO_ADDR_OP);
+
+	/* Write address to register 23 */
+	phy_write_register(tmp,MDC_MDIO_ADDRESS_REG,MDC_MDIO_PHY_ID,Register_addr);
+
+	/* Write data to register 24 */
+	phy_write_register(tmp,MDC_MDIO_DATA_WRITE_REG,MDC_MDIO_PHY_ID,register_value);
+
+	/* Write data control code to register 21 */
+	phy_write_register(tmp,MDC_MDIO_CTRL1_REG,MDC_MDIO_PHY_ID,MDC_MDIO_WRITE_OP);
+}
 
 static u16 phy_read_register (struct eth_device* dev, u8 PHY_Register, u8 PHY_Address)
 {
@@ -1630,7 +1672,7 @@ static void set_mac_control_register (struct eth_device* dev)
 	unsigned long Loop_Count = 0, PHY_Ready = 1, Chip_ID;
 	u16 PHY_Speed, PHY_Duplex, Resolved_Status = 0, Advertise, Link_Partner;
 	unsigned int is_rtl8211_fiber = 0;
-
+	tmp = dev;
 	if (CONFIG_MAC1_PHY_SETTING >= 1) {
 	        MAC_CR_Register = SPEED_100M_MODE_bit | RX_BROADPKT_bit | FULLDUP_bit | RXMAC_EN_bit | RXDMA_EN_bit | TXMAC_EN_bit | TXDMA_EN_bit | CRC_APD_bit;
 	}
@@ -1638,6 +1680,49 @@ static void set_mac_control_register (struct eth_device* dev)
 	        MAC_CR_Register = SPEED_100M_MODE_bit | FULLDUP_bit | RXMAC_EN_bit | RXDMA_EN_bit | TXMAC_EN_bit | TXDMA_EN_bit | CRC_APD_bit;
 	}
 
+	if ( STATUS_ERROR == enet_phy_init())
+	{
+		printf("enet_phy_init fail\n");
+	}
+	else
+	{
+		printf("enet_phy_init success\n");
+	}
+	
+	char *tmp = getenv("mac100");
+	if(tmp != NULL)
+	{
+		PHY_Speed = SPEED_100M;
+		PHY_Duplex = DUPLEX_FULL;
+	}
+	else
+	{
+		PHY_Speed = SPEED_1000M;
+		PHY_Duplex = DUPLEX_FULL;
+	}
+	
+	
+	if (PHY_Speed == SPEED_1000M) {
+		MAC_CR_Register |= GMAC_MODE_bit;
+	}
+	else if(PHY_Speed == SPEED_100M)
+	{
+		MAC_CR_Register &= ~GMAC_MODE_bit;
+	}
+	else
+	{
+		MAC_CR_Register &= ~SPEED_100M_MODE_bit;
+	}
+			
+	if (PHY_Duplex == DUPLEX_HALF) {
+		MAC_CR_Register &= ~FULLDUP_bit;
+	}
+	else
+	{
+		MAC_CR_Register |= FULLDUP_bit;
+	}
+	
+#if 0
 	if (CONFIG_MAC1_PHY_SETTING != 2) {
 			Chip_ID = ((phy_read_register (dev, 0x02, 0)) << 16);
 			Chip_ID |= (phy_read_register (dev, 0x03, 0) & 0xffff);
@@ -1778,6 +1863,7 @@ static void set_mac_control_register (struct eth_device* dev)
 #endif
 			}
 	}
+#endif
 		OUTL(dev, MAC_CR_Register, MACCR_REG);
 }
 
