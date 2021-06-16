@@ -63,23 +63,57 @@ static struct ast_led_platdata ast1500_pdata_ledb4 = {
 };
 
 static struct ast_led_platdata ast1500_pdata_ledb5 = {
-	.gpio		= GPIO_BUTTON2,
-	.flags		= AST_LEDF_BUTTON,
-	.name		= "button_pairing",
-	.def_trigger    = "pushbutton",
+	.gpio		= LED_LINK_B,
+	.flags		= AST_LEDF_DEFAULT_ON  ,
+	.name		= "led_link_b",
 };
 
 static struct ast_led_platdata ast1500_pdata_ledb6 = {
-	.gpio		= GPIO_LED_LINK,
-	.flags		= AST_LEDF_TRISTATE_OFF | AST_LEDF_ACTLOW,
-	.name		= "led_link",
+	.gpio		= LED_LINK_G,
+	.flags		= AST_LEDF_DEFAULT_ON  ,
+	.name		= "led_link_g",
 };
 
 static struct ast_led_platdata ast1500_pdata_ledb7 = {
-	.gpio		= GPIO_LED_PWR,
-	.flags		= AST_LEDF_TRISTATE_ON,
-	.name		= "led_pwr",
-	.def_trigger    = "heartbeat",
+	.gpio		= LED_LINK_R,
+	.flags		= AST_LEDF_DEFAULT_ON  ,
+	.name		= "led_link_r",
+};
+
+static struct ast_led_platdata ast1500_pdata_ledg0 = {
+	.gpio		= LED_STATUS_B,
+	.flags		=AST_LEDF_DEFAULT_ON  ,
+	.name		= "led_status_b",
+};
+
+static struct ast_led_platdata ast1500_pdata_ledg1 = {
+	.gpio		= LED_STATUS_G,
+	.flags		= AST_LEDF_DEFAULT_ON  ,
+	.name		= "led_status_g",
+};
+
+static struct ast_led_platdata ast1500_pdata_ledg2 = {
+	.gpio		= LED_STATUS_R,
+	.flags		= AST_LEDF_DEFAULT_ON  ,
+	.name		= "led_status_r",
+};
+
+static struct ast_led_platdata ast1500_pdata_ledg3 = {
+	.gpio		= LED_ON_B,
+	.flags		= AST_LEDF_DEFAULT_ON  ,
+	.name		= "led_on_b",
+};
+
+static struct ast_led_platdata ast1500_pdata_ledg4 = {
+	.gpio		= LED_ON_G,
+	.flags		= AST_LEDF_TRISTATE_OFF | AST_LEDF_DEFAULT_ON,
+	.name		= "led_on_g",
+};
+
+static struct ast_led_platdata ast1500_pdata_ledg5 = {
+	.gpio		= LED_ON_R,
+	.flags		= AST_LEDF_TRISTATE_OFF | AST_LEDF_DEFAULT_ON,
+	.name		= "led_on_r",
 };
 
 static struct ast_led_platdata ast1500_pdata_ledh0 = {
@@ -100,11 +134,24 @@ static struct ast_led_platdata ast1500_pdata_ledh2 = {
 	.name		= "ch2",
 };
 
-static struct ast_led_platdata ast1500_pdata_ledh3 = {
-	.gpio		= GPIO_CH3,
-	.flags		= AST_LEDF_SWITCH | ((GPIO_CH3_ACTIVE)?(0):(AST_LEDF_ACTLOW)),
-	.name		= "ch3",
+static struct ast_led_platdata ast1500_pdata_poweron_1V8 = {
+	.gpio		= AST1500_GPH3,
+	.flags		= AST_LEDF_TRISTATE_OFF | AST_LEDF_DEFAULT_ON,
+	.name		= "poweron_1V8",
 };
+
+static struct ast_led_platdata ast1500_pdata_poweron_1V2 = {
+	.gpio		= AST1500_GPH4,
+	.flags		= AST_LEDF_DEFAULT_ON,
+	.name		= "poweron_1V2",
+};
+
+static struct ast_led_platdata ast1500_pdata_poweron_1V3 = {
+	.gpio		= AST1500_GPH6,
+	.flags		= AST_LEDF_DEFAULT_ON,
+	.name		= "poweron_1V3",
+};
+
 
 #ifdef CONFIG_ARCH_AST1500_HOST
 #if (BOARD_DESIGN_VER_VIDEO >= 300)
@@ -252,6 +299,54 @@ static struct platform_device ast_ledb7 = {
 	},
 };
 
+static struct platform_device ast_ledg0 = {
+	.name		= "ast1500_led",
+	.id		= 22,
+	.dev		= {
+		.platform_data = &ast1500_pdata_ledg0,
+	},
+};
+
+static struct platform_device ast_ledg1 = {
+	.name		= "ast1500_led",
+	.id		= 23,
+	.dev		= {
+		.platform_data = &ast1500_pdata_ledg1,
+	},
+};
+
+static struct platform_device ast_ledg2 = {
+	.name		= "ast1500_led",
+	.id		= 24,
+	.dev		= {
+		.platform_data = &ast1500_pdata_ledg2,
+	},
+};
+
+static struct platform_device ast_ledg3= {
+	.name		= "ast1500_led",
+	.id		= 25,
+	.dev		= {
+		.platform_data = &ast1500_pdata_ledg3,
+	},
+};
+
+static struct platform_device ast_ledg4 = {
+	.name		= "ast1500_led",
+	.id		= 26,
+	.dev		= {
+		.platform_data = &ast1500_pdata_ledg4,
+	},
+};
+
+static struct platform_device ast_ledg5 = {
+	.name		= "ast1500_led",
+	.id		= 27,
+	.dev		= {
+		.platform_data = &ast1500_pdata_ledg5,
+	},
+};
+
 static struct platform_device ast_ledh0 = {
 	.name		= "ast1500_led",
 	.id		= 4,
@@ -276,13 +371,30 @@ static struct platform_device ast_ledh2 = {
 	},
 };
 
-static struct platform_device ast_ledh3 = {
+static struct platform_device ast_poweron_1V8 = {
 	.name		= "ast1500_led",
 	.id		= 7,
 	.dev		= {
-		.platform_data = &ast1500_pdata_ledh3,
+		.platform_data = &ast1500_pdata_poweron_1V8,
 	},
 };
+
+static struct platform_device ast_poweron_1V2 = {
+	.name		= "ast1500_led",
+	.id		= 19,
+	.dev		= {
+		.platform_data = &ast1500_pdata_poweron_1V2,
+	},
+};
+
+static struct platform_device ast_poweron_1V3 = {
+	.name		= "ast1500_led",
+	.id		= 20,
+	.dev		= {
+		.platform_data = &ast1500_pdata_poweron_1V3,
+	},
+};
+
 
 #ifdef CONFIG_ARCH_AST1500_HOST
 #if (BOARD_DESIGN_VER_VIDEO >= 300)
@@ -448,7 +560,15 @@ static struct platform_device __initdata *ast_devs[] = {
 	&ast_ledh0,
 	&ast_ledh1,
 	&ast_ledh2,
-	&ast_ledh3,
+	&ast_poweron_1V8,
+	&ast_poweron_1V2,
+	&ast_poweron_1V3,
+	&ast_ledg0,
+	&ast_ledg1,
+	&ast_ledg2,
+	&ast_ledg3,
+	&ast_ledg4,
+	&ast_ledg5,
 #ifdef CONFIG_ARCH_AST1500_CLIENT
 #if 0
 	&ast_ledc2,
@@ -598,17 +718,6 @@ static void __init aspeed_init(void)
 {
 	u32 r;
 	struct ast_led_platdata *p;
-
-	/* Init GPIOs. */
-	gpio_cfg(GPIO_LED_LINK, AST1500_GPIO_OUTPUT);
-	gpio_cfg(GPIO_LED_PWR, AST1500_GPIO_OUTPUT);
-	p = ast_ledb6.dev.platform_data;
-	r = 0 ^ (p->flags & AST_LEDF_ACTLOW);
-	gpio_set_value(GPIO_LED_LINK, r);
-	p = ast_ledb7.dev.platform_data;
-	r = 0 ^ (p->flags & AST_LEDF_ACTLOW);
-	gpio_set_value(GPIO_LED_PWR, r);
-
 	platform_add_devices(ast_devs, ARRAY_SIZE(ast_devs));
 #ifdef CONFIG_SPI_ASTSMC
 	spi_register_board_info(astsmc_spi_board_info, ARRAY_SIZE(astsmc_spi_board_info));

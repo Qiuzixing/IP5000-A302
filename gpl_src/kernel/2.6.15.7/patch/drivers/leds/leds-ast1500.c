@@ -278,7 +278,6 @@ static int ast1500_led_probe(struct platform_device *dev)
 			}
 		}
 	}
-
 #ifdef CONFIG_LEDS_TRIGGERS
 	led->cdev.trigger_chg = ast1500_led_trigger_change;
 #endif
@@ -289,7 +288,14 @@ static int ast1500_led_probe(struct platform_device *dev)
 		dev_err(&dev->dev, "led_classdev_register failed\n");
 		goto exit_err1;
 	}
-
+	if(0 == strcmp(pdata->name,"led_on_g"))
+	{
+		gpio_set_value(pdata->gpio,0);
+	}
+	if(0 == strcmp(pdata->name,"led_on_r"))
+	{
+		gpio_set_value(pdata->gpio,0);
+	}
 	return 0;
 
  exit_err1:
