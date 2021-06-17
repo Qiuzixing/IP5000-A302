@@ -2,7 +2,30 @@
 
 #ifndef FTMAC100_H
 #define FTMAC100_H
+#include <linux/types.h>
+#include <linux/module.h>
+#include <linux/version.h>
+#include <linux/kernel.h>
+#include <linux/sched.h>
 
+#include <linux/fcntl.h>
+#include <linux/interrupt.h>
+#include <linux/ptrace.h>
+#include <linux/ioport.h>
+#include <linux/in.h>
+#include <linux/slab.h>
+#include <linux/string.h>
+#include <linux/init.h>
+#include <linux/proc_fs.h>
+#include <asm/bitops.h>
+#include <asm/io.h>
+#include <asm/hardware.h>
+#include <linux/pci.h>
+#include <linux/errno.h>
+#include <linux/delay.h>
+#include <linux/netdevice.h>
+#include <linux/etherdevice.h>
+#include <linux/skbuff.h>
 #define CACHE_ABLE    1
 
 #define IP_COUNT                1
@@ -16,6 +39,7 @@
 typedef unsigned char			byte;
 typedef unsigned short			word;
 typedef unsigned long int 		dword;
+
 
 #if (CONFIG_AST1500_SOC_VER >= 2)
 	#define NEW_JUMBO_FRAME
@@ -388,7 +412,7 @@ typedef struct {
 	unsigned long Buffering_Capabilities;
 	unsigned long AEN_Control_Support;
 } NCSI_Capability;
-NCSI_Capability NCSI_Cap;
+
 
 //SET_MAC_ADDRESS
 #define UNICAST		(0x00 << 5)
@@ -765,7 +789,8 @@ struct ftgmac100_local {
 #define    RX_DONE      (1 << 2)
 #define    STOP_DONE    (1 << 4)
 
-
+u16 gb_rtl8367_phy_read_register(u16 Register_addr);
+void gb_rtl8367_phy_write_register(u16 Register_addr,u16 register_value);
 
 #endif  /* _SMC_91111_H_ */
 

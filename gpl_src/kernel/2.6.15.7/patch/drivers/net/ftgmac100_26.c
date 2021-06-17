@@ -59,29 +59,7 @@
 static const char version[] =
 	"ASPEED FTGMAC Driver, (Linux Kernel 2.6.15.7) 01/07/2009 - by ASPEED\n";
 
-#include <linux/module.h>
-#include <linux/version.h>
-#include <linux/kernel.h>
-#include <linux/sched.h>
-#include <linux/types.h>
-#include <linux/fcntl.h>
-#include <linux/interrupt.h>
-#include <linux/ptrace.h>
-#include <linux/ioport.h>
-#include <linux/in.h>
-#include <linux/slab.h>
-#include <linux/string.h>
-#include <linux/init.h>
-#include <linux/proc_fs.h>
-#include <asm/bitops.h>
-#include <asm/io.h>
-#include <asm/hardware.h>
-#include <linux/pci.h>
-#include <linux/errno.h>
-#include <linux/delay.h>
-#include <linux/netdevice.h>
-#include <linux/etherdevice.h>
-#include <linux/skbuff.h>
+
 #ifdef FREE_TX_IN_WQ
 #include <<linux/workqueue.h>
 #endif
@@ -90,17 +68,18 @@ static const char version[] =
 #include "ftgmac100_26.h"
 #include <asm/arch/platform.h>
 #include <asm/arch/ast-scu.h>
+#include "rtl8364/rtl8364_i2c_driver.h"
 /*------------------------------------------------------------------------
  .
  . Configuration options, for the experienced user to change.
  .
  -------------------------------------------------------------------------*/
-#define DUMMY_PHY (0) //(3|4|8)//(4|2|8) //0:disable dummy phy mode. 1:enable. No MDIO access. 2: Allow MDIO read but return dummy. 3:Allow MDIO read and return read result. 4:Allow MDIO write. 8:disable PHY interrupt. 0x10:no PHY reset
+#define DUMMY_PHY (0x18) //(3|4|8)//(4|2|8) //0:disable dummy phy mode. 1:enable. No MDIO access. 2: Allow MDIO read but return dummy. 3:Allow MDIO read and return read result. 4:Allow MDIO write. 8:disable PHY interrupt. 0x10:no PHY reset
 #define HW_RANDOM 0 //We don't see the necessary to add random noise in our application. So, set 0.
 #define NEW_RX_PROC 1
 #define NEW_AHU 1 //ast hw utp
 #define PHY_RESET_INTERVAL 10000//10 seconds
-
+NCSI_Capability NCSI_Cap;
 #if (CONFIG_AST1500_SOC_VER == 2)
 /* Bruce150302.Enable auto Tx poll to avoid AST1510 chip bug. */
 #define AUTO_TX_POLL
@@ -300,7 +279,8 @@ static void ftgmac100_write_phy_register_ex(unsigned int ioaddr, byte phyaddr, b
 #define ftgmac100_read_phy_register_sleep(ioaddr, phyaddr, phyreg) ftgmac100_read_phy_register_ex(ioaddr, phyaddr, phyreg, 0)
 #define ftgmac100_write_phy_register(ioaddr, phyaddr, phyreg, phydata) ftgmac100_write_phy_register_ex(ioaddr, phyaddr, phyreg, phydata, 1)
 #define ftgmac100_write_phy_register_sleep(ioaddr, phyaddr, phyreg, phydata) ftgmac100_write_phy_register_ex(ioaddr, phyaddr, phyreg, phydata, 0)
-
+#define gb_ftgmac100_read_phy_register(ioaddr, phyaddr, phyreg) gb_ftgmac100_read_phy_register_ex(ioaddr, phyaddr, phyreg, 1)
+#define gb_ftgmac100_write_phy_register(ioaddr, phyaddr, phyreg, phydata) gb_ftgmac100_write_phy_register_ex(ioaddr, phyaddr, phyreg, phydata, 1)
 u8  aspeedi2c_read (u8, u8, u16);
 void  i2c_init(u8);
 static void ftgmac100_force_free_rx (struct net_device *dev);
@@ -4710,7 +4690,7 @@ static inline void ftgmac100_phy_rw_waiting(unsigned int ioaddr, unsigned int is
 
 	do {
 		if (is_atomic)
-			mdelay(10);
+			;//mdelay(10);
 		else
 			msleep(10);
 
@@ -4752,6 +4732,27 @@ static word dummy_phy(byte phyreg)
 /*------------------------------------------------------------
  . Reads a register from the MII Management serial interface
  .-------------------------------------------------------------*/
+static word gb_ftgmac100_read_phy_register_ex(unsigned int ioaddr, byte phyaddr, byte phyreg, unsigned int is_atomic)
+{
+	unsigned int tmp;
+
+	if (phyaddr > 0x1f)	// MII chip IDs are 5 bits long
+	    return 0xffff;
+	tmp = inl(ioaddr + PHYCR_REG);
+
+	tmp &= 0x3000003F;
+	tmp |=(phyaddr<<16);
+	tmp |=(phyreg<<(16+5));
+	tmp |=PHY_READ_bit;
+
+	outl( tmp, ioaddr + PHYCR_REG );
+
+	ftgmac100_phy_rw_waiting(ioaddr, is_atomic);
+
+	tmp = (inl(ioaddr + PHYDATA_REG)>>16);
+	return tmp;
+}
+
 static word ftgmac100_read_phy_register_ex(unsigned int ioaddr, byte phyaddr, byte phyreg, unsigned int is_atomic)
 {
 	unsigned int tmp;
@@ -4786,6 +4787,28 @@ static word ftgmac100_read_phy_register_ex(unsigned int ioaddr, byte phyaddr, by
 /*------------------------------------------------------------
  . Writes a register to the MII Management serial interface
  .-------------------------------------------------------------*/
+static void gb_ftgmac100_write_phy_register_ex(unsigned int ioaddr,
+	byte phyaddr, byte phyreg, word phydata, unsigned int is_atomic)
+{
+	unsigned int tmp;
+
+	if (phyaddr > 0x1f)	// MII chip IDs are 5 bits long
+	    return;
+
+	tmp = inl(ioaddr + PHYCR_REG);
+
+	tmp &= 0x3000003F;
+	tmp |=(phyaddr<<16);
+	tmp |=(phyreg<<(16+5));
+	tmp |=PHY_WRITE_bit;
+
+	outl( phydata, ioaddr + PHYDATA_REG );
+
+	outl( tmp, ioaddr + PHYCR_REG );
+
+	ftgmac100_phy_rw_waiting(ioaddr, is_atomic);
+}
+
 static void ftgmac100_write_phy_register_ex(unsigned int ioaddr,
 	byte phyaddr, byte phyreg, word phydata, unsigned int is_atomic)
 {
@@ -4867,7 +4890,6 @@ static void rtl8211f_phy_reset(struct net_device *dev)
 		 */
 		if (mode_sel == -1)
 			mode_sel = lp->ids.is_rtl8211_fiber;
-
 		mode_sel = 1 - (mode_sel & 0x1);
 		ftgmac100_write_phy_register(ioaddr, lp->ids.phyAddr, 31, 0xd40); /* select page 0xd40 */
 		tmp = ftgmac100_read_phy_register(ioaddr, lp->ids.phyAddr, 16);
@@ -5049,6 +5071,53 @@ static void rtk_eee_disable(struct net_device *dev)
 }
 #endif /* #if defined(RTK_PHY_EEE_CONFIG) */
 
+
+#define MDC_MDIO_PHY_ID 0
+#define MDC_MDIO_CTRL0_REG          31
+#define MDC_MDIO_START_REG          29
+#define MDC_MDIO_CTRL1_REG          21
+#define MDC_MDIO_ADDRESS_REG        23
+#define MDC_MDIO_DATA_WRITE_REG     24
+#define MDC_MDIO_DATA_READ_REG      25
+#define MDC_MDIO_PREAMBLE_LEN       32
+
+#define MDC_MDIO_START_OP          0xFFFF
+#define MDC_MDIO_ADDR_OP           0x000E
+#define MDC_MDIO_READ_OP           0x0001
+#define MDC_MDIO_WRITE_OP          0x0003
+
+static unsigned long tmp_io = 0;
+
+u16 gb_rtl8367_phy_read_register(u16 Register_addr)
+{
+	/* Write address control code to register 31 */
+	gb_ftgmac100_write_phy_register(tmp_io,MDC_MDIO_PHY_ID,MDC_MDIO_CTRL0_REG,MDC_MDIO_ADDR_OP);
+
+	/* Write address to register 23 */
+	gb_ftgmac100_write_phy_register(tmp_io,MDC_MDIO_PHY_ID,MDC_MDIO_ADDRESS_REG,Register_addr);
+
+	/* Write read control code to register 21 */
+	gb_ftgmac100_write_phy_register(tmp_io,MDC_MDIO_PHY_ID,MDC_MDIO_CTRL1_REG,MDC_MDIO_READ_OP);
+	
+	/* Read data from register 25 */
+	return gb_ftgmac100_read_phy_register(tmp_io,MDC_MDIO_PHY_ID,MDC_MDIO_DATA_READ_REG);
+}
+
+void gb_rtl8367_phy_write_register(u16 Register_addr,u16 register_value)
+{
+	/* Write address control code to register 31 */
+	gb_ftgmac100_write_phy_register(tmp_io,MDC_MDIO_PHY_ID,MDC_MDIO_CTRL0_REG,MDC_MDIO_ADDR_OP);
+
+	/* Write address to register 23 */
+	gb_ftgmac100_write_phy_register(tmp_io,MDC_MDIO_PHY_ID,MDC_MDIO_ADDRESS_REG,Register_addr);
+
+	/* Write data to register 24 */
+	gb_ftgmac100_write_phy_register(tmp_io,MDC_MDIO_PHY_ID,MDC_MDIO_DATA_WRITE_REG,register_value);
+
+	/* Write data control code to register 21 */
+	gb_ftgmac100_write_phy_register(tmp_io,MDC_MDIO_PHY_ID,MDC_MDIO_CTRL1_REG,MDC_MDIO_WRITE_OP);
+}
+
 /*------------------------------------------------------------
  . Configures the specified PHY using Autonegotiation.
  .-------------------------------------------------------------*/
@@ -5056,7 +5125,17 @@ static void ftgmac100_phy_configure(struct net_device* dev)
 {
 	struct ftgmac100_local *lp = (struct ftgmac100_local *)dev->priv;
 	unsigned long ioaddr = dev->base_addr;
+	tmp_io = ioaddr;
 	word tmp;
+
+	if ( STATUS_ERROR == enet_phy_init())
+	{
+		printk("enet_phy_init fail\n");
+	}
+	else
+	{
+		printk("enet_phy_init success\n");
+	}
 
 	if ((lp->ids.miiPhyId & PHYID_VENDOR_MODEL_MASK) == PHYID_RTL8211)
 	{
