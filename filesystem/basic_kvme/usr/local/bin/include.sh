@@ -536,16 +536,11 @@ refresh_4bits_ch()
 		return
 	fi
 
-	#Query the gpio value by writing 0 to it
-	echo ${_CHSLGP0INV} > ${GPIO_SYS_PATH}/ch0/brightness 2>/dev/null
-	echo ${_CHSLGP1INV} > ${GPIO_SYS_PATH}/ch1/brightness 2>/dev/null
-	echo ${_CHSLGP2INV} > ${GPIO_SYS_PATH}/ch2/brightness 2>/dev/null
-	echo ${_CHSLGP3INV} > ${GPIO_SYS_PATH}/ch3/brightness 2>/dev/null
 	#Get the value now
-	CH0=`cat ${GPIO_SYS_PATH}/${_CHSLGP0}/brightness 2>/dev/null`
-	CH1=`cat ${GPIO_SYS_PATH}/${_CHSLGP1}/brightness 2>/dev/null`
-	CH2=`cat ${GPIO_SYS_PATH}/${_CHSLGP2}/brightness 2>/dev/null`
-	CH3=`cat ${GPIO_SYS_PATH}/${_CHSLGP3}/brightness 2>/dev/null`
+	CH0=0
+	CH1=0
+	CH2=0
+	CH3=0
 }
 
 foolproof_multicast_ip_prefix()
@@ -2611,7 +2606,6 @@ handle_button_on_boot()
 		return
 	fi
 	echo "$BTN1_DELAY" > "$GPIO_SYS_PATH"/button_link/delay
-	echo "$BTN2_DELAY" > "$GPIO_SYS_PATH"/button_pairing/delay
 
 	handle_"$BTN_INIT"
 
@@ -2626,15 +2620,6 @@ handle_button_on_boot()
 		fi
 	fi
 
-	if [ `cat "$GPIO_SYS_PATH"/button_pairing/state_on_active` = 'On' ]; then
-		echo 4 > "$GPIO_SYS_PATH"/button_pairing/brightness
-		_bs=`cat "$GPIO_SYS_PATH"/button_pairing/brightness`
-		if [ "$_bs" = '1' ] && [ "$BTN2_LONG_ON_BOOT" != 'e_btn_ignore' ]; then
-			handle_"$BTN2_LONG_ON_BOOT"
-		else
-			handle_"$BTN2_SHORT_ON_BOOT"
-		fi
-	fi
 }
 
 start_telnetd()
