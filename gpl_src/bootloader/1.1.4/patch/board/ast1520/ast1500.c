@@ -34,15 +34,22 @@ int board_init (void)
 	gd->bd->bi_boot_params = 0x80000100;
 
 #if (CONFIG_AST1500_SOC_VER >= 3)
-	/* Initialize LED. Turn off Power LED (GPIOJ2). */
+	/* pull up rtl8364_reset (GPIOI5)*/
+	reg = *((volatile ulong*) 0x1E6E2090);
+	reg &= ~(1UL << 6);
+	*((volatile ulong*) 0x1E6E2090) = reg;
+
+	reg = *((volatile ulong*) 0x1e6e2070);
+	reg &= ~(0x00003020);
+	*((volatile ulong*) 0x1e6e2070) = reg;
+
 	reg = *((volatile ulong*) 0x1e780074);
-	reg |= (1UL << 10);
+	reg |= (1UL << 5);
 	*((volatile ulong*) 0x1e780074) = reg;
 
 	reg = *((volatile ulong*) 0x1e780070);
-	reg &= ~(1UL << 10);
+	reg |= 1UL << 5;
 	*((volatile ulong*) 0x1e780070) = reg;
-
 #elif (CONFIG_AST1500_SOC_VER == 2) //This is actually board dependent.
     /* Initialize LED. Turn off Power LED (GPIOP5). */
 	reg = *((volatile ulong*) 0x1e78007C);
