@@ -105,8 +105,8 @@ led_on()
 	fi
 
 	# $1 is the led name to be access. Ex: $LED_LINK
-	echo none > ${GPIO_SYS_PATH}/$1/trigger
-	echo 1 > ${GPIO_SYS_PATH}/$1/brightness
+	#echo none > ${GPIO_SYS_PATH}/$1/trigger
+	#echo 1 > ${GPIO_SYS_PATH}/$1/brightness
 }
 led_off()
 {
@@ -115,8 +115,8 @@ led_off()
 	fi
 
 	# $1 is the led name to be access. Ex: $LED_LINK
-	echo none > ${GPIO_SYS_PATH}/$1/trigger
-	echo 0 > ${GPIO_SYS_PATH}/$1/brightness
+	#echo none > ${GPIO_SYS_PATH}/$1/trigger
+	#echo 0 > ${GPIO_SYS_PATH}/$1/brightness
 }
 led_blink()
 {
@@ -124,7 +124,7 @@ led_blink()
 		return
 	fi
 	# $1 is the led name to be access. Ex: $LED_LINK
-	echo timer > ${GPIO_SYS_PATH}/$1/trigger
+	#echo timer > ${GPIO_SYS_PATH}/$1/trigger
 }
 
 select_v_input_by_current()

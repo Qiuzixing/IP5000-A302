@@ -106,14 +106,74 @@ static struct ast_led_platdata ast1500_pdata_ledg3 = {
 
 static struct ast_led_platdata ast1500_pdata_ledg4 = {
 	.gpio		= LED_ON_G,
-	.flags		= AST_LEDF_TRISTATE_OFF | AST_LEDF_DEFAULT_ON,
+	.flags		=  AST_LEDF_DEFAULT_ON,
 	.name		= "led_on_g",
 };
 
 static struct ast_led_platdata ast1500_pdata_ledg5 = {
 	.gpio		= LED_ON_R,
-	.flags		= AST_LEDF_TRISTATE_OFF | AST_LEDF_DEFAULT_ON,
+	.flags		=  AST_LEDF_DEFAULT_ON,
 	.name		= "led_on_r",
+};
+
+static struct ast_led_platdata ast1500_pdata_poweron_1V8 = {
+	.gpio		= POWERON_1V8,
+	.flags		=  AST_LEDF_DEFAULT_ON,
+	.name		= "poweron_1V8",
+};
+
+static struct ast_led_platdata ast1500_pdata_poweron_1V2 = {
+	.gpio		= POWERON_1V2,
+	.flags		= AST_LEDF_DEFAULT_ON,
+	.name		= "poweron_1V2",
+};
+
+static struct ast_led_platdata ast1500_pdata_poweron_1V3 = {
+	.gpio		= POWERON_1V3,
+	.flags		= AST_LEDF_DEFAULT_ON,
+	.name		= "poweron_1V3",
+};
+
+static struct ast_led_platdata ast1500_pdata_ledf0 = {
+	.gpio		= LINEIN_MUTE,
+	.flags		= AST_LEDF_DEFAULT_ON,
+	.name		= "linein_mute",
+};
+
+static struct ast_led_platdata ast1500_pdata_ledf1 = {
+	.gpio		= LINEOUT_MUTE,
+	.flags		= AST_LEDF_DEFAULT_ON,
+	.name		= "lineout_mute",
+};
+
+static struct ast_led_platdata ast1500_pdata_ledf2 = {
+	.gpio		= AUDIO_SENSITIVE_HIGH,
+	.flags		= AST_LEDF_DEFAULT_ON,
+	.name		= "audio_sensitive_high",
+};
+
+static struct ast_led_platdata ast1500_pdata_ledf3 = {
+	.gpio		= AUDIO_SENSITIVE_MIDDLE,
+	.flags		= AST_LEDF_DEFAULT_ON,
+	.name		= "audio_sensitive_middle",
+};
+
+static struct ast_led_platdata ast1500_pdata_ledh7 = {
+	.gpio		= LCD_POWER,
+	.flags		= AST_LEDF_DEFAULT_ON,
+	.name		= "lcd_power",
+};
+
+static struct ast_led_platdata ast1500_pdata_ledi4 = {
+	.gpio		= MCU_RESET,
+	.flags		= AST_LEDF_DEFAULT_ON,
+	.name		= "mcu_reset",
+};
+
+static struct ast_led_platdata ast1500_pdata_ledi5 = {
+	.gpio		= RTL_RESET,
+	.flags		= AST_LEDF_DEFAULT_ON,
+	.name		= "rtl_reset",
 };
 
 static struct ast_led_platdata ast1500_pdata_ledh0 = {
@@ -133,26 +193,6 @@ static struct ast_led_platdata ast1500_pdata_ledh2 = {
 	.flags		= AST_LEDF_SWITCH | ((GPIO_CH2_ACTIVE)?(0):(AST_LEDF_ACTLOW)),
 	.name		= "ch2",
 };
-
-static struct ast_led_platdata ast1500_pdata_poweron_1V8 = {
-	.gpio		= AST1500_GPH3,
-	.flags		= AST_LEDF_TRISTATE_OFF | AST_LEDF_DEFAULT_ON,
-	.name		= "poweron_1V8",
-};
-
-static struct ast_led_platdata ast1500_pdata_poweron_1V2 = {
-	.gpio		= AST1500_GPH4,
-	.flags		= AST_LEDF_DEFAULT_ON,
-	.name		= "poweron_1V2",
-};
-
-static struct ast_led_platdata ast1500_pdata_poweron_1V3 = {
-	.gpio		= AST1500_GPH6,
-	.flags		= AST_LEDF_DEFAULT_ON,
-	.name		= "poweron_1V3",
-};
-
-
 #ifdef CONFIG_ARCH_AST1500_HOST
 #if (BOARD_DESIGN_VER_VIDEO >= 300)
 static struct ast_led_platdata ast1500_pdata_v_input = {
@@ -174,55 +214,12 @@ static struct ast_led_platdata ast1500_pdata_a_input = {
 #endif
 
 #ifdef CONFIG_ARCH_AST1500_CLIENT
-#if 0 //No more 8-bits dip switch
-static struct ast_led_platdata ast1500_pdata_ledc2 = {
-	.gpio		= AST1500_GPC2,
-	.flags		= AST_LEDF_SWITCH,
-	.name		= "as0",
-};
 
-static struct ast_led_platdata ast1500_pdata_ledc3 = {
-	.gpio		= AST1500_GPC3,
-	.flags		= AST_LEDF_SWITCH,
-	.name		= "as1",
+static struct ast_led_platdata ast1500_pdata_led5v = {
+	.gpio		= AST1500_GPH3,
+	.flags		= AST_LEDF_DEFAULT_ON,
+	.name		= "gsv_5v",
 };
-
-static struct ast_led_platdata ast1500_pdata_ledc4 = {
-	.gpio		= AST1500_GPC4,
-	.flags		= AST_LEDF_SWITCH,
-	.name		= "as2",
-};
-
-static struct ast_led_platdata ast1500_pdata_ledc5 = {
-	.gpio		= AST1500_GPC5,
-	.flags		= AST_LEDF_SWITCH,
-	.name		= "as3",
-};
-
-static struct ast_led_platdata ast1500_pdata_ledb3 = {
-	.gpio		= AST1500_GPB3,
-	.flags		= AST_LEDF_SWITCH,
-	.name		= "as4",
-};
-
-static struct ast_led_platdata ast1500_pdata_ledd6 = {
-	.gpio		= AST1500_GPD6,
-	.flags		= AST_LEDF_SWITCH | AST_LEDF_ACTLOW,
-	.name		= "as5",
-};
-
-static struct ast_led_platdata ast1500_pdata_leda3 = {
-	.gpio		= AST1500_GPA3,
-	.flags		= AST_LEDF_SWITCH,
-	.name		= "as6",
-};
-
-static struct ast_led_platdata ast1500_pdata_leda5 = {
-	.gpio		= AST1500_GPA5,
-	.flags		= AST_LEDF_SWITCH,
-	.name		= "as7",
-};
-#endif
 
 #if (BOARD_DESIGN_VER_MISC >= 104)
 //#if defined(CONFIG_AST1500_BOARD_V4) || defined (CONFIG_AST1500_BOARD_V5) || defined(CONFIG_AST1510_BOARD_EVA_V4)
@@ -299,54 +296,6 @@ static struct platform_device ast_ledb7 = {
 	},
 };
 
-static struct platform_device ast_ledg0 = {
-	.name		= "ast1500_led",
-	.id		= 22,
-	.dev		= {
-		.platform_data = &ast1500_pdata_ledg0,
-	},
-};
-
-static struct platform_device ast_ledg1 = {
-	.name		= "ast1500_led",
-	.id		= 23,
-	.dev		= {
-		.platform_data = &ast1500_pdata_ledg1,
-	},
-};
-
-static struct platform_device ast_ledg2 = {
-	.name		= "ast1500_led",
-	.id		= 24,
-	.dev		= {
-		.platform_data = &ast1500_pdata_ledg2,
-	},
-};
-
-static struct platform_device ast_ledg3= {
-	.name		= "ast1500_led",
-	.id		= 25,
-	.dev		= {
-		.platform_data = &ast1500_pdata_ledg3,
-	},
-};
-
-static struct platform_device ast_ledg4 = {
-	.name		= "ast1500_led",
-	.id		= 26,
-	.dev		= {
-		.platform_data = &ast1500_pdata_ledg4,
-	},
-};
-
-static struct platform_device ast_ledg5 = {
-	.name		= "ast1500_led",
-	.id		= 27,
-	.dev		= {
-		.platform_data = &ast1500_pdata_ledg5,
-	},
-};
-
 static struct platform_device ast_ledh0 = {
 	.name		= "ast1500_led",
 	.id		= 4,
@@ -395,6 +344,109 @@ static struct platform_device ast_poweron_1V3 = {
 	},
 };
 
+static struct platform_device ast_ledg0 = {
+	.name		= "ast1500_led",
+	.id		= 22,
+	.dev		= {
+		.platform_data = &ast1500_pdata_ledg0,
+	},
+};
+
+static struct platform_device ast_ledg1 = {
+	.name		= "ast1500_led",
+	.id		= 23,
+	.dev		= {
+		.platform_data = &ast1500_pdata_ledg1,
+	},
+};
+
+static struct platform_device ast_ledg2 = {
+	.name		= "ast1500_led",
+	.id		= 24,
+	.dev		= {
+		.platform_data = &ast1500_pdata_ledg2,
+	},
+};
+
+static struct platform_device ast_ledg3= {
+	.name		= "ast1500_led",
+	.id		= 25,
+	.dev		= {
+		.platform_data = &ast1500_pdata_ledg3,
+	},
+};
+
+static struct platform_device ast_ledg4 = {
+	.name		= "ast1500_led",
+	.id		= 26,
+	.dev		= {
+		.platform_data = &ast1500_pdata_ledg4,
+	},
+};
+
+static struct platform_device ast_ledg5 = {
+	.name		= "ast1500_led",
+	.id		= 27,
+	.dev		= {
+		.platform_data = &ast1500_pdata_ledg5,
+	},
+};
+
+static struct platform_device ast_ledf0 = {
+	.name		= "ast1500_led",
+	.id		= 28,
+	.dev		= {
+		.platform_data = &ast1500_pdata_ledf0,
+	},
+};
+
+static struct platform_device ast_ledf1 = {
+	.name		= "ast1500_led",
+	.id		= 29,
+	.dev		= {
+		.platform_data = &ast1500_pdata_ledf1,
+	},
+};
+
+static struct platform_device ast_ledf2 = {
+	.name		= "ast1500_led",
+	.id		= 30,
+	.dev		= {
+		.platform_data = &ast1500_pdata_ledf2,
+	},
+};
+
+static struct platform_device ast_ledf3 = {
+	.name		= "ast1500_led",
+	.id		= 31,
+	.dev		= {
+		.platform_data = &ast1500_pdata_ledf3,
+	},
+};
+
+static struct platform_device ast_ledh7 = {
+	.name		= "ast1500_led",
+	.id		= 32,
+	.dev		= {
+		.platform_data = &ast1500_pdata_ledh7,
+	},
+};
+
+static struct platform_device ast_ledi4 = {
+	.name		= "ast1500_led",
+	.id		= 33,
+	.dev		= {
+		.platform_data = &ast1500_pdata_ledi4,
+	},
+};
+
+static struct platform_device ast_ledi5 = {
+	.name		= "ast1500_led",
+	.id		= 34,
+	.dev		= {
+		.platform_data = &ast1500_pdata_ledi5,
+	},
+};
 
 #ifdef CONFIG_ARCH_AST1500_HOST
 #if (BOARD_DESIGN_VER_VIDEO >= 300)
@@ -418,71 +470,14 @@ static struct platform_device ast_led_a_input = {
 #endif
 
 #ifdef CONFIG_ARCH_AST1500_CLIENT
-#if 0 //No more 8-bits dip switch
-static struct platform_device ast_ledc2 = {
-	.name		= "ast1500_led",
-	.id		= 8,
-	.dev		= {
-		.platform_data = &ast1500_pdata_ledc2,
-	},
-};
 
-static struct platform_device ast_ledc3 = {
+static struct platform_device ast_led5v = {
 	.name		= "ast1500_led",
-	.id		= 9,
+	.id		= 35,
 	.dev		= {
-		.platform_data = &ast1500_pdata_ledc3,
+		.platform_data = &ast1500_pdata_led5v,
 	},
 };
-
-static struct platform_device ast_ledc4 = {
-	.name		= "ast1500_led",
-	.id		= 10,
-	.dev		= {
-		.platform_data = &ast1500_pdata_ledc4,
-	},
-};
-
-static struct platform_device ast_ledc5 = {
-	.name		= "ast1500_led",
-	.id		= 11,
-	.dev		= {
-		.platform_data = &ast1500_pdata_ledc5,
-	},
-};
-
-static struct platform_device ast_ledb3 = {
-	.name		= "ast1500_led",
-	.id		= 12,
-	.dev		= {
-		.platform_data = &ast1500_pdata_ledb3,
-	},
-};
-
-static struct platform_device ast_ledd6 = {
-	.name		= "ast1500_led",
-	.id		= 13,
-	.dev		= {
-		.platform_data = &ast1500_pdata_ledd6,
-	},
-};
-
-static struct platform_device ast_leda3 = {
-	.name		= "ast1500_led",
-	.id		= 14,
-	.dev		= {
-		.platform_data = &ast1500_pdata_leda3,
-	},
-};
-
-static struct platform_device ast_leda5 = {
-	.name		= "ast1500_led",
-	.id		= 15,
-	.dev		= {
-		.platform_data = &ast1500_pdata_leda5,
-	},
-};
-#endif //#if 0 //No more 8-bits dip switch
 
 #if (BOARD_DESIGN_VER_MISC >= 104)
 //#if defined(CONFIG_AST1500_BOARD_V4) || defined (CONFIG_AST1500_BOARD_V5)
@@ -569,16 +564,15 @@ static struct platform_device __initdata *ast_devs[] = {
 	&ast_ledg3,
 	&ast_ledg4,
 	&ast_ledg5,
+	&ast_ledf0,
+	&ast_ledf1,
+	&ast_ledf2,
+	&ast_ledf3,
+	&ast_ledh7,
+	&ast_ledi4,
+	&ast_ledi5,
 #ifdef CONFIG_ARCH_AST1500_CLIENT
-#if 0
-	&ast_ledc2,
-	&ast_ledc3,
-	&ast_ledc4,
-	&ast_ledc5,
-	&ast_ledb3,
-	&ast_ledd6,
-	&ast_leda3,
-#endif
+	&ast_led5v,
 #if (BOARD_DESIGN_VER_MISC >= 104)
 //#if defined(CONFIG_AST1500_BOARD_V4) || defined (CONFIG_AST1500_BOARD_V5)
 	&ast_leda3,
