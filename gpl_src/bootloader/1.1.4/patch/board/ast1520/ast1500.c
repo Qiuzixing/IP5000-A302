@@ -8,6 +8,42 @@
 #include <command.h>
 #include <pci.h>
 
+#define GPIO_MUX_SCU90 			0x1E6E2090
+#define GPIO_MUX_SCU84 			0x1E6E2084
+#define GPIO_MUX_SCU94 			0x1E6E2094
+#define GPIO_MUX_STRAP 			0x1e6e2070
+
+#define GPIOE_H_DIR_REG			0x1e780024
+#define GPIOE_H_DATA_REG		0x1e780020
+
+#define GPIOI_L_DIR_REG			0x1e780074
+#define GPIOI_L_DATA_REG		0x1e780070
+
+typedef enum
+{
+	BIT_CLEAR = 0,
+	BIT_SET,
+}bit_flag;
+
+static void register_opeartion(unsigned long gpio_mux_reg,unsigned char bit,bit_flag  flag)
+{
+	unsigned long reg;
+	reg = *((volatile ulong*) gpio_mux_reg);
+	if(flag == BIT_CLEAR)
+	{
+		reg &= ~(1UL << bit);
+	}
+	else if(flag == BIT_SET)
+	{
+		reg |= (1UL << bit);
+	}
+	else
+	{
+		
+	}
+	*((volatile ulong*) gpio_mux_reg) = reg;
+}
+
 int board_init (void)
 {
 	DECLARE_GLOBAL_DATA_PTR;
@@ -35,21 +71,25 @@ int board_init (void)
 
 #if (CONFIG_AST1500_SOC_VER >= 3)
 	/* pull up rtl8364_reset (GPIOI5)*/
-	reg = *((volatile ulong*) 0x1E6E2090);
-	reg &= ~(1UL << 6);
-	*((volatile ulong*) 0x1E6E2090) = reg;
+	register_opeartion(GPIO_MUX_SCU90,6,BIT_CLEAR);
+	register_opeartion(GPIO_MUX_STRAP,13,BIT_CLEAR);
+	register_opeartion(GPIO_MUX_STRAP,12,BIT_CLEAR);
+	register_opeartion(GPIO_MUX_STRAP,5,BIT_CLEAR);
 
-	reg = *((volatile ulong*) 0x1e6e2070);
-	reg &= ~(0x00003020);
-	*((volatile ulong*) 0x1e6e2070) = reg;
+	register_opeartion(GPIOI_L_DIR_REG,5,BIT_SET);
+	register_opeartion(GPIOI_L_DATA_REG,5,BIT_SET);
+	/* pull up POWERON_1V8 (GPIOH3)*/
+	register_opeartion(GPIO_MUX_SCU90,6,BIT_CLEAR);
+	register_opeartion(GPIO_MUX_SCU90,7,BIT_CLEAR);
 
-	reg = *((volatile ulong*) 0x1e780074);
-	reg |= (1UL << 5);
-	*((volatile ulong*) 0x1e780074) = reg;
-
-	reg = *((volatile ulong*) 0x1e780070);
-	reg |= 1UL << 5;
-	*((volatile ulong*) 0x1e780070) = reg;
+	register_opeartion(GPIOE_H_DIR_REG,27,BIT_SET);
+	register_opeartion(GPIOE_H_DATA_REG,27,BIT_SET);
+	/* pull up POWERON_1V2 (GPIOH4)*/
+	register_opeartion(GPIOE_H_DIR_REG,28,BIT_SET);
+	register_opeartion(GPIOE_H_DATA_REG,28,BIT_SET);
+	/* pull up POWERON_1V3 (GPIOH6)*/
+	register_opeartion(GPIOE_H_DIR_REG,30,BIT_SET);
+	register_opeartion(GPIOE_H_DATA_REG,30,BIT_SET);
 #elif (CONFIG_AST1500_SOC_VER == 2) //This is actually board dependent.
     /* Initialize LED. Turn off Power LED (GPIOP5). */
 	reg = *((volatile ulong*) 0x1e78007C);
