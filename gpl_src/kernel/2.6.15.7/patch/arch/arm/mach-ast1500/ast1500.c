@@ -216,7 +216,7 @@ static struct ast_led_platdata ast1500_pdata_a_input = {
 #ifdef CONFIG_ARCH_AST1500_CLIENT
 
 static struct ast_led_platdata ast1500_pdata_led5v = {
-	.gpio		= AST1500_GPH3,
+	.gpio		= AST1500_GPH2,
 	.flags		= AST_LEDF_DEFAULT_ON,
 	.name		= "gsv_5v",
 };

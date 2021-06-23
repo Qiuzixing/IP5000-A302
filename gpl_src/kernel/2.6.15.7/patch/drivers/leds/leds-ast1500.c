@@ -296,6 +296,12 @@ static int ast1500_led_probe(struct platform_device *dev)
 	{
 		gpio_set_value(pdata->gpio,0);
 	}
+	if(0 == strcmp(pdata->name,"mcu_reset"))
+	{
+		gpio_set_value(pdata->gpio,0);
+		msleep(10);
+		gpio_set_value(pdata->gpio,1);
+	}
 	return 0;
 
  exit_err1:
