@@ -170,6 +170,18 @@ static struct ast_led_platdata ast1500_pdata_ledi4 = {
 	.name		= "mcu_reset",
 };
 
+static struct ast_led_platdata ast1500_pdata_ledd3 = {
+	.gpio		= AST1500_GPD3,
+	.flags		= AST_LEDF_DEFAULT_ON,
+	.name		= "EN_USB1",
+};
+
+static struct ast_led_platdata ast1500_pdata_ledd4 = {
+	.gpio		= AST1500_GPD4,
+	.flags		= AST_LEDF_DEFAULT_ON,
+	.name		= "EN_USB2",
+};
+
 static struct ast_led_platdata ast1500_pdata_ledi5 = {
 	.gpio		= RTL_RESET,
 	.flags		= AST_LEDF_DEFAULT_ON,
@@ -448,6 +460,8 @@ static struct platform_device ast_ledi5 = {
 	},
 };
 
+
+
 #ifdef CONFIG_ARCH_AST1500_HOST
 #if (BOARD_DESIGN_VER_VIDEO >= 300)
 static struct platform_device ast_led_v_input = {
@@ -476,6 +490,22 @@ static struct platform_device ast_led5v = {
 	.id		= 35,
 	.dev		= {
 		.platform_data = &ast1500_pdata_led5v,
+	},
+};
+
+static struct platform_device ast_ledd4 = {
+	.name		= "ast1500_led",
+	.id		= 36,
+	.dev		= {
+		.platform_data = &ast1500_pdata_ledd4,
+	},
+};
+
+static struct platform_device ast_ledd3 = {
+	.name		= "ast1500_led",
+	.id		= 37,
+	.dev		= {
+		.platform_data = &ast1500_pdata_ledd3,
 	},
 };
 
@@ -573,6 +603,8 @@ static struct platform_device __initdata *ast_devs[] = {
 	&ast_ledi5,
 #ifdef CONFIG_ARCH_AST1500_CLIENT
 	&ast_led5v,
+	&ast_ledd4,
+	&ast_ledd3,
 #if (BOARD_DESIGN_VER_MISC >= 104)
 //#if defined(CONFIG_AST1500_BOARD_V4) || defined (CONFIG_AST1500_BOARD_V5)
 	&ast_leda3,
