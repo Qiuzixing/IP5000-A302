@@ -166,7 +166,7 @@ static struct ast_led_platdata ast1500_pdata_ledh7 = {
 
 static struct ast_led_platdata ast1500_pdata_ledi4 = {
 	.gpio		= MCU_RESET,
-	.flags		= AST_LEDF_DEFAULT_ON,
+	.flags		= AST_LEDF_TRISTATE_ON | AST_LEDF_DEFAULT_ON,
 	.name		= "mcu_reset",
 };
 
