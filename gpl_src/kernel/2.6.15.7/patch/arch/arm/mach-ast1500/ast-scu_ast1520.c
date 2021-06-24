@@ -259,11 +259,13 @@ static int mac_mfp_cfg(u8 id, u8 enable)
 		if (enable) {
 			/* MDC/MDIO pin */
 			SET_SCU_REG_BITS(RSCU_MFPC5, MFPC5_MAC2MDIO_EN);
+			#if 0
 			/* MII pin */
 			/* clear to 0 means MAC function*/
 			CLR_SCU_REG_BITS(RSCU_MFPC7, MFPC7_MAC2MII_OFF_MASK);
 			/* PHY link interrupt */
 			SET_SCU_REG_BITS(RSCU_MFPC1, MFPC1_MAC2PHYINT_EN);
+			#endif
 		} else {
 			/* MDC/MDIO pin */
 			CLR_SCU_REG_BITS(RSCU_MFPC5, MFPC5_MAC2MDIO_EN);
@@ -1908,6 +1910,7 @@ static int _scu_uart_init(u32 base)
 	case ASPEED_UART3_BASE: //0x1E78E000	/* UART#3 */
 		/* WARNING. UART3 to IO6 is for client board ONLY. Host board's GPIOH is occupied by VIPB. */
 		/* init UART#3 and route pin to IO6 (GPIOH[7:0]) */
+#ifdef CONFIG_ARCH_AST1500_CLIENT
 		{
 			u32 r;
 			/* route UART3 to IO6 */
@@ -1923,6 +1926,9 @@ static int _scu_uart_init(u32 base)
 			/* enable IO6 pins */
 			SET_SCU_REG_BITS(RSCU_MFPC5, MFPC5_IO6PINS_EN_MASK);
 		}
+#else
+		MOD_SCU_REG(RSCU_MFPC1,MFPC1_UART3PINS(MFPC1_UART3PINS_RXTX | 0x30), /* only RXTX + RTS, DTR */MFPC1_UART3PINS_MASK);
+#endif
 		scu_system_clk_stop(CLKSTOP_UART_3_MASK, 0);
 		break;
 	case ASPEED_UART_DBG_BASE: //0x1E784000 UART#2
@@ -2536,6 +2542,12 @@ int scu_op(u32 op, void *param)
 			break;
 		case SCUOP_MAC_INIT:
 			rtn = _scu_mac_init((int)param);
+			#if 0
+			if (ast_scu.board_info.board_revision & BOARD_REV_PATCH_HOST_DANTE)
+			{
+				_scu_mac_init(2);
+			}
+			#endif
 			break;
 		case SCUOP_HPLL_SET:
 			rtn = set_HPLL_mode((int)param);

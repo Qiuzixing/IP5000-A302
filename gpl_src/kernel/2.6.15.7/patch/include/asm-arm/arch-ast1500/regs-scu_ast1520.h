@@ -213,7 +213,10 @@
 #define      MFPC1_UART4PINS(v)                   (((v) << 24) & MFPC1_UART4PINS_MASK)
 #define      MFPC1_UART4PINS_ALL                  (0xFF)
 #define      MFPC1_UART4PINS_RXTX                 (0xC0)
-
+#define      MFPC1_UART3PINS_MASK                 (0xFFUL << 16)
+#define      MFPC1_UART3PINS(v)                   (((v) << 16) & MFPC1_UART3PINS_MASK)
+#define      MFPC1_UART3PINS_ALL                  (0xFF)
+#define      MFPC1_UART3PINS_RXTX                 (0xC0)
 #define RSCU_MFPC2                                0x84        /*    Multi-function Pin Control#2*/
 #define      MFPC2_CRT_ALL_EN                     (0x0F << 12)
 #define      MFPC2_ENVGAHS_MASK                   (0x1UL << 12)   /* Enable VGA/CRT VGAHS output function pin */

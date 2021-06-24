@@ -11,6 +11,7 @@ export AST_PLATFORM="ast1520-h-v1"
 
 mknod /dev/ttyS0 c 4 64
 mknod /dev/ttyS1 c 4 65
+mknod /dev/ttyS2 c 4 66
 
 mknod /dev/mtdblkmisc b 31 1
 mknod /dev/mtdblkkernel b 31 2
