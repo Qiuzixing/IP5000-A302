@@ -62,6 +62,41 @@ static struct ast_led_platdata ast1500_pdata_ledb4 = {
 	.def_trigger    = "pushbutton"
 };
 
+static struct ast_led_platdata ast1500_pdata_lede0 = {
+	.gpio		= KEY_UP,
+	.flags		= AST_LEDF_BUTTON | AST_LEDF_DEFAULT_ON,
+	.name		= "key_up",
+	.def_trigger    = "pushbutton"
+};
+
+static struct ast_led_platdata ast1500_pdata_lede1 = {
+	.gpio		= KEY_DOWN,
+	.flags		= AST_LEDF_BUTTON | AST_LEDF_DEFAULT_ON,
+	.name		= "key_down",
+	.def_trigger    = "pushbutton"
+};
+
+static struct ast_led_platdata ast1500_pdata_lede2 = {
+	.gpio		= KEY_LEFT,
+	.flags		= AST_LEDF_BUTTON | AST_LEDF_DEFAULT_ON,
+	.name		= "key_left",
+	.def_trigger    = "pushbutton"
+};
+
+static struct ast_led_platdata ast1500_pdata_lede3 = {
+	.gpio		= KEY_RIGHT,
+	.flags		= AST_LEDF_BUTTON | AST_LEDF_DEFAULT_ON,
+	.name		= "key_right",
+	.def_trigger    = "pushbutton"
+};
+
+static struct ast_led_platdata ast1500_pdata_lede4 = {
+	.gpio		= KEY_ENTER,
+	.flags		= AST_LEDF_BUTTON | AST_LEDF_DEFAULT_ON,
+	.name		= "key_enter",
+	.def_trigger    = "pushbutton"
+};
+
 static struct ast_led_platdata ast1500_pdata_ledb5 = {
 	.gpio		= LED_LINK_B,
 	.flags		= AST_LEDF_DEFAULT_ON  ,
@@ -188,23 +223,6 @@ static struct ast_led_platdata ast1500_pdata_ledi5 = {
 	.name		= "rtl_reset",
 };
 
-static struct ast_led_platdata ast1500_pdata_ledh0 = {
-	.gpio		= GPIO_CH0,
-	.flags		= AST_LEDF_SWITCH | ((GPIO_CH0_ACTIVE)?(0):(AST_LEDF_ACTLOW)),
-	.name		= "ch0",
-};
-
-static struct ast_led_platdata ast1500_pdata_ledh1 = {
-	.gpio		= GPIO_CH1,
-	.flags		= AST_LEDF_SWITCH | ((GPIO_CH1_ACTIVE)?(0):(AST_LEDF_ACTLOW)),
-	.name		= "ch1",
-};
-
-static struct ast_led_platdata ast1500_pdata_ledh2 = {
-	.gpio		= GPIO_CH2,
-	.flags		= AST_LEDF_SWITCH | ((GPIO_CH2_ACTIVE)?(0):(AST_LEDF_ACTLOW)),
-	.name		= "ch2",
-};
 #ifdef CONFIG_ARCH_AST1500_HOST
 #if (BOARD_DESIGN_VER_VIDEO >= 300)
 static struct ast_led_platdata ast1500_pdata_v_input = {
@@ -235,12 +253,7 @@ static struct ast_led_platdata ast1500_pdata_led5v = {
 
 #if (BOARD_DESIGN_VER_MISC >= 104)
 //#if defined(CONFIG_AST1500_BOARD_V4) || defined (CONFIG_AST1500_BOARD_V5) || defined(CONFIG_AST1510_BOARD_EVA_V4)
-static struct ast_led_platdata ast1500_pdata_leda3 = {
-	.gpio		= GPIO_CH_UPDATE,
-	.flags		= AST_LEDF_BUTTON | ((GPIO_CH_UPDATE_ACTIVE)?(0):(AST_LEDF_ACTLOW)),
-	.name		= "button_chg_ch",
-	.def_trigger	= "pushbutton",
-};
+
 #endif
 
 static struct ast_led_platdata ast1500_pdata_leda5 = {
@@ -308,27 +321,27 @@ static struct platform_device ast_ledb7 = {
 	},
 };
 
-static struct platform_device ast_ledh0 = {
+static struct platform_device ast_lede0 = {
 	.name		= "ast1500_led",
 	.id		= 4,
 	.dev		= {
-		.platform_data = &ast1500_pdata_ledh0,
+		.platform_data = &ast1500_pdata_lede0,
 	},
 };
 
-static struct platform_device ast_ledh1 = {
+static struct platform_device ast_lede1 = {
 	.name		= "ast1500_led",
 	.id		= 5,
 	.dev		= {
-		.platform_data = &ast1500_pdata_ledh1,
+		.platform_data = &ast1500_pdata_lede1,
 	},
 };
 
-static struct platform_device ast_ledh2 = {
+static struct platform_device ast_lede2 = {
 	.name		= "ast1500_led",
 	.id		= 6,
 	.dev		= {
-		.platform_data = &ast1500_pdata_ledh2,
+		.platform_data = &ast1500_pdata_lede2,
 	},
 };
 
@@ -461,6 +474,21 @@ static struct platform_device ast_ledi5 = {
 };
 
 
+static struct platform_device ast_lede3 = {
+	.name		= "ast1500_led",
+	.id		= 38,
+	.dev		= {
+		.platform_data = &ast1500_pdata_lede3,
+	},
+};
+
+static struct platform_device ast_lede4 = {
+	.name		= "ast1500_led",
+	.id		= 39,
+	.dev		= {
+		.platform_data = &ast1500_pdata_lede4,
+	},
+};
 
 #ifdef CONFIG_ARCH_AST1500_HOST
 #if (BOARD_DESIGN_VER_VIDEO >= 300)
@@ -510,14 +538,7 @@ static struct platform_device ast_ledd3 = {
 };
 
 #if (BOARD_DESIGN_VER_MISC >= 104)
-//#if defined(CONFIG_AST1500_BOARD_V4) || defined (CONFIG_AST1500_BOARD_V5)
-static struct platform_device ast_leda3 = {
-	.name		= "ast1500_led",
-	.id		= 14,
-	.dev		= {
-		.platform_data = &ast1500_pdata_leda3,
-	},
-};
+
 #endif
 
 static struct platform_device ast_leda5 = {
@@ -582,9 +603,9 @@ static struct platform_device __initdata *ast_devs[] = {
 	&ast_ledb5,
 	&ast_ledb6,
 	&ast_ledb7,
-	&ast_ledh0,
-	&ast_ledh1,
-	&ast_ledh2,
+	&ast_lede0,
+	&ast_lede1,
+	&ast_lede2,
 	&ast_poweron_1V8,
 	&ast_poweron_1V2,
 	&ast_poweron_1V3,
@@ -601,13 +622,14 @@ static struct platform_device __initdata *ast_devs[] = {
 	&ast_ledh7,
 	&ast_ledi4,
 	&ast_ledi5,
+	&ast_lede3,
+	&ast_lede4,
 #ifdef CONFIG_ARCH_AST1500_CLIENT
 	&ast_led5v,
 	&ast_ledd4,
 	&ast_ledd3,
 #if (BOARD_DESIGN_VER_MISC >= 104)
-//#if defined(CONFIG_AST1500_BOARD_V4) || defined (CONFIG_AST1500_BOARD_V5)
-	&ast_leda3,
+
 #endif
 	&ast_leda5,
 #if (BOARD_DESIGN_VER_MISC >= 105)

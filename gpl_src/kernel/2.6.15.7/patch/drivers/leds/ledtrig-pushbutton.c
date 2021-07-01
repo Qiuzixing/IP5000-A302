@@ -18,7 +18,7 @@
 #include <linux/ctype.h>
 #include <linux/leds.h>
 #include "leds.h"
-
+#include <asm/arch/leds-gpio.h>
 static const char driver_name[] = "ledtrig-pushbutton";
 
 #define LONG_PRESS_INTERVAL 2000 //in ms. indicate once per LONG_PRESS_INTERVAL
@@ -212,6 +212,17 @@ static void pb_pressed(unsigned long data)
     */
     if (tdata->use_netlink && !tdata->indicated) {
 		led_set_brightness(led_cdev, PB_VAL_GET);
+		if(led_cdev->flags & AST_LEDF_DEFAULT_ON)	
+		{
+			if(led_cdev->brightness == 1)	//release key
+			{
+				led_cdev->brightness = 0;
+			}
+			else							//still pressing the button
+			{
+				led_cdev->brightness = 1;	
+			}
+		}
 		if (!led_cdev->brightness) {
 			/*Button un-pressed*/
 			if (tdata->long_press_val == 0) {

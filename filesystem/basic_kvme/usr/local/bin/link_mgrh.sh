@@ -1230,6 +1230,29 @@ handle_e_var()
 	wait $!
 }
 
+handle_e_key()
+{
+	case "$*" in
+		e_key_enter)
+
+		;;
+		e_key_up)
+
+		;;
+		e_key_down)
+
+		;;
+		e_key_left)
+
+		;;
+		e_key_right)
+
+		;;
+		*)
+		;;
+	esac
+}
+
 state_machine()
 {
 	# Bruce160308. Try to ignore all TERM signals.
@@ -1252,6 +1275,9 @@ state_machine()
 			;;
 			e_button_?*)
 				handle_e_button "$event"
+			;;
+			e_key_?*)
+				handle_e_key "$event"
 			;;
 			e_ip_got::?*)
 				handle_e_ip_got "$event"

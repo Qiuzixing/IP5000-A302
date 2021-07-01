@@ -236,7 +236,7 @@ static int ast1500_led_probe(struct platform_device *dev)
 	led->cdev.brightness_set = ast1500_led_set;
 	led->cdev.default_trigger = pdata->def_trigger;
 	led->cdev.name = pdata->name;
-
+	led->cdev.flags = pdata->flags;
 	led->pdata = pdata;
 
 	if (pdata->flags & AST_LEDF_BUTTON) {
