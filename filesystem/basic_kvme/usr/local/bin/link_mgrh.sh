@@ -1563,7 +1563,10 @@ if [ -z "$AST_PLATFORM" ]; then
 fi
 
 handle_button_on_boot
-
+echo "lock file for @m_lm_query" > /var/lock/@m_lm_query.lck
+ipc_server_listen_one @m_lm_set @m_lm_get @m_lm_query @m_lm_reply &
+usleep 1000
+communication_with_mcu &
 # start event_monitor
 ast_event_monitor &
 EM_PID=$!
