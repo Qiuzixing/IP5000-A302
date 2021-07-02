@@ -53,9 +53,7 @@
 /* Remove following line to enable EXTRA_UART. */
 #undef EXTRA_UART
 
-#ifdef CONFIG_ARCH_AST1500_HOST
 #define EXTRA_UART
-#endif
 
 #ifdef EXTRA_UART
 #define UART_NR		3

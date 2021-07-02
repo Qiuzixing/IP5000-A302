@@ -1910,25 +1910,9 @@ static int _scu_uart_init(u32 base)
 	case ASPEED_UART3_BASE: //0x1E78E000	/* UART#3 */
 		/* WARNING. UART3 to IO6 is for client board ONLY. Host board's GPIOH is occupied by VIPB. */
 		/* init UART#3 and route pin to IO6 (GPIOH[7:0]) */
-#ifdef CONFIG_ARCH_AST1500_CLIENT
-		{
-			u32 r;
-			/* route UART3 to IO6 */
-			r = __raw_readl(IO_ADDRESS(0x1E789098));
-			r &= ~(0xF << 8);
-			r |= (0x2 << 8);
-			__raw_writel(r, IO_ADDRESS(0x1E789098));
-			/* route IO6 to UART3 */
-			r = __raw_readl(IO_ADDRESS(0x1E78909C));
-			r &= ~(0x7 << 22);
-			r |= (0x7 << 22);
-			__raw_writel(r, IO_ADDRESS(0x1E78909C));
-			/* enable IO6 pins */
-			SET_SCU_REG_BITS(RSCU_MFPC5, MFPC5_IO6PINS_EN_MASK);
-		}
-#else
+
 		MOD_SCU_REG(RSCU_MFPC1,MFPC1_UART3PINS(MFPC1_UART3PINS_RXTX | 0x30), /* only RXTX + RTS, DTR */MFPC1_UART3PINS_MASK);
-#endif
+
 		scu_system_clk_stop(CLKSTOP_UART_3_MASK, 0);
 		break;
 	case ASPEED_UART_DBG_BASE: //0x1E784000 UART#2
