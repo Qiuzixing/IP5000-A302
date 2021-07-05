@@ -571,12 +571,38 @@ int time_difference_from_last_time(struct timespec* last_time)
     return time_diff;
 }
 
+void print_usage() {
+	/* TODO */
+	printf("Usage: communication_with_mcu -u/-c\n");
+}
+
 int main(int argc, char *argv[])
 {
     int ret;
 	ipc_cmd_param cmd_param;
     int ipc_cmd_index = 0;
     unsigned char read_buffer[MAX_LEN] = {0};
+    int opt = 0;
+    int long_index =0;
+    static struct option long_options[] = {
+        {"upgrade",                     no_argument,       0,  'u' },
+		{"communication",               no_argument,       0,  'c' },
+		{0,                             0,                 0,  0   }
+	};
+
+    while ((opt = getopt_long_only(argc, argv, "", long_options, &long_index )) != -1) {
+		switch (opt) {
+		case 'u': 
+            up_or_commun_flag = UPGRADE;
+			break;
+		case 'c': 
+            up_or_commun_flag = COMMUNICATION; 
+			break;
+		default:
+			print_usage();
+			exit(EXIT_FAILURE);
+		}
+	}
 
     uart_fd = open_uart(UART_PORT, UART_COMFIG);
     if (uart_fd < 0)
@@ -585,20 +611,29 @@ int main(int argc, char *argv[])
         return 0;
     }
 
+    Example_CommandInterface_Init();
+
+    if( UPGRADE == up_or_commun_flag )
+    {
+        ret = check_mcu_version();
+        close(uart_fd);
+        if(GB_SUCCESS == ret)
+        {
+            return 0;
+        }
+        else
+        {
+            return 1;
+        }   
+    }
+
+
     fd_set rset;
     int maxfd = 0;
     int ipc_fd = -1;
     struct timeval timeout;
     struct timespec last_time;
     timeout.tv_sec = 0;
-    Example_CommandInterface_Init();
-    up_or_commun_flag = UPGRADE;
-    if(check_mcu_version() == GB_FAIL)
-    {
-        close(uart_fd);
-        return 0;
-    }  
-    up_or_commun_flag = COMMUNICATION; 
     clock_gettime(CLOCK_MONOTONIC,&last_time);
     while(1)
     {
