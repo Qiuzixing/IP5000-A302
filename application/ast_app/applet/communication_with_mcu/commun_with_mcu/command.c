@@ -19,6 +19,7 @@
 #include "command.h"
 #include "../ipc.h"
 #include "../gb_commun_with_mcu.h"
+#include "../auto_swtich_socket.h"
 int APP_Comm_Recv(CmdProtocolParam * param);
 int APP_Comm_Send(U16 CMD,U8 *buf, int len);
 extern int ipc_querycmd_index;
@@ -34,7 +35,7 @@ E_debugLvl elogLev=ELOG_LVL_ERROR;
 int uartfd;
 #endif
 extern int uart_fd;
-
+extern int sock_fd;
 
 /*------------------------------------------------------------------
  * Func : CommandInterfaceWrite
@@ -285,6 +286,54 @@ void Example_CommandInterface_Init( )
     }
 }
 
+static int socket_msg_struct_conver(socket_msg *msg,char port,char is_connect,char is_valid)
+{
+    int ret = 0;
+    switch(port)
+    {
+        case HDMIRX1:
+            msg->source = "hdmi1";
+            break;
+        case HDMIRX2:
+            msg->source = "hdmi2";
+            break;
+        case HDMIRX3:
+            msg->source = "hdmi3";
+            break;
+        default:
+            ret = -1;
+            break;
+    }
+
+    if(is_connect == 1)
+    {
+        msg->type = "plugin";
+    }
+    else if(is_connect == 0)
+    {
+        msg->type = "plugout";
+    }
+    else
+    {
+
+    }
+    
+    if(is_valid == 1)
+    {
+        msg->type = "signal-valid";
+    }
+    else if(is_valid == 0)
+    {
+        msg->type = "signal-invalid";
+    }
+    else
+    {
+
+    }
+    
+    return ret;
+}
+
 int APP_Comm_Recv(CmdProtocolParam * param)
 {
 
@@ -307,6 +356,7 @@ int APP_Comm_Recv(CmdProtocolParam * param)
     struct CmdDataGpioList *gpio_list= NULL;
     struct CmdDataUartPassthrough *uart_pass = NULL;
 
+    socket_msg send_socket_msg;
     int i = 0;
     ipc_relay_msg ipc_msg;
     memset(&ipc_msg, 0, sizeof(ipc_msg));
@@ -321,8 +371,24 @@ int APP_Comm_Recv(CmdProtocolParam * param)
             break;
         case EVENT_HDCP_STATUS:
             break;
+        case EVENT_HDMI_LINK_STATUS:
+            memset(&vdo_link, 0, sizeof(vdo_link));
+            memcpy(&vdo_link, &param->Data, sizeof(vdo_link));
+            printf("port[0x%x] connect [0x%x] isHpd [0x%x]\n", vdo_link.port, vdo_link.isConnect,vdo_link.isHpd);
+            if(0 == socket_msg_struct_conver(&send_socket_msg,vdo_link.port,vdo_link.isConnect,-1))
+            {
+                sendEvent(sock_fd,send_socket_msg.type,send_socket_msg.source);
+            }
+            
+            break;
         case EVENT_HDMI_VIDEO_STATUS:
-            //
+            memset(&vdo_status, 0, sizeof(vdo_status));
+            memcpy(&vdo_status, (struct CmdDataVideoStatus *)param->Data, sizeof(vdo_status));
+            printf("port[0x%x] stable [0x%x]\n", vdo_status.port, vdo_status.isStable); 
+            if(0 == socket_msg_struct_conver(&send_socket_msg,vdo_status.port,-1,vdo_status.isStable))
+            {
+                sendEvent(sock_fd,send_socket_msg.type,send_socket_msg.source);
+            }
             break;
         case EVENT_HDMI_EDID:
             memset(&edid_data, 0, sizeof(edid_data));
@@ -346,13 +412,6 @@ int APP_Comm_Recv(CmdProtocolParam * param)
                 ipc_set(IPC_RELAY_CH,&ipc_msg,sizeof(ipc_msg));
                 ipc_querycmd_index = -1;
             }
-            
-            break;
-        case EVENT_HDMI_LINK_STATUS:
-            memset(&vdo_link, 0, sizeof(vdo_link));
-            memcpy(&vdo_link, &param->Data, sizeof(vdo_link));
-            printf("port[0x%x] connect [0x%x] isHpd [0x%x]\n", vdo_link.port, vdo_link.isConnect,vdo_link.isHpd);
-            
             break;
         default:
             printf("----\n");

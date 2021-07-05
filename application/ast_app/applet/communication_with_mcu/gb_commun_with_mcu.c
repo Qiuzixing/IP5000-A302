@@ -29,6 +29,7 @@
 #include "./commun_with_mcu/uart_mcu_cmd.h"
 #include "./commun_with_mcu/command.h"
 #include "gb_commun_with_mcu.h"
+#include "auto_swtich_socket.h"
 
 #define mymin(a, b) (a > b ? b : a)
 #define versionnum_len 15
@@ -40,7 +41,7 @@
 #define UART_COMFIG "115200-8n1"
 #define IPC_CMD_TOO_OFTEN_LIMIT 40
 
-
+int sock_fd = -1;
 int uart_fd = -1;
 int errno;
 uint8_t file_path[120] = "/usr/share/ch6001/";
@@ -326,24 +327,18 @@ static void do_handle_input_source(uint16_t cmd,char *tx_port_num,char *rx_port_
 {
     struct CmdDataInputSorce vdo_source;
     memset((unsigned char *)&vdo_source, 0, sizeof(vdo_source));
-    if(tx_port_num[0] != 0)
+    if(tx_port_num[0] != 0 && rx_port_num[0] != 0)
     {
         vdo_source.txPort = atoi(tx_port_num);
+        vdo_source.rxPort = atoi(rx_port_num);
+        printf("vdo_source.txPort:%d\nvdo_source.rxPort:%d\n",vdo_source.txPort,vdo_source.rxPort);
+        APP_Comm_Send(cmd, (U8*)&vdo_source, sizeof(vdo_source));
     }
     else
     {
-        vdo_source.txPort = HDMITX2;
+        printf("warn:Illegal parameter, discard directly\n");
     }
 
-    if(rx_port_num[0] != 0)
-    {
-        vdo_source.rxPort = atoi(rx_port_num);
-    }
-    else
-    {
-        vdo_source.rxPort = HDMITX2;
-    }
-    APP_Comm_Send(cmd, (U8*)&vdo_source, sizeof(vdo_source));
 }
 
 static void do_handle_set_hdcp_cap(uint16_t cmd,char *port_num,char *cap)
@@ -454,7 +449,6 @@ static void parse_param(char *param_list,ipc_cmd_param *cmd_param)
 {
     int i = 0;
     int num = 0;
-    memset(&cmd_param,0,sizeof(cmd_param));
     if(NULL != param_list)
     {
         num = strlen(param_list);
@@ -634,6 +628,14 @@ int main(int argc, char *argv[])
     struct timeval timeout;
     struct timespec last_time;
     timeout.tv_sec = 0;
+
+    sock_fd = create_unixsocket(MSG_SOCKET);
+    if (sock_fd == -1) {
+        perror("unix socker error.");
+        return -1;
+    }
+
+
     clock_gettime(CLOCK_MONOTONIC,&last_time);
     while(1)
     {
@@ -673,6 +675,7 @@ int main(int argc, char *argv[])
                     }
                     close(ipc_fd);
                     ipc_fd = -1;
+                    memset(&cmd_param,0,sizeof(ipc_cmd_param));
                     ipc_cmd_index = do_handle_buffer(read_buffer,&cmd_param);
                     if(ipc_cmd_index != IPC_UnknownCmd)
                     {

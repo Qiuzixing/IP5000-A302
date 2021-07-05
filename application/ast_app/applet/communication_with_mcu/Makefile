@@ -26,12 +26,12 @@ build : communication_with_mcu ipc_server_listen_one
 	cp -f ./*.bin $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/share/ch6001/
 	cp -f ipc_server_listen_one $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 
-communication_with_mcu : gb_commun_with_mcu.o uds_ipc.o ipc.o \
+communication_with_mcu : gb_commun_with_mcu.o uds_ipc.o ipc.o auto_swtich_socket.o\
 					./commun_with_mcu/command_protocol.o \
 					./commun_with_mcu/command.o		\
 					./commun_with_mcu/uart_mcu_cmd.o \
 					./commun_with_mcu/ymodem.o		
-	$(cc) $(ldflags) -o communication_with_mcu gb_commun_with_mcu.o uds_ipc.o ipc.o command_protocol.o command.o uart_mcu_cmd.o ymodem.o
+	$(cc) $(ldflags) -o communication_with_mcu gb_commun_with_mcu.o auto_swtich_socket.o uds_ipc.o ipc.o command_protocol.o command.o uart_mcu_cmd.o ymodem.o
 
 ipc_server_listen_one : ipc_server.o uds_ipc.o
 	$(cc) $(ldflags) -o ipc_server_listen_one ipc_server.o uds_ipc.o
