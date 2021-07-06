@@ -25,6 +25,8 @@ mknod /dev/mtdblkroparam b 31 9
 #echo "Extracting rootfs patch..."
 #tar zxf /dev/mtdblkrootfsp -C /
 
+mount /dev/mtdblkdata /data
+
 if [ -f "/share/sysinit.sh" ]; then
 	chmod a+x /share/sysinit.sh
 	/share/sysinit.sh

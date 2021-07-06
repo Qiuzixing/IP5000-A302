@@ -103,6 +103,7 @@ rootfs:
 	@cp -af $(FS_TEMPLATE)/. $(ROOTFS)/
 	@cp -af $(ROOTFS_ADDON)/. $(ROOTFS)/
 	@cp -af $(FS_TEMPLATE_2)/rootfs/. $(ROOTFS)/
+	@mkdir -p $(ROOTFS)/data/
 
 	#######################################################################
 	# Remove unnecessary files in 'rootfs_addon'
@@ -178,6 +179,7 @@ rootfs:
 	@gzip -f -9 initrdm
 	@mkimage -A arm -O linux -T ramdisk -C gzip -a $(FS_ENTRY) -e $(FS_ENTRY) -d initrdm.gz $(INITRDM_IMAGE)
 	@rm initrdm.gz
+	@genext2fs -b $(DATA_SIZE) -i 1024 -d $(FS_TEMPLATE_2)/data/ -U -m 0 $(DATA_IMAGE)
 
 	#######################################################################
 	# Validate image size < $(FS_MAX_IMG_SIZE)
@@ -188,11 +190,13 @@ rootfs:
 	# Image created!
 	#######################################################################
 	@mv $(INITRDM_IMAGE) $(IMAGE_FOLDER)/
+	@mv $(DATA_IMAGE) $(IMAGE_FOLDER)/
 	@echo "Rootfs ramdisk image generated: $(IMAGE_FOLDER)/$(INITRDM_IMAGE)"
 
 
 clean:
 	@rm -f $(IMAGE_FOLDER)/$(INITRDM_IMAGE)
+	@rm -f $(IMAGE_FOLDER)/$(DATA_IMAGE)
 	#@$(SUDO) rm -rf $(ROOTFS)
 	@rm -rf $(ROOTFS)
 	rm -f $(IMAGE_FOLDER)/version-$(CONFIG)

@@ -15,6 +15,7 @@
 
 # Add empty directories here. Git won't track empty directories!!
 /bin              d    755  0    0    -    -    -    -    -
+/data             d    755  0    0    -    -    -    -    -
 /proc             d    755  0    0    -    -    -    -    -
 /sbin             d    755  0    0    -    -    -    -    -
 /share            d    755  0    0    -    -    -    -    -
