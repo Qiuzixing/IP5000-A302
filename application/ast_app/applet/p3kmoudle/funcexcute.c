@@ -37,34 +37,62 @@ int EX_GetAudAnalogGainDir(AudioInfo_S*info,char * gain)
 
 int EX_SetAutoSwitchPriority(AudioInfo_S * info,AudioInfo_S * gain,int count)
 {
-	//printf("gain =%s\n",gain);
-	int i=0;
-	for(i=0;i<count;i++)
-	{
-		printf("direction=%d ,count=%d\n",gain[i].direction,count);
-	}
+	pid_t status;
+	int num = 1;
+	char  cmd2[128] = {0};
+	printf("%d,%d,%d,%d",info[1].direction,info[1].portFormat,info[1].portIndex,info[1].signal);
+	sprintf(cmd2,"./sconfig --priority HDMI%d HDMI%d HDMI%d",info[2].portIndex,info[3].portIndex,info[4].portIndex);
+	printf("%s\n",cmd2);
+	status = system(cmd2);
+	
 	return 0;
 }
 
 int EX_GetAutoSwitchPriority(AudioInfo_S * gain,int count)
 {
+	pid_t status;
+	int ret =0;
 	int num = 0;
-	AudioInfo_S str = {0};
-	gain[num].direction = DIRECTION_IN;
-	gain[num].portFormat = PORT_HDMI;
-	gain[num].portIndex = 1;
-	gain[num].signal = SIGNAL_VIDEO;
-	num ++;
-	gain[num].direction = DIRECTION_BOTH;
-	gain[num].portFormat = PORT_HDMI;
-	gain[num].portIndex = 1;
-	gain[num].signal = SIGNAL_VIDEO;
-	num ++;
-	gain[num].direction = DIRECTION_OUT;
-	gain[num].portFormat = PORT_HDMI;
-	gain[num].portIndex = 1;
-	gain[num].signal = SIGNAL_VIDEO;
-	return num+1;
+	char buf[24] = {0};
+	char * p;
+	char m[] = " ";
+	FILE * ptr;
+	char * cmd2 = "./sconfig --show priority";
+	status = system(cmd2);
+	if((ptr = popen(cmd2,"r")) != NULL)
+	{
+		fgets(buf,24,ptr);
+		pclose(ptr);
+	}
+	p = strtok(buf,m);
+	while(p)
+	{
+		//printf(">>>%s\n",p);
+		if(!memcmp(p,"HDMI3",strlen("HDMI3")))
+		{
+			gain[num].direction = DIRECTION_IN;
+			gain[num].portFormat = PORT_USB_C;
+			gain[num].portIndex = 3;
+			gain[num].signal = SIGNAL_VIDEO;
+		}
+		else if(!memcmp(p,"HDMI2",strlen("HDMI2")))
+		{
+			gain[num].direction = DIRECTION_IN;
+			gain[num].portFormat = PORT_HDMI;
+			gain[num].portIndex = 2;
+			gain[num].signal = SIGNAL_VIDEO;
+		}
+		else if(!memcmp(p,"HDMI1",strlen("HDMI1")))
+		{
+			gain[num].direction = DIRECTION_IN;
+			gain[num].portFormat = PORT_HDMI;
+			gain[num].portIndex = 1;
+			gain[num].signal = SIGNAL_VIDEO;
+		}
+		num += 1;
+		p = strtok(NULL,m);
+	}
+	return num;
 }
 
 int EX_SetEDIDMode(EdidInfo_S *info)
@@ -170,6 +198,71 @@ int EX_GetTimeOut(void)
 	return iTime;
 }
 
+int EX_SetRollback(char * type)
+{
+	char * aOk = "ok";
+	memcpy(type,aOk,strlen(aOk));
+	return 0;
+}
+
+
+int EX_SetIRGateway(int  iIr_mode)
+{
+	printf("Tr gw mode = %d\n",iIr_mode);
+	return 0;
+}
+
+int EX_GetIRGateway(void)
+{
+	int iIr_mode = 1;//0-off 1-on
+	printf("Tr gw mode = %d\n",iIr_mode);
+	return iIr_mode;
+}
+
+int EX_SetMulticastStatus(char * ip,int ttl )
+{
+	printf("ip=%s\n",ip);
+	return 0;
+}
+
+int EX_SetPassword(char * iOld_Pass,char * iNew_Pass)
+{
+	printf("iOld_Pass=%s\n",iOld_Pass);
+	char * oldpass = "33333";
+	if(0 == memcmp(iOld_Pass,oldpass,strlen(iOld_Pass)))
+	{
+		return 0;
+	}
+	printf(" oldpassword error\n");
+		return -1;
+}
+
+
+int EX_SetGatewayPort(int iGw_Type,int iNetw_Id)
+{
+	printf("iGw_Type=%d\n",iGw_Type);
+	return 0;
+}
+
+int EX_GetVlanTag(int iGw_Type)
+{
+	int iTag = 11;
+	printf("iGw_Type=%d\n",iGw_Type);
+	return iTag;
+}
+
+int EX_SetVlanTag(int iGw_Type,int iTag)
+{
+	printf("iGw_Type=%d\n",iGw_Type);
+	return 0;
+}
+
+int EX_GetGatewayPort(int iGw_Type)
+{
+	int iNetw_Id = 0;
+	printf("iGw_Type=%d\n",iGw_Type);
+	return iNetw_Id;
+}
 
 int EX_SetMethod(int  mode )
 {
@@ -360,11 +453,16 @@ int EX_GetAudParam(PortInfo_S*info,AudioSignalInfo_S*param)
 int EX_SetAutoSwitchMode(PortInfo_S*info,AVConnectMode_E mode)
 {
 	printf("EX_SetAutoSwitchMode mode =%d\n",mode);
+	pid_t status;
+	char * cmd2 = "./sconfig --mode manual";
+	status = system(cmd2);
 	return 0;
 }
 int EX_GetAutoSwitchMode(PortInfo_S*info,AVConnectMode_E *mode)
 {
-
+	pid_t status;
+	char * cmd2 = "./sconfig --show mode";
+	status = system(cmd2);
 	*mode = CONNECT_MANUAL;
 	return 0;
 }
@@ -533,7 +631,8 @@ int EX_GetVideoImageScaleMode(int *mode,char*res)
 }
 int EX_GetVideoViewReslotion(int mode, int index, int nativeFlag,int * res)
 {
-	*res = 1;
+	int a = 1;
+	*res = &a;
 	return 0;
 }
 int EX_GetVideoFrameRate(int *fps)
@@ -646,7 +745,8 @@ int EX_SetUSBCtrl(int type)
 int EX_GetMulticastInfo(char*ip,int *ttl)
 {
 	strcpy(ip,"255.255.255.239");
-	*ttl = 10;
+	int iTTL = 10;
+	*ttl = &iTTL;
 	return 0;
 }
 
@@ -718,8 +818,15 @@ int EX_SetSecurityStatus(int status)
 }
 int EX_Login(char*name,char*password)
 {
+	
 	printf("EX_Login name= %s password =%s\n",name,password);
-	return 0;
+	if(! memcmp(name,"admin",strlen("admin")) && ! memcmp(password,"33333",strlen("33333")))
+	{
+		//char * cmd = "./mainswitch &";
+		//system(cmd);
+		return 0;
+	}
+	return -1;
 }
 int EX_GetLoginInfo(char*name,char*password)
 {
@@ -732,7 +839,8 @@ int EX_Logout(void)
 }
 int EX_GetDevVersion(char*version)
 {
-	strcpy(version,"1.2.1");
+	char * tmp = "1.2.1";
+	strcpy(version,tmp);
 	return 0;
 }
 int EX_Upgrade(void)
@@ -834,6 +942,22 @@ int EX_GetTimeAndDate(char*weekDay,char*date,char*hms)
 	sprintf(hms,"%02d:%02d:%02d",ptime->tm_hour,ptime->tm_min,ptime->tm_sec);	
 	return 0;
 }
+
+int EX_GetLogResetEvent(int * iLog,char*date,char*hms)
+{
+	time_t secTime;
+	struct tm *ptime =NULL;
+	char *str[] = {"sun","mon","tue","wed","thu","fri","sat"};
+	secTime = time(NULL);
+	ptime = localtime(&secTime);
+	
+	iLog = 1;
+	//auto -1 ,mamual  -2
+	sprintf(date,"%02d/%02d/%04d",ptime->tm_mday,ptime->tm_mon+1,ptime->tm_year+1900);
+	sprintf(hms,"%02d:%02d:%02d",ptime->tm_hour,ptime->tm_min,ptime->tm_sec);	
+	return 0;
+}
+
 int EX_SetTimeZero(int tz,int timingMethod)
 {
 
@@ -899,6 +1023,17 @@ int EX_SetLogEvent(int action,int period)
 	printf("EX_SetLogEvent action = %d period= %d\n",action,period);
 	return 0;
 }
+
+int EX_GetLogEvent(int * action,int * period)
+{
+	//printf("EX_SetLogEvent action = %d period= %d\n",action,period);
+	int a =1;
+	int b  = 2;
+	action = &a;
+	period = &b;
+	return 0;
+}
+
 int EX_GetLogTail(int lineNumber,char log[][MAX_ONELOG_LEN])
 {
 	int i = 0;
@@ -908,3 +1043,15 @@ int EX_GetLogTail(int lineNumber,char log[][MAX_ONELOG_LEN])
 	}
 	return i;
 }
+
+int EX_GetChanges(char * info)
+{
+	char * str = "~01@KDS-DANTE-NAME  KDS-LONG\r\n";
+	memcpy(info,str,strlen(str));
+	int iLength = 0;
+	iLength = strlen(info);
+	return 0;
+}
+
+
+

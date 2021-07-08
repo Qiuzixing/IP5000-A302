@@ -10,6 +10,7 @@
 #include "p3kswitch.h"
 #include "p3kmsgqueue.h"
 #include "debugtool.h"
+//#include "funcexcute.h"
 #define MAX_HANDLE 10
 //static P3K_QeqCmdProcess gs_callHandle = NULL;
 
@@ -131,6 +132,60 @@ static P3KReqistMsg_S* P3K_GetReqistMsgByID(int id)//通过ID获取Handle
 	
 }
 
+static int  P3K_SelectHandleID(int iId,char * aIds)
+{
+	int num = 0;
+	for(num =0;num < 10;num ++)
+	{
+		if(aIds[num] == iId)
+		{
+			return iId;	
+		}
+	}
+	//aIds[strlen(aIds)] = iId;
+	return 0;
+}
+
+static int  P3K_PhraserIDParam(char *param,int len,	char str[][MAX_PARAM_LEN] )
+{
+	int tmpLen = 0 ;
+	int s32Ret = 0;
+	int i = 0;
+	char *tmpdata = param;
+	char *tmpdata1 = param;
+	
+	
+	if(param == NULL ||len <=0)
+	{
+		return -1;
+	}
+	while(tmpdata != NULL)
+	{
+		tmpdata = strchr(tmpdata,',');
+		if(tmpdata != NULL)
+		{	
+			tmpLen = tmpdata-tmpdata1;
+			memcpy(str[i],tmpdata1,tmpLen);
+		
+			i++;
+			if(len > tmpdata-param+1)
+			{
+				tmpdata1 = tmpdata+1;
+				tmpdata = tmpdata +1;
+		       }
+			else
+			{
+				break;
+			}
+		}
+
+	}
+	memcpy(str[i],tmpdata1,strlen(tmpdata1));
+	i++;
+	return i;
+
+}
+
 static void * P3K_DataExcuteProc(void*arg)
 {
 	P3KMsgQueueMember_S pmsg;
@@ -139,14 +194,21 @@ static void * P3K_DataExcuteProc(void*arg)
 	char dstdata[512] = {0};
 	int s32Ret = 0;
 	int tmplen = 0;
+	int flag = 0;
+	char aIds[10] = {0};
+	char aOtherCh[128] = {0};
 	char userDefine[MAX_USR_STR_LEN+1] = {0};
 	//函数处理执行线程
 	prctl(PR_SET_NAME, (unsigned long)"P3K_DataExcuteProc", 0,0,0);
+	//printf("child thread lwpid = %u\n", syscall(SYS_gettid));
+        printf("child thread tid = %u\n", pthread_self());
 	while(P3K_GetApiInitFlag())
 	{
+		
 		memset(&pmsg,0,sizeof(P3KMsgQueueMember_S));
 		
 		s32Ret = P3K_MSgQueueGetMsg(&pmsg);
+		//printf("-------------------P3K_DataExcuteProc 0---------------\n");
 		if(s32Ret != 0)
 		{
             			usleep(20*1000);
@@ -157,27 +219,58 @@ static void * P3K_DataExcuteProc(void*arg)
 		//特殊命令分开执行可放在这里?
 	
 		memset(userDefine,0,MAX_USR_STR_LEN);
-		printf("----------------------------------\n");
-		s32Ret = P3K_SilmpleReqCmdProcess(&pmsg.cmdinfo,&respCmdInfo,userDefine);
-		if(s32Ret != 0)
+		printf("-------------------P3K_DataExcuteProc 1---------------\n");
+		//login...
+		//printf(">>>>>>%d\n",pmsg.handleId);
+		if(!memcmp(pmsg.cmdinfo.command,"LOGIN",strlen(pmsg.cmdinfo.command)) && 0==P3K_SelectHandleID(pmsg.handleId,aIds))
 		{
-			continue;
+			char str[10][256] ={0};
+			int count = P3K_PhraserIDParam(pmsg.cmdinfo.param,strlen(pmsg.cmdinfo.param),str);
+			int ret = EX_Login(str[0],str[1]);
+			if(ret == 0){
+				//printf("handleId join\n");
+				aIds[strlen(aIds)] = pmsg.handleId;
+				}
 		}
-		memset(dstdata,0,sizeof(dstdata));
-		//组包
-		tmplen = P3K_SimpleRespCmdBurstification(&respCmdInfo, dstdata);
-		//发送数据
-		registMsg = P3K_GetReqistMsgByID(pmsg.handleId);
-		if(registMsg)
+		if( pmsg.handleId==P3K_SelectHandleID(pmsg.handleId,aIds))
 		{
-			registMsg->sendMsg(pmsg.handleId,dstdata,tmplen);
-			if(strlen(userDefine) > 0)
+			/////
+			s32Ret = P3K_SilmpleReqCmdProcess(&pmsg.cmdinfo,&respCmdInfo,userDefine);
+				printf("-------------------P3K_DataExcuteProc 2---------------\n");
+			if(s32Ret != 0)
 			{
-				registMsg->sendMsg(pmsg.handleId,userDefine,strlen(userDefine));
+				continue;
+			}
+			memset(dstdata,0,sizeof(dstdata));
+			//组包
+			tmplen = P3K_SimpleRespCmdBurstification(&respCmdInfo, dstdata);
+			printf("-------------------P3K_DataExcuteProc 3---------------\n");
+			//发送数据
+			registMsg = P3K_GetReqistMsgByID(pmsg.handleId);
+			if(registMsg)
+			{
+				registMsg->sendMsg(pmsg.handleId,dstdata,tmplen);
+				if(strlen(userDefine) > 0)
+				{
+					registMsg->sendMsg(pmsg.handleId,userDefine,strlen(userDefine));
+				}
+			}
+			printf("-------------------P3K_DataExcuteProc 4---------------\n");
+			//char * str1 = "~01@KDS-DANTE-NAME  KDS-LONG\r\n";
+			//registMsg->sendMsg(pmsg.handleId,str1,strlen(str1));
+			memset(aOtherCh,0,sizeof(aOtherCh));
+			//int ret1 = 1;
+			int ret1 = P3K_OtherChanges(aOtherCh);
+			printf("-------------------P3K_DataExcuteProc 5---------------\n");
+			if(ret1 > 0)
+			{
+				printf(">>>>%s\n",aOtherCh);
+				registMsg->sendMsg(pmsg.handleId,aOtherCh,strlen(aOtherCh));
+				printf("-------------------P3K_DataExcuteProc 6---------------\n");
 			}
 		}
 	}
-
+	printf("-------------------P3K_DataExcuteProc 7---------------\n");
 	return  NULL;
 }
 

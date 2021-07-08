@@ -5,7 +5,7 @@
 #include "p3kpacket.h"
 #define P3K_REQMSG_PREFIX   '#'
 #define P3K_REQMSG_SUFFIX  '\r'
-#define P3K_RESPMSG_PREFIX  "~nn@"
+#define P3K_RESPMSG_PREFIX  "~01@"
 #define P3K_RESPMSG_SUFFIX  "\r\n"
 
 int P3K_HandleShark(char *data)
@@ -53,7 +53,15 @@ int P3K_SimpleRespCmdBurstification(P3K_SimpleCmdInfo_S *cmd,char *dstdata)
 		return -1;
 	}
 	memset(tmpdata,0,384);
-	
+	char * tmp = &cmd->command[strlen(cmd->command)-1];
+	char * endl = "?";
+	if(!memcmp(tmp,endl,strlen(endl)))
+	{
+		char newcmd[32] = {0};
+		memcpy(newcmd,cmd->command,strlen(cmd->command)-1);
+		memset(cmd->command,0,sizeof(cmd->command));
+		memcpy(cmd->command,newcmd,strlen(newcmd));
+	}
 	sprintf(tmpdata,"%s%s %s%s",P3K_RESPMSG_PREFIX,cmd->command,cmd->param,P3K_RESPMSG_SUFFIX);
 	tmplen = strlen(tmpdata);
 	DBG_InfoMsg("resp data %s\n",tmpdata);

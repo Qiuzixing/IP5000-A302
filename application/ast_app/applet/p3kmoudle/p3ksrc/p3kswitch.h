@@ -19,7 +19,7 @@ userdata:用户附加数据
 ****************************/
 int P3K_SilmpleReqCmdProcess(P3K_SimpleCmdInfo_S *cmdreq,P3K_SimpleCmdInfo_S *cmdresp,char*userdata);
 int P3K_CheckedSpeciCmd(char*cmd);
-
+int P3K_OtherChanges(char * info);
 int P3K_SilmpleReqCmdExcuter();
 #ifdef __cplusplus
 }

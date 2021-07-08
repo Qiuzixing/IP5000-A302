@@ -52,6 +52,7 @@ typedef enum _PortSignalType_E
 	PORT_IR,
 	PORT_USB_A,
 	PORT_USB_B,
+	PORT_USB_C,
 }PortSignalType_E;
 typedef enum _SignalType_E
 {
@@ -469,6 +470,18 @@ int EX_SetMethod(int  mode );
 int EX_GetMethod(void);
 int EX_SetTimeOut(int  iTime );
 int EX_GetTimeOut(void);
+int EX_SetMulticastStatus(char * ip,int ttl );
+int EX_SetGatewayPort(int iGw_Type,int iNetw_Id);
+int EX_GetGatewayPort(int iGw_Type);
+int EX_SetVlanTag(int iGw_Type,int iTag);
+int EX_GetVlanTag(int iGw_Type);
+int EX_SetPassword(char * iOld_Pass,char * iNew_Pass);
+int EX_SetRollback(char * type);
+int EX_GetLogEvent(int * action,int * period);
+int EX_GetLogResetEvent(int * iLog,char*date,char*hms);
+int EX_SetIRGateway(int  iIr_mode);
+int EX_GetIRGateway(void);
+int EX_GetChanges(char * info);
 #ifdef __cplusplus
 }
 #endif

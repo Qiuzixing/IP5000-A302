@@ -18,6 +18,15 @@ typedef struct _P3K_PhraserToExecute_S
 }P3K_PhraserToExecute_S;
 
 #define PARAM_SEPARATOR ','
+
+int P3K_OtherChanges(char * info)
+{
+	int ret = 0;
+	ret = EX_GetChanges(info);
+	return ret;
+}
+
+
 static int P3K_PhraserWithSeparator(char separator,char * param, int len, char str[][MAX_PARAM_LEN] )
 {
 	int tmpLen = 0 ;
@@ -152,8 +161,20 @@ static int P3K_CheckPortFormat(char*data)
 	else if(!strcmp(data,"analog"))
 		{tmpFormat = PORT_ANALOG_AUDIO;}
 
+	else if(!strcmp(data,"rs232"))
+		{tmpFormat = PORT_RS232;}
+	
 	else if(!strcmp(data,"ir"))
 		{tmpFormat = PORT_IR;}
+	
+	else if(!strcmp(data,"usb_a"))
+		{tmpFormat = PORT_USB_A;}
+	
+	else if(!strcmp(data,"usb_b"))
+		{tmpFormat = PORT_USB_B;}
+	
+	else if(!strcmp(data,"usb_c"))
+		{tmpFormat = PORT_USB_C;}
 
 	return tmpFormat;
 }
@@ -166,8 +187,23 @@ static int P3K_PortFormatToStr(int format,char*data)
 		case PORT_HDMI:
 			strcpy(tmpbuf,"hdmi");
 			break;
+		case PORT_USB_A:
+			strcpy(tmpbuf,"usb_a");
+			break;
+		case PORT_USB_B:
+			strcpy(tmpbuf,"usb_b");
+			break;
+		case PORT_USB_C:
+			strcpy(tmpbuf,"usb_c");
+			break;
 		case PORT_ANALOG_AUDIO:
 			strcpy(tmpbuf,"analog_audio");
+			break;
+		case PORT_IR:
+			strcpy(tmpbuf,"ir");
+			break;
+		case PORT_RS232:
+			strcpy(tmpbuf,"rs232");
 			break;
 		default:
 			strcpy(tmpbuf,"analog_audio");
@@ -2599,6 +2635,28 @@ static int P3K_SetLogAction(char*reqparam,char*respParam,char*userdata)
 	
 	return 0;
 }
+
+static int P3K_GetLogAction(char*reqparam,char*respParam,char*userdata)
+{
+	//#LOG-ACTION?<CR>
+	//~nn@LOG-ACTION action,period<CR><LF>
+	DBG_InfoMsg("P3K_GetLogAction\n");
+	int ret = 0;
+	int action =0;
+	int period =0;
+	char tmpparam[MAX_PARAM_LEN] = {0};
+	
+	ret = EX_GetLogEvent(&action,&period);
+	if(ret)
+	{
+		DBG_ErrMsg("EX_GetLogEvent err\n");
+	}
+	sprintf(tmpparam,"%d,%d",action,period);
+	memcpy(respParam,tmpparam,strlen(tmpparam));
+	return 0;
+}
+
+
 static int P3K_GetLogTail(char*reqparam,char*respParam,char*userdata)
 {
 	//#LOG-TAIL? line_num<CR>
@@ -2695,7 +2753,7 @@ static int P3K_GetAudAnalogDir(char*reqparam,char*respParam,char*userdata)
 	char gain[MAX_PARAM_LEN] = {0};
 	// both.analog.1.audio
 	P3K_GetAudioInfo(reqparam,&tmpInfo);
-	s32Ret = EX_GetAudAnalogGainDir(&tmpInfo,&gain);
+	s32Ret = EX_GetAudAnalogGainDir(&tmpInfo,gain);
 	if(s32Ret)
 	{
 		DBG_ErrMsg("EX_GetAudAnalogGainDir err\n");
@@ -2780,7 +2838,7 @@ static int P3K_GetAutoSwitchPriority(char*reqparam,char*respParam,char*userdata)
 	ret =  EX_GetAutoSwitchPriority(&tmp,count);
 	strncat(tmpparam,str[0],strlen(str[0]));
 	strncat(tmpparam,aStr,strlen(aStr));
-	for(num = 0;num<ret-2;num++)
+	for(num = 0;num<ret-1;num++)
 	{
 		P3K_PortDirectionToStr(tmp[num].direction,dir);
 		P3K_PortFormatToStr(tmp[num].portFormat,port);
@@ -2788,8 +2846,9 @@ static int P3K_GetAutoSwitchPriority(char*reqparam,char*respParam,char*userdata)
 		sprintf(aStr2,"%s.%s.%d.%s,",dir,port,tmp[num].portIndex,signal);
 		strncat(tmpparam,aStr2,strlen(aStr2));
 		memset(aStr2,0,sizeof(aStr2));
+		//memset(tmp,0,sizeof(tmp));
 	}
-	if(num == ret - 2)
+	if(num == ret - 1)
 	{	
 		P3K_PortDirectionToStr(tmp[num].direction,dir);
 		P3K_PortFormatToStr(tmp[num].portFormat,port);
@@ -3187,7 +3246,7 @@ static int P3K_SetAudMute(char*reqparam,char*respParam,char*userdata)
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	mute_mode = atoi(str[0]);
 	
-	s32Ret =  EX_SetVidMute(&mute_mode);
+	s32Ret =  EX_SetVidMute(mute_mode);
 	if(s32Ret)
 	{
 		DBG_ErrMsg("EX_SetVidMute err\n");
@@ -3306,7 +3365,7 @@ static int P3K_GetHWTemp(char*reqparam,char*respParam,char*userdata)
 	
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	region_id = atoi(str[0]);
-	ret = EX_GetHWTemp(&region_id);
+	ret = EX_GetHWTemp(region_id);
 	sprintf(tmpparam,"%d,%d",region_id,ret);
 	memcpy(respParam,tmpparam,strlen(tmpparam));
 	return 0;
@@ -3576,6 +3635,240 @@ static int P3K_GetTimeOut(char*reqparam,char*respParam,char*userdata)
 	return 0;
 }
 
+//Set multicast group address and TTL value.
+static int P3K_SetMulticastStatus(char*reqparam,char*respParam,char*userdata)
+{
+	//#KDS-MULTICAST  group_ip,ttl <CR>
+	//~nn@KDS-ACTION group_ip,ttl<CR><LF>
+	DBG_InfoMsg("P3K_SetMulticastStatus\n");
+	int s32Ret = 0;
+	int count = 0;
+	int iTtl = 0;
+	char ip[16] = {0};
+	char tmpparam[MAX_PARAM_LEN] = {0};
+	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
+	
+	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
+	memcpy(ip,str[0],strlen(str[0]));
+	iTtl = atoi(str[1]);
+	
+	s32Ret =  EX_SetMulticastStatus(ip,iTtl);
+	if(s32Ret)
+	{
+		DBG_ErrMsg("EX_SetMulticastStatus err\n");
+	}
+	memcpy(respParam,reqparam,strlen(reqparam));
+	return 0;
+}
+
+//Set gateway network port
+static int P3K_SetGatewayPort(char*reqparam,char*respParam,char*userdata)
+{
+	//#KDS-GW-ETH gw_type,netw_id<CR>
+	//~nn@KDS-GW-ETH gw_type,netw_id<CR><LF>
+	DBG_InfoMsg("P3K_SetGatewayPort\n");
+	int s32Ret = 0;
+	int count = 0;
+	int iGw_Type = 0;
+	int iNetw_Id = 0;
+	char tmpparam[MAX_PARAM_LEN] = {0};
+	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
+	
+	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
+	iGw_Type = atoi(str[0]);
+	iNetw_Id = atoi(str[1]);
+	
+	s32Ret =  EX_SetGatewayPort(iGw_Type,iNetw_Id);
+	if(s32Ret)
+	{
+		DBG_ErrMsg("EX_SetGatewayPort err\n");
+	}
+	memcpy(respParam,reqparam,strlen(reqparam));
+	return 0;
+}
+
+static int P3K_GetGatewayPort(char*reqparam,char*respParam,char*userdata)
+{
+	//#KDS-GW-ETH? gw_type<CR>
+	//~nn@KDS-GW-ETH gw_type,netw_id<CR><LF>
+	DBG_InfoMsg("P3K_GetGatewayPort\n");
+	int s32Ret = 0;
+	int iGw_Type = 0;
+	int iNetw_Id = 0;
+	int count = 0;
+	char aVersion[24] = {0};
+	char tmpparam[MAX_PARAM_LEN] = {0};
+	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
+	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
+	iGw_Type = atoi(str[0]);
+
+	iNetw_Id = EX_GetGatewayPort(iGw_Type);
+	sprintf(tmpparam,"%d,%d",iGw_Type,iNetw_Id);
+	memcpy(respParam,tmpparam,strlen(tmpparam));
+	return 0;
+}
+
+static int P3K_SetVlanTag(char*reqparam,char*respParam,char*userdata)
+{
+	//#KDS-VLAN-TAG gw_type,xxxx<CR>
+	//~nn@KDS-VLAN-TAG gw_type,xxxx<CR><LF>
+	DBG_InfoMsg("P3K_SetVlanTag\n");
+	int s32Ret = 0;
+	int count = 0;
+	int iGw_Type = 0;
+	int iTag = 0;
+	char tmpparam[MAX_PARAM_LEN] = {0};
+	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
+	
+	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
+	iGw_Type = atoi(str[0]);
+	iTag = atoi(str[1]);
+	
+	s32Ret =  EX_SetGatewayPort(iGw_Type,iTag);
+	if(s32Ret)
+	{
+		DBG_ErrMsg("EX_SetGatewayPort err\n");
+	}
+	memcpy(respParam,reqparam,strlen(reqparam));
+	return 0;
+}
+
+static int P3K_GetVlanTag(char*reqparam,char*respParam,char*userdata)
+{
+	//#KDS-VLAN-TAG? gw_type<CR>
+	//~nn@KDS-VLAN-TAG gw_type,xxxx<CR><LF>
+	DBG_InfoMsg("P3K_GetVlanTag\n");
+	int s32Ret = 0;
+	int iGw_Type = 0;
+	int iTag = 0;
+	int count = 0;
+	char tmpparam[MAX_PARAM_LEN] = {0};
+	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
+	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
+	iGw_Type = atoi(str[0]);
+
+	iTag = EX_GetVlanTag(iGw_Type);
+	sprintf(tmpparam,"%d,%d",iGw_Type,iTag);
+	memcpy(respParam,tmpparam,strlen(tmpparam));
+	return 0;
+}
+
+//Reset password
+static int P3K_SetPassword(char*reqparam,char*respParam,char*userdata)
+{
+	//#PASS old_pass,new_pass <CR>
+	//~nn@PASS old_pass,new_pass <CR><LF>
+	//or
+	//~nn@PASS err 004<CR><LF>
+	//(if bad old password entered)
+	DBG_InfoMsg("P3K_SetPassword\n");
+	int ret = 0;
+	int count = 0;
+	char iOld_Pass[12] = {0};
+	char iNew_Pass[12] = {0};
+	char tmpparam[MAX_PARAM_LEN] = {0};
+	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
+	
+	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
+	//iOld_Pass = atoi(str[0]);
+	//iNew_Pass = atoi(str[1]);
+	memcpy(iOld_Pass,str[0],strlen(str[0]));
+	memcpy(iNew_Pass,str[1],strlen(str[1]));
+	
+	ret =  EX_SetPassword(iOld_Pass,iNew_Pass);
+	sprintf(tmpparam,"%s,%s",iOld_Pass,iNew_Pass);
+	if(ret != 0)
+	{
+		memset(tmpparam,0,sizeof(tmpparam));
+		sprintf(tmpparam,"%s","err_004");
+	}
+	memcpy(respParam,tmpparam,strlen(tmpparam));
+	return 0;
+}
+
+static int P3K_SetRollback(char*reqparam,char*respParam,char*userdata)
+{
+	//#ROLLBACK<CR>
+	//~nn@ROLLBACK ok<CR><LF>
+	DBG_InfoMsg("P3K_SetRollback\n");
+	int ret = 0;
+	int count = 0;
+	char type[16] = {0};
+	char tmpparam[MAX_PARAM_LEN] = {0};
+	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
+
+	ret =  EX_SetRollback(type);
+	if(ret)
+	{
+		DBG_ErrMsg("EX_SetRollback err\n");
+	}
+	sprintf(tmpparam,"%s",type);
+	memcpy(respParam,tmpparam,strlen(tmpparam));
+	return 0;
+}
+
+static int P3K_GetLogResetEvent(char*reqparam,char*respParam,char*userdata)
+{
+	//#LOG-RESET?<CR>
+	//~nn@LOG-RESET log_type,date,time<CR><LF>
+	DBG_InfoMsg("P3K_GetLogResetEvent\n");
+	int s32Ret = 0;
+	char weekDay[16] = {0};
+	int iLog_Type = 0;
+	char date[32]= {0};
+	char time[32] = {0};
+	char tmpparam[MAX_PARAM_LEN] = {0};
+	
+	s32Ret = EX_GetLogResetEvent(&iLog_Type, date,time);
+	if(s32Ret)
+	{
+		DBG_ErrMsg("EX_GetLogResetEvent err\n");
+	}
+	sprintf(tmpparam,"%d,%s,%s",iLog_Type,date,time);
+	memcpy(respParam,tmpparam,strlen(tmpparam));
+	return 0;
+}
+
+//set tr gateway mode
+static int P3K_SetIRGateway(char*reqparam,char*respParam,char*userdata)
+{
+	//#KDS-IR-GW mode<CR>
+	//~nn@KDS-IR-GW mode<CR><LF>
+	DBG_InfoMsg("P3K_SetRollback\n");
+	int ret = 0;
+	int count = 0;
+	int iGW_mode = 0;
+	char tmpparam[MAX_PARAM_LEN] = {0};
+	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
+
+	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
+	iGW_mode = atoi(str[0]);
+
+	ret =  EX_SetIRGateway(iGW_mode);
+	if(ret)
+	{
+		DBG_ErrMsg("EX_SetIRGateway err\n");
+	}
+	//sprintf(tmpparam,"%s",type);
+	memcpy(respParam,reqparam,strlen(reqparam));
+	return 0;
+}
+
+static int P3K_GetIRGateway(char*reqparam,char*respParam,char*userdata)
+{
+	//#KDS-IR-GW?<CR>
+	//~nn@KDS-IR-GW mode<CR><LF>
+	DBG_InfoMsg("P3K_GetLogResetEvent\n");
+	int s32Ret = 0;
+	int iIr_mode = 0;
+	char tmpparam[MAX_PARAM_LEN] = {0};
+	
+	iIr_mode = EX_GetIRGateway();
+	sprintf(tmpparam,"%d",iIr_mode);
+	memcpy(respParam,tmpparam,strlen(tmpparam));
+	return 0;
+}
+/*   P3K_SetIRGateway  */
 /*
 int P3K_SilmpleSpecReqCmdProcess(P3K_SimpleSpecCmdInfo_S * cmdreq, P3K_SimpleSpecCmdInfo_S * cmdresp)
 {
@@ -3690,6 +3983,7 @@ int P3K_SilmpleReqCmdProcess(P3K_SimpleCmdInfo_S *cmdreq,P3K_SimpleCmdInfo_S *cm
 									{"PORTS-LIST?",P3K_GetPortList},
 									{"KDS-ACTIVE-CLNT?",P3K_GetActiveCli},
 									{"LOG-ACTION",P3K_SetLogAction},
+									{"LOG-ACTION?",P3K_GetLogAction},
 									{"LOG-TAIL?",P3K_GetLogTail},
 									{"PORT-DIRECTION",P3K_SetAudAnalogDir},
 									{"PORT-DIRECTION?",P3K_GetAudAnalogDir},
@@ -3718,19 +4012,29 @@ int P3K_SilmpleReqCmdProcess(P3K_SimpleCmdInfo_S *cmdreq,P3K_SimpleCmdInfo_S *cm
 									{"HW-VERSION?",P3K_GetHWVersion},
 									{"DEV-STATUS?",P3K_GetDevStatus},
 									{"HW-TEMP?",P3K_GetHWTemp},
-									{"KDS_AUD_OUTPUT",P3K_SetAudOutput},
+									{"KDS-AUD-OUTPUT",P3K_SetAudOutput},
 									{"UPG-TIME?",P3K_GetUPGTime},
-									{"KDS_AUD_OUTPUT?",P3K_GetAudOutput},
+									{"KDS-AUD-OUTPUT?",P3K_GetAudOutput},
 									{"WND-STRETCH",P3K_SetWndStretch},
 									{"WND-STRETCH?",P3K_GetWndStretch},
-									{"KDS_OSD_DISPLAY",P3K_SetOsdDisplay},
-									{"KDS_OSD_DISPLAY?",P3K_GetOsdDisplay},
+									{"KDS-OSD-DISPLAY",P3K_SetOsdDisplay},
+									{"KDS-OSD-DISPLAY?",P3K_GetOsdDisplay},
 									{"KDS-DAISY-CHAIN",P3K_SetDaisyChain},
 									{"KDS-DAISY-CHAIN?",P3K_GetDaisyChain},
 									{"KDS-METHOD",P3K_SetMethod},
 									{"KDS-METHOD?",P3K_GetMethod},
 									{"KDS-LOGOUT-TIMEOUT",P3K_SetTimeOut},
 									{"KDS-LOGOUT-TIMEOUT?",P3K_GetTimeOut},
+									{"KDS-MULTICAST",P3K_SetMulticastStatus},
+									{"KDS-GW-ETH",P3K_SetGatewayPort},
+									{"KDS-GW-ETH?",P3K_GetGatewayPort},
+									{"KDS-VLAN-TAG",P3K_SetVlanTag},
+									{"KDS-VLAN-TAG?",P3K_GetVlanTag},
+									{"PASS",P3K_SetPassword},
+									{"ROLLBACK",P3K_SetRollback},
+									{"LOG-RESET?",P3K_GetLogResetEvent},
+									{"KDS-IR-GW",P3K_SetIRGateway},
+									{"KDS-IR-GW?",P3K_GetIRGateway},
 									{NULL,NULL}
 	};
 	if(cmdreq == NULL || cmdresp == NULL)
@@ -3760,6 +4064,7 @@ int P3K_SilmpleReqCmdProcess(P3K_SimpleCmdInfo_S *cmdreq,P3K_SimpleCmdInfo_S *cm
 	}
 	return 0;
 }
+
 
 int P3K_CheckedSpeciCmd(char*cmd)
 {

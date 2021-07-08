@@ -81,7 +81,7 @@ int P3K_MSgQueueAddMsg(P3KMsgQueueMember_S *msg)
 			msgMng.readPoint = 0;
 		}
 		
-		//printf("------------11------------\n");
+		printf("------------111------------\n");
 	}
 	msgMng.writePoint++;
 	if(msgMng.writePoint > (MAX_QUEUE_BLOCK_NUMBER-1))
@@ -91,9 +91,9 @@ int P3K_MSgQueueAddMsg(P3KMsgQueueMember_S *msg)
 
 	SetQueueMngHandle(&msgMng);
 	
-	//printf("-----------------------\n");
+	printf("----------11-------------\n");
 	pthread_mutex_unlock(&gs_queueMng.selflock);
-	//printf("---------1--------------\n");
+	printf("---------1--------------\n");
 	return 0;
 }
 int P3K_MSgQueueGetMsg(P3KMsgQueueMember_S *msg)
