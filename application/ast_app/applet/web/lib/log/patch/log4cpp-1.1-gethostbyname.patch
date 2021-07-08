@@ -1,0 +1,42 @@
+diff -Nur log4cpp-1.1/src/RemoteSyslogAppender.cpp log4cpp-1.1.patch/src/RemoteSyslogAppender.cpp
+--- log4cpp-1.1/src/RemoteSyslogAppender.cpp	2007-09-05 22:30:29.000000000 +0800
++++ log4cpp-1.1.patch/src/RemoteSyslogAppender.cpp	2013-11-19 13:03:20.519999996 +0800
+@@ -83,6 +83,7 @@
+ 
+     void RemoteSyslogAppender::open() {
+         if (!_ipAddr) {
++#if 0
+             struct hostent *pent = gethostbyname (_relayer.c_str ());
+ #ifdef WIN32
+             if (pent == NULL) {
+@@ -112,6 +113,30 @@
+                 }
+             }
+             _ipAddr = *(pent->h_addr);
++#else
++            struct addrinfo hints;
++            struct addrinfo *result, *rp;
++
++            memset(&hints, 0, sizeof(struct addrinfo));
++            hints.ai_family = AF_UNSPEC;    /* Allow IPv4 or IPv6 */
++            hints.ai_socktype = SOCK_DGRAM; /* Datagram socket */
++            hints.ai_flags = AI_PASSIVE;    /* For wildcard IP address */
++            hints.ai_protocol = 0;          /* Any protocol */
++            hints.ai_canonname = NULL;
++            hints.ai_addr = NULL;
++            hints.ai_next = NULL;
++
++            int err = getaddrinfo(_relayer.c_str(), "", &hints, &result);
++            if (err != 0)
++            {
++                return;
++            }
++            //sockaddr_in *addr_in = rp->ai_addr;
++            for (rp = result; rp != NULL; rp = rp->ai_next) {
++                _ipAddr = ((struct sockaddr_in*)(rp->ai_addr))->sin_addr.s_addr;
++            }
++            freeaddrinfo(result); 
++#endif
+         }
+         // Get a datagram socket.
+         

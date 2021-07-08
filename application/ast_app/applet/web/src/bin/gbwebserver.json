@@ -1,0 +1,21 @@
+{
+	"webconfig":{
+		"DOCUMENTROOT":"/www",
+		"HttpPort":"80",
+		"HttpsPort":"443",
+		"StartMode":"both",
+		"NumThreads":"20",
+		"CERM":"/www/server.pem",
+		"WsPingPongEnable":"yes",
+		"WsPingPongTimeMs":"60000"
+	},
+	"LOG":"/www/log4cpp.conf",
+	"ldap":{
+		"ldap_uri":"ldaps://192.168.17.225:636",
+		"ldap_base_dn":"dc=my-domain,dc=com",
+		"ldap_bind_dn":"cn=jeremy,ou=People,dc=my-domain,dc=com",
+		"ldap_attr":"uid",
+		"ldap_ca_pem":"/www/ca.pem"
+	},
+	"auth_mode":"2"
+}

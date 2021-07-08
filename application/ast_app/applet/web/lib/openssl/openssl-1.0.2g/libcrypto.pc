@@ -1,0 +1,12 @@
+prefix=/home/yangmengyu/ip5000_web/A30-Krame/prefix
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: OpenSSL-libcrypto
+Description: OpenSSL cryptography library
+Version: 1.0.2g
+Requires: 
+Libs: -L${libdir} -lcrypto
+Libs.private: -L/home/yangmengyu/ip5000_web/A30-Krame/prefix/lib -lz -ldl
+Cflags: -I${includedir} 

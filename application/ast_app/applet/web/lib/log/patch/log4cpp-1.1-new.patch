@@ -1,0 +1,15 @@
+--- log4cpp-1.1/include/log4cpp/log4cpp.hh	2020-04-07 09:55:14.654734182 +0800
++++ log4cpp-1.1.patch/include/log4cpp/log4cpp.hh	2020-04-07 10:20:57.166773028 +0800
+@@ -29,6 +29,12 @@
+     refCategory.log(priority, fmt" --[%s:%u]", ##__VA_ARGS__, __FILE__, __LINE__); \
+ } while (0)
+ 
++#define GBLog_SetPriority(priority) do \
++{ \
++    log4cpp::Category& refCategory = log4cpp::Category::getInstance(std::string(CATEGORY)); \
++    refCategory.setPriority(priority); \
++} while (0)
++
+ #define GBLog_Shutdown() do \
+ { \
+     log4cpp::Category::shutdown(); \

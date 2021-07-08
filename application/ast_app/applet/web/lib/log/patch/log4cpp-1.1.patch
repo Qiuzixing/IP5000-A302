@@ -1,0 +1,52 @@
+diff -Nur log4cpp-1.1/include/log4cpp/log4cpp.hh log4cpp-1.1.patch/include/log4cpp/log4cpp.hh
+--- log4cpp-1.1/include/log4cpp/log4cpp.hh	1970-01-01 08:00:00.000000000 +0800
++++ log4cpp-1.1.patch/include/log4cpp/log4cpp.hh	2013-11-05 18:58:22.191999946 +0800
+@@ -0,0 +1,37 @@
++#ifndef LOG4CPP_HH_
++#define LOG4CPP_HH_
++
++#include <log4cpp/Category.hh>
++#include <log4cpp/PropertyConfigurator.hh>
++#include <log4cpp/Priority.hh>
++
++#define LL_EMERG        log4cpp::Priority::EMERG
++#define LL_FATAL        log4cpp::Priority::FATAL
++#define LL_ALERT        log4cpp::Priority::ALERT
++#define LL_CRIT         log4cpp::Priority::CRIT
++#define LL_ERROR        log4cpp::Priority::ERROR
++#define LL_WARN         log4cpp::Priority::WARN
++#define LL_NOTICE       log4cpp::Priority::NOTICE
++#define LL_INFO         log4cpp::Priority::INFO
++#define LL_DEBUG        log4cpp::Priority::DEBUG
++#define LL_NOTSET       log4cpp::Priority::NOTSET
++
++#define CATEGORY                "CATEGORY"
++
++#define GBLog_Init(/*const char* */filename) do \
++{ \
++    log4cpp::PropertyConfigurator::configure(std::string(filename)); \
++} while (0)
++
++#define GBLog_Log(priority, fmt, ...) do \
++{ \
++    log4cpp::Category& refCategory = log4cpp::Category::getInstance(std::string(CATEGORY)); \
++    refCategory.log(priority, fmt" --[%s:%u]", ##__VA_ARGS__, __FILE__, __LINE__); \
++} while (0)
++
++#define GBLog_Shutdown() do \
++{ \
++    log4cpp::Category::shutdown(); \
++} while (0)
++
++#endif /* LOG4CPP_HH_ */
+diff -Nur log4cpp-1.1/src/RollingFileAppender.cpp log4cpp-1.1.patch/src/RollingFileAppender.cpp
+--- log4cpp-1.1/src/RollingFileAppender.cpp	2012-10-15 22:48:15.000000000 +0800
++++ log4cpp-1.1.patch/src/RollingFileAppender.cpp	2013-11-05 18:35:17.900000738 +0800
+@@ -65,7 +65,6 @@
+         	filename_stream << _fileName << "." << std::setw( _maxBackupIndexWidth ) << std::setfill( '0' ) << _maxBackupIndex << std::ends;
+         	// remove the very last (oldest) file
+         	std::string last_log_filename = filename_stream.str();
+-            std::cout << last_log_filename << std::endl;
+             ::remove(last_log_filename.c_str());
+             
+             // rename each existing file to the consequent one
