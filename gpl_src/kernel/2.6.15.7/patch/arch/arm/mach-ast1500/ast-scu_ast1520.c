@@ -1901,7 +1901,7 @@ static int _scu_uart_init(u32 base)
 		//init UART#4 for SoIP port
 		//Pin mux: SCU80[31:24] set to 1
 		MOD_SCU_REG(RSCU_MFPC1,
-		            MFPC1_UART4PINS(MFPC1_UART4PINS_ALL),
+		            MFPC1_UART4PINS(MFPC1_UART4PINS_RXTX),
 		            MFPC1_UART4PINS_MASK);
 
 		//Clock: SCU0C[26] set to 0 (default is 0)
