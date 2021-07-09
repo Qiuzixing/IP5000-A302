@@ -562,8 +562,8 @@ enum GpioDirection {
 };
 
 enum GpioVal {
-    GPIO_ON,
     GPIO_OFF,
+    GPIO_ON,
 };
 
 struct CmdDataGpioCfg {

@@ -59,6 +59,13 @@ typedef enum
     IPC_HDMI_AUDIO_CONTROL,
     IPC_SET_AUDIO_INSERT_EXTRACT,
 
+    //other command
+    IPC_UART_PASSTHROUGH,
+    IPC_SET_GPIO_CONFIG,
+    IPC_EVENT_GPIO_VAL,
+    IPC_GET_GPIO_VAL,
+    IPC_SET_GPIO_VAL,
+
     IPC_CmdCnt,
     IPC_UnknownCmd = 0xFF
 } ipc_cmd_typedef;

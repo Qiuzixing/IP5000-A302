@@ -65,7 +65,7 @@ const ipc_cmd_struct ipc_cmd_list[] =
         {IPC_EVENT_HDMI_EDID,           "event_edid",               sizeof("event_edid"),           EVENT_HDMI_EDID,                    SEND_CMD},
         {IPC_GET_EDID,                  "get_edid",                 sizeof("get_edid"),             CMD_HDMI_GET_EDID,                  QUERY_CMD},
         {IPC_EVENT_HDMI_VIDEO_STATUS,   "event_video_status",       sizeof("event_video_status"),   EVENT_HDMI_VIDEO_STATUS,            SEND_CMD},
-        {IPC_GET_VIDEO_STATUS,          "get_video_status",         sizeof("get_video_status"),     CMD_HDMI_GET_VIDEO_STATUS,          QUERY_CMD,},
+        {IPC_GET_VIDEO_STATUS,          "get_video_status",         sizeof("get_video_status"),     CMD_HDMI_GET_VIDEO_STATUS,          QUERY_CMD},
         {IPC_VIDEO_CONTROL,             "set_video_control",        sizeof("set_video_control"),    CMD_HDMI_VIDEO_CONTROL,             SEND_CMD},
         {IPC_SET_VIDEO_MODE,            "set_video_mode",           sizeof("set_video_mode"),       CMD_HDMI_SET_VIDEO_MODE,            QUERY_CMD},
         {IPC_SET_INPUT_SOURCE,          "set_input_source",         sizeof("set_input_source"),     CMD_HDMI_SET_INPUT_SOURCE,          SEND_CMD},
@@ -80,7 +80,13 @@ const ipc_cmd_struct ipc_cmd_list[] =
         {IPC_EVENT_HDMI_AUDIO_STATUS,   "unknown",                  sizeof("unknown"),              EVENT_HDMI_AUDIO_STATUS,            SEND_CMD},
         {IPC_GET_AUDIO_STATUS,          "unknown",                  sizeof("unknown"),              CMD_HDMI_GET_AUDIO_STATUS,          SEND_CMD},
         {IPC_HDMI_AUDIO_CONTROL,        "unknown",                  sizeof("unknown"),              CMD_HDMI_AUDIO_CONTROL,             SEND_CMD},
-        {IPC_SET_AUDIO_INSERT_EXTRACT,  "unknown",                  sizeof("unknown"),              CMD_HDMI_SET_AUDIO_INSERT_EXTRACT,  SEND_CMD}
+        {IPC_SET_AUDIO_INSERT_EXTRACT,  "unknown",                  sizeof("unknown"),              CMD_HDMI_SET_AUDIO_INSERT_EXTRACT,  SEND_CMD},
+        //other command
+        {IPC_UART_PASSTHROUGH,          "unknown",                  sizeof("unknown"),              CMD_UART_PASSTHROUGH,               SEND_CMD},
+        {IPC_SET_GPIO_CONFIG,           "set_gpio_config",          sizeof("set_gpio_config"),      CMD_GPIO_CONFIG,                    SEND_CMD},
+        {IPC_EVENT_GPIO_VAL,            "unknown",                  sizeof("unknown"),              EVENT_GPIO_VAL,                     SEND_CMD},
+        {IPC_GET_GPIO_VAL,              "get_gpio_val",             sizeof("get_gpio_val"),         CMD_GPIO_GET_VAL,                   QUERY_CMD},
+        {IPC_SET_GPIO_VAL,              "set_gpio_val",             sizeof("set_gpio_val"),         CMD_GPIO_SET_VAL,                   SEND_CMD},
     }; 
 
 static int setserial(int s, struct termios *cfg, int speed, int data, unsigned char parity, int stopb)
@@ -365,6 +371,39 @@ static void do_handle_set_hdcp_cap(uint16_t cmd,char *port_num,char *cap)
     APP_Comm_Send(cmd, (U8*)&hdcp_cap, sizeof(hdcp_cap));
 }
 
+static void do_handle_set_gpio_config(uint16_t cmd,char *gpio_num,char *diretion)
+{
+    struct CmdDataGpioCfg gpio_cfg;
+    gpio_cfg.numOfGpio = 1;     //Configure one GPIO at a time
+    gpio_cfg.active = 1;
+    if(gpio_num[0] != 0 && diretion[0] != 0)
+    {
+        gpio_cfg.gpio[0][0] = atoi(gpio_num);
+        gpio_cfg.gpio[0][1] = atoi(diretion);
+    }
+    else
+    {
+        printf("warn:Illegal parameter, discard directly\n");
+    }
+     APP_Comm_Send(cmd, (U8*)&gpio_cfg, 6);
+}
+
+static void do_handle_set_gpio_val(uint16_t cmd,char *gpio_num,char *diretion)
+{
+    struct CmdDataGpioVal gpio_val;
+    gpio_val.numOfGpio = 1;     //Configure one GPIO at a time
+    if(gpio_num[0] != 0 && diretion[0] != 0)
+    {
+        gpio_val.gpio[0][0] = atoi(gpio_num);
+        gpio_val.gpio[0][1] = atoi(diretion);
+    }
+    else
+    {
+        printf("warn:Illegal parameter, discard directly\n");
+    }
+     APP_Comm_Send(cmd, (U8*)&gpio_val, 4);
+}
+
 static void do_handle_ipc_cmd(int index,ipc_cmd_param cmd_param)
 {
     struct CmdDataEDID edid_data;
@@ -438,10 +477,23 @@ static void do_handle_ipc_cmd(int index,ipc_cmd_param cmd_param)
         break;
     case IPC_SET_AUDIO_INSERT_EXTRACT:
         break;
+    
+    // other command
+    case IPC_UART_PASSTHROUGH:
+        break;
+    case IPC_SET_GPIO_CONFIG:
+        do_handle_set_gpio_config(ipc_cmd_list[index].a30_cmd,cmd_param.cmd_param1,cmd_param.cmd_param2);
+        break;
+    case IPC_EVENT_GPIO_VAL:
+        break;
+    case IPC_GET_GPIO_VAL:
+        break;
+    case IPC_SET_GPIO_VAL:
+        do_handle_set_gpio_val(ipc_cmd_list[index].a30_cmd,cmd_param.cmd_param1,cmd_param.cmd_param2);
+        break;
     default:
         break;
     }
-
 }
 
 
@@ -597,7 +649,7 @@ int main(int argc, char *argv[])
 			exit(EXIT_FAILURE);
 		}
 	}
-
+    //system("ipc_server_listen_one @m_lm_set @m_lm_get @m_lm_query @m_lm_reply &");
     uart_fd = open_uart(UART_PORT, UART_COMFIG);
     if (uart_fd < 0)
     {
@@ -635,7 +687,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-
+    arm_send_cmd(CMD_CLEAR_RECORD_FLAG);
     clock_gettime(CLOCK_MONOTONIC,&last_time);
     while(1)
     {
