@@ -7,11 +7,13 @@ ROOT_DIR := $(shell pwd)
 #GPULS = /home/longao/P3K/crosstool/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu-gcc
 #STRIP := /home/longao/P3K/crosstool/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu-strip
 #AR := /home/longao/P3K/crosstool/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu-ar
+CC = /opt/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu-gcc
+STRIP := /opt/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu-strip
+AR = /opt/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu-ar
 
-
-GPULS = gcc
-STRIP := strip
-AR := ar
+#GPULS = gcc
+#STRIP := strip
+#AR := ar
 SRC_DIR += $(ROOT_DIR)/\
 			$(ROOT_DIR)/debugtool\
 			$(ROOT_DIR)/socketapi\
@@ -32,7 +34,7 @@ INCLUDE_DIR         :=  $(sort $(dir $(INCLUDES)))
 INCLUDES       :=  $(foreach dir,$(INCLUDE_DIR), -I$(dir))
 LIB = libp3kapi.a
 
-COMPILE         =  $(GPULS) $(INCLUDES) -c "$<" -o "$@"
+COMPILE         =  $(CC) $(INCLUDES) -c "$<" -o "$@"
 #$(LIB)
 
 
@@ -42,7 +44,7 @@ TARGET := p3ktcp
 
 all: $(TARGET)
 $(TARGET):$(OBJS)
-	$(GPULS)  -o $@ $^  -lpthread -lm $(LIB)
+	$(CC)  -o $@ $^  -lpthread -lm $(LIB)
 	$(STRIP) $(TARGET)
 $(OBJS) :%.o : %.c
 	@echo complie $@

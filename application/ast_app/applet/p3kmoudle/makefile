@@ -1,6 +1,8 @@
+#include conf.mak
+
 export ROOT_DIR:=$(shell pwd)
 
-RM = rm -rf
+#RM = rm -rf
 #GPULS = arm-linux-gnueabihf-gcc
 #STRIP := arm-linux-gnueabihf-strip
 #AR := arm-linux-gnueabihf-ar
@@ -8,10 +10,12 @@ RM = rm -rf
 #GPULS = /home/longao/P3K/crosstool/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu-gcc
 #STRIP := /home/longao/P3K/crosstool/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu-strip
 #AR := /home/longao/P3K/crosstool/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu-ar
-
-GPULS = gcc
-STRIP := strip
-AR := ar
+CC = /opt/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu-gcc
+STRIP := /opt/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu-strip
+AR = /opt/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu-ar
+#GPULS = gcc
+#STRIP := strip
+#AR := ar
 SRC_DIR += $(ROOT_DIR)/\
 			$(ROOT_DIR)/debugtool\
 			$(ROOT_DIR)/p3kmsgqueue\
@@ -32,7 +36,7 @@ INCLUDE_DIR         :=  $(sort $(dir $(INCLUDES)))
 INCLUDES       :=  $(foreach dir,$(INCLUDE_DIR), -I$(dir))
 
 
-COMPILE         =  $(GPULS) $(INCLUDES) -c "$<" -o "$@" 
+COMPILE         =  $(CC) $(INCLUDES) -c "$<" -o "$@" 
 
 LIB_TARGET = libp3kapi.a
 
@@ -43,8 +47,9 @@ all:$(LIB_TARGET) $(TARGET)
 $(LIB_TARGET):$(OBJS)
 	$(AR) rcs $(LIB_TARGET) $(OBJS)
 $(TARGET):$(OBJS)
-	$(GPULS)  -o $@ $^  -lpthread -lm
+	$(CC)  -o $@ $^  -lpthread -lm
 	$(STRIP) $(TARGET)
+#
 $(OBJS) :%.o : %.c
 	@echo complie $@
 	$(COMPILE)
