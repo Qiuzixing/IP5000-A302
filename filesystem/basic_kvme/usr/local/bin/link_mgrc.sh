@@ -2801,6 +2801,24 @@ fi
 
 handle_button_on_boot
 
+if communication_with_mcu -u ; then
+    UGP_FLAG="success"
+else
+	UGP_FLAG="fail"
+fi
+if [ $UGP_FLAG = 'success' ];then
+	echo "lock file for @m_lm_query" > /var/lock/@m_lm_query.lck
+	ipc_server_listen_one @m_lm_set @m_lm_get @m_lm_query @m_lm_reply &
+	usleep 1000
+	communication_with_mcu -c &
+	usleep 10000
+fi
+
+if [ $UGP_FLAG = 'success' ];then
+	#set lineio_sel pin to default to line_out;0:line_out;1:line_in
+	ipc @m_lm_set s set_gpio_config:70:1
+	ipc @m_lm_set s set_gpio_val:70:0
+fi
 # TBD remove? screen switch doesn't check HAS_CRT anymore
 #if [ -f "$DISPLAY_SYS_PATH"/screen ]; then
 #	HAS_CRT='y'

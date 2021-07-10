@@ -1574,7 +1574,13 @@ if [ $UGP_FLAG = 'success' ];then
 	ipc_server_listen_one @m_lm_set @m_lm_get @m_lm_query @m_lm_reply &
 	usleep 1000
 	communication_with_mcu -c &
-	usleep 1000
+	usleep 10000
+fi
+
+if [ $UGP_FLAG = 'success' ];then
+	#set lineio_sel pin to default to line_out;0:line_out;1:line_in
+	ipc @m_lm_set s set_gpio_config:70:1
+	ipc @m_lm_set s set_gpio_val:70:0
 fi
 # start event_monitor
 ast_event_monitor &

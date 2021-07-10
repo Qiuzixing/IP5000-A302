@@ -2,15 +2,12 @@
 
 if [ "$1" = "channel" ]; then
 	#Query the gpio value by writing 0 to it
-	echo 0 > /sys/class/leds/ch0/brightness 2>/dev/null
-	echo 0 > /sys/class/leds/ch1/brightness 2>/dev/null
-	echo 0 > /sys/class/leds/ch2/brightness 2>/dev/null
-	echo 0 > /sys/class/leds/ch3/brightness 2>/dev/null
+
 	#Get the value now
-	ch0=`cat /sys/class/leds/ch0/brightness 2>/dev/null`
-	ch1=`cat /sys/class/leds/ch1/brightness 2>/dev/null`
-	ch2=`cat /sys/class/leds/ch2/brightness 2>/dev/null`
-	ch3=`cat /sys/class/leds/ch3/brightness 2>/dev/null`
+	ch0=0
+	ch1=0
+	ch2=0
+	ch3=0
 
 	echo "$ch0""$ch1""$ch2""$ch3"
 elif [ "$1" = "address" ]; then

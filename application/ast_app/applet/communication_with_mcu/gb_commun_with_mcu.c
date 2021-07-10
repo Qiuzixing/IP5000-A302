@@ -426,17 +426,6 @@ static void do_handle_ipc_cmd(int index,ipc_cmd_param cmd_param)
     struct CmdDataUartPassthrough *uart_pass = NULL;
     uint32_t uctemp = CMD_NULL_DATA;
 
-    ipc_relay_msg ipc_msg;
-    memset(&ipc_msg, 0, sizeof(ipc_msg));
-    if(0 == Example_HeartBeatStatue())
-    {
-        printf("serial is Disconnect\n");
-        if(ipc_cmd_list[index].type == QUERY_CMD)
-        {
-            ipc_set(IPC_RELAY_CH,&ipc_msg,sizeof(ipc_msg));
-        }
-        return;
-    }
     switch (ipc_cmd_list[index].ipc_cmd_name)
     {
     case IPC_EVENT_HDMI_LINK_STATUS:
