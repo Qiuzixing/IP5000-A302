@@ -3,7 +3,7 @@
 #include <linux/init.h>
 #include <linux/platform_device.h>
 #include <linux/leds.h>
-
+#include <linux/delay.h>
 #include <asm/hardware.h>
 //#include <asm/arch/regs-gpio.h>
 #include <asm/arch/leds-gpio.h>
@@ -298,9 +298,11 @@ static int ast1500_led_probe(struct platform_device *dev)
 	}
 	if(0 == strcmp(pdata->name,"mcu_reset"))
 	{
-		gpio_set_value(pdata->gpio,0);
-		msleep(10);
-		gpio_set_value(pdata->gpio,1);
+		gpio_direction_output(pdata->gpio, 0);
+		mdelay(10);
+		gpio_direction_output(pdata->gpio, 1);
+		mdelay(10);
+		gpio_direction_input(pdata->gpio);
 	}
 	return 0;
 
