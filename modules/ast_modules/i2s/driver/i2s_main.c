@@ -643,8 +643,11 @@ static ssize_t store_io_select(struct device *dev, struct device_attribute *attr
 				add_event(EVENT_CODEC_SETTINGS_CHANGED, NULL, NULL);
 			}
 		}
+	} else if(!strncmp(buf, "analog_out", 10)){
+		SetupCodec(1, 1, mic_input_pin, CODEC_OUTPUT_HP);
+		analog_in_volume_cfg(analog_in_vol); analog_out_volume_cfg(analog_out_vol);
 	} else {
-		printk("usage: auto | hdmi | analog\n");
+		printk("usage: auto | hdmi | analog | analog_out\n");
 	}
 	return strlen(buf);
 }
@@ -2638,8 +2641,9 @@ static int i2s_rx_net_tx_udp(struct socket *sock, struct kvec *rq_iov, size_t rq
 
 #if defined(CONFIG_ARCH_AST1500_HOST) && (BOARD_DESIGN_VER_I2S >= 204)
 	/* Bruce160712. Host only send packets when codec plugged. */
-	if ((IO_in_Use == IO_IN_USE_CODEC) && (codec_in_status != CODEC_IN_STATUS_PLUGGED))
-		return 0;
+	/* qzx210714. In IPE5000-A30,The pin is reused as other functions,Therefore, the pin is not judged */
+/* 	if ((IO_in_Use == IO_IN_USE_CODEC) && (codec_in_status != CODEC_IN_STATUS_PLUGGED))
+		return 0; */
 #endif
 	tx_size = socket_xmit_iov_udp(1, sock, rq_iov, rq_iovlen, size, 0);
 

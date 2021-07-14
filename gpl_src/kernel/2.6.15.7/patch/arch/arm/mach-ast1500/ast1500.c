@@ -223,6 +223,18 @@ static struct ast_led_platdata ast1500_pdata_ledi5 = {
 	.name		= "rtl_reset",
 };
 
+static struct ast_led_platdata ast1500_pdata_ledf4 = {
+	.gpio		= DANTE_RST,
+	.flags		= AST_LEDF_DEFAULT_ON,
+	.name		= "dante_rst",
+};
+
+static struct ast_led_platdata ast1500_pdata_ledf5 = {
+	.gpio		= DANTE_MUTE,
+	.flags		= AST_LEDF_DEFAULT_ON,
+	.name		= "dante_mute",
+};
+
 #ifdef CONFIG_ARCH_AST1500_HOST
 #if (BOARD_DESIGN_VER_VIDEO >= 300)
 static struct ast_led_platdata ast1500_pdata_v_input = {
@@ -489,6 +501,21 @@ static struct platform_device ast_lede4 = {
 		.platform_data = &ast1500_pdata_lede4,
 	},
 };
+static struct platform_device ast_ledf4 = {
+	.name		= "ast1500_led",
+	.id		= 40,
+	.dev		= {
+		.platform_data = &ast1500_pdata_ledf4,
+	},
+};
+
+static struct platform_device ast_ledf5 = {
+	.name		= "ast1500_led",
+	.id		= 41,
+	.dev		= {
+		.platform_data = &ast1500_pdata_ledf5,
+	},
+};
 
 #ifdef CONFIG_ARCH_AST1500_HOST
 #if (BOARD_DESIGN_VER_VIDEO >= 300)
@@ -624,6 +651,11 @@ static struct platform_device __initdata *ast_devs[] = {
 	&ast_ledi5,
 	&ast_lede3,
 	&ast_lede4,
+#ifdef CONFIG_ARCH_AST1500_HOST
+	&ast_ledf4,
+	&ast_ledf5,
+#endif
+
 #ifdef CONFIG_ARCH_AST1500_CLIENT
 	&ast_led5v,
 	&ast_ledd4,
