@@ -370,6 +370,10 @@ int APP_Comm_Recv(CmdProtocolParam * param)
             update(param);
             break;
         case EVENT_HDCP_STATUS:
+            memset(&hdcp_status, 0, sizeof(hdcp_status));
+            memcpy(&hdcp_status, &param->Data, sizeof(hdcp_status));
+            printf("port[0x%x] hdcp isEncrypted[0x%x] status[0x%x]\n", hdcp_status.port, hdcp_status.isEncrypted, hdcp_status.status);
+            break;
             break;
         case EVENT_HDMI_LINK_STATUS:
             memset(&vdo_link, 0, sizeof(vdo_link));

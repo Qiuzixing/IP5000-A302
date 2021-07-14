@@ -1579,8 +1579,11 @@ fi
 
 if [ $UGP_FLAG = 'success' ];then
 	#set lineio_sel pin to default to line_out;0:line_out;1:line_in
-	ipc @m_lm_set s set_gpio_config:70:1
-	ipc @m_lm_set s set_gpio_val:70:0
+	ipc @m_lm_set s set_gpio_config:1:70:1
+	ipc @m_lm_set s set_gpio_val:1:70:0
+	#Turn on all audio switches by default  
+	ipc @m_lm_set s set_gpio_config:9:15:1:35:1:8:1:36:1:37:1:32:1:33:1:11:1:12:1
+	ipc @m_lm_set s set_gpio_val:9:15:1:35:1:8:1:36:1:37:1:32:1:33:1:11:1:12:1
 fi
 # start event_monitor
 ast_event_monitor &

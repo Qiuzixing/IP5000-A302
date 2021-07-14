@@ -79,12 +79,4 @@ typedef struct
     uint8_t type;
 } ipc_cmd_struct;
 
-typedef struct
-{
-    char cmd_param1[PARAM_SIZE];
-    char cmd_param2[PARAM_SIZE];
-    char cmd_param3[PARAM_SIZE];
-} ipc_cmd_param; 
-         
-
 #endif

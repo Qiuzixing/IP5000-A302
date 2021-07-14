@@ -80,7 +80,7 @@ const ipc_cmd_struct ipc_cmd_list[] =
         {IPC_EVENT_HDMI_AUDIO_STATUS,   "unknown",                  sizeof("unknown"),              EVENT_HDMI_AUDIO_STATUS,            SEND_CMD},
         {IPC_GET_AUDIO_STATUS,          "unknown",                  sizeof("unknown"),              CMD_HDMI_GET_AUDIO_STATUS,          SEND_CMD},
         {IPC_HDMI_AUDIO_CONTROL,        "unknown",                  sizeof("unknown"),              CMD_HDMI_AUDIO_CONTROL,             SEND_CMD},
-        {IPC_SET_AUDIO_INSERT_EXTRACT,  "unknown",                  sizeof("unknown"),              CMD_HDMI_SET_AUDIO_INSERT_EXTRACT,  SEND_CMD},
+        {IPC_SET_AUDIO_INSERT_EXTRACT,  "set_audio_insert",         sizeof("set_audio_insert"),     CMD_HDMI_SET_AUDIO_INSERT_EXTRACT,  SEND_CMD},
         //other command
         {IPC_UART_PASSTHROUGH,          "unknown",                  sizeof("unknown"),              CMD_UART_PASSTHROUGH,               SEND_CMD},
         {IPC_SET_GPIO_CONFIG,           "set_gpio_config",          sizeof("set_gpio_config"),      CMD_GPIO_CONFIG,                    SEND_CMD},
@@ -315,10 +315,11 @@ static uint8_t get_version()
     return GB_SUCCESS;
 }
 
-static void do_handle_get_cmd(uint16_t cmd,char *port_num)
+static void do_handle_get_cmd(uint16_t cmd,char *cmd_param)
 {
+    char *port_num = strtok(cmd_param,":");
     uint8_t port;
-    if(port_num[0] != 0)
+    if(port_num != NULL)
     {
         port = atoi(port_num);
     }
@@ -329,11 +330,13 @@ static void do_handle_get_cmd(uint16_t cmd,char *port_num)
     APP_Comm_Send(cmd, &port, sizeof(port));
 }
 
-static void do_handle_input_source(uint16_t cmd,char *tx_port_num,char *rx_port_num)
+static void do_handle_input_source(uint16_t cmd,char *cmd_param)
 {
     struct CmdDataInputSorce vdo_source;
     memset((unsigned char *)&vdo_source, 0, sizeof(vdo_source));
-    if(tx_port_num[0] != 0 && rx_port_num[0] != 0)
+    char *tx_port_num = strtok(cmd_param,":");
+    char *rx_port_num = strtok(NULL,":");
+    if(tx_port_num != NULL && rx_port_num != NULL)
     {
         vdo_source.txPort = atoi(tx_port_num);
         vdo_source.rxPort = atoi(rx_port_num);
@@ -347,11 +350,13 @@ static void do_handle_input_source(uint16_t cmd,char *tx_port_num,char *rx_port_
 
 }
 
-static void do_handle_set_hdcp_cap(uint16_t cmd,char *port_num,char *cap)
+static void do_handle_set_hdcp_cap(uint16_t cmd,char *cmd_param)
 {
+    char *port_num = strtok(cmd_param,":");
+    char *cap = strtok(NULL,":");
     struct CmdDataHDCPCap hdcp_cap;
     memset((unsigned char *)&hdcp_cap, 0, sizeof(hdcp_cap));
-    if(port_num[0] != 0)
+    if(port_num != NULL)
     {
         hdcp_cap.port = atoi(port_num);
     }
@@ -360,7 +365,7 @@ static void do_handle_set_hdcp_cap(uint16_t cmd,char *port_num,char *cap)
         hdcp_cap.port = HDMITX2;
     }
 
-    if(cap[0] != 0)
+    if(cap != NULL)
     {
         hdcp_cap.cap = atoi(cap);
     }
@@ -371,59 +376,175 @@ static void do_handle_set_hdcp_cap(uint16_t cmd,char *port_num,char *cap)
     APP_Comm_Send(cmd, (U8*)&hdcp_cap, sizeof(hdcp_cap));
 }
 
-static void do_handle_set_gpio_config(uint16_t cmd,char *gpio_num,char *diretion)
+static void do_handle_set_gpio_config(uint16_t cmd,char *cmd_param)
 {
-    struct CmdDataGpioCfg gpio_cfg;
-    gpio_cfg.numOfGpio = 1;     //Configure one GPIO at a time
-    gpio_cfg.active = 1;
-    if(gpio_num[0] != 0 && diretion[0] != 0)
+    char *tmp_p = strtok(cmd_param,":");
+    uint8_t uctemp = 0;
+    if(tmp_p != NULL)
     {
-        gpio_cfg.gpio[0][0] = atoi(gpio_num);
-        gpio_cfg.gpio[0][1] = atoi(diretion);
+        uctemp = atoi(tmp_p);
     }
     else
     {
         printf("warn:Illegal parameter, discard directly\n");
+        return;
     }
-     APP_Comm_Send(cmd, (U8*)&gpio_cfg, 6);
-}
-
-static void do_handle_set_gpio_val(uint16_t cmd,char *gpio_num,char *diretion)
-{
-    struct CmdDataGpioVal gpio_val;
-    gpio_val.numOfGpio = 1;     //Configure one GPIO at a time
-    if(gpio_num[0] != 0 && diretion[0] != 0)
-    {
-        gpio_val.gpio[0][0] = atoi(gpio_num);
-        gpio_val.gpio[0][1] = atoi(diretion);
-    }
-    else
-    {
-        printf("warn:Illegal parameter, discard directly\n");
-    }
-     APP_Comm_Send(cmd, (U8*)&gpio_val, 4);
-}
-
-static void do_handle_ipc_cmd(int index,ipc_cmd_param cmd_param)
-{
-    struct CmdDataEDID edid_data;
-    // 2. hdcp
-    
-    struct CmdDataHDCPStatus hdcp_status;
-    struct CmdDataHDCPMode hdcp_mode;
-    // 3. video
-    struct CmdDataLinkStatus vdo_link;
-    struct CmdDataVideoStatus vdo_status;
-    struct CmdDataVideoMode vdo_mode;
-    
-    // 4. audio
-    struct CmdDataAudioInsertAndExtract ado_insert;
-    struct CmdDataAudioControl ado_mode;
-    struct CmdDataAudioStatus ado_status;
     struct CmdDataGpioCfg *gpio_cfg = NULL;
-    struct CmdDataGpioVal *gpio_val= NULL;
+    int i = 0;
+    gpio_cfg = (struct CmdDataGpioCfg *)calloc(uctemp*2 + 4, sizeof(uint8_t));
+    if (NULL == gpio_cfg)
+    {
+        printf("Failed to allocate memory\n");
+        return;
+    }
+    gpio_cfg->numOfGpio = uctemp;     
+    gpio_cfg->active = 1;
+    for(i=0;i<uctemp;i++)
+    {
+        tmp_p = strtok(NULL,":");
+        if(tmp_p != NULL)
+        {
+            gpio_cfg->gpio[i][0] = atoi(tmp_p);
+        }
+        else
+        {
+            printf("warn:Illegal parameter, discard directly\n");
+            free(gpio_cfg);
+            return;
+        }
+        
+        tmp_p = strtok(NULL,":");
+        if(tmp_p != NULL)
+        {
+            gpio_cfg->gpio[i][1] = atoi(tmp_p);
+        }
+        else
+        {
+            printf("warn:Illegal parameter, discard directly\n");
+            free(gpio_cfg);
+            return;
+        }
+    }
+
+    APP_Comm_Send(cmd, (U8*)gpio_cfg, uctemp*2 + 4);
+    free(gpio_cfg);
+}
+
+static void do_handle_get_gpio_val(uint16_t cmd,char *cmd_param)
+{
+    char *tmp_p = strtok(cmd_param,":");
+    uint8_t uctemp = 0;
+    if(tmp_p != NULL)
+    {
+        uctemp = atoi(tmp_p);
+    }
+    else
+    {
+        printf("warn:Illegal parameter, discard directly\n");
+        return;
+    }
     struct CmdDataGpioList *gpio_list= NULL;
-    struct CmdDataUartPassthrough *uart_pass = NULL;
+    int i = 0;
+    gpio_list = (struct CmdDataGpioList *)calloc(uctemp + 2, sizeof(uint8_t));
+    if (NULL == gpio_list)
+    {
+        printf("Failed to allocate memory\n");
+        return;
+    }
+    gpio_list->numOfGpio = uctemp;
+ 
+    for(i=0;i<uctemp;i++)
+    {
+        tmp_p = strtok(NULL,":");
+        if(tmp_p != NULL)
+        {
+            gpio_list->gpioPin[i] = atoi(tmp_p);
+        }
+        else
+        {
+            printf("warn:Illegal parameter, discard directly\n");
+            free(gpio_list);
+            return;
+        }
+    }
+    APP_Comm_Send(cmd, (U8*)gpio_list, uctemp + 2);
+    free(gpio_list);
+}
+
+static void do_handle_set_gpio_val(uint16_t cmd,char *cmd_param)
+{
+    char *tmp_p = strtok(cmd_param,":");
+    uint8_t uctemp = 0;
+    if(tmp_p != NULL)
+    {
+        uctemp = atoi(tmp_p);
+    }
+    else
+    {
+        printf("warn:Illegal parameter, discard directly\n");
+        return;
+    }
+    struct CmdDataGpioVal *gpio_val= NULL;
+    int i = 0;
+    gpio_val = (struct CmdDataGpioVal *)calloc(uctemp*2 + 2, sizeof(uint8_t));
+    if (NULL == gpio_val)
+    {
+        printf("Failed to allocate memory\n");
+        return;
+    }
+    gpio_val->numOfGpio = uctemp; 
+ 
+    for(i=0;i<uctemp;i++)
+    {
+        tmp_p = strtok(NULL,":");
+        if(tmp_p != NULL)
+        {
+            gpio_val->gpio[i][0] = atoi(tmp_p);
+        }
+        else
+        {
+            printf("warn:Illegal parameter, discard directly\n");
+            free(gpio_val);
+            return;
+        }
+        
+        tmp_p = strtok(NULL,":");
+        if(tmp_p != NULL)
+        {
+            gpio_val->gpio[i][1] = atoi(tmp_p);
+        }
+        else
+        {
+            printf("warn:Illegal parameter, discard directly\n");
+            free(gpio_val);
+            return;
+        }
+    }
+    APP_Comm_Send(cmd, (U8*)gpio_val, uctemp*2 + 2);
+    free(gpio_val);
+}
+
+static void do_handle_set_audio_insert_extract(uint16_t cmd,char *cmd_param)
+{
+    struct CmdDataAudioInsertAndExtract ado_insert;
+    char *from_port = strtok(cmd_param,":");
+    char *to_port = strtok(NULL,":");
+    if(from_port != NULL && to_port != NULL)
+    {
+        ado_insert.fromPort = atoi(from_port);
+        ado_insert.toPort = atoi(to_port);
+    }
+    printf("cmd[0x%x] audio fromport[0x%x] toport[0x%x]\n", cmd, ado_insert.fromPort, ado_insert.toPort);
+    ado_insert.audioCoding = AUDIO_CODING_LPCM;
+    ado_insert.channels = AUDIO_CH_2;
+    ado_insert.i2sFormat = I2S_FORMAT_NORMAL;
+    ado_insert.mclkRatio = MCLK_RATIO_256FS;
+    ado_insert.sampleDepth = AUDIO_SF_48KHZ;
+    APP_Comm_Send(cmd, (U8*)&ado_insert, sizeof(ado_insert));
+}
+
+static void do_handle_ipc_cmd(int index,char *cmd_param)
+{
     uint32_t uctemp = CMD_NULL_DATA;
 
     switch (ipc_cmd_list[index].ipc_cmd_name)
@@ -441,7 +562,7 @@ static void do_handle_ipc_cmd(int index,ipc_cmd_param cmd_param)
     case IPC_GET_VIDEO_STATUS:
     case IPC_GET_HDCP_CAP:
     case IPC_GET_HDCP_STATUS:
-        do_handle_get_cmd(ipc_cmd_list[index].a30_cmd,cmd_param.cmd_param1);
+        do_handle_get_cmd(ipc_cmd_list[index].a30_cmd,cmd_param);
         break;
 
     case IPC_VIDEO_CONTROL:
@@ -450,11 +571,11 @@ static void do_handle_ipc_cmd(int index,ipc_cmd_param cmd_param)
         break;
     case IPC_SET_INPUT_SOURCE:
     case IPC_GET_INPUT_SOURCE:
-        do_handle_input_source(ipc_cmd_list[index].a30_cmd,cmd_param.cmd_param1,cmd_param.cmd_param2);
+        do_handle_input_source(ipc_cmd_list[index].a30_cmd,cmd_param);
         break;
     
     case IPC_SET_HDCP_CAP:
-        do_handle_set_hdcp_cap(ipc_cmd_list[index].a30_cmd,cmd_param.cmd_param1,cmd_param.cmd_param2);
+        do_handle_set_hdcp_cap(ipc_cmd_list[index].a30_cmd,cmd_param);
         break;
 
     // audio command
@@ -465,93 +586,34 @@ static void do_handle_ipc_cmd(int index,ipc_cmd_param cmd_param)
     case IPC_HDMI_AUDIO_CONTROL:
         break;
     case IPC_SET_AUDIO_INSERT_EXTRACT:
+        do_handle_set_audio_insert_extract(ipc_cmd_list[index].a30_cmd,cmd_param);
         break;
     
     // other command
     case IPC_UART_PASSTHROUGH:
         break;
     case IPC_SET_GPIO_CONFIG:
-        do_handle_set_gpio_config(ipc_cmd_list[index].a30_cmd,cmd_param.cmd_param1,cmd_param.cmd_param2);
+        do_handle_set_gpio_config(ipc_cmd_list[index].a30_cmd,cmd_param);
         break;
     case IPC_EVENT_GPIO_VAL:
         break;
     case IPC_GET_GPIO_VAL:
+        do_handle_get_gpio_val(ipc_cmd_list[index].a30_cmd,cmd_param);
         break;
     case IPC_SET_GPIO_VAL:
-        do_handle_set_gpio_val(ipc_cmd_list[index].a30_cmd,cmd_param.cmd_param1,cmd_param.cmd_param2);
+        do_handle_set_gpio_val(ipc_cmd_list[index].a30_cmd,cmd_param);
         break;
     default:
         break;
     }
 }
 
-
-static void parse_param(char *param_list,ipc_cmd_param *cmd_param)
-{
-    int i = 0;
-    int num = 0;
-    if(NULL != param_list)
-    {
-        num = strlen(param_list);
-        if(num > PARAM_SIZE)
-        {
-            return;
-        }
-        for(i = 0;i < num;i++)
-        {
-            cmd_param->cmd_param1[i] = param_list[i];
-        }
-    }
-    else
-    {
-        return;
-    }
-    
-    param_list = strtok(NULL,":");
-    if(NULL != param_list)
-    {
-        num = strlen(param_list);
-        if(num > PARAM_SIZE)
-        {
-            return;
-        }
-        for(i = 0;i < num;i++)
-        {
-            cmd_param->cmd_param2[i] = param_list[i];
-        }
-    }
-    else
-    {
-        return;
-    }
-
-    param_list = strtok(NULL,":");
-    if(NULL != param_list)
-    {
-        num = strlen(param_list);
-        if(num > PARAM_SIZE)
-        {
-            return;
-        }
-        for(i = 0;i < num;i++)
-        {
-            cmd_param->cmd_param3[i] = param_list[i];
-        }
-    }
-    else
-    {
-        return;
-    }
-
-}
-
-static int do_handle_buffer(char *handle_buffer,ipc_cmd_param *cmd_param)
+static char *get_ipc_cmd_index(char *handle_buffer,char *ipc_cmd_index)
 {
     int i = 0;
     int ret = 0;
-    char *ipc_cmd = strtok(handle_buffer,":");
-
-    parse_param(strtok(NULL,":"),cmd_param);
+    char *ipc_param = NULL;
+    char *ipc_cmd = strtok_r(handle_buffer,":",&ipc_param);
 
     for (i = 0; i < IPC_CmdCnt; i++)
     {
@@ -562,10 +624,15 @@ static int do_handle_buffer(char *handle_buffer,ipc_cmd_param *cmd_param)
             {
                 ipc_querycmd_index = i;
             }
-            return i;
+            *ipc_cmd_index = i;
+            break;
         }
     }
-    return IPC_UnknownCmd;
+    if(i == IPC_CmdCnt)
+    {
+        *ipc_cmd_index = IPC_UnknownCmd;
+    }
+    return ipc_param;
 }
 
 static int check_mcu_version(void)
@@ -614,9 +681,9 @@ void print_usage() {
 int main(int argc, char *argv[])
 {
     int ret;
-	ipc_cmd_param cmd_param;
-    int ipc_cmd_index = 0;
-    unsigned char read_buffer[MAX_LEN] = {0};
+    char ipc_cmd_index = 0;
+    char *ipc_cmd_param = NULL;
+    char read_buffer[MAX_LEN] = {0};
     int opt = 0;
     int long_index =0;
     static struct option long_options[] = {
@@ -638,7 +705,7 @@ int main(int argc, char *argv[])
 			exit(EXIT_FAILURE);
 		}
 	}
-    //system("ipc_server_listen_one @m_lm_set @m_lm_get @m_lm_query @m_lm_reply &");
+
     uart_fd = open_uart(UART_PORT, UART_COMFIG);
     if (uart_fd < 0)
     {
@@ -669,7 +736,6 @@ int main(int argc, char *argv[])
     struct timeval timeout;
     struct timespec last_time;
     timeout.tv_sec = 0;
-
     sock_fd = create_unixsocket(MSG_SOCKET);
     if (sock_fd == -1) {
         perror("unix socker error.");
@@ -716,12 +782,11 @@ int main(int argc, char *argv[])
                     }
                     close(ipc_fd);
                     ipc_fd = -1;
-                    memset(&cmd_param,0,sizeof(ipc_cmd_param));
-                    ipc_cmd_index = do_handle_buffer(read_buffer,&cmd_param);
+                    ipc_cmd_param = get_ipc_cmd_index(read_buffer,&ipc_cmd_index);
                     if(ipc_cmd_index != IPC_UnknownCmd)
                     {
-                        do_handle_ipc_cmd(ipc_cmd_index,cmd_param);
-                    }
+                        do_handle_ipc_cmd(ipc_cmd_index,ipc_cmd_param);
+                    } 
                     memset(read_buffer, 0, MAX_LEN); 
                 }
 
