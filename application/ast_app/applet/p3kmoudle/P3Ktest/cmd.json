@@ -1,0 +1,6 @@
+﻿{
+	"cmd":[
+			{"name":"KDS-AUD","str":"#KDS-AUD 1,2\r"},
+			{"name":"KDS-AUD","str":"#KDS-AUD?\r"}
+	]
+}

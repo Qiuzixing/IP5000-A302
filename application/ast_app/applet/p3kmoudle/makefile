@@ -1,58 +1,26 @@
-#include conf.mak
+include $(AST_SDK_ROOT)/ast.cfg
 
-export ROOT_DIR:=$(shell pwd)
+TARGET_FOLDER_NAME=$(TARGET)-$(CONFIG)
 
-#RM = rm -rf
-#GPULS = arm-linux-gnueabihf-gcc
-#STRIP := arm-linux-gnueabihf-strip
-#AR := arm-linux-gnueabihf-ar
-
-#GPULS = /home/longao/P3K/crosstool/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu-gcc
-#STRIP := /home/longao/P3K/crosstool/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu-strip
-#AR := /home/longao/P3K/crosstool/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu-ar
 CC = /opt/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu-gcc
 STRIP := /opt/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu-strip
 AR = /opt/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu-ar
-#GPULS = gcc
-#STRIP := strip
-#AR := ar
-SRC_DIR += $(ROOT_DIR)/\
-			$(ROOT_DIR)/debugtool\
-			$(ROOT_DIR)/p3kmsgqueue\
-			$(ROOT_DIR)/list\
-			$(ROOT_DIR)/handlelist\
-			$(ROOT_DIR)/p3ksrc\
-#STRIP :=  arm-linux-gnueabihf-strip
 
-SRCS                :=  $(shell find $(SRC_DIR) -name '*.c')
-SRCS                :=  $(sort $(SRCS))
-OBJS                :=  $(SRCS:%.c=%.o)
+LIB = libp3kapi.a
+LIB_PWD = ./p3klib/
+P3KTCP = ./p3k_tcp/
 
-INCLUDE_DIR         :=  $(ROOT_DIR)
-INCLUDE_DIR         +=  $(SRC_DIR)
-INCLUDE_DIR         +=  $(ROOT_DIR)/include
-INCLUDES            :=  $(shell find $(INCLUDE_DIR) -name '*.h*')
-INCLUDE_DIR         :=  $(sort $(dir $(INCLUDES)))
-INCLUDES       :=  $(foreach dir,$(INCLUDE_DIR), -I$(dir))
+default: build
+	@echo "Done"
+	
+build : p3ktcp
+	mkdir -p $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/ 
+	cp -f $(P3KTCP)p3ktcp $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
+	
+p3ktcp:
+	make -C $(P3KTCP)
 
-
-COMPILE         =  $(CC) $(INCLUDES) -c "$<" -o "$@" 
-
-LIB_TARGET = libp3kapi.a
-
-TARGET := p3kapitest
-.PHONY:all
-
-all:$(LIB_TARGET) $(TARGET)
-$(LIB_TARGET):$(OBJS)
-	$(AR) rcs $(LIB_TARGET) $(OBJS)
-$(TARGET):$(OBJS)
-	$(CC)  -o $@ $^  -lpthread -lm
-	$(STRIP) $(TARGET)
-#
-$(OBJS) :%.o : %.c
-	@echo complie $@
-	$(COMPILE)
 
 clean:
-	$(RM)  $(OBJS) $(TARGET) $(LIB_TARGET)
+	make -C $(LIB_PWD) clean
+	make -C $(P3KTCP) clean
