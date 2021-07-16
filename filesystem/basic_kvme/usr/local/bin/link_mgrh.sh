@@ -1569,6 +1569,13 @@ if communication_with_mcu -u ; then
 else
 	UGP_FLAG="fail"
 fi
+
+if [ $UGP_FLAG = 'success' ];then
+	echo "mainswitch start."
+	mainswitch &
+	audioswitch &
+fi
+
 if [ $UGP_FLAG = 'success' ];then
 	echo "lock file for @m_lm_query" > /var/lock/@m_lm_query.lck
 	ipc_server_listen_one @m_lm_set @m_lm_get @m_lm_query @m_lm_reply &
@@ -1585,6 +1592,8 @@ if [ $UGP_FLAG = 'success' ];then
 	ipc @m_lm_set s set_gpio_config:9:15:1:35:1:8:1:36:1:37:1:32:1:33:1:11:1:12:1
 	ipc @m_lm_set s set_gpio_val:9:15:1:35:1:8:1:36:1:37:1:32:1:33:1:11:1:12:1
 fi
+
+
 # start event_monitor
 ast_event_monitor &
 EM_PID=$!
