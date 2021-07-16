@@ -26,7 +26,7 @@ int sendCmdtoGUI(const char *buf)
 	// 地址端口初始化
 	struct sockaddr_in sockaddr_dest;
 	sockaddr_dest.sin_family = AF_INET;
-	sockaddr_dest.sin_addr.s_addr = inet_addr("192.168.60.178");
+	sockaddr_dest.sin_addr.s_addr = inet_addr("127.0.0.1");
 	sockaddr_dest.sin_port = htons(PORT);
 	
 	int mode = 0;
@@ -346,8 +346,9 @@ int EX_SetOsdDisplay(int  mode )
 int EX_GetOsdDisplay(void)
 {
 	char getOSDDispalyCmd[BUFSIZE] = {"GET_OSD_DISPALY"};
-	//int mode = sendCmdtoGUI(getOSDDispalyCmd);
-	int mode =1;
+	int mode = 0;
+	mode = sendCmdtoGUI(getOSDDispalyCmd);
+	//int mode =1;
 
 	return mode;
 }
