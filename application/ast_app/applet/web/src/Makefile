@@ -4,7 +4,6 @@ ifeq ($(PARAM_FILE), )
 	include $(PARAM_FILE)
 endif
 
-
 PROG = bin/web
 LOG_INC = $(PREFIX)/include/log4cpp
 INCPATH = $(PREFIX)/include
@@ -31,7 +30,8 @@ CXXFILES = 	  src/Civetweb_API.cpp \
 			  src/stringsplit.cpp \
 			  src/mutex.cpp \
 			  src/cond.cpp \
-			  src/thread.cpp
+			  src/thread.cpp \
+			  src/astparam.cpp 
 			  
 #CFILES = ../ldap/ldap_funcs.c
 
@@ -57,10 +57,7 @@ include ./Makefile.in-os
 
 
 
-default: clean 
-	make build 
-	make install
-
+default:clean build install
 
 build: $(CFILES:.c=.o) $(CXXFILES:.cpp=.o) 
 	$(CXX) -o $(PROG) $(CFILES:.c=.o) $(CXXFILES:.cpp=.o) $(LDFLAGS)
@@ -72,11 +69,12 @@ clean:
 	
 install:
 	@echo "install"
-	test -z $(PREFIX)/usr/local/bin || mkdir -p $(PREFIX)/usr/local/bin
-	cp $(PROG) $(PREFIX)/usr/local/bin
-	mkdir -p $(PREFIX)/etc/www
-	cp -r ./bin/www/* $(PREFIX)/etc/www
-
+	mkdir -p $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
+	cp -f ./bin/web $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
+	cp -f ./bin/gbwebserver.json $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
+	mkdir -p $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/www/
+	cp -f ./bin/log4cpp.conf $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/www/
+	cp -f ./bin/server.pem $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/www/
 	
 .PHONY: default clean build install
 #.PHONY: all

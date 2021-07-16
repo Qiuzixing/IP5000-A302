@@ -3,6 +3,19 @@
 #include "Civetweb_API.h"
 #include "stringsplit.h"
 
+
+#define SUCCESS_CODE                200
+#define BAD_REQUEST_CODE            400
+#define UNAUTH_CODE                 401
+#define WEB_NOT_FOUND               404
+#define SERVICE_UNAVAILABLE_CODE    503
+
+#define CAPTURE_BMP_FILE    "/www/capture.bmp"
+#define CAPTURE_JPG_FILE    "/www/capture.jpg"
+#define MJPEG_TMP_BMP_FILE  "/www/tmp.bmp"
+#define MJPEG_TMP_JPG_FILE  "/www/tmp.jpg"
+
+
 #define UP_CHANNEL_URL      "/upload/channel"
 #define UP_EDID_URL         "/upload/edid"
 #define UP_SLEEPIMAGE_URL   "/upload/sleepimage"
@@ -37,11 +50,22 @@
 #define GET_USB             "/usb/km_usb"
 #define SET_USB             "/usb/set_km_usb"
 
+// 原5000功能
+#define CMD_TYPE_STR            "cmdtype"
+#define CMD_STR_STR             "cmdstr"
+#define COMM_CONFIG_STR         "systemconfig"
+#define CHANGE_PASSWD_STR       "changepasswd"
+#define NEW_PASSWD_STR          "newpasswd"
+#define VERIFY_PASSWD_STR       "verifypasswd"
+#define PASSWD_STR              "passwd"
+#define USRNAME_STR             "username"
+
 
 typedef struct T_FromInfo
 {
     char filename[KEY_VALUE_SIZE];
     char filepath[KEY_VALUE_SIZE];
+    long long  filesize;
 }T_FromInfo;
 
 CMutex CWeb::s_p3kmutex;
@@ -49,6 +73,19 @@ CCond  CWeb::s_p3kcond;
 P3kStatus CWeb::s_p3kStatus;
 struct mg_context * CWeb::ctx = NULL;
 int CWeb::s_p3kSocket = -1;
+
+CMutex CWeb::s_AliveStreamMutex;
+CMutex CWeb::s_MjpegUsrCntMutex;
+CMutex CWeb::s_MjpegMutex;
+CMutex CWeb::s_BmpMutex;
+int CWeb::s_KeepAliveWorker = 0;
+int CWeb::s_mjpegSeq = 0;
+int CWeb::s_mjpegUsrCnt = 0;
+int CWeb::s_mjpegEnable = 0;
+long long CWeb::s_LastUpdataTime = 0;
+int CWeb::s_mjpegIntevalMs = 0;
+
+
 
 bool CWeb::Start(ConfInfoParam * p_webparam,string Server_mode)
 {
@@ -159,6 +196,12 @@ void CWeb::HttpRun()
         {GET_SECURE, GetSecureHandle, NULL},
         {SET_USB, SetUsbHandle, NULL},
         {GET_USB, GetUsbHandle, NULL},
+        {"/action", ActionReqHandler, NULL},
+        {"/stream", StreamReqHandler, NULL},
+        {"/upload_logo", UploadLogoReqHandler, NULL},
+        {"/upload_bg", UploadBgReqHandler, NULL},
+        {"/capture.bmp", CapturebmpReqHandler, NULL},
+        {"/capture.jpg", CapturejpgReqHandler, NULL},
 	};
 	AddURIProcessHandler(ctx,UriHandleList,ARRAY_SIZE(UriHandleList));
 }
@@ -176,7 +219,7 @@ int CWeb::file_found(const char *key,const char *filename,char *path,size_t path
 	BC_INFO_LOG("the key is %s  the filename is %s",key,filename);
     if (filename && *filename)
     {
-        if(strlen(pFrom->filename) == 0)
+        if(strlen(pFrom->filename) == 0 || pFrom->filename == NULL)
         {
 	        snprintf(path, pathlen, "%s/%s", pFrom->filepath, filename);
             strncpy(pFrom->filename, filename, strlen(filename));
@@ -186,7 +229,7 @@ int CWeb::file_found(const char *key,const char *filename,char *path,size_t path
             snprintf(path, pathlen, "%s/%s", pFrom->filepath, pFrom->filename);
         }
         BC_INFO_LOG("file path is %s",path);
-        mg_set_user_connection_data(conn, (void*)path);
+        mg_set_user_connection_data(conn, (void*)pFrom);
 	    return MG_FORM_FIELD_STORAGE_STORE;
     }
     return MG_FORM_FIELD_HANDLE_ABORT;
@@ -194,13 +237,15 @@ int CWeb::file_found(const char *key,const char *filename,char *path,size_t path
 int CWeb::file_get(const char *key,const char *value,size_t valuelen,void *user_data)
 {
 	struct mg_connection *conn = (struct mg_connection *)user_data;
-
 }
 
 int CWeb::file_store(const char *path, long long file_size, void *user_data)
 {
 	struct mg_connection *conn = (struct mg_connection *)user_data;
-    BC_INFO_LOG("field_stored path %s  file_size  %lld ", path, file_size);
+    struct T_FromInfo *pFrom = (struct T_FromInfo *)mg_get_user_connection_data(conn);
+
+    pFrom->filesize = file_size;
+    BC_INFO_LOG("field_stored path %s  file_size  %lld ", path, pFrom->filesize);
 
     return 0;
 }
@@ -965,6 +1010,563 @@ int CWeb::GetUsbHandle(struct mg_connection *conn, void *cbdata)
     return 1;
 }
 
+int CWeb::ActionReqHandler(struct mg_connection *conn, void *cbdata)
+{
+    bool bHandleReq = false;
+    char szCmdType[MAX_PARAM_LEN] = {0};
+    char szCmdStr[MAX_PARAM_LEN] = {0};
+
+    mg_get_var_from_querystring(conn, CMD_TYPE_STR, szCmdType, MAX_PARAM_LEN);
+    mg_get_var_from_querystring(conn, CMD_STR_STR, szCmdStr, MAX_PARAM_LEN);
+    BC_INFO_LOG("CMD_TYPE_STR is <%s>  CMD_STR_STR is <%s>", szCmdType, szCmdStr);
+
+    if(0 == ::strncasecmp(szCmdType, COMM_CONFIG_STR, strlen(COMM_CONFIG_STR)))
+    {
+        if (0 == ::strncasecmp(szCmdStr, CHANGE_PASSWD_STR, strlen(CHANGE_PASSWD_STR)))
+        {
+            bHandleReq = true;
+            char szNewPasswd[MAX_PARAM_LEN] = {0};
+
+            int len = mg_get_var_from_querystring(conn, NEW_PASSWD_STR, szNewPasswd, MAX_PARAM_LEN);
+            if (len > 0)
+			{
+			    if(COperation::SetPassword(szNewPasswd))
+                {
+                    mg_send_status(conn, SUCCESS_CODE);
+                }
+                else
+                {
+                    mg_send_status(conn, SERVICE_UNAVAILABLE_CODE);
+                }
+            }
+            else
+            {
+                mg_send_status(conn, SERVICE_UNAVAILABLE_CODE);
+            }
+        }
+        else if(0 == ::strncasecmp(szCmdStr, VERIFY_PASSWD_STR, strlen(VERIFY_PASSWD_STR)))
+        {
+            bHandleReq = true;
+            char szUserName[MAX_PARAM_LEN] = {0};
+            char szPasswd[MAX_PARAM_LEN] = {0};
+
+            mg_get_var_from_querystring(conn, PASSWD_STR, szPasswd, MAX_PARAM_LEN);
+            mg_get_var_from_querystring(conn, USRNAME_STR, szUserName, MAX_PARAM_LEN);
+            BC_INFO_LOG("username : %s  passwd : %s",szUserName,szPasswd);
+
+            if(COperation::VerifyPassword(szUserName, szPasswd))
+            {
+                mg_send_status(conn, SUCCESS_CODE);
+            }
+            else
+            {
+                mg_send_status(conn, SERVICE_UNAVAILABLE_CODE);
+            }
+        }
+    }
+
+    if(!bHandleReq)
+    {
+        mg_send_status(conn, BAD_REQUEST_CODE);
+    }
+
+    char szCnt[512] = {0};
+    snprintf(szCnt, sizeof(szCnt)-1, "Content-Type: text/plain\r\n"
+            "Connection: close\r\n");
+    mg_write(conn, szCnt, strlen(szCnt));
+    mg_printf(conn, "\r\n");
+    mg_printf(conn, "\r\n");
+
+    return 1;
+}
+
+conn_state* CWeb::get_state(struct mg_connection * conn)
+{
+	const struct mg_request_info * ri = mg_get_request_info(conn);
+    const char * uri = ri->request_uri;
+    //state = (struct conn_state *)conn->request_info.conn_data;
+    struct conn_state *state = (struct conn_state *)mg_get_user_connection_data(conn);
+    if (NULL == state)
+    {
+        if (NULL == uri)
+        {
+        	printf("uri is NULL\n");
+            return NULL;
+        }
+        state = (struct conn_state *)malloc(sizeof(struct conn_state));
+        if (strncmp(uri, "/action", 7) == 0 && (uri[7] == '\0' || uri[7] == '?'))
+        {
+            state->request_type = request_fast_cgi;
+        }
+        else if (strncmp(uri, "/stream", 7) == 0 && (uri[7] == '\0' || uri[7] == '?') && s_mjpegEnable)
+        {
+            state->request_type = request_mjpeg;
+        }
+        else if (strncmp(uri, "/upload_logo", 12) == 0 && (uri[12] == '\0' || uri[12] == '?'))
+        {
+            state->request_type = request_upload_logo;
+        }
+        else if (strncmp(uri, "/upload_bg", 10) == 0 && (uri[10] == '\0' || uri[10] == '?'))
+        {
+            state->request_type = request_upload_bg_pic;
+        }
+        else if (strncmp(uri, "/capture.bmp", 12) == 0 && (uri[12] == '\0' || uri[12] == '?') && s_mjpegEnable)
+        {
+            state->request_type = request_dl_bmp;
+        }
+        else if (strncmp(uri, "/capture.jpg", 12) == 0 && (uri[12] == '\0' || uri[12] == '?') && s_mjpegEnable)
+        {
+            state->request_type = request_dl_jpg;
+        }
+        else
+        {
+            state->request_type = request_default;
+        }
+        state->fp = NULL;
+        state->last_poll = 0;
+        state->var[0] = '\0';
+        state->boundary[0] = '\0';
+        state->flen = 0;
+        state->last_mjpeg_seq = s_mjpegSeq;
+        mg_set_user_connection_data(conn, state);
+        BC_INFO_LOG("conn_state : request_type : %d ; last_mjpeg_seq : %d \n",state->request_type,state->last_mjpeg_seq);
+    }
+    return state;
+}
+
+
+int CWeb::StreamReqHandler(struct mg_connection *conn, void *cbdata)
+{
+    const struct mg_request_info *ri = mg_get_request_info(conn);
+	struct conn_state *state = get_state(conn);
+
+    if(s_KeepAliveWorker <= 5)
+    {
+        if (0 == state->last_poll)
+	    {
+	        s_mjpegUsrCnt++;//�û�
+	    }
+		state->last_poll = ::time(NULL);
+    }
+
+    int mjpeg_seq_last = s_mjpegSeq;
+    {
+        CMutexLocker locker(&s_AliveStreamMutex);
+        s_KeepAliveWorker++;
+        BC_INFO_LOG("s_KeepAliveWorker : <%d>  s_mjpegUsrCnt : <%d>\n",s_KeepAliveWorker,s_mjpegUsrCnt);
+    }
+
+    int result;
+	int the_first_conn = 0;
+    if(s_KeepAliveWorker <= 5)
+	{
+		while(1)
+		{
+		    if(mjpeg_seq_last != s_mjpegSeq)
+            {
+                if(0 == the_first_conn)
+				{
+					mg_printf(conn, "%s",
+								"HTTP/1.1 200 OK\r\n" "Cache-Control: no-cache\r\n"
+								"Pragma: no-cache\r\nExpires: Thu, 01 Dec 1994 16:00:00 GMT\r\n"
+								"Connection: close\r\nContent-Type: multipart/x-mixed-replace; "
+								"boundary=--w00t\r\n\r\n");
+					the_first_conn++;
+				}
+
+                int n;
+                int result = 0;
+                FILE *fp;
+                char buf[640 * 1024];
+                struct stat st;
+                if (stat(MJPEG_TMP_JPG_FILE, &st) == 0 && (fp = fopen(MJPEG_TMP_JPG_FILE, "rb")) != NULL)
+                {
+                    mg_printf(conn, "--w00t\r\nContent-Type: image/jpeg\r\n"
+                            "Content-Length: %lu\r\n\r\n", (unsigned long) st.st_size);
+                    while ((n = fread(buf, 1, sizeof(buf), fp)) > 0)
+                    {
+                        int write_ret = mg_write(conn, buf, n);
+                        if(write_ret <= 0)
+                        {
+                            result = 1;
+            				break;
+                        }
+                        //usleep(100);
+                    }
+                    fclose(fp);
+                    mg_write(conn, "\r\n", 2);
+                }
+
+                if(result != 0)
+                {
+                    BC_INFO_LOG("send fail ! \n");
+                    break;
+                }
+                mjpeg_seq_last = s_mjpegSeq;
+            }
+            ::sleep(1);
+        }
+    }
+
+    {
+        CMutexLocker locker(&s_MjpegUsrCntMutex);
+        if(s_mjpegUsrCnt > 0)
+        {
+            s_mjpegUsrCnt--;
+        }
+    }
+
+    {
+        CMutexLocker locker(&s_AliveStreamMutex);
+        if(s_KeepAliveWorker > 0)
+        {
+            s_KeepAliveWorker--;
+        }
+    }
+
+    if (NULL != state->fp)
+	{
+		fclose(state->fp);
+		state->fp = NULL;
+	}
+	free(state);
+	state = NULL;
+
+    mg_set_user_connection_data(conn,NULL);
+
+    return 1;
+}
+
+int CWeb::UploadLogoReqHandler(struct mg_connection *conn, void *cbdata)
+{
+    struct T_FromInfo tFrom;
+    bool bRet = SaveUploadFile(conn, "/dev/shm", "logo.bmp", &tFrom);
+    if(!bRet)
+    {
+        mg_printf(conn,"%s","HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n");
+        mg_write(conn, "\r\n", 2);
+        mg_printf(conn, "Had no data to write...");
+    }
+    else
+    {
+        mg_printf(conn,"%s","HTTP/1.1 200 OK\r\n");
+        mg_write(conn, "\r\n", 2);
+
+        mg_printf(conn,
+        				"<html>\r\n"
+                    "<head>\r\n"
+                    "<title></title>\r\n"
+                    "<script type=\"text/javascript\" src=\"ajax_obj.js\"></script>\r\n"
+                    "</head>\r\n"
+                    "<body>\r\n"
+                    "<div>\r\n"
+                    "<form action=\"upload_logo\" enctype=\"multipart/form-data\" method=\"post\">\r\n"
+                    "<p>\r\n"
+                    "<input type=\"file\" name=\"logo.bmp\">\r\n"
+                    "</p>\r\n"
+                    "<p>\r\n"
+                    "<input type=\"submit\" value=\"Upload\">\r\n"
+                    "</p>\r\n");
+        if(tFrom.filesize > 128 * 1024)
+        {
+            mg_printf(conn,
+						"<p style=\"color:red\">Failed!</p>\r\n"
+						"<p>Upload %lld bytes</p>\r\n"
+						"<p>The picture is larger than %d bytes</p>\r\n"
+						"</form>"
+						 "</div>"
+	                    "</body>"
+	                    "</html>",tFrom.filesize, 128 * 1024);
+		    mg_send_status(conn, BAD_REQUEST_CODE);
+        }
+        else
+        {
+            My_System("dd if=/dev/shm/logo.bmp of=/dev/mtdblklogo bs=64k");
+            remove("/dev/shm/logo.bmp");
+
+            mg_printf(conn,
+						"<p style=\"color:green\">OK!</p>\r\n"
+						"<p>Upload %lld bytes</p>\r\n"
+						"</form>"
+						 "</div>"
+	                    "</body>"
+	                    "</html>",tFrom.filesize);
+        }
+    }
+
+    return 1;
+}
+
+int CWeb::UploadBgReqHandler(struct mg_connection *conn, void *cbdata)
+{
+    struct T_FromInfo tFrom;
+    bool bRet = SaveUploadFile(conn, "/dev/shm", "default.jpg", &tFrom);
+    if(!bRet)
+    {
+        mg_printf(conn,"%s","HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n");
+        mg_write(conn, "\r\n", 2);
+        mg_printf(conn, "Had no data to write...");
+    }
+    else
+    {
+        mg_printf(conn,"%s","HTTP/1.1 200 OK\r\n");
+        mg_write(conn, "\r\n", 2);
+        mg_printf(conn,
+        				"<html>\r\n"
+		                "<head>\r\n"
+		                "<title></title>\r\n"
+		                "<script type=\"text/javascript\" src=\"ajax_obj.js\"></script>\r\n"
+		                "</head>\r\n"
+		                "<body>\r\n"
+		                "<div>\r\n"
+		                "<form action=\"upload_bg\" enctype=\"multipart/form-data\" method=\"post\">\r\n"
+		                "<p>\r\n"
+		                "<input type=\"file\" name=\"bg.jpg\">\r\n"
+		                "</p>\r\n"
+		                "<p>\r\n"
+		                "<input type=\"submit\" value=\"Upload\">\r\n"
+		                "</p>\r\n");
+
+        if (tFrom.filesize > (1024 + 512) * 1024)
+        {
+            mg_printf(conn,
+						"<p style=\"color:red\">Failed!</p>\r\n"
+						"<p>Upload %lld bytes</p>\r\n"
+						"<p>The picture is larger than %d bytes</p>\r\n"
+						"</form>"
+						 "</div>"
+	                    "</body>"
+	                    "</html>",tFrom.filesize, (1024 + 512) * 1024);
+		    mg_send_status(conn, BAD_REQUEST_CODE);
+        }
+        else
+        {
+            mg_printf(conn,
+						"<p style=\"color:green\">OK!</p>\r\n"
+						"<p>Upload %lld bytes</p>\r\n"
+						"</form>"
+						 "</div>"
+	                    "</body>"
+	                    "</html>",tFrom.filesize);
+
+            My_System("write_bg_pic.sh");
+        }
+    }
+}
+
+long long CWeb::get_time_ms()
+{
+    int err = 0;
+    struct timespec ts;
+    err = ::clock_gettime(CLOCK_MONOTONIC, &ts);
+    if (err < 0)
+    {
+        return -1;
+    }
+    return (long long)ts.tv_sec * 1000 + (long long)ts.tv_nsec / 1000000;
+}
+
+static void update_bmp_preview_file(void)
+{
+
+    char buf[640*1024];
+    int len = 0;
+    int fd = ::open("/dev/videoip", O_RDWR);
+    if (-1 != fd)
+    {
+        const char* cmd = "240 1\n";
+        len = ::write(fd,cmd,::strlen(cmd));
+
+        ::close(fd);
+    }
+    fd = open("/dev/videoip", O_RDONLY);
+    if (-1 != fd)
+    {
+        FILE* pfd = fopen(MJPEG_TMP_BMP_FILE, "wb");
+        if (NULL != pfd)
+        {
+            while (1)
+            {
+                len = ::read(fd, buf, sizeof(buf));
+                if (len > 0)
+                {
+                    fwrite(buf, 1, len, pfd);
+                }
+                else
+                {
+                    break;
+                }
+            }
+            fclose(pfd);
+        }
+        close(fd);
+    }
+}
+
+void CWeb::update_jpg_preview_file(void)
+{
+    My_System("bmp2jpg "MJPEG_TMP_BMP_FILE" "MJPEG_TMP_JPG_FILE);
+    s_mjpegSeq++;
+}
+
+
+int CWeb::SendBmpPic(struct mg_connection *conn, const char *path)
+{
+	char buf[3072] = {0};
+    struct stat st;
+    int n;
+    FILE *fp;
+    if (stat(path, &st) == 0 && (fp = fopen(path, "rb")) != NULL)
+    {
+        mg_printf(conn, "--w00t\r\nContent-Type: application/x-bmp\r\n"
+                "Content-Length: %lu\r\n\r\n", (unsigned long) st.st_size);
+        while ((n = fread(buf, 1, sizeof(buf), fp)) > 0)
+        {
+            int write_ret = mg_write(conn, buf, n);
+            if(write_ret <= 0)
+            {
+            	printf("write error\n");
+            	fclose(fp);
+				return 0;
+            }
+            ::memset(buf,0,sizeof(buf));
+            //usleep(100);
+        }
+        fclose(fp);
+        mg_write(conn, "\r\n", 2);
+    }
+    else
+    {
+		printf("send file error\n");
+    }
+	return 1;
+}
+
+
+int CWeb::send_bmp_file(struct mg_connection *conn,const char * picpath)
+{
+	mg_printf(conn, "%s",
+								"HTTP/1.1 200 OK\r\n" "Cache-Control: no-cache\r\n"
+								"Pragma: no-cache\r\nExpires: Thu, 01 Dec 1994 16:00:00 GMT\r\n"
+								"Connection: close\r\nContent-Type: multipart/x-mixed-replace; "
+								"boundary=--w00t\r\n\r\n");
+	SendBmpPic(conn,picpath);
+	return 0;
+}
+
+int CWeb::CapturebmpReqHandler(struct mg_connection *conn, void *cbdata)
+{
+    if (s_mjpegUsrCnt == 0)
+    {
+        long long cur = get_time_ms();
+        if (cur - s_LastUpdataTime > s_mjpegIntevalMs)
+        {
+            s_BmpMutex.Lock();
+            update_bmp_preview_file();
+            s_BmpMutex.Unlock();
+            s_LastUpdataTime = cur;
+        }
+    }
+    s_BmpMutex.Lock();
+    My_System("cp "MJPEG_TMP_BMP_FILE" "CAPTURE_BMP_FILE);
+    s_BmpMutex.Unlock();
+
+	send_bmp_file(conn,CAPTURE_BMP_FILE);
+
+    return 1;
+}
+
+int CWeb::CapturejpgReqHandler(struct mg_connection *conn, void *cbdata)
+{
+    BC_INFO_LOG("enter the uri hander: /capture.jpg \n");
+
+	if (s_mjpegUsrCnt == 0)
+    {
+        long long cur = get_time_ms();
+        if (cur - s_LastUpdataTime > s_mjpegIntevalMs)
+        {
+        	BC_INFO_LOG("cur == %d\tg_last_update_time == %d\n",cur,s_LastUpdataTime);
+            s_BmpMutex.Lock();
+            update_bmp_preview_file();
+            s_BmpMutex.Unlock();
+            s_MjpegMutex.Lock();
+            update_jpg_preview_file();
+            s_MjpegMutex.Unlock();
+            s_LastUpdataTime = cur;
+        }
+   	}
+    s_MjpegMutex.Lock();
+    My_System("cp "MJPEG_TMP_JPG_FILE" "CAPTURE_JPG_FILE);
+    s_MjpegMutex.Unlock();
+
+	send_jpg_file(conn,CAPTURE_JPG_FILE);
+
+    return 1;
+}
+
+void *CWeb::MjpegStreamThread(void *param)
+{
+    struct stat st;
+    int n;
+    long long cur = 0;
+    long long next = 0;
+
+    while(1)
+    {
+        cur = get_time_ms();
+        if (next == 0)
+        {
+            next = cur;
+        }
+
+        if (s_mjpegUsrCnt > 0)
+        {
+#if 1
+            int fd = ::open("/sys/devices/platform/videoip/State", O_RDONLY);
+            char vstat[32];
+            int statlen = 0;
+            vstat[0] = '\0';
+            if (-1 != fd)
+            {
+                statlen = ::read(fd, vstat, sizeof(vstat));
+                if (statlen > 0)
+                {
+                    vstat[statlen] = '\0';
+                }
+                ::close(fd);
+            }
+            if (0 == strncasecmp("OPERATING", vstat, strlen("OPERATING")))
+            {
+#endif
+                s_BmpMutex.Lock();
+                update_bmp_preview_file();
+                s_BmpMutex.Unlock();
+
+                s_MjpegMutex.Lock();
+
+                update_jpg_preview_file();
+
+                s_LastUpdataTime = cur;
+                s_MjpegMutex.Unlock();
+#if 1
+            }
+#endif
+        }
+
+        if (cur < next)
+        {
+            usleep(1000 * (next - cur));
+        }
+        else
+        {
+            usleep(0);
+        }
+
+        next += s_mjpegIntevalMs;
+    }
+    return NULL;
+}
+
 void CWeb::P3kStatusInit()
 {
     s_p3kStatus.p3k_conn = NULL;
@@ -1096,8 +1698,37 @@ void *CWeb::P3kCommunicationThread(void *arg)
 	char aFlag[KEY_VALUE_SIZE] = {0};
 	char aRecv[KEY_VALUE_SIZE] = {0};
 
+    strncpy(aFlag, "#\r", strlen("#\r"));
+    int len = write(s_p3kSocket, aFlag, strlen(aFlag));
+    if(len < 0)
+    {
+        BC_INFO_LOG("p3k init write faild");
+        close(s_p3kSocket);
+        return NULL;
+    }
+
+    len = read(s_p3kSocket, aRecv, KEY_VALUE_SIZE);
+    if(len < 0)
+    {
+        BC_INFO_LOG("p3k init read faild");
+        close(s_p3kSocket);
+        return NULL;
+    }
+    else
+	{
+	    BC_INFO_LOG("aRecv is <%s>", aRecv);
+		if(strncmp(aRecv, "~01@\r", strlen("~01@\r")) != 0)
+		{
+			BC_INFO_LOG("p3k init is check failed");
+	    	close(s_p3kSocket);
+	        return NULL;
+		}
+	}
+
+    memset(aFlag, 0, sizeof(aFlag));
+    memset(aRecv, 0, sizeof(aRecv));
     strncpy(aFlag, "#LOGIN admin,33333\r", strlen("#LOGIN admin,33333\r"));
-	int len = write(s_p3kSocket, aFlag, strlen(aFlag));
+	len = write(s_p3kSocket, aFlag, strlen(aFlag));
     if(len < 0)
     {
     	BC_INFO_LOG("p3k init write faild");
@@ -1114,7 +1745,7 @@ void *CWeb::P3kCommunicationThread(void *arg)
     }
 	else
 	{
-	    BC_INFO_LOG("aRecv is <%s>", aRecv);
+	    BC_INFO_LOG("Login aRecv is <%s>", aRecv);
 		if(strncmp(aRecv, "~01@LOGIN admin,33333,ok\r", strlen("~01@LOGIN admin,33333,ok\r")) != 0)
 		{
 			BC_INFO_LOG("p3k init is check failed");

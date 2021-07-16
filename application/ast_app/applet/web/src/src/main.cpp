@@ -104,6 +104,14 @@ int main(int argc, char *argv[])
     // 启动日志
     BCLog_Init(p_webparam.log_confpath);
 
+    // mjpegstream
+    pthread_t mjpegThread;
+	int nret = pthread_create(&mjpegThread, NULL, CWeb::MjpegStreamThread, NULL);
+	if(nret < 0)
+	{
+		BC_INFO_LOG( "mjpeg pthread create error \n");
+	}
+
 	int err = 0;
 #ifdef USE_WEBSOCKET
 	if (!Civetweb_check_WEBSOCKET_feature()) {

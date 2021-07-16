@@ -7,6 +7,8 @@
 #include <sys/stat.h>
 #include <sys/statfs.h>
 #include <unistd.h>
+#include <crypt.h>
+
 
 CMutex COperation::s_DeviceMutex;
 
@@ -213,4 +215,157 @@ bool COperation::GetJsonFile(const char *i_pJsonFile, string& o_strContent)
 
     return true;
 }
+
+bool COperation::SetPassword(const char *i_pNewPasswd)
+{
+    CMutexLocker locker(&s_DeviceMutex);
+
+    char szCmdStr[MAX_CMD_STR] = {0};
+    snprintf(szCmdStr, sizeof(szCmdStr) - 1, "echo \"admin:%s\" | chpasswd -m", i_pNewPasswd);
+    if(0 == My_System(szCmdStr))
+    {
+        SavePasswordToParam("admin");
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+int COperation::SavePasswordToParam(const char *i_pUsrName)
+{
+    int rst = 0;
+    FILE* pf = fopen("/etc/passwd", "r");
+    if (NULL == pf)
+    {
+        rst = -1;
+        //goto out;
+        return rst;
+    }
+    char line[128];
+    ::memset(line, 0, sizeof(line));
+    char* user;
+    char* salt;
+    while (NULL != fgets(line, sizeof(line), pf))
+    {
+        char *save_ptr;
+        char *token;
+        //token ��ʾ���� ":" ǰ���һ�Σ�save_ptr ָ�� ":" �����һ��
+        token = strtok_r(line, ":", &save_ptr);
+        if (!token)
+            break;
+		//ƥ�� i_pUsrName
+        if (0 != ::strcmp(i_pUsrName, token))
+            continue;
+
+        BC_INFO_LOG("i_pUsrName  : %s",token);
+		//������NULL���Զ���ʼ��һ�Σ�token ����������
+        token = strtok_r(NULL, ":", &save_ptr);
+        if (!token)
+            break;
+		salt = token;
+		break;
+    }
+    if (NULL == salt)
+    {
+        rst = -1;
+        //goto out;
+        fclose(pf);
+        pf = NULL;
+        return rst;
+    }
+	int argc = 4;
+	char* argv[4] = {(char *)"astparam", (char *)"s", (char *)"passwd", salt};
+	//�������������Ҫ����Щ�ļ� make ����
+	extern char* astparam(int argc, char** argv);
+	(void)astparam(argc, argv);
+	argc = 2;
+	argv[1] = (char *)"save";
+	(void)astparam(argc, argv);
+
+//out:
+    if (NULL != pf)
+    {
+        fclose(pf);
+        pf = NULL;
+    }
+    return rst;
+}
+
+bool COperation::VerifyPassword(char *i_pUsername, char *i_pPasswd)
+{
+    CMutexLocker locker(&s_DeviceMutex);
+
+    if(0 == JudgePasswdEncrypt(i_pUsername, i_pPasswd))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+int COperation::JudgePasswdEncrypt(char *username, char *passwd)
+{
+    FILE* pf = fopen("/etc/passwd", "r");
+    if (NULL == pf)
+    {
+        return -1;
+    }
+    char line[64];
+    memset(line, 0, sizeof(line));
+    char* user;
+    char* salt;
+    while (NULL != ::fgets(line, sizeof(line), pf))
+    {
+        char *save_ptr;
+        char *token;
+        token = strtok_r(line, ":", &save_ptr);
+        if (!token)
+            break;
+
+        if (0 != strcmp(username, token))
+            continue;
+		//printf("%s : ",token);
+        token = strtok_r(NULL, ":", &save_ptr);
+        if (!token)
+            break;
+
+        salt = token;
+        //printf("%s \n",salt);
+    }
+    if (NULL == salt)
+    {
+    	//printf("salt = NULL \n");
+        fclose(pf);
+        pf = NULL;
+        return -1;
+    }
+    fclose(pf);
+    pf = NULL;
+    if(NULL == salt)
+    	BC_INFO_LOG("salt is null\n");
+    else
+    	BC_INFO_LOG("slat:%s\n", salt);
+
+
+    struct crypt_data data;
+    memset(&data, 0, sizeof(data));
+
+    char * encrypted_passwd = NULL;
+    encrypted_passwd = crypt_r(passwd, salt, &data);
+    if(NULL == encrypted_passwd)
+    {
+    	BC_INFO_LOG("encrypted_passwd is null\n");
+    	return -1;
+    }
+    else
+    {
+    	BC_INFO_LOG("encrypted_passwd is :%s\n", encrypted_passwd);
+    }
+    return strncmp(encrypted_passwd, salt,::strlen(encrypted_passwd)>::strlen(salt)?::strlen(encrypted_passwd): ::strlen(salt));
+}
+
 

@@ -1,6 +1,7 @@
 #ifndef __OPERATION_H__
 #define __OPERATION_H__
 
+#include "Civetweb_API.h"
 #include "process_json.h"
 #include "mutex.h"
 #include <string>
@@ -46,6 +47,11 @@ public:
     // json数据处理函数
     static bool SetJsonFile(const char *i_pJsonData, const char *i_pFile);
     static bool GetJsonFile(const char *i_pJsonFile, string& o_strContent);
+
+    // 原5000
+    static bool SetPassword(const char *i_pNewPasswd);
+    static bool VerifyPassword(char *i_pUsername, char *i_pPasswd);
+
 private:
 
     // 功能函数
@@ -54,6 +60,11 @@ private:
     static bool FileRename(const char *i_pFileName, const char *i_pFilePath, string &o_strRename);
     static int  FileToString(const char *i_pinFilePath, string &o_strDes);
     static int  StringToFile(const char *i_pStrBuff, const char *i_pOutFileath);
+
+    // 原5000
+    static int  SavePasswordToParam(const char *i_pUsrName);
+    static int  JudgePasswdEncrypt(char *username, char *passwd);
+
     static CMutex s_DeviceMutex;
 
 };

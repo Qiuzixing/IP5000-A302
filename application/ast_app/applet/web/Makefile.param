@@ -4,19 +4,18 @@
 # Otherwise, there will be some errors, when Makefile.param is nested.
 
 # Use this file as the following sample
-# ifeq ($(PARAM_FILE), )
-#     PARAM_FILE:=./Makefile.param
-#     include $(PARAM_FILE)
-# endif
+include $(AST_SDK_ROOT)/ast.cfg
 
 # Define the default OS link directory.
-export ARCH=arm
+#export ARCH=arm
 
 # Whether open -g 
 #export GDB?=y
 export GDB?=n
 
 export AUTOTEST?=n
+
+export TARGET_FOLDER_NAME=$(TARGET)-$(CONFIG)
 
 export PARAM_FILE
 export SDK_ROOT ?= $(shell cd `dirname $(PARAM_FILE)`; pwd)
@@ -26,32 +25,26 @@ export IMAGES_DIR = $(SDK_ROOT)/images
 export VERSION_FILE = $(SDK_ROOT)/version.h
 export VERSION = $(shell cat $(VERSION_FILE))
 export BUILD_DATE = $(shell date -uR)
-export STRIP = strip
+#export STRIP = strip
 
 # Define cross compiler
-ifeq ($(ARCH),arm)
+#ifeq ($(ARCH),arm)
 #	export CROSS_COMPILE = /home/yangmengyu/ip5000_web/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu-
 #	export CROSS = /home/yangmengyu/ip5000_web/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu-
 #	export OSDRV_CROSS = /home/yangmengyu/ip5000_web/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu
 #	export TOOLS_DIR = tools/arm/
 #	export HOST_NAME = /home/yangmengyu/ip5000_web/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu
 #	export CHOST=/home/yangmengyu/ip5000_web/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu
-	export CROSS_COMPILE = /opt/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu-
-	export CROSS = /opt/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu-
-	export OSDRV_CROSS = /opt/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu
-	export TOOLS_DIR = tools/arm/
-	export HOST_NAME = /opt/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu
-	export CHOST=/opt/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu
-else
-	export TOOLS_DIR = tools/x86/
-endif
+#else
+#	export TOOLS_DIR = tools/x86/
+#endif
 
-export CC := $(CROSS)gcc
-export CXX := $(CROSS)g++
-export AR := $(CROSS)ar
-export RANLIB := $(CROSS)ranlib
-export LINK = $(CROSS)gcc
-export LD := $(CROSS)ld
+export CC := $(CROSS_COMPILE)gcc
+export CXX := $(CROSS_COMPILE)g++
+export AR := $(CROSS_COMPILE)ar
+export RANLIB := $(CROSS_COMPILE)ranlib
+export LINK = $(CROSS_COMPILE)gcc
+export LD := $(CROSS_COMPILE)ld
 export STRIP = $(CROSS_COMPILE)strip
 
 
@@ -77,15 +70,7 @@ export DEV_NAME = web
 export DIR_NAME = $(DEV_NAME)_$(VERSION)
 export BIN_NAME = $(IMAGES_DIR)/$(DIR_NAME).bin
 
-export CUSTOM_DIR_NAME = $(SDK_ROOT)/custom_images
-export GBCMD_FILE = $(DIR_NAME).bin
-export CUSTOM_DATE= $(shell date "+%Y_%m_%d")
-#export CUSTOM_FILE = $(shell basename $(SDK_ROOT)/custom/A00/SC009_Custom_A00_$(VERSION)_$(CUSTOM_DATE).bin)
-export A00_CUSTOM_FILE = $(shell basename $(SDK_ROOT)/custom_images/A00/SC009_Custom_A00_$(VERSION)_$(CUSTOM_DATE).bin)
-export P10_CUSTOM_FILE = $(shell basename $(SDK_ROOT)/custom_images/P10/SC009_Custom_P10_$(VERSION)_$(CUSTOM_DATE).bin)
-export CUSTOM_FILE = SC009_Custom_$(VERSION)_$(CUSTOM_DATE).bin
-export CUSTOM_SETUP_FILE=$(SDK_ROOT)/rootfs_patch/basic/usr/local/bin/setupcustom.sh
-export ORIG_CUSTOM_CLEAR_FILE=$(SDK_ROOT)/rootfs_patch/basic/usr/local/bin/clearcustom.sh.current
+
 
 # End!!
 

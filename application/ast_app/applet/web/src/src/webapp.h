@@ -30,6 +30,7 @@
 #include <arpa/inet.h>
 
 #define MG_READ_BUFSIZE 	2*1024
+#define MAX_PARAM_LEN       128
 #define KEY_VALUE_SIZE      256
 #define MAX_KEY_VALUE_SIZE  1024
 
@@ -39,6 +40,28 @@ typedef struct P3kStatus
     Bool16 p3k_writeok;
     int p3k_start;
 }P3kStatus;
+
+typedef struct conn_state
+{
+    time_t last_poll;
+    int request_type;
+    FILE* fp;
+    char var[MAX_PARAM_LEN];
+    char boundary[MAX_PARAM_LEN];
+    long long flen;
+    unsigned int last_mjpeg_seq;
+}conn_state;
+
+enum {
+    request_default = 0,
+    request_fast_cgi,
+    request_mjpeg,
+    request_upload_logo,
+    request_upload_bg_pic,
+    request_dl_bmp,
+    request_dl_jpg
+};
+
 
 class CWeb
 {
@@ -96,23 +119,44 @@ public:
     static int         SetUsbHandle(struct mg_connection *conn, void *cbdata);
     static int         GetUsbHandle(struct mg_connection *conn, void *cbdata);
 
-
     // P3K
     static void        P3kStatusInit();
     static void 	   P3kWebsocketHandle(struct mg_connection *conn,char *data,size_t len);
     static void *      P3kCommunicationThread(void *arg);
     static void        CloseP3kSocket(void);
 
-    // 测p3k用线程
-    //static int        P3kTestHand();
-    //static int        SetP3k(struct mg_connection *conn, void *cbdata);
+    // 原5000
+    static int         ActionReqHandler(struct mg_connection *conn, void *cbdata);
+    static int         StreamReqHandler(struct mg_connection *conn, void *cbdata);
+    static int         UploadLogoReqHandler(struct mg_connection *conn, void *cbdata);
+    static int         UploadBgReqHandler(struct mg_connection *conn, void *cbdata);
+    static int         CapturebmpReqHandler(struct mg_connection *conn, void *cbdata);
+    static int         CapturejpgReqHandler(struct mg_connection *conn, void *cbdata);
+    static void *      MjpegStreamThread(void *param);
+
 private:
+    static conn_state* get_state(struct mg_connection * conn);
+    static long long get_time_ms(void);
+    static int SendBmpPic(struct mg_connection *conn, const char *path);
+    static int send_bmp_file(struct mg_connection *conn,const char * picpath);
+    static void update_jpg_preview_file(void);
 
 	static CMutex s_p3kmutex;
     static CCond s_p3kcond;
 	static int s_p3kSocket;
 	static struct mg_context * ctx;
     static P3kStatus s_p3kStatus;
+
+    static CMutex s_AliveStreamMutex;
+    static CMutex s_MjpegUsrCntMutex;
+    static CMutex s_MjpegMutex;
+    static CMutex s_BmpMutex;
+    static int s_mjpegUsrCnt;
+    static int s_KeepAliveWorker;
+    static int s_mjpegSeq;
+    static int s_mjpegEnable;
+    static long long s_LastUpdataTime;
+    static int s_mjpegIntevalMs;
 };
 
 
