@@ -35,11 +35,17 @@ MODULE_LICENSE ("GPL");
 #define IRS_WAIT_IR_RX 0
 #define IRS_WAIT_IR_TX 1
 
+
 #undef IR_NET_RX_TOKEN /* use single thread for IR net RX, no need to use rx token */
 
 #define IR_NET_TX_SOCKET_NUM 2 /* one for remote, one for local ir decode/learing */
 #define IR_NET_TX_SOCKET_INDEX_REMOTE 0
 #define IR_NET_TX_SOCKET_INDEX_LOCAL 1
+
+#define IR_TYPE_TX     0
+#define IR_TYPE_RX	   1
+
+int g_ir_type = IR_TYPE_TX; // 0: tx; 1:rx
 
 struct s_ir_dev
 {
@@ -189,6 +195,8 @@ static void eng_disable_int(void)
 
 static void eng_enable_rx_int(void)
 {
+	if(g_ir_type == IR_TYPE_TX) // tx
+		return;
 	/*
 	** Bruce110322. With the help of IR engine's "silent detection" and "timeout", IR engine can
 	** correctly detect both short and long IR button press commands. Also, we assume that the
@@ -340,10 +348,14 @@ static void ir_rx_restart(struct s_ir_dev *ir)
 	ir->rx_desc_idx = 0;
 	ir->tx_desc_idx = 0;
 
-	ir->state = IRS_WAIT_IR_RX;
 
-	eng_rx_init(ir->rx_desc_base_pa);
-	eng_enable_rx_int();
+	if(g_ir_type == IR_TYPE_RX)//rx
+	{
+		ir->state = IRS_WAIT_IR_RX;
+		eng_rx_init(ir->rx_desc_base_pa);
+		eng_enable_rx_int();
+	}
+	
 	eng_start();
 }
 
@@ -873,10 +885,32 @@ static ssize_t store_stop(struct device *dev, struct device_attribute *attr, con
 }
 static DEVICE_ATTR(stop, S_IWUSR, NULL, store_stop);
 
+static ssize_t store_type(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	unsigned long opt;
+	sscanf(buf, "%d", &opt);
+
+	if((opt == 0)||(opt == 1))//0:TX;1:RX;
+	{
+		g_ir_type = opt;
+
+		IR_info("store_type %d\n",g_ir_type);
+
+		if(g_ir_type == IR_TYPE_RX)
+		{
+			struct s_ir_dev *ir = &ir_dev;
+			ir_rx_restart(ir);	
+		}
+	}
+	return count;
+}
+static DEVICE_ATTR(type, (S_IRUGO | S_IWUSR), NULL, store_type);
+
 
 static struct attribute *dev_attrs[] = {
 	&dev_attr_unlink.attr,
 	&dev_attr_stop.attr,
+	&dev_attr_type.attr,
 	NULL,
 };
 
