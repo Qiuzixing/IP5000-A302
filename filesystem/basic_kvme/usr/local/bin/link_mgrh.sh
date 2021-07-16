@@ -1234,19 +1234,19 @@ handle_e_key()
 {
 	case "$*" in
 		e_key_enter)
-
+			send_key_info 1
 		;;
 		e_key_up)
-
+			send_key_info 2
 		;;
 		e_key_down)
-
+			send_key_info 3
 		;;
 		e_key_left)
-
+			send_key_info 4
 		;;
 		e_key_right)
-
+			send_key_info 5
 		;;
 		*)
 		;;

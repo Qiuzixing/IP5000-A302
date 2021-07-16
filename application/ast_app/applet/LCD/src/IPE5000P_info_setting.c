@@ -13,7 +13,7 @@
 #include "IPE5000P_info_setting.h"
 #include "msg_queue.h"
 
-pthread_mutex_t g_lock;
+pthread_mutex_t g_lock_P;
 
 //方向
 enum 
@@ -25,60 +25,60 @@ enum
 	RIGHT_KEY,
 };
 
-char ip_string[] = "192.168.060.213";
-char mask_string[] = "255.255.255.0";
-char gateway_string[] = "192.168.060.1";
+char ip_string_P[] = "192.168.060.213";
+char mask_string_P[] = "255.255.255.000";
+char gateway_string_P[] = "192.168.060.001";
 
-const char* MAIN_MENU_strings[] = {
+const char* MAIN_MENU_strings_P[] = {
 	"MAIN MENU", "IP SETTING", "INPUT SELECT", "EDID SETTING", "HDCP SETTING",
 	"FIRMWARE INFO", "DEVICE STATUS",
 };
 
-const char* INPUT_SELECT_strings[] = {
+const char* INPUT_SELECT_strings_P[] = {
 	"INPUT SELECT", "HDMI IN1", "HDMI IN2", "USB IN3",
 };
-const char *ACTIVE_INPUT[] = {
-	"INPUT SELECT", "HDMI IN1", "HDMI IN2", "USB IN3",
-};
-
-const char* INACTIVE_INPUT[] = {
+const char *ACTIVE_INPUT_P[] = {
 	"INPUT SELECT", "*HDMI IN1", "*HDMI IN2", "*USB IN3",
 };
 
+const char* INACTIVE_INPUT_P[] = {
+	"INPUT SELECT", "HDMI IN1", "HDMI IN2", "USB IN3",
+};
 
-const char* IP_SET_strings[] = {
+
+const char* IP_SET_strings_P[] = {
 	"IP SETTING", "LAN1 SETTING", "LAN2 SETTING", "LAN3 SETTING",
 };
 	
-const char* LAN_MODE_strings[] = {
-	"LAN1 MODE", "DHCP", "STATIC",
+const char* LAN_MODE_strings_P[] = {
+	"LAN MODE", "DHCP", "STATIC",
 };
 
-const char* LAN1_OPTION_strings[] = {
-	"LAN1 ADDR", "LAN1 MASK", "LAN1 GATEWAY",
+const char* LAN_OPTION_strings_P[] = {
+	"LAN INFO", "LAN ADDR", "LAN MASK", "LAN GATEWAY",
 };
 
-const char* INACTIVE_EDID_strings[] = {
+const char* INACTIVE_EDID_strings_P[] = {
 	"EDID SETTING", "PASS THRU", "EDID_2160P30", "EDID_SONY",
 };
 
-const char* ACTIVE_EDID_strings[] = {
+const char* ACTIVE_EDID_strings_P[] = {
 	"*EDID SETTING", "*PASS THRU", "*EDID_2160P30", "*EDID_SONY",
 };
 
-const char* SAVE_EDID_strings[] = {
+const char* SAVE_EDID_strings_P[] = {
 	"EDID SETTING", "PASS THRU", "EDID_2160P30", "EDID_SONY",
 };
 
-const char* FIRMWARE_strings[] = {
+const char* FIRMWARE_strings_P[] = {
 	"FIRMWARE INFO", "MODULE1 1.0.1", "MODULE1 1.0.2", "MODULE1 1.0.3",
 };
 
-const char* DEVICE_STATUS_strings[] = {
+const char* DEVICE_STATUS_strings_P[] = {
 	"DEVICE_STATUS", "STATUS1", "STATUS2", "STATUS3", 
 };
 
-const char* DHCP_strings[] = {
+const char* DHCP_strings_P[] = {
 	"DHCP SETTING", "DHCP ON", "DHCP OFF",
 };
 
@@ -92,17 +92,17 @@ typedef struct
 }info_param;
 
 //记录正在屏幕显示的字符串，一个屏幕最多显示4行.
-const char *MAIN_MENU_SHOWWING[4]	= 	{NULL, NULL, NULL, NULL}; 
-const char *INPUT_SELECT_SHOWWING[4] =  {NULL, NULL, NULL, NULL};
-const char *IP_SET_SHOWWING[4] 		= 	{NULL, NULL, NULL, NULL};
-const char *LAN_MODE_SHOWWING[4]	= 	{NULL, NULL, NULL, NULL};
-const char *LAN1_OPTION_SHOWWING[4] =	{NULL, NULL, NULL, NULL};
-const char *EDID_SHOWWING[4] 		= 	{NULL, NULL, NULL, NULL};
-const char *FIRMWARE_SHOWWING[4] 	= 	{NULL, NULL, NULL, NULL};
-const char *DEVICE_STATUS_SHOWWING[4] = {NULL, NULL, NULL, NULL};
+const char *MAIN_MENU_SHOWWING_P[4]	    = 	{NULL, NULL, NULL, NULL}; 
+const char *INPUT_SELECT_SHOWWING_P[4]  =    {NULL, NULL, NULL, NULL};
+const char *IP_SET_SHOWWING_P[4] 	    = 	{NULL, NULL, NULL, NULL};
+const char *LAN_MODE_SHOWWING_P[4]	    = 	{NULL, NULL, NULL, NULL};
+const char *LAN1_OPTION_SHOWWING_P[4]   =	{NULL, NULL, NULL, NULL};
+const char *EDID_SHOWWING_P[4] 		    = 	{NULL, NULL, NULL, NULL};
+const char *FIRMWARE_SHOWWING_P[4] 	    = 	{NULL, NULL, NULL, NULL};
+const char *DEVICE_STATUS_SHOWWING_P[4] =   {NULL, NULL, NULL, NULL};
 
 //记录中括号的X坐标位置
-static int move_limit = 0; 
+static int move_limit_P = 0; 
 
 /*
 	y: 显示起始列坐标,要取8的整数倍, 0, 8, 16 .... 8*15
@@ -111,7 +111,7 @@ static int move_limit = 0;
 	src: 从src中拿取字符串显示
 	count: 从src的拿去元素的个数, 最多只能拿三个
 */
-void show_menu_info(int y, u8 begin_elem, const char *dest[], const char *src[], u8 count) //2
+static void show_menu_info_P(int y, u8 begin_elem, const char *dest[], const char *src[], u8 count) //2
 {
 	//取剩下的显示，最多取三个
 	u8 x = 0;
@@ -127,7 +127,7 @@ void show_menu_info(int y, u8 begin_elem, const char *dest[], const char *src[],
 		dest[1+i] = src[begin_elem+i];
 	}
 	
-	move_limit = i*2; //选择框向下最大移动坐标
+	move_limit_P = i*2; //选择框向下最大移动坐标
 
 	for (i+=1; i < 4; i++)
 	{
@@ -145,7 +145,7 @@ void show_menu_info(int y, u8 begin_elem, const char *dest[], const char *src[],
 
 }
 
-info_param down_up_respond(int count, info_param param, const char* showwing_strings[], const char* src_string[], int key)
+static info_param down_up_respond_P(int count, info_param param, const char* showwing_strings[], const char* src_string[], int key)
 {
 	int x = param.x;
 	int y = param.y;
@@ -156,13 +156,13 @@ info_param down_up_respond(int count, info_param param, const char* showwing_str
 	{
 		//光标不移动才翻页
 		x += 2;	
-		if (x > move_limit) //X坐标超过最大值，取最大值
+		if (x > move_limit_P) //X坐标超过最大值，取最大值
 		{
-			x = move_limit;
+			x = move_limit_P;
 			
 			if (count > 4)//要超过4行才能翻页，
 			{
-				//p被上行键更改了 或者count <= 7时，p不会被上行键更改，但页面已经被向上翻页了，通过MAIN_MENU_SHOWWING[3],MAIN_MENU_strings[3]来判断是否是最后一页。
+				//p被上行键更改了 或者count <= 7时，p不会被上行键更改，但页面已经被向上翻页了，通过MAIN_MENU_SHOWWING[3],MAIN_MENU_strings_P[3]来判断是否是最后一页。
 				if ( (p + 3 < count) || (strcmp(showwing_strings[3], src_string[3]) == 0))
 				{
 					last_page = 0;	
@@ -173,13 +173,13 @@ info_param down_up_respond(int count, info_param param, const char* showwing_str
 					if (p + 3 < count) 
 					{	
 						clear_three_line();
-						show_menu_info(y, p, showwing_strings, src_string, 3); //数组是从0开始
+						show_menu_info_P(y, p, showwing_strings, src_string, 3); //数组是从0开始
 						p += 3;
 					}
 					else 
 					{
 						clear_three_line();
-						show_menu_info(y, p, showwing_strings, src_string, count-p);
+						show_menu_info_P(y, p, showwing_strings, src_string, count-p);
 						last_page = 1;
 					}
 					x = 2;
@@ -206,12 +206,12 @@ info_param down_up_respond(int count, info_param param, const char* showwing_str
 					{
 						p -= 3;
 						clear_three_line();
-						show_menu_info(y, p, showwing_strings, src_string, 3);
+						show_menu_info_P(y, p, showwing_strings, src_string, 3);
 					}
 					else //p==4
 					{
 						clear_three_line();
-						show_menu_info(y, p-3, showwing_strings, src_string, 3);
+						show_menu_info_P(y, p-3, showwing_strings, src_string, 3);
 					}
 					x = 2;
 				}
@@ -228,10 +228,10 @@ info_param down_up_respond(int count, info_param param, const char* showwing_str
 	return param;
 }
 
-static int recv_init()
+static int recv_init_P()
 {
 	int err = 0;
-	pthread_mutex_init(&g_lock, NULL);
+	pthread_mutex_init(&g_lock_P, NULL);
 	
 	err = msg_queue_destroy();
 	if (err != 0)
@@ -252,19 +252,19 @@ static int recv_init()
 	return 0;
 }
 
-static int recv_key_info()
+static int recv_key_info_P()
 {
 	int err = 0;
 	struct msg_buf msg;
 
-	pthread_mutex_lock(&g_lock);
+	pthread_mutex_lock(&g_lock_P);
 	err = msg_recv_state(&msg);
 	if (err == -1)
 	{
 		printf("msg_recv_state fail");
 		return -1;
 	}
-	pthread_mutex_unlock(&g_lock);
+	pthread_mutex_unlock(&g_lock_P);
 	
 	return msg.mtext[0];
 }
@@ -273,7 +273,7 @@ static int recv_key_info()
 int IPE5000P_MAIN_MENU_SHOW(void)
 {
 	printf("this is IPE5000P\n");
-	u8 count = sizeof(MAIN_MENU_strings)/(sizeof(char*));
+	u8 count = sizeof(MAIN_MENU_strings_P)/(sizeof(char*));
 	int p = 4; 
 	int y = 8;
 	int x = 2; //方括号位置
@@ -285,89 +285,176 @@ int IPE5000P_MAIN_MENU_SHOW(void)
 	param.p = p;
 	param.last_page = last_page;
 
-	if (recv_init() != 0)
+	if (recv_init_P() != 0)
 	{
-		printf("recv_init() fail - [%s:%d]\n", __func__, __LINE__);
+		printf("recv_init_P() fail - [%s:%d]\n", __func__, __LINE__);
 		return -1;
 	}
 	
 	clear_whole_screen();
-	show_strings(0, y, MAIN_MENU_strings[0], strlen(MAIN_MENU_strings[0]) ); 
-	show_menu_info(y, 1, MAIN_MENU_SHOWWING, MAIN_MENU_strings, count>4? 3 : count-1);
+	show_strings(0, y, MAIN_MENU_strings_P[0], strlen(MAIN_MENU_strings_P[0]) ); 
+	show_menu_info_P(y, 1, MAIN_MENU_SHOWWING_P, MAIN_MENU_strings_P, count>4? 3 : count-1);
 	show_square_breakets(x);
 	
 	int key = 0;
 	while (1)
 	{
-		key = recv_key_info();
-		
-		if (key == DOWN_KEY || key == UP_KEY)
+		key = recv_key_info_P();
+
+		switch (key)
 		{
-			param = down_up_respond(count, param, MAIN_MENU_SHOWWING, MAIN_MENU_strings, key);		
-		}
-		if (key == RIGHT_KEY || key == ENTER_KEY) //进入子目录
-		{
-			do {
-				if ( strcmp(MAIN_MENU_SHOWWING[param.x/2], MAIN_MENU_strings[1]) == 0) // "IP SETTING"
-				{
-					//进入二级目录IP SET显示界面
-					IP_SETTING_MENU_SHOW();
-					break;
-				}
-				
-				if ( strcmp(MAIN_MENU_SHOWWING[param.x/2], MAIN_MENU_strings[2]) == 0) //INPUT SELECT
-				{
-					INPUT_SELECT_SHOW();
-					break;
-				}
-				
-				if ( strcmp(MAIN_MENU_SHOWWING[param.x/2], MAIN_MENU_strings[3]) == 0) //  EDID SETTING"
-				{
-					EDID_SET();
-					break;
-				}
-				
-				if ( strcmp(MAIN_MENU_SHOWWING[param.x/2], MAIN_MENU_strings[4]) == 0) // HDCP SETTING
-				{
-					DHCP_SHOW();
-					break;
-				}
-				if ( strcmp(MAIN_MENU_SHOWWING[param.x/2], MAIN_MENU_strings[5]) == 0) //  FIRMWARE INFO
-				{
-					FIRMWARE_INFO_SHOW();
-					break;
-				}
-				if ( strcmp(MAIN_MENU_SHOWWING[param.x/2], MAIN_MENU_strings[5]) == 0) //  DEVICE STATUS
-				{
-					DEVICE_STATUS_SHOW();
-					break;
-				}
-				
-			}while(0);
-			
-			//从子目录出来， 回复显示这一级目录
-			int i;
-			for (i = 0; i < 4; i++)
+			case DOWN_KEY:
+			case UP_KEY:
 			{
-				show_strings(i*2, y, MAIN_MENU_SHOWWING[i], strlen(MAIN_MENU_SHOWWING[i]) ); 
+				param = down_up_respond_P(count, param, MAIN_MENU_SHOWWING_P, MAIN_MENU_strings_P, key);	
+				break;
 			}
-			
-			show_square_breakets(param.x);
-			
+			case RIGHT_KEY:
+			case ENTER_KEY:  //进入子目录
+			{
+				do {
+					if ( strcmp(MAIN_MENU_SHOWWING_P[param.x/2], MAIN_MENU_strings_P[1]) == 0) // "IP SETTING"
+					{
+						//进入二级目录IP SET显示界面
+						IP_SETTING_MENU_SHOW_P();
+						break;
+					}
+					
+					if ( strcmp(MAIN_MENU_SHOWWING_P[param.x/2], MAIN_MENU_strings_P[2]) == 0) //INPUT SELECT
+					{
+						INPUT_SELECT_SHOW_P();
+						break;
+					}
+					
+					if ( strcmp(MAIN_MENU_SHOWWING_P[param.x/2], MAIN_MENU_strings_P[3]) == 0) //  EDID SETTING"
+					{
+						EDID_SET_P();
+						break;
+					}
+					
+					if ( strcmp(MAIN_MENU_SHOWWING_P[param.x/2], MAIN_MENU_strings_P[4]) == 0) // HDCP SETTING
+					{
+						DHCP_SHOW_P();
+						break;
+					}
+					if ( strcmp(MAIN_MENU_SHOWWING_P[param.x/2], MAIN_MENU_strings_P[5]) == 0) //  FIRMWARE INFO
+					{
+						FIRMWARE_INFO_SHOW_P();
+						break;
+					}
+					if ( strcmp(MAIN_MENU_SHOWWING_P[param.x/2], MAIN_MENU_strings_P[6]) == 0) //  DEVICE STATUS
+					{
+						DEVICE_STATUS_SHOW_P();
+						break;
+					}
+
+					break;
+				}while(0);
+
+				clear_whole_screen();
+				//从子目录出来， 回复显示这一级目录
+				int i;
+				for (i = 0; i < 4; i++)
+				{
+					show_strings(i*2, y, MAIN_MENU_SHOWWING_P[i], strlen(MAIN_MENU_SHOWWING_P[i]) ); 
+				}
+				show_square_breakets(param.x);
+
+				for (i = 3; i > 0; i--)
+				{
+					//如果最后一页没有3个字符串，是用空格来填充MAIN_MENU_SHOWWING_P，move_limit_P括号向下移动X最大值
+					if (strlen(MAIN_MENU_SHOWWING_P[i]) != 1) 
+					{
+						move_limit_P = i*2;
+						break;
+					}
+				}
+				
+				break;
+			}
+			case LEFT_KEY: //这里最高一级目录，没有上一级目录
+			{
+				break;				
+			}
 		}
-		
-		if (key == LEFT_KEY) //这里最高一级目录，没有上一级目录
-		{
-			
-		}
-			
 	}
 }
 
 //二级目录
-void INPUT_SELECT_SHOW()
+static void INPUT_SELECT_SHOW_P()
 {
-	u8 count = sizeof(INPUT_SELECT_strings)/(sizeof(char*)); //IP_SET_strings的元素个数
+	u8 count = sizeof(INPUT_SELECT_strings_P)/(sizeof(char*)); //IP_SET_strings的元素个数
+	int p = 4; 
+	int y = 16;
+	int x = 2; //方括号位置
+	int last_page = 0;
+
+	info_param param;
+	param.x = x;
+	param.y = y;
+	param.p = p;
+	param.last_page = last_page;
+
+	clear_whole_screen();
+	show_strings(0, y, INPUT_SELECT_strings_P[0], strlen(INPUT_SELECT_strings_P[0]) ); 
+	show_menu_info_P(y, 1, INPUT_SELECT_SHOWWING_P, INPUT_SELECT_strings_P, count>4? 3 : count-1);
+	show_square_breakets(x);
+
+	int key = 0;
+	while (1)
+	{
+		key = recv_key_info_P();
+		switch (key)
+		{
+			case DOWN_KEY:
+			case UP_KEY:
+			{
+				param = down_up_respond_P(count, param, INPUT_SELECT_SHOWWING_P, INPUT_SELECT_strings_P, key);
+				break;
+			}
+			case RIGHT_KEY:
+			case ENTER_KEY: //确认
+			{
+				show_a_star(param.x); 
+				
+				int i, n;
+				for (i = 0; i < count; i++)
+				{
+					if (strstr(ACTIVE_INPUT_P[i], INPUT_SELECT_SHOWWING_P[param.x/2]))
+					{
+						//重新换一下牌，
+						for (n = 1; n < count; n++)
+						{
+							if (n == i)
+								INPUT_SELECT_strings_P[n] = ACTIVE_INPUT_P[n];
+							else
+								INPUT_SELECT_strings_P[n] = INACTIVE_INPUT_P[n];
+							//通知函数
+							
+						}
+							
+						break;
+					}
+				}	
+				
+				break;
+			}
+			
+			case LEFT_KEY:
+			{
+				return;
+			}
+		}
+
+	}
+	
+
+}
+
+//二级目录      2.1 IP SETTING菜单栏显示
+static void IP_SETTING_MENU_SHOW_P(void)
+{
+	u8 count = sizeof(IP_SET_strings_P)/(sizeof(char*)); //IP_SET_strings的元素个数
 	int p = 4; 
 	int y = 16;
 	int x = 2; //方括号位置
@@ -380,115 +467,71 @@ void INPUT_SELECT_SHOW()
 	param.last_page = last_page;
 
 	clear_whole_screen();
-	show_strings(0, y, INPUT_SELECT_strings[0], strlen(INPUT_SELECT_strings[0]) ); 
-	show_menu_info(y, 1, INPUT_SELECT_SHOWWING, INPUT_SELECT_strings, count>4? 3 : count-1);
+	show_strings(0, y, IP_SET_strings_P[0], strlen(IP_SET_strings_P[0]) ); 
+	show_menu_info_P(y, 1, IP_SET_SHOWWING_P, IP_SET_strings_P, count>4? 3 : count-1);
 	show_square_breakets(x);
 
 	int key = 0;
 	while (1)
 	{
-		key = recv_key_info();
-		if (key == DOWN_KEY || key == UP_KEY)
+		key = recv_key_info_P();
+		switch (key)
 		{
-			param = down_up_respond(count, param, INPUT_SELECT_SHOWWING, INPUT_SELECT_strings, key);
-		}
-		if (key == RIGHT_KEY || key == ENTER_KEY)//确认
-		{
-			show_a_star(param.x); 
-			
-			int i, n;
-			for (i = 0; i < count; i++)
+			case DOWN_KEY:
+			case UP_KEY:
 			{
-				if (strstr(ACTIVE_INPUT[i], INPUT_SELECT_SHOWWING[x/2]))
-				{
-					//重新换一下牌，
-					for (n = 0; n < count; n++)
+				param = down_up_respond_P(count, param, IP_SET_SHOWWING_P, IP_SET_strings_P, key);
+				break;
+			}
+
+			case RIGHT_KEY:
+			case ENTER_KEY: //进入子目录
+			{		
+				do {
+					if (strcmp(IP_SET_SHOWWING_P[param.x/2], IP_SET_strings_P[1]) == 0) 
 					{
-						if (n == i)
-							INPUT_SELECT_strings[n] = ACTIVE_INPUT[n];
-						else
-							INPUT_SELECT_strings[n] = INACTIVE_INPUT[n];
-						//通知函数
-						
+						LAN_MODE_MENU_SHOW_P();
+						break;
 					}
-						
-					break;
+					
+					if (strcmp(IP_SET_SHOWWING_P[param.x/2], IP_SET_strings_P[2]) == 0)
+					{
+						LAN_MODE_MENU_SHOW_P();
+						break;
+					}
+					
+					if (strcmp(IP_SET_SHOWWING_P[param.x/2], IP_SET_strings_P[3]) == 0)
+					{
+						LAN_MODE_MENU_SHOW_P();	
+						break;
+					}
+				} while(0);
+					
+				clear_whole_screen();			
+				//从子目录出来，继续显示
+				int i;
+				for (i = 0; i < 4; i++)
+				{
+					show_strings(i*2, y, IP_SET_SHOWWING_P[i], strlen(IP_SET_SHOWWING_P[i]) ); 
 				}
-			}			
-		}
-
-		if (key == LEFT_KEY)
-		{
-			clear_whole_screen();
-			break;
-		}
-
-	}
-	
-
-}
-
-//二级目录      2.1 IP SETTING菜单栏显示
-void IP_SETTING_MENU_SHOW(void)
-{
-	u8 count = sizeof(IP_SET_strings)/(sizeof(char*)); //IP_SET_strings的元素个数
-	int p = 4; 
-	int y = 8;
-	int x = 2; //方括号位置
-	int last_page = 0, first_page = 0;
-
-	info_param param;
-	param.x = x;
-	param.y = y;
-	param.p = p;
-	param.last_page = last_page;
-
-	clear_whole_screen();
-	show_strings(0, y, IP_SET_strings[0], strlen(IP_SET_strings[0]) ); 
-	show_menu_info(y, 1, IP_SET_SHOWWING, IP_SET_strings, count>4? 3 : count-1);
-	show_square_breakets(x);
-
-	int key = 0;
-	while (1)
-	{
-		key = recv_key_info();
-
-		if (key == DOWN_KEY || key == UP_KEY)
-		{
-			param = down_up_respond(count, param, IP_SET_SHOWWING, IP_SET_strings, key);
-		}
-		
-		if (key == RIGHT_KEY || key == ENTER_KEY)//进入子目录
-		{			
-			if (strcmp(IP_SET_SHOWWING[param.x/2], IP_SET_strings[1]) == 0) 
-			{
-				LAN_MODE_MENU_SHOW();
+				show_square_breakets(param.x);
+				
+				for (i = 3; i > 0; i--)
+				{
+					if (strlen(IP_SET_SHOWWING_P[i]) != 1) 
+					{
+						move_limit_P = i*2;
+						break;
+					}
+				}
+				
+				break;
 			}
 			
-			if (strcmp(IP_SET_SHOWWING[param.x/2], IP_SET_strings[2]) == 0)
-			{
-				LAN_MODE_MENU_SHOW();
+			case LEFT_KEY: //返回上一级目录
+			{	
+				return;
 			}
-			
-			if (strcmp(IP_SET_SHOWWING[param.x/2], IP_SET_strings[3]) == 0)
-			{
-				LAN_MODE_MENU_SHOW();				
-			}
-			
-			//从子目录出来，继续显示
-			int i;
-			for (i = 0; i < 4; i++)
-			{
-				show_strings(i*2, y, IP_SET_SHOWWING[i], strlen(IP_SET_SHOWWING[i]) ); 
-			}
-			
-			show_square_breakets(param.x);
-		}
-	
-		if (key == LEFT_KEY) //返回上一级目录
-		{	
-			clear_whole_screen();
-			break;
 		}
 		
 	} 
@@ -496,114 +539,119 @@ void IP_SETTING_MENU_SHOW(void)
 }
 
 //三级目录 LAN MODE 菜单栏显示
-void LAN_MODE_MENU_SHOW(void) //DHCP OR STATIC
+static void LAN_MODE_MENU_SHOW_P(void) //DHCP OR STATIC
 {
-	//su8 count = sizeof(LAN_MODE_strings)/(sizeof(char*)); //IP_SET_strings的元素个数
+	//su8 count = sizeof(LAN_MODE_strings_P)/(sizeof(char*)); //IP_SET_strings的元素个数
  
 	int y = 16; //有*要显示
 	int x = 2; //方括号位置
 
 	clear_whole_screen();
-	show_strings(0, y, LAN_MODE_strings[0], strlen(LAN_MODE_strings[0]) ); 
-	show_menu_info(y, 1, LAN_MODE_SHOWWING, LAN_MODE_strings, 2);
+	show_strings(0, y, LAN_MODE_strings_P[0], strlen(LAN_MODE_strings_P[0]) ); 
+	show_menu_info_P(y, 1, LAN_MODE_SHOWWING_P, LAN_MODE_strings_P, 2);
 	show_square_breakets(x);
 
 	int key = 0;  
 	while(1)
 	{
-		key = recv_key_info();
-		
-		if (key == DOWN_KEY) 
+		key = recv_key_info_P();
+		switch (key)
 		{
-			x += 2;
-			if (x <= 4)
+			case DOWN_KEY:
 			{
-				show_square_breakets(x);
-			}
-			else
-			{
-				x = 4;
-			}
-		}
-		
-		if (key == UP_KEY)
-		{	
-			x -= 2;
-			if (x >= 2)
-			{
-				show_square_breakets(x);
-			}
-			else
-			{
-				x = 2;
-			}
-		}
-		
-		if (key == RIGHT_KEY || key == ENTER_KEY) 		//进入子目录
-		{			
-			u8 m;
-			show_a_star(x);			//[]在哪里，* 就显示在哪里行
-			if (x == 2)
-			{
-				//显示内容变化
-				LAN_MODE_SHOWWING[1] = LAN_MODE_strings[1] = "*DHCP";
-				LAN_MODE_SHOWWING[2] = LAN_MODE_strings[2] = "STATIC";
-				
-				DHCP_strings[1] = "*DHCP ON";
-				DHCP_strings[2] = "DHCP 0FF";
-				//通知函数
-				
-			}
-			
-			if (x == 4) 			//选择static
-			{
-				//显示内容变化
-				LAN_MODE_SHOWWING[1] = LAN_MODE_strings[1] = "DHCP";
-				LAN_MODE_SHOWWING[2] = LAN_MODE_strings[2] = "*STATIC";
-				
-				DHCP_strings[1] = "DHCP ON";
-				DHCP_strings[2] = "*DHCP 0FF";
-				
-				//通知函数
-				
-				//这里设置IP 
-				LAN_OPTION_SHOW();
-			}
-			
-			//继续显示这一级目录
-			int i;
-			for (i = 0; i < 3; i++)
-			{
-				if (LAN_MODE_SHOWWING[i][0] == '*')
-					show_strings(i*2, y-8, LAN_MODE_SHOWWING[i], strlen(LAN_MODE_SHOWWING[i]) );
+				x += 2;
+				if (x <= 4)
+				{
+					show_square_breakets(x);
+				}
 				else
-					show_strings(i*2, y, LAN_MODE_SHOWWING[i], strlen(LAN_MODE_SHOWWING[i]) ); 
+				{
+					x = 4;
+				}
+				
+				break;
 			}
 			
-			show_square_breakets(x);
-			
-		}
-		
-		if (key == LEFT_KEY)//返回上一级
-		{
-			clear_whole_screen();
-			break;
+			case UP_KEY:
+			{	
+				x -= 2;
+				if (x >= 2)
+				{
+					show_square_breakets(x);
+				}
+				else
+				{
+					x = 2;
+				}
+				
+				break;
+			}
+
+			case RIGHT_KEY:
+			case ENTER_KEY: //进入子目录		
+			{			
+				u8 m;
+				show_a_star(x);			//[]在哪里，* 就显示在哪里行
+				if (x == 2)
+				{
+					//显示内容变化
+					LAN_MODE_SHOWWING_P[1] = LAN_MODE_strings_P[1] = "*DHCP";
+					LAN_MODE_SHOWWING_P[2] = LAN_MODE_strings_P[2] = "STATIC";
+					
+					DHCP_strings_P[1] = "*DHCP ON";
+					DHCP_strings_P[2] = "DHCP 0FF";
+					//通知函数
+					
+				}
+				
+				if (x == 4) 			//选择static
+				{
+					//显示内容变化
+					LAN_MODE_SHOWWING_P[1] = LAN_MODE_strings_P[1] = "DHCP";
+					LAN_MODE_SHOWWING_P[2] = LAN_MODE_strings_P[2] = "*STATIC";
+					
+					DHCP_strings_P[1] = "DHCP ON";
+					DHCP_strings_P[2] = "*DHCP 0FF";
+					
+					//通知函数
+					
+					//这里设置IP 
+					LAN_OPTION_SHOW_P();
+				}
+				//继续显示这一级目录
+				int i;
+				for (i = 0; i < 3; i++)
+				{
+					if (LAN_MODE_SHOWWING_P[i][0] == '*')
+						show_strings(i*2, y-8, LAN_MODE_SHOWWING_P[i], strlen(LAN_MODE_SHOWWING_P[i]) );
+					else
+						show_strings(i*2, y, LAN_MODE_SHOWWING_P[i], strlen(LAN_MODE_SHOWWING_P[i]) ); 
+				}
+				
+				show_square_breakets(x);
+
+				break;
+			}
+
+			case LEFT_KEY: //返回上一级
+			{
+				return;
+			}
 		}
  }
 }
 
 //四级目录 
-void LAN_OPTION_SHOW() //ip mask gateway
+static void LAN_OPTION_SHOW_P() //ip mask gateway
 {	
-	int y = 8;
-	int x = 0; //方括号位置
-
-	u8 i, begin_num = 1;
+	int y = 16;
+	int x = 2; //方括号位置
+	u8 i;
 
 	clear_whole_screen();
-	for (i = 0; i < 3; i++)
+	for (i = 0; i < 4; i++)
 	{
-		show_strings(i*2, y, LAN1_OPTION_strings[i], strlen(LAN1_OPTION_strings[i]) );
+		show_strings(i*2, y, LAN_OPTION_strings_P[i], strlen(LAN_OPTION_strings_P[i]) );
 	}
 	show_square_breakets(x);
 		
@@ -611,60 +659,73 @@ void LAN_OPTION_SHOW() //ip mask gateway
 	
 	while(1)
 	{
-		key = recv_key_info();
-		if (key == DOWN_KEY)
-		{			
-			x += 2;
-			if ( x <= 4)
-			{
-				show_square_breakets(x);
-			}
-			else
-				x = 4;
-		}
-		
-		if (key == UP_KEY)
+		key = recv_key_info_P();
+		switch (key)
 		{
-			x -= 2;
-			if (x >= 0)
-			{
-				show_square_breakets(x);
+			case DOWN_KEY:
+			{			
+				x += 2;
+				if ( x <= 6)
+				{
+					show_square_breakets(x);
+				}
+				else
+					x = 6;
+				break;
 			}
-			else
-				x = 0;
-		}
-		
-		if (key == RIGHT_KEY || key == ENTER_KEY)
-		{
-			//ip设置
-			if (x == 0) 
+			
+			case UP_KEY:
 			{
-				LAN_INFO_SET(0, ip_string, strlen(ip_string));
-			}
-			if (x == 2) 
-			{
-				LAN_INFO_SET(1, mask_string, strlen(mask_string));
-			}
-			if (x == 4) 
-			{
-				LAN_INFO_SET(2, gateway_string, strlen(gateway_string));
+				x -= 2;
+				if (x >= 2)
+				{
+					show_square_breakets(x);
+				}
+				else
+					x = 2;
+				
+				break;
 			}
 
-			clear_whole_screen();
-			int i;
-			for (i = 0; i < 3; i++)
+			case RIGHT_KEY:
+			case ENTER_KEY:
 			{
-				show_strings(i*2, y, LAN1_OPTION_strings[i], strlen(LAN1_OPTION_strings[i]) ); 
+				do {
+					//ip设置
+					if (x == 2)
+					{
+						LAN_INFO_SET_P(0, ip_string_P, strlen(ip_string_P));
+						break;
+					}
+					if (x == 4) 
+					{
+						LAN_INFO_SET_P(1, mask_string_P, strlen(mask_string_P));
+						break;
+					}
+					if (x == 6) 
+					{
+						LAN_INFO_SET_P(2, gateway_string_P, strlen(gateway_string_P));
+						break;
+					}
+				} while (0);
+					
+				clear_whole_screen();
+				int i;
+				for (i = 0; i < 4; i++)
+				{
+					show_strings(i*2, y, LAN_OPTION_strings_P[i], strlen(LAN_OPTION_strings_P[i]) ); 
+				}
+				
+				show_square_breakets(x);
+
+				break;
 			}
-			
-			show_square_breakets(x);
-			
-		}
-			
-		if (key == LEFT_KEY) //上一级目录
-		{
-			clear_whole_screen();
-			break;
+
+			case LEFT_KEY: //上一级目录 
+			{
+				clear_whole_screen();
+				return;
+			}
 		}
 
 	}
@@ -672,79 +733,95 @@ void LAN_OPTION_SHOW() //ip mask gateway
 }
 
 //五级目录 LAN INFO set
-void LAN_INFO_SET(u8 offset, char *string, u8 lenth)  //注意ip显示的起始位置，
+/*
+	offset: LAN_OPTION_strings_P中的偏移量。
+	string：要显示的字符串。
+	lenth：string的长度。
+*/
+static void LAN_INFO_SET_P(u8 offset, char *string, u8 lenth)  //注意ip显示的起始位置，
 {
 	u8 x = 0, y = 16, y1 = 0;
 	int i = 0;
-
+	int key = 0; 
+	
 	clear_whole_screen();
-	show_strings(x, y, LAN1_OPTION_strings[offset], strlen(LAN1_OPTION_strings[offset])); //显示标题
+	show_strings(x, y, LAN_OPTION_strings_P[offset], strlen(LAN_OPTION_strings_P[offset])); //显示标题
 	show_strings(x+2, y1, string, strlen(string));
-	int key = 0;  
+	
+	//显示下划线
+	show_a_char(x+2, y1, string[0], 1);
 	
 	while(1)
 	{
-		key = recv_key_info();
+		key = recv_key_info_P();
 		
-		if (key == DOWN_KEY)
+		switch (key)
 		{
-			if (string[i] < '9')
+			case DOWN_KEY:
 			{
-				string[i]++;
+				if (string[i] < '9')
+				{
+					string[i]++;
+				}
+				else
+				{
+					string[i] = '0';
+				}
+				show_a_char(x+2, i*8, string[i], 1);//1
+				break;
 			}
-			else
-			{
-				string[i] = '0';
-			}
-			show_a_char(x+2, i*8, string[i], 1);//1
-		}
-		
-		if (key == UP_KEY)
-		{
-			
-			if (string[i] > '0')
-			{
-				string[i]--;
-			}
-			else
-			{
-				string[i] = '9';
-			}
-			show_a_char(x+2, i*8, string[i], 1); //1
-		}
 
-		if (key == RIGHT_KEY) //总共15位
-		{
-			show_a_char(x+2, i*8, string[i], 0); //取消原来位置的光标
-			i++;
-			if (i == 3 || i == 7 || i == 11)  //跳过'.',
+			case UP_KEY:
+			{
+				
+				if (string[i] > '0')
+				{
+					string[i]--;
+				}
+				else
+				{
+					string[i] = '9';
+				}
+				show_a_char(x+2, i*8, string[i], 1); //1
+				break;
+			}
+
+			case RIGHT_KEY: //总共15位
+			{
+				show_a_char(x+2, i*8, string[i], 0); //取消原来位置的光标
 				i++;
-			
-			if (i > 14)
-				i = 0;
-			show_a_char(x+2, i*8, string[i], 1); //在新位置上显示光标 //1
-		}
-		
-		if (key == LEFT_KEY)
-		{
-			show_a_char(x+2, i*8, string[i], 0); 
-			i--;
-			
-			if (i == 3 || i == 7 || i == 11)  //跳过'.',
-				i--;
-			
-			if (i < 0)
-				i = 14;
-			show_a_char(x+2, i*8, string[i], 1);//1
-		}
+				if (i == 3 || i == 7 || i == 11)  //跳过'.',
+					i++;
+				
+				if (i > 14)
+					return;
+					//i = 0;
+				show_a_char(x+2, i*8, string[i], 1); //在新位置上显示光标 //1
+				break;
+			}
 
-		if (key == ENTER_KEY)
-		{
-			show_a_char(x+2, i*8, string[i], 0); //取消原来位置的光标
-			//通知函数
-			clear_whole_screen();
-			//光标回退标题栏
-			break;
+			case LEFT_KEY:
+			{
+				show_a_char(x+2, i*8, string[i], 0); 
+				i--;
+				
+				if (i == 3 || i == 7 || i == 11)  //跳过'.',
+					i--;
+				
+				if (i < 0)
+					i = 14;
+				show_a_char(x+2, i*8, string[i], 1);//1
+				break;
+			}
+
+			case ENTER_KEY:
+			{
+				show_a_char(x+2, i*8, string[i], 0); //取消原来位置的光标
+				//通知函数
+				
+				//返回上一级目录
+				return;
+			}
 		}
 		
 	}
@@ -752,9 +829,9 @@ void LAN_INFO_SET(u8 offset, char *string, u8 lenth)  //注意ip显示的起始�
 
 
 //二级目录， 2.2EDID_SET
-void EDID_SET(void)
+static void EDID_SET_P(void)
 {
-	u8 count = sizeof(SAVE_EDID_strings)/(sizeof(char*));
+	u8 count = sizeof(SAVE_EDID_strings_P)/(sizeof(char*));
 	int p = 4; 
 	int y = 16; //有*要显示
 	int x = 2; //方括号位置
@@ -767,47 +844,53 @@ void EDID_SET(void)
 	param.last_page = last_page;
 
 	clear_whole_screen();  //新一级的目录，清屏
-	show_strings(0, y, SAVE_EDID_strings[0], strlen(SAVE_EDID_strings[0]) ); 
-	show_menu_info(y, 1, EDID_SHOWWING, SAVE_EDID_strings, count>4? 3 : count-1);
+	show_strings(0, y, SAVE_EDID_strings_P[0], strlen(SAVE_EDID_strings_P[0]) ); 
+	show_menu_info_P(y, 1, EDID_SHOWWING_P, SAVE_EDID_strings_P, count>4? 3 : count-1);
 	show_square_breakets(x);
 	int key = 0;  
 
 	while(1)
 	{
-		key = recv_key_info();
-		
-		if (key == DOWN_KEY || key == UP_KEY)
-			param = down_up_respond(count, param, EDID_SHOWWING, SAVE_EDID_strings, key);
+		key = recv_key_info_P();
 
-		if (key == RIGHT_KEY || key == ENTER_KEY) //标记*号
-		{			
-			show_a_star(param.x); 
-			
-			int i, n;
-			for (i = 0; i < count; i++)
-			{
-				if (strstr(ACTIVE_EDID_strings[i], EDID_SHOWWING[x/2]))
-				{
-					//重新换一下牌，
-					for (n = 0; n < count; n++)
-					{
-						if (n == i)
-							SAVE_EDID_strings[n] = ACTIVE_EDID_strings[n];
-						else
-							SAVE_EDID_strings[n] = INACTIVE_EDID_strings[n];
-						//通知函数
-					}
-						
-					break;
-				}
-			}
-			
-		}
-		
-		if (key == LEFT_KEY) 
+		switch (key)
 		{
-			clear_whole_screen();
-			break;
+			case DOWN_KEY:
+			case UP_KEY:
+			{
+				param = down_up_respond_P(count, param, EDID_SHOWWING_P, SAVE_EDID_strings_P, key);
+				break;
+			}
+			case RIGHT_KEY:
+			case ENTER_KEY: //标记*号 
+			{			
+				show_a_star(param.x); 
+				
+				int i, n;
+				for (i = 1; i < count; i++)
+				{
+					if (strstr(ACTIVE_EDID_strings_P[i], EDID_SHOWWING_P[param.x/2]))
+					{
+						//重新换一下牌，
+						for (n = 0; n < count; n++)
+						{
+							if (n == i)
+								SAVE_EDID_strings_P[n] = ACTIVE_EDID_strings_P[n];
+							else
+								SAVE_EDID_strings_P[n] = INACTIVE_EDID_strings_P[n];
+							//通知函数
+						}
+							
+						break;
+					}
+				}
+				break;
+			}
+
+			case LEFT_KEY:
+			{
+				return;
+			}
 		}
 
 	}
@@ -815,7 +898,7 @@ void EDID_SET(void)
 }
 
 //二级目录，DHCP show
-void DHCP_SHOW() //仅展示
+static void DHCP_SHOW_P() //仅展示
 {
 	u8 y = 16;
 	clear_whole_screen();
@@ -823,29 +906,28 @@ void DHCP_SHOW() //仅展示
 	int i;
 	for (i = 0; i < 3; i++)
 	{
-		if (DHCP_strings[i][0] == '*')
-			show_strings(i*2, y-8, DHCP_strings[i], strlen(DHCP_strings[i]));
+		if (DHCP_strings_P[i][0] == '*')
+			show_strings(i*2, y-8, DHCP_strings_P[i], strlen(DHCP_strings_P[i]));
 		else
-			show_strings(i*2, y, DHCP_strings[i], strlen(DHCP_strings[i]));
+			show_strings(i*2, y, DHCP_strings_P[i], strlen(DHCP_strings_P[i]));
 	}
 	
 	int key = 0;  
 	
 	while(1)
 	{
-		key = recv_key_info();
+		key = recv_key_info_P();
 		if (key == LEFT_KEY)
 		{
-			clear_whole_screen();
 			break;
 		}
 	}
 }
 
 //二级目录
-void FIRMWARE_INFO_SHOW() //仅展示
+static void FIRMWARE_INFO_SHOW_P() //仅展示
 {
-	u8 count = sizeof(FIRMWARE_strings)/(sizeof(char*));
+	u8 count = sizeof(FIRMWARE_strings_P)/(sizeof(char*));
 	int p = 4; 
 	int y = 8;
 	int x = 2; //方括号位置
@@ -858,34 +940,37 @@ void FIRMWARE_INFO_SHOW() //仅展示
 	param.last_page = last_page;
 
 	clear_whole_screen();
-	show_strings(0, y, FIRMWARE_strings[0], strlen(FIRMWARE_strings[0]) ); 
-	show_menu_info(y, 1, FIRMWARE_SHOWWING, FIRMWARE_strings, count>4? 3 : count-1);
+	show_strings(0, y, FIRMWARE_strings_P[0], strlen(FIRMWARE_strings_P[0]) ); 
+	show_menu_info_P(y, 1, FIRMWARE_SHOWWING_P, FIRMWARE_strings_P, count>4? 3 : count-1);
 	show_square_breakets(x);
 
 	int key = 0;  
 	while(1)
 	{
-		key = recv_key_info();
+		key = recv_key_info_P();
 		
-		if (key == DOWN_KEY || key == UP_KEY)
-		param = down_up_respond(count, param, FIRMWARE_SHOWWING, FIRMWARE_strings, key);
-
-		if (key == LEFT_KEY)  //返回上一级目录
+		switch (key)
 		{
-			clear_whole_screen();
-			break;
+			case DOWN_KEY:
+			case UP_KEY:
+			{
+				param = down_up_respond_P(count, param, FIRMWARE_SHOWWING_P, FIRMWARE_strings_P, key);
+				break;
+			}
+			case LEFT_KEY:  //返回上一级目录
+			{
+				return;
+			}
 		}
-
 	}
-
 }
 
 //二级目录
-void DEVICE_STATUS_SHOW() //仅展示
+static void DEVICE_STATUS_SHOW_P() //仅展示
 {
-	u8 count = sizeof(DEVICE_STATUS_strings)/(sizeof(char*));
+	u8 count = sizeof(DEVICE_STATUS_strings_P)/(sizeof(char*));
 	int p = 4; 
-	int y = 8;
+	int y = 16;
 	int x = 2; //方括号位置
 	int last_page = 0, first_page = 0;
 	
@@ -896,21 +981,26 @@ void DEVICE_STATUS_SHOW() //仅展示
 	param.last_page = last_page;
 
 	clear_whole_screen();
-	show_strings(0, y, DEVICE_STATUS_strings[0], strlen(DEVICE_STATUS_strings[0]) ); 
-	show_menu_info(y, 1, DEVICE_STATUS_SHOWWING, DEVICE_STATUS_strings, count>4? 3 : count-1);
+	show_strings(0, y, DEVICE_STATUS_strings_P[0], strlen(DEVICE_STATUS_strings_P[0]) ); 
+	show_menu_info_P(y, 1, DEVICE_STATUS_SHOWWING_P, DEVICE_STATUS_strings_P, count>4? 3 : count-1);
 	show_square_breakets(x);
 
 	int key = 0;  
 	while(1)
 	{
-		key = recv_key_info();
-		
-		param = down_up_respond(count, param, DEVICE_STATUS_SHOWWING, DEVICE_STATUS_strings, key);
-		
-		if (key == LEFT_KEY)  //返回上一级目录
+		key = recv_key_info_P();
+		switch (key)
 		{
-			clear_whole_screen();
-			break;
+			case DOWN_KEY:
+			case UP_KEY:
+			{
+				param = down_up_respond_P(count, param, DEVICE_STATUS_SHOWWING_P, DEVICE_STATUS_strings_P, key);
+				break;
+			}
+			case LEFT_KEY:  //返回上一级目录
+			{
+				return;
+			}
 		}
 	}
 	

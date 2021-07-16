@@ -24,8 +24,8 @@ enum
 };
 
 char ip_string_D[] = "192.168.060.213";
-char mask_string_D[] = "255.255.255.0";
-char gateway_string_D[] = "192.168.060.1";
+char mask_string_D[] = "255.255.255.000";
+char gateway_string_D[] = "192.168.060.001";
 
 const char* MAIN_MENU_strings_D[] = {
 	"MAIN MENU", "IP SETTING", "VIDEO IN", "HDCP SETTING",
@@ -37,11 +37,11 @@ const char* IP_SET_strings_D[] = {
 };
 	
 const char* LAN_MODE_strings_D[] = {
-	"LAN1 MODE", "DHCP", "STATIC",
+	"LAN MODE", "DHCP", "STATIC",
 };
 
-const char* LAN1_OPTION_strings_D[] = {
-	"LAN1 ADDR", "LAN1 MASK", "LAN1 GATEWAY",
+const char* LAN_OPTION_strings_D[] = {
+	"LAN INFO", "LAN ADDR", "LAN MASK", "LAN GATEWAY",
 };
 
 //VIDEO IN
@@ -350,7 +350,8 @@ int IPD5000_MAIN_MENU_SHOW(void)
 						break;
 					}
 				}while(0);
-				
+
+				clear_whole_screen();
 				//从子目录出来， 恢复显示这一级目录
 				int i;
 				for (i = 0; i < 4; i++)
@@ -358,6 +359,15 @@ int IPD5000_MAIN_MENU_SHOW(void)
 					show_strings(i*2, y, MAIN_MENU_SHOWWING_D[i], strlen(MAIN_MENU_SHOWWING_D[i]) ); 
 				}
 				show_square_breakets(param.x);
+
+				for (i = 3; i > 0; i--)
+				{
+					if (strlen(MAIN_MENU_SHOWWING_D[i]) != 1) 
+					{
+						move_limit_D = i*2;
+						break;
+					}
+				}
 				
 				break;
 			}
@@ -374,7 +384,7 @@ void IP_SETTING_MENU_SHOW_D(void)
 {
 	u8 count = sizeof(IP_SET_strings_D)/(sizeof(char*)); //IP_SET_strings的元素个数
 	int p = 4; 
-	int y = 8;
+	int y = 16;
 	int x = 2; //方括号位置
 	int last_page = 0, first_page = 0;
 
@@ -406,29 +416,44 @@ void IP_SETTING_MENU_SHOW_D(void)
 			case RIGHT_KEY:
 			case ENTER_KEY:
 			{
-				if (strcmp(IP_SET_SHOWWING_D[param.x/2], IP_SET_strings_D[1]) == 0) 
-				{
-					LAN_MODE_MENU_SHOW_D();
-				}
-				
-				if (strcmp(IP_SET_SHOWWING_D[param.x/2], IP_SET_strings_D[2]) == 0)
-				{
-					LAN_MODE_MENU_SHOW_D();
-				}
-				
-				if (strcmp(IP_SET_SHOWWING_D[param.x/2], IP_SET_strings_D[3]) == 0)
-				{
-					LAN_MODE_MENU_SHOW_D();				
-				}
-				
+				do {
+					if (strcmp(IP_SET_SHOWWING_D[param.x/2], IP_SET_strings_D[1]) == 0) 
+					{
+						LAN_MODE_MENU_SHOW_D();
+						break;
+					}
+					
+					if (strcmp(IP_SET_SHOWWING_D[param.x/2], IP_SET_strings_D[2]) == 0)
+					{
+						LAN_MODE_MENU_SHOW_D();
+						break;
+					}
+					
+					if (strcmp(IP_SET_SHOWWING_D[param.x/2], IP_SET_strings_D[3]) == 0)
+					{
+						LAN_MODE_MENU_SHOW_D();		
+						break;
+					}
+				} while(0);
+					
+				clear_whole_screen();
 				//从子目录出来，继续显示
 				int i;
 				for (i = 0; i < 4; i++)
 				{
 					show_strings(i*2, y, IP_SET_SHOWWING_D[i], strlen(IP_SET_SHOWWING_D[i]) ); 
 				}
-				
 				show_square_breakets(param.x);
+
+				for (i = 3; i > 0; i--)
+				{
+					if (strlen(IP_SET_SHOWWING_D[i]) != 1) 
+					{
+						move_limit_D = i*2;
+						break;
+					}
+				}
+				
 				break;
 			}
 		
@@ -522,7 +547,7 @@ void LAN_MODE_MENU_SHOW_D(void) //DHCP OR STATIC
 					//这里设置IP 
 					LAN_OPTION_SHOW_D();
 				}
-		
+
 				//继续显示这一级目录
 				int i;
 				for (i = 0; i < 3; i++)
@@ -552,15 +577,15 @@ void LAN_MODE_MENU_SHOW_D(void) //DHCP OR STATIC
 //四级目录 
 void LAN_OPTION_SHOW_D() //ip mask gateway
 {	
-	int y = 8;
-	int x = 0; //方括号位置
+	int y = 16;
+	int x = 2; //方括号位置
 
 	u8 i, begin_num = 1;
 
 	clear_whole_screen();
-	for (i = 0; i < 3; i++)
+	for (i = 0; i < 4; i++)
 	{
-		show_strings(i*2, y, LAN1_OPTION_strings_D[i], strlen(LAN1_OPTION_strings_D[i]) );
+		show_strings(i*2, y, LAN_OPTION_strings_D[i], strlen(LAN_OPTION_strings_D[i]) );
 	}
 	show_square_breakets(x);
 
@@ -573,12 +598,12 @@ void LAN_OPTION_SHOW_D() //ip mask gateway
 			case DOWN_KEY:
 			{
 				x += 2;
-				if ( x <= 4)
+				if ( x <= 6)
 				{
 					show_square_breakets(x);
 				}
 				else
-					x = 4;
+					x = 6;
 				
 				break;
 			}
@@ -586,12 +611,12 @@ void LAN_OPTION_SHOW_D() //ip mask gateway
 			case UP_KEY:
 			{
 				x -= 2;
-				if (x >= 0)
+				if (x >= 2)
 				{
 					show_square_breakets(x);
 				}
 				else
-					x = 0;
+					x = 2;
 				
 				break;
 			}
@@ -599,25 +624,30 @@ void LAN_OPTION_SHOW_D() //ip mask gateway
 			case RIGHT_KEY:
 			case ENTER_KEY:
 			{
-				//ip设置
-				if (x == 0) 
-				{
-					LAN_INFO_SET_D(0, ip_string_D, strlen(ip_string_D));
-				}
-				if (x == 2) 
-				{
-					LAN_INFO_SET_D(1, mask_string_D, strlen(mask_string_D));
-				}
-				if (x == 4) 
-				{
-					LAN_INFO_SET_D(2, gateway_string_D, strlen(gateway_string_D));
-				}
-
+				do {
+					//ip设置
+					if (x == 2) 
+					{
+						LAN_INFO_SET_D(0, ip_string_D, strlen(ip_string_D));
+						break;
+					}
+					if (x == 4) 
+					{
+						LAN_INFO_SET_D(1, mask_string_D, strlen(mask_string_D));
+						break;
+					}
+					if (x == 6) 
+					{
+						LAN_INFO_SET_D(2, gateway_string_D, strlen(gateway_string_D));
+						break;
+					}
+				} while (0);
 				clear_whole_screen();
+				//继续显示这一级目录
 				int i;
-				for (i = 0; i < 3; i++)
+				for (i = 0; i < 4; i++)
 				{
-					show_strings(i*2, y, LAN1_OPTION_strings_D[i], strlen(LAN1_OPTION_strings_D[i]) ); 
+					show_strings(i*2, y, LAN_OPTION_strings_D[i], strlen(LAN_OPTION_strings_D[i]) ); 
 				}
 				
 				show_square_breakets(x);
@@ -627,6 +657,7 @@ void LAN_OPTION_SHOW_D() //ip mask gateway
 				
 			case LEFT_KEY: //返回上一级目录
 			{
+				clear_whole_screen();
 				return;
 			}
 		}
@@ -640,12 +671,13 @@ void LAN_INFO_SET_D(u8 offset, char *string, u8 lenth)  //注意ip显示的起�
 {
 	u8 x = 0, y = 16, y1 = 0;
 	int i = 0;
+	int key = 0;
 
 	clear_whole_screen();
-	show_strings(x, y, LAN1_OPTION_strings_D[offset], strlen(LAN1_OPTION_strings_D[offset])); //显示标题
+	show_strings(x, y, LAN_OPTION_strings_D[offset], strlen(LAN_OPTION_strings_D[offset])); //显示标题
 	show_strings(x+2, y1, string, strlen(string));
-
-	int key = 0;
+	show_a_char(x+2, y1, string[0], 1);
+	
 	while (1)
 	{	
 		key = recv_key_info_D();
@@ -690,7 +722,8 @@ void LAN_INFO_SET_D(u8 offset, char *string, u8 lenth)  //注意ip显示的起�
 					i++;
 				
 				if (i > 14)
-					i = 0;
+					return;
+					//i = 0;
 				show_a_char(x+2, i*8, string[i], 1); //在新位置上显示光标 //1
 
 				break;
@@ -765,9 +798,9 @@ void VIDEO_IN_SELECT_SHOW_D(void)
 				show_a_star(param.x); 
 				
 				int i, n;
-				for (i = 0; i < count; i++)
+				for (i = 1; i < count; i++)
 				{
-					if (strstr(ACTIVE_VIDEO_IN_strings_D[i], VIDEO_IN_SHOWWING_D[x/2]))
+					if (strstr(ACTIVE_VIDEO_IN_strings_D[i], VIDEO_IN_SHOWWING_D[param.x/2]))
 					{
 						//重新换一下牌，
 						for (n = 0; n < count; n++)
@@ -787,7 +820,7 @@ void VIDEO_IN_SELECT_SHOW_D(void)
 			
 			case LEFT_KEY:
 			{
-				return; //退出当前目录
+				return; //返回上一级目录
 			}
 		}
 
@@ -837,7 +870,7 @@ void VEDIO_OUT_RES_SHOW_D()
 			
 			case LEFT_KEY:
 			{
-				return; //退出当前目录
+				return; //返回上一级目录
 			}
 		}
 
@@ -865,7 +898,7 @@ void DHCP_SHOW_D() //仅展示
 	{
 		key = recv_key_info_D();
 		
-		if (key == DOWN_KEY)
+		if (key == LEFT_KEY)
 		{
 			break;
 		}
@@ -924,7 +957,7 @@ void DEVICE_STATUS_SHOW_D() //仅展示
 {
 	u8 count = sizeof(DEVICE_STATUS_strings_D)/(sizeof(char*));
 	int p = 4; 
-	int y = 8;
+	int y = 16;
 	int x = 2; //方括号位置
 	int last_page = 0, first_page = 0;
 	
@@ -953,7 +986,7 @@ void DEVICE_STATUS_SHOW_D() //仅展示
 			}
 			//右键无效处理
 
-			case RIGHT_KEY:  //返回上一级目录
+			case LEFT_KEY:  //返回上一级目录
 			{
 				return;
 			}

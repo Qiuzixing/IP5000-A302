@@ -4,7 +4,7 @@
 
 #define u8 unsigned char 
 
-int IPE5000_MAIN_MENU_SHOW_E(void);
+int IPE5000_MAIN_MENU_SHOW(void);
 
 static void IP_SETTING_MENU_SHOW_E(void);
 static void EDID_SET_E(void);

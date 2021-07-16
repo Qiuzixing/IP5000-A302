@@ -23,7 +23,6 @@ enum
     LCD_OFF
 };
 
-
 int main(int argc, char *argv[])
 {
 	if (argc != 2)
@@ -65,9 +64,6 @@ int main(int argc, char *argv[])
 			break;
 		}
 	}while (0);
-
-
-	
 	
 	return 0;
 }
