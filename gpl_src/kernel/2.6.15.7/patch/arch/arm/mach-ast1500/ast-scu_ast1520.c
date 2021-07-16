@@ -1911,7 +1911,7 @@ static int _scu_uart_init(u32 base)
 		/* WARNING. UART3 to IO6 is for client board ONLY. Host board's GPIOH is occupied by VIPB. */
 		/* init UART#3 and route pin to IO6 (GPIOH[7:0]) */
 
-		MOD_SCU_REG(RSCU_MFPC1,MFPC1_UART3PINS(MFPC1_UART3PINS_RXTX | 0x30), /* only RXTX + RTS, DTR */MFPC1_UART3PINS_MASK);
+		MOD_SCU_REG(RSCU_MFPC1,MFPC1_UART3PINS(MFPC1_UART3PINS_RXTX), /* only RXTX + RTS */MFPC1_UART3PINS_MASK);
 
 		scu_system_clk_stop(CLKSTOP_UART_3_MASK, 0);
 		break;

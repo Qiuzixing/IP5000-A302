@@ -643,11 +643,11 @@ static ssize_t store_io_select(struct device *dev, struct device_attribute *attr
 				add_event(EVENT_CODEC_SETTINGS_CHANGED, NULL, NULL);
 			}
 		}
-	} else if(!strncmp(buf, "analog_out", 10)){
+	} else if(!strncmp(buf, "out_analog", 10)){
 		SetupCodec(1, 1, mic_input_pin, CODEC_OUTPUT_HP);
 		analog_in_volume_cfg(analog_in_vol); analog_out_volume_cfg(analog_out_vol);
 	} else {
-		printk("usage: auto | hdmi | analog | analog_out\n");
+		printk("usage: auto | hdmi | analog | out_analog\n");
 	}
 	return strlen(buf);
 }
