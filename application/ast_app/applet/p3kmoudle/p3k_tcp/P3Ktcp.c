@@ -287,7 +287,7 @@ int Tcp_NetRecvMsg(NetCliInfo_T *cli)
 			info = hd;
 			
 	}
-	if(!memcmp(cli->recvmsg,"#\r",strlen(cli->recvmsg)) && Cheak_TcpStartLink(sTimeOut,cli->recvSocket) == 0)
+	if(!memcmp(cli->recvmsg,"#\r",strlen(cli->recvmsg)) && Cheak_TcpStartLink(sTimeOut,cli->recvSocket) == 0 && flagS == 0)
 	{
 		printf("###  %d\n",cli->recvSocket);
 		handleId = info->p3kHandle.handleId;

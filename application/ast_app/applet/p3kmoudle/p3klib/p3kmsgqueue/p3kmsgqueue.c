@@ -11,11 +11,17 @@ typedef struct _P3KMsgQueueMng_S
 	int totalRecvMsg;
 	int readPoint;
 	int writePoint;
-	pthread_mutex_t selflock;
+	//pthread_mutex_t selflock;
 	P3KMsgQueueMember_S cmdMsg[MAX_QUEUE_BLOCK_NUMBER];
 }P3KMsgQueueMng_S;
 
-static P3KMsgQueueMng_S gs_queueMng = {0};
+typedef struct _P3KMsgQueueInfo_S
+{
+	pthread_mutex_t selflock;
+	P3KMsgQueueMng_S queueMng;
+}P3KMsgQueueInfo_S;
+
+static P3KMsgQueueInfo_S gs_queueInfo = {0};
 
 static  int GetQueueMngHandle(P3KMsgQueueMng_S *tmng)
 {
@@ -23,7 +29,7 @@ static  int GetQueueMngHandle(P3KMsgQueueMng_S *tmng)
 	{
 		return -1;
 	}
-	memcpy(tmng,&(gs_queueMng),sizeof(P3KMsgQueueMng_S));
+	memcpy(tmng,&(gs_queueInfo.queueMng),sizeof(P3KMsgQueueMng_S));
 	return 0;
 }
 static  int SetQueueMngHandle(P3KMsgQueueMng_S *tmng)
@@ -32,19 +38,19 @@ static  int SetQueueMngHandle(P3KMsgQueueMng_S *tmng)
 	{
 		return -1;
 	}
-  	memcpy(&(gs_queueMng),tmng,sizeof(P3KMsgQueueMng_S));
+  	memcpy(&(gs_queueInfo.queueMng),tmng,sizeof(P3KMsgQueueMng_S));
 	return 0;
 }
 int P3K_MsgQueueInit()
 {
 	printf("<P3K_MsgQueueInit>\n");
-	memset(&gs_queueMng,0,sizeof(P3KMsgQueueMng_S));
-	memset(gs_queueMng.cmdMsg,0,sizeof(P3KMsgQueueMember_S));
-	gs_queueMng.readPoint = 0;
-	gs_queueMng.writePoint = 0;
-	gs_queueMng.totalRecvMsg = 0;
+	memset(&gs_queueInfo,0,sizeof(P3KMsgQueueInfo_S));
+	memset(gs_queueInfo.queueMng.cmdMsg,0,sizeof(P3KMsgQueueMember_S));
+	gs_queueInfo.queueMng.readPoint = 0;
+	gs_queueInfo.queueMng.writePoint = 0;
+	gs_queueInfo.queueMng.totalRecvMsg = 0;
 
-	pthread_mutex_init(&gs_queueMng.selflock,NULL);
+	pthread_mutex_init(&(gs_queueInfo.selflock),NULL);
 
 
 	return 0;
@@ -52,12 +58,12 @@ int P3K_MsgQueueInit()
 int P3K_MsgQueueUinit()
 {
 	printf("<P3K_MsgQueueUinit>\n");
-	memset(&gs_queueMng,0,sizeof(P3KMsgQueueMng_S));
-	gs_queueMng.readPoint = 0;
-	gs_queueMng.writePoint = 0;
-	gs_queueMng.totalRecvMsg = 0;
+	memset(&gs_queueInfo,0,sizeof(P3KMsgQueueInfo_S));
+	gs_queueInfo.queueMng.readPoint = 0;
+	gs_queueInfo.queueMng.writePoint = 0;
+	gs_queueInfo.queueMng.totalRecvMsg = 0;
 
-	pthread_mutex_destroy(&gs_queueMng.selflock);
+	pthread_mutex_destroy(&(gs_queueInfo.selflock));
 }
 int P3K_MSgQueueAddMsg(P3KMsgQueueMember_S *msg)
 {
@@ -66,7 +72,8 @@ int P3K_MSgQueueAddMsg(P3KMsgQueueMember_S *msg)
 	{
 		return -1;
 	}
-	//pthread_mutex_lock(&gs_queueMng.selflock);
+	//printf("/----------111-------------//\n");
+	pthread_mutex_lock(&(gs_queueInfo.selflock));
 	P3KMsgQueueMng_S  msgMng;
 	
 	GetQueueMngHandle(&msgMng);
@@ -92,9 +99,9 @@ int P3K_MSgQueueAddMsg(P3KMsgQueueMember_S *msg)
 
 	SetQueueMngHandle(&msgMng);
 	
-	//printf("/----------11-------------//\n");
-	//pthread_mutex_unlock(&gs_queueMng.selflock);
-	//printf("/---------1--------------//\n");
+	printf("/----------11-------------//\n");
+	pthread_mutex_unlock(&(gs_queueInfo.selflock));
+	printf("/---------1--------------//\n");
 	return 0;
 }
 int P3K_MSgQueueGetMsg(P3KMsgQueueMember_S *msg)
@@ -103,14 +110,15 @@ int P3K_MSgQueueGetMsg(P3KMsgQueueMember_S *msg)
 	{
 		return -1;
 	}
-	//pthread_mutex_lock(&gs_queueMng.selflock);
-	//printf("selflock   Get===%p\n",gs_queueMng.selflock);
+	
+	pthread_mutex_lock(&(gs_queueInfo.selflock));
+	//printf("selflock   Get===\n");
 	P3KMsgQueueMng_S  msgMng;
 	GetQueueMngHandle(&msgMng);
 	if(msgMng.writePoint == msgMng.readPoint)
 	{
 		//DBG_InfoMsg("there is no msg\n");
-		//pthread_mutex_unlock(&gs_queueMng.selflock);
+		pthread_mutex_unlock(&gs_queueInfo.selflock);
 		return -1;
 	}
 	
@@ -120,11 +128,11 @@ int P3K_MSgQueueGetMsg(P3KMsgQueueMember_S *msg)
 	{
 			msgMng.readPoint = 0;
 	}
-	//printf("/---------P3K_MSgQueueGetMsg--------------/\n");
+	printf("/---------P3K_MSgQueueGetMsg--------------/\n");
 	SetQueueMngHandle(&msgMng);
-	//pthread_mutex_unlock(&gs_queueMng.selflock);
+	pthread_mutex_unlock(&(gs_queueInfo.selflock));
 	//printf("selflock===%p\n",gs_queueMng.selflock);
-	//printf("/---------P3K_MSgQueueGetMsg1--------------/\n");
+	printf("/---------P3K_MSgQueueGetMsg1--------------/\n");
 	return 0;
 
 }

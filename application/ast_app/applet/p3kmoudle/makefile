@@ -2,9 +2,9 @@ include $(AST_SDK_ROOT)/ast.cfg
 
 TARGET_FOLDER_NAME=$(TARGET)-$(CONFIG)
 
-CC = /opt/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu-gcc
-STRIP := /opt/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu-strip
-AR = /opt/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu-ar
+CC = $(CROSS_COMPILE)gcc
+STRIP = $(CROSS_COMPILE)strip
+AR = $(CROSS_COMPILE)ar
 
 LIB = libp3kapi.a
 LIB_PWD = ./p3klib/

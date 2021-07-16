@@ -1,20 +1,10 @@
 ROOT_DIR := $(shell pwd)
 
-#GPULS = arm-linux-gnueabihf-gcc
-#STRIP := arm-linux-gnueabihf-strip
-#AR := arm-linux-gnueabihf-ar
+CC = $(CROSS_COMPILE)gcc
+STRIP = $(CROSS_COMPILE)strip
+AR = $(CROSS_COMPILE)ar
 
-#GPULS = /home/longao/P3K/crosstool/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu-gcc
-#STRIP := /home/longao/P3K/crosstool/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu-strip
-#AR := /home/longao/P3K/crosstool/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu-ar
 
-CC = /opt/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu-gcc
-STRIP := /opt/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu-strip
-AR = /opt/crosstool/gcc-3.4.2-glibc-2.3.3/arm-aspeed-linux-gnu/bin/arm-aspeed-linux-gnu-ar
-
-#GPULS = gcc
-#STRIP := strip
-#AR := ar
 SRC_DIR += $(ROOT_DIR)/\
 			$(ROOT_DIR)/debugtool\
 			$(ROOT_DIR)/socketapi\
