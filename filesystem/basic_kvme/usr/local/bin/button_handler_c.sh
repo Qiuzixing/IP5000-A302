@@ -345,11 +345,15 @@ handle_e_hotkey_2()
 
 handle_e_hotkey_3()
 {
+	echo "Hotkey3" > /var/info_local
+	e e_stop_kmoip	
 	return
 }
 
 handle_e_hotkey_4()
 {
+	echo "Hotkey4" > /var/info_local
+	e e_start_kmoip
 	return
 }
 
