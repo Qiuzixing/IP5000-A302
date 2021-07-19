@@ -1233,19 +1233,19 @@ handle_e_var()
 handle_e_key()
 {
 	case "$*" in
-		e_key_enter)
+		e_key_enter_pressed)
 			send_key_info 1
 		;;
-		e_key_up)
+		e_key_up_pressed)
 			send_key_info 2
 		;;
-		e_key_down)
+		e_key_down_pressed)
 			send_key_info 3
 		;;
-		e_key_left)
+		e_key_left_pressed)
 			send_key_info 4
 		;;
-		e_key_right)
+		e_key_right_pressed)
 			send_key_info 5
 		;;
 		*)

@@ -96,7 +96,7 @@ static void ast1500_button_set(struct led_classdev *led_cdev, enum led_brightnes
 	case PB_INT_ON:
 		gpio_cfg(pd->gpio, AST1500_GPIO_DEBOUNCE_T1);
 		gpio_cfg(pd->gpio,
-			(pd->flags & AST_LEDF_ACTLOW)?
+			(pd->flags & AST_LEDF_INT_FALLING_EDGE)?
 			(AST1500_GPIO_INT_FALLING_EDGE):(AST1500_GPIO_INT_RISING_EDGE));
 		/* clear the status bit. */
 		gpio_ack_int_stat(pd->gpio);

@@ -20,7 +20,7 @@
 #define AST_LEDF_BUTTON             (1<<3)          /* This IO is actually used as a push button */
 #define AST_LEDF_SWITCH             (1<<4)          /* This IO is actually used as a switch input */
 #define AST_LEDF_DEFAULT_ON         (1<<5)          /* LED's init value is ON instead OFF */
-
+#define AST_LEDF_INT_FALLING_EDGE   (1<<6)          /* Button INT trigger type */
 
 struct ast_led_platdata {
 	unsigned int		 gpio;

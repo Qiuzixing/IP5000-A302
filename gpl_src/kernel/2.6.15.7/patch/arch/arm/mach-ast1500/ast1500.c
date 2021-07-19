@@ -64,35 +64,35 @@ static struct ast_led_platdata ast1500_pdata_ledb4 = {
 
 static struct ast_led_platdata ast1500_pdata_lede0 = {
 	.gpio		= KEY_UP,
-	.flags		= AST_LEDF_BUTTON | AST_LEDF_DEFAULT_ON,
+	.flags		= AST_LEDF_BUTTON | AST_LEDF_DEFAULT_ON | AST_LEDF_INT_FALLING_EDGE,
 	.name		= "key_up",
 	.def_trigger    = "pushbutton"
 };
 
 static struct ast_led_platdata ast1500_pdata_lede1 = {
 	.gpio		= KEY_DOWN,
-	.flags		= AST_LEDF_BUTTON | AST_LEDF_DEFAULT_ON,
+	.flags		= AST_LEDF_BUTTON | AST_LEDF_DEFAULT_ON | AST_LEDF_INT_FALLING_EDGE,
 	.name		= "key_down",
 	.def_trigger    = "pushbutton"
 };
 
 static struct ast_led_platdata ast1500_pdata_lede2 = {
 	.gpio		= KEY_LEFT,
-	.flags		= AST_LEDF_BUTTON | AST_LEDF_DEFAULT_ON,
+	.flags		= AST_LEDF_BUTTON | AST_LEDF_DEFAULT_ON | AST_LEDF_INT_FALLING_EDGE,
 	.name		= "key_left",
 	.def_trigger    = "pushbutton"
 };
 
 static struct ast_led_platdata ast1500_pdata_lede3 = {
 	.gpio		= KEY_RIGHT,
-	.flags		= AST_LEDF_BUTTON | AST_LEDF_DEFAULT_ON,
+	.flags		= AST_LEDF_BUTTON | AST_LEDF_DEFAULT_ON | AST_LEDF_INT_FALLING_EDGE,
 	.name		= "key_right",
 	.def_trigger    = "pushbutton"
 };
 
 static struct ast_led_platdata ast1500_pdata_lede4 = {
 	.gpio		= KEY_ENTER,
-	.flags		= AST_LEDF_BUTTON | AST_LEDF_DEFAULT_ON,
+	.flags		= AST_LEDF_BUTTON | AST_LEDF_DEFAULT_ON | AST_LEDF_INT_FALLING_EDGE,
 	.name		= "key_enter",
 	.def_trigger    = "pushbutton"
 };
