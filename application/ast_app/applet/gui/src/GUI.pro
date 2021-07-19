@@ -4,18 +4,26 @@
 #
 #-------------------------------------------------
 
-QT       += network
+QT += core
+QT += widgets
+QT += gui
+QT += network
 
 TARGET = GUI
 TEMPLATE = app
 
 
 #QMAKE_CXXFLAGS += -fdata-sections -ffunction-sections -Wl,--gc-sections
-SOURCES += main.cpp\
-        dialog.cpp
 
-HEADERS  += dialog.h
-FORMS    += dialog.ui
+include (common/common.pri)
+include (frame/frame.pri)
+include (modules/modules.pri)
+include (json/json.pri)
+
+SOURCES += \
+		main.cpp \
+	
+FORMS    +=
 QTPLUGIN += qjpeg
 #DEPLOYMENT_PLUGIN += qjpeg
 RESOURCES += resource.qrc

@@ -1,0 +1,17 @@
+{
+	"genral":
+	{
+		"Enable":"ON",
+		"Timeout":2,
+		"Transparency":50
+	},
+	"objects":[
+		{	
+			"type":"image",
+			"position":"TopRight",
+			"width":300,
+			"height":300,
+			"path":"/share/image1.png"
+		}
+	]
+}

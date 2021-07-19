@@ -1,0 +1,16 @@
+{
+	"channels list":[
+	{"id": 1,"name": "cctv-9"},
+	{"id": 2,"name": "cctv-1"},
+	{"id": 3,"name": "cctv-3"},
+	{"id": 4,"name": "bbc-1009"},
+	{"id": 5,"name": "bbc-1007"},
+	{"id": 6,"name": "bbc-1003"},
+	{"id": 7,"name": "cctv-ab"},
+	{"id": 8,"name": "cctv-cb"},
+	{"id": 9,"name": "bbc-7ac"},
+	{"id": 10,"name": "cctv-1234"},
+	{"id": 11,"name": "bbc-1298"},
+	{"id": 12,"name": "cctv-aaaaa"}
+	]
+}

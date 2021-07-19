@@ -1,0 +1,18 @@
+{
+	"genral":
+	{
+		"Enable":"ON",
+		"Timeout":2,
+		"Transparency":50
+	},
+	"objects":[
+		{	
+			"type":"text",
+			"position":"TopCenter",
+			"caption":"Hello KRAMER",
+			"font":"arial",
+			"szie":"Small",
+			"color":"0xffffff"
+		}
+	]
+}
