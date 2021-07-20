@@ -12,6 +12,10 @@
 #define MAIN_SOCKET_NAME    "/tmp/mainswitch"
 #endif
 
+#ifndef MAIN_AUDIO_SOCKET_NAME
+#define MAIN_AUDIO_SOCKET_NAME    "/tmp/audioswitch"
+#endif
+
 using namespace std;
 
 static int sock = -1;
@@ -52,6 +56,40 @@ bool sendEvent(int argc, char *argv[])
 }
 
 
+//sconfig --audio-event {plugin|plugout} {dante|analog|hdmi}
+bool audioSendEvent(int argc, char *argv[])
+{
+    bool ret = false;
+    if (argc != 4) {
+        std::cout << "sconfig --audio-event {plugin|plugout} {dante|analog|hdmi}\n";
+        return ret;
+    }
+
+    if (!(!strcasecmp(argv[2], "plugin")
+         || !strcasecmp(argv[2], "plugout"))) {
+        std::cout << "sconfig --audio-event {plugin|plugout} {dante|analog|hdmi}\n";
+        return ret;
+    }
+
+    if (!(!strcasecmp(argv[3], "dante")
+         || !strcasecmp(argv[3], "analog")
+         || !strcasecmp(argv[3], "hdmi"))) {
+        std::cout << "sconfig --audio-event {plugin|plugout} {dante|analog|hdmi}\n";
+        return ret;
+    }
+
+    std::string msg("audio-event ");
+    msg += argv[2];
+    msg += " ";
+    msg += argv[3];
+
+    ssize_t nbytes = unixsock_send_message(sock, MAIN_AUDIO_SOCKET_NAME, msg.c_str(), msg.length());
+    if (nbytes > 0)
+        ret = true;
+
+    return ret;
+}
+
 //sconfig --mode {FILO|priority|manual}
 bool setWorkMode(int argc, char *argv[])
 {
@@ -65,6 +103,25 @@ bool setWorkMode(int argc, char *argv[])
     std::string msg("set mode ");
     msg += argv[2];
     ssize_t nbytes = unixsock_send_message(sock, MAIN_SOCKET_NAME, msg.c_str(), msg.length());
+    if (nbytes > 0)
+        ret = true;
+    return ret;
+}
+
+
+//sconfig --audio-mode {FILO|priority|manual}
+bool setAudioMode(int argc, char *argv[])
+{
+    bool ret = false;
+    if (!(!strcasecmp(argv[2], "FILO")
+         || !strcasecmp(argv[2], "priority")
+         || !strcasecmp(argv[2], "manual"))) {
+        std::cout << "sconfig --audio-mode {FILO|priority|manual}\n";
+        return ret;
+    }
+    std::string msg("set audio-mode ");
+    msg += argv[2];
+    ssize_t nbytes = unixsock_send_message(sock, MAIN_AUDIO_SOCKET_NAME, msg.c_str(), msg.length());
     if (nbytes > 0)
         ret = true;
     return ret;
@@ -97,6 +154,33 @@ bool setPriority(int argc, char *argv[])
     return ret;
 }
 
+//sconfig --audio-priority {dante analog hdmi}
+bool setAudioPriority(int argc, char *argv[])
+{
+    bool ret = false;
+    if (argc != 5) {
+        std::cout << "sconfig --audio-priority {dante analog hdmi}\n";
+        return ret;
+    }
+
+    if (!(!strncasecmp(argv[2], "dante", 5)
+         || !strncasecmp(argv[3], "analog", 6)
+         || !strncasecmp(argv[4], "hdmi", 4))) {
+        std::cout << "sconfig --audio-priority {dante analog hdmi}\n";
+        return ret;
+    }
+    std::string msg("set audio-priority ");
+    msg += argv[2];
+    msg += " ";
+    msg += argv[3];
+    msg += " ";
+    msg += argv[4];
+    ssize_t nbytes = unixsock_send_message(sock, MAIN_AUDIO_SOCKET_NAME, msg.c_str(), msg.length());
+    if (nbytes > 0)
+        ret = true;
+    return ret;
+}
+
 //sconfig --input {HDMI1 | HDMI2 | HDMI3}
 bool setInputSource(int argc, char *argv[])
 {
@@ -116,22 +200,95 @@ bool setInputSource(int argc, char *argv[])
     return ret;
 }
 
+//sconfig --audio-input {dante|analog|hdmi}
+bool setAudioSource(int argc, char *argv[])
+{
+    bool ret = false;
+    if (!(!strcasecmp(argv[2], "dante")
+         || !strcasecmp(argv[2], "analog")
+         || !strcasecmp(argv[2], "hdmi"))) {
+        std::cout << "sconfig --audio-input {dante|analog|hdmi}\n";
+        return ret;
+    }
+
+    std::string msg("set audio-input ");
+    msg += argv[2];
+    ssize_t nbytes = unixsock_send_message(sock, MAIN_AUDIO_SOCKET_NAME, msg.c_str(), msg.length());
+    if (nbytes > 0)
+        ret = true;
+    return ret;
+}
+
+//sconfig --audio-output {dante|analog|hdmi|lan|no}
+bool setAudioOutput(int argc, char *argv[])
+{
+    bool ret = false;
+    if (argc < 3) {
+        std::cout << "sconfig --audio-output {dante|analog|hdmi|lan|no}\n";
+        return ret;
+    }
+
+    for (int cnt = 2; cnt < argc; ++cnt) {
+        if (!(!strcasecmp(argv[cnt], "dante")
+         || !strcasecmp(argv[cnt], "analog")
+         || !strcasecmp(argv[cnt], "hdmi")
+         || !strcasecmp(argv[cnt], "lan")
+         || !strcasecmp(argv[cnt], "no"))) {
+            std::cout << "sconfig --audio-output {dante|analog|hdmi|lan|no}\n";
+            return ret;
+        }
+    }
+
+    std::string msg("set audio-output ");
+    for (int cnt = 2; cnt < argc; ++cnt) {
+        msg += argv[cnt];
+        if ((cnt + 1) != argc) {
+            msg += " ";
+        }
+    }
+    
+    ssize_t nbytes = unixsock_send_message(sock, MAIN_AUDIO_SOCKET_NAME, msg.c_str(), msg.length());
+    if (nbytes > 0)
+        ret = true;
+    return ret;
+}
+
+
 bool showInformation(int argc, char *argv[])
 {
     bool ret = false;
     if (!(!strcasecmp(argv[2], "mode")
          || !strcasecmp(argv[2], "priority")
-         || !strcasecmp(argv[2], "input"))) {
+         || !strcasecmp(argv[2], "input")
+         || !strcasecmp(argv[2], "audio-mode")
+         || !strcasecmp(argv[2], "audio-priority")
+         || !strcasecmp(argv[2], "audio-input")
+         || !strcasecmp(argv[2], "audio-output"))) {
         return ret;
     }
 
-    std::string msg("get ");
-    msg += argv[2];
-    msg += " ";
-    msg += "nouse";
-    ssize_t nbytes = unixsock_send_message(sock, MAIN_SOCKET_NAME, msg.c_str(), msg.length());
-    if (nbytes > 0)
-        ret = true;
+    if ((!strcasecmp(argv[2], "mode")
+         || !strcasecmp(argv[2], "priority")
+         || !strcasecmp(argv[2], "input"))) {
+        std::string msg("get ");
+        msg += argv[2];
+        msg += " ";
+        msg += "nouse";
+        ssize_t nbytes = unixsock_send_message(sock, MAIN_SOCKET_NAME, msg.c_str(), msg.length());
+        if (nbytes > 0) {
+            ret = true;
+        }
+    } else {
+        std::string msg("get ");
+        msg += argv[2];
+        msg += " ";
+        msg += "nouse";
+        ssize_t nbytes = unixsock_send_message(sock, MAIN_AUDIO_SOCKET_NAME, msg.c_str(), msg.length());
+        if (nbytes > 0) {
+            ret = true;
+        }
+    }
+
 
     char buff[BUFSIZ] = {0};
     int numBytes = recvfrom(sock, buff, BUFSIZ, 0, NULL, NULL);
@@ -162,6 +319,21 @@ int main(int argc, char *argv[])
 
     //sconfig --show {mode | priority | input}
     parser.add<string>("show", 0, "show information", false, "");
+
+    //sconfig --audio-event {plugin|plugout} {dante|analog|hdmi}
+    parser.add<string>("audio-event", 0, "audio event", false, "");
+
+    //sconfig --audio-mode {FILO|priority|manual}
+    parser.add<string>("audio-mode", 0, "switch audio mode", false, "");
+
+    //sconfig --audio-priority {dante analog hdmi}
+    parser.add<string>("audio-priority", 0, "set audio priority", false, "");
+
+    //sconfig --audio-input {dante|analog|hdmi}
+    parser.add<string>("audio-input", 0, "set current audio input", false, "");
+
+    //sconfig --audio-output {dante|analog|hdmi|lan}
+    parser.add<string>("audio-output", 0, "set current audio output", false, "");
 
     parser.add("help", 0, "print this message");
 
@@ -201,6 +373,26 @@ int main(int argc, char *argv[])
 
     if (parser.exist("show")) {
         showInformation(argc, argv);
+    }
+
+    if (parser.exist("audio-event")) {
+        audioSendEvent(argc, argv);
+    }
+
+    if (parser.exist("audio-mode")) {
+        setAudioMode(argc, argv);
+    }
+
+    if (parser.exist("audio-priority")) {
+        setAudioPriority(argc, argv);
+    }
+
+    if (parser.exist("audio-input")) {
+        setAudioSource(argc, argv);
+    }
+
+    if (parser.exist("audio-output")) {
+        setAudioOutput(argc, argv);
     }
 
     if (sock != -1) {

@@ -13,6 +13,9 @@
 #define MESSAGE_SIZE    3
 #endif
 
+#ifndef AUDIO_CONFIG_FILE_PATH
+#define AUDIO_CONFIG_FILE_PATH  "/data/configs/kds-6x/audio/audio_setting.json"
+#endif
 
 #ifndef AUDIO_INPUT_MAX
 #define AUDIO_INPUT_MAX 3
@@ -32,6 +35,8 @@ enum AudioCode
     GET_AUDIO_WORK_MODE,
     GET_AUDIO_CURRENT_INPUT,
     GET_AUDIO_PRIORITY,
+    SET_AUDIO_OUTPUT,
+    GET_AUDIO_CURRENT_OUTPUT,
 };
 
 enum AudioMode
@@ -59,12 +64,8 @@ public:
 
 	void start();
 
-private slots:
-    void sockReadyRead();   //socket read ready
+    void init();
 
-    void audioPlugInTimeout();   //audio plug in timeout
-
-    void audioPlugOutTimeout();  //audio plug out timeout
 
     bool parseLocalJsonConfig();
 
@@ -85,14 +86,27 @@ private slots:
     bool setCurrentMode(const QString &args);
 
     bool setCurrentInput(const QString &args);
+	
+	bool setCurrentOutput(const QString &args);
+
 
     bool setPriority(const QString &args);
 
     bool getCurrentMode(struct sockaddr_un &cliaddr, socklen_t len);
 
     bool getCurrentInput(struct sockaddr_un &cliaddr, socklen_t len);
+	
+	bool getCurrentOutput(struct sockaddr_un &cliaddr, socklen_t len);
 
     bool getPriority(struct sockaddr_un &cliaddr, socklen_t len);
+
+private slots:
+    void sockReadyRead();   //socket read ready
+
+    void audioPlugInTimeout();   //audio plug in timeout
+
+    void audioPlugOutTimeout();  //audio plug out timeout
+
 
 private:
 	int sock;   //unix domain socket /tmp/audioswitch
@@ -102,6 +116,8 @@ private:
     QList<quint32> plugInList;
     QList<quint32> runList;
     QList<quint32> priorityList;
+    static bool isAnalogInput;
+    static QString output;
     static int audioSwitchTime;
     static int currentAudioPort;
     static int currentMode;

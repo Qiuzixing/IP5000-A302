@@ -20,8 +20,9 @@ class QTimer;
 
 #define HDMI_INPUT_MAX  3
 
-#define CONFIG_FILE_PATH    "/opt/configs/kds-n-6x/usr/etc/switch/auto_switch_delays"
-#define DEFAULT_CONFIG_FILE_PATH    "default.json"//"/data/configs/kds-sw3-en-6x/switch/default.json" //"default.json"
+#define CONFIG_FILE_PATH    "/data/configs/kds-6x/switch/auto_switch_delays.json"
+#define CONFIG_FILE_AUTO_SETTING	"/data/configs/kds-6x/switch/auto_switch_setting.json"
+//#define DEFAULT_CONFIG_FILE_PATH    "default.json"//"/data/configs/kds-sw3-en-6x/switch/default.json" //"default.json"
 
 enum InputHdmi
 {
@@ -81,6 +82,8 @@ public:
     ~MainSwitch();
 
     void start();
+
+    void init();
 
     void writeDefaultJsonConfig();
 

@@ -20,6 +20,8 @@ int AudioSwitch::currentAudioPort = 0;
 int AudioSwitch::currentMode = AUDIO_MODE_AUTO_FILO                                                                                                               ;
 int AudioSwitch::manualPort = 0;
 int AudioSwitch::audioSwitchTime = 0;
+bool AudioSwitch::isAnalogInput = false;
+QString AudioSwitch::output;
 
 AudioSwitch::AudioSwitch(QObject *parent)
 	: QObject(parent)
@@ -39,6 +41,7 @@ AudioSwitch::AudioSwitch(QObject *parent)
 QStringList audioList;
 //QStringList modeList = {"filo", "priority", "manual"};
 QStringList modeList;
+QStringList switchModeList;
 
 AudioSwitch::~AudioSwitch()
 {
@@ -53,25 +56,34 @@ AudioSwitch::~AudioSwitch()
 	}
 }
 
+void AudioSwitch::init()
+{
+    audioList.append("dante");
+    audioList.append("analog");
+    audioList.append("hdmi");
+
+    modeList.append("filo");
+    modeList.append("priority");
+    modeList.append("manual");
+
+    switchModeList.append("last connected");
+    switchModeList.append("priority");
+    switchModeList.append("manual");
+}
+
 void AudioSwitch::start()
 {
     sock = create_unixsocket(MAIN_AUDIO_SOCKET_NAME);
     assert(-1 != sock);
 
-	audioList.append("dante");
-	audioList.append("analog");
-	audioList.append("hdmi");
-	
-	modeList.append("filo");
-	modeList.append("priority");
-	modeList.append("manual");
+
     sockNotifier = new QSocketNotifier(sock, QSocketNotifier::Read, this);
     connect(sockNotifier, SIGNAL(activated(int)),
             this, SLOT(sockReadyRead()));
 
+    init();
 
-
-    parseLocalJsonConfig();
+    parseConfigFile();
     qDebug() << "Audioswitch start.";
 }
 
@@ -235,6 +247,7 @@ bool AudioSwitch::isValidType(const QString &s)
 bool AudioSwitch::parseLocalJsonConfig()
 {
     bool ret = false;
+
     priorityList.append(AUDIO_DANTE);
     priorityList.append(AUDIO_ANALOG);
     priorityList.append(AUDIO_HDMI);
@@ -245,9 +258,119 @@ bool AudioSwitch::parseLocalJsonConfig()
 bool AudioSwitch::parseConfigFile()
 {
     bool ret = false;
+    Json::Reader reader;
+    Json::Value root;
+
+    QFile file(AUDIO_CONFIG_FILE_PATH);
+    if (file.exists()) {
+        //从文件中读取，保证当前文件存在
+        std::ifstream in(AUDIO_CONFIG_FILE_PATH, std::ios::binary);
+        if(!in.is_open()) {
+            qDebug() << "open file error:" << AUDIO_CONFIG_FILE_PATH;
+            return ret;
+        }
+
+        if (reader.parse(in, root)) {
+            if (root.isObject() && root.isMember("audio setting")) {
+                Json::Value switchJson = root["audio setting"];
+                qDebug() << "analog direction isMember: " << switchJson.isMember("analog direction");
+                qDebug() << "switch mode isMember: " << switchJson.isMember("switch mode");
+                qDebug() << "priority isMember: " << switchJson.isMember("priority");
+                qDebug() << "source select isMember: " << switchJson.isMember("source select");
+                qDebug() << "destination select isMember: " << switchJson.isMember("destination select");
+                if (switchJson.isMember("analog direction")) {
+                    QString analogDirection = switchJson["analog direction"].asCString();
+                    qDebug() << "analog direction:" << analogDirection;
+                    if (analogDirection.toLower() == "in") {
+                        isAnalogInput = true;
+                    }
+                    QString analogCmd("xxx");
+                    QProcess::execute(analogCmd);
+                }
+                qDebug() << "isAnalogInput:" << isAnalogInput;
+
+                if (switchJson.isMember("switch mode")) {
+                    QString switchModeStr = switchJson["switch mode"].asCString();
+                    qDebug() << "switch mode:" << switchModeStr;
+                    if (switchModeList.contains(switchModeStr)) {
+                        currentMode = switchModeList.indexOf(switchModeStr);
+                    }
+                }
+                qDebug() << "currentMode:" << currentMode;
+
+                if (switchJson.isMember("source select")) {
+                    QString portStr = switchJson["source select"].asCString();
+                    if (audioList.contains(portStr)) {
+                        manualPort = audioList.indexOf(portStr);
+                    }
+
+                    if (-1 == manualPort) {
+                        qDebug() << "default manual port.";
+                        manualPort = priorityList.at(0);
+                    }
+                    switchToSource(manualPort);
+                    qDebug () << "source select:" << manualPort;
+                }
+
+                if (switchJson.isMember("priority")) {
+                    Json::Value priorJson = switchJson["priority"];
+                    quint32 cnt = 0;
+                    bool foundError = false;
+                    for (cnt = 0; cnt < priorJson.size(); ++cnt) {
+                        QString s = priorJson[cnt].asCString();
+                        if (!audioList.contains(s)) {
+                            foundError = true;
+                            break;
+                        }
+                    }
+
+                    if (!foundError) {
+                        for (cnt = 0; cnt < priorJson.size(); ++cnt) {
+                            QString s = priorJson[cnt].asCString();
+                            priorityList.append(audioList.indexOf(s));
+                            //priorityList.append(root[cnt].asInt());
+                        }
+                        qDebug() << "priority:" << priorityList;
+                    } else {
+                        priorityList.append(AUDIO_DANTE);
+                        priorityList.append(AUDIO_ANALOG);
+                        priorityList.append(AUDIO_HDMI);
+                        qDebug() << "default priority:" << priorityList;;
+                    }
+                }
+
+                if (switchJson.isMember("destination select")) {
+                    Json::Value dstJson = switchJson["destination select"];
+                    QStringList dstList;
+                    for (int cnt = 0; cnt < dstJson.size(); ++cnt) {
+                        QString s = dstJson[cnt].asCString();
+                        dstList.append(s);
+                    }
+                    output = dstList.join(" ");
+                    qDebug() << "destination select:" << dstList;
+                }
+            } else {
+                qDebug() << "invalid json file" << AUDIO_CONFIG_FILE_PATH;
+            }
+        } else {
+            qDebug() << "parse json file error" << AUDIO_CONFIG_FILE_PATH;
+        }
+    } else {
+        qDebug() << AUDIO_CONFIG_FILE_PATH << "config file not exists";
+        qDebug() << "default currentMode:" << currentMode;
+        priorityList.append(AUDIO_DANTE);
+        priorityList.append(AUDIO_ANALOG);
+        priorityList.append(AUDIO_HDMI);
+        qDebug() << "default priority:" << priorityList;
+        if (-1 == manualPort) {
+            qDebug() << "default manual port.";
+            manualPort = priorityList.at(0);
+        }
+        qDebug () << "default source select:" << manualPort;
+    }
+
     return ret;
 }
-
 
 //sconfig --audio-mode {FILO|priority|manual}
 bool AudioSwitch::setCurrentMode(const QString &args)
@@ -289,6 +412,24 @@ bool AudioSwitch::setCurrentInput(const QString &args)
 
     return ret;
 }
+
+//sconfig --audio-output {dante|analog|hdmi}
+bool AudioSwitch::setCurrentOutput(const QString &args)
+{
+    bool ret = true;
+    qDebug() << __PRETTY_FUNCTION__;
+    QString cmd;
+    cmd.sprintf("set output %s", args);
+    QProcess::execute(cmd);
+    qDebug() << "Run command:" << cmd;
+    if (args.toLower() == "no") {
+    	output = "";
+    } else {
+    	output = args;
+	}
+    return ret;
+}
+
 
 bool AudioSwitch::setPriority(const QString &args)
 {
@@ -353,6 +494,8 @@ bool AudioSwitch::parseMessage(const QString &s, QString &type, QString &cmd, QS
                     code = SET_AUDIO_CURRENT_INPUT;
                 } else if (cmdstr.toLower() == "audio-priority") {
                     code = SET_AUDIO_PRIORITY;
+				} else if (cmdstr.toLower() == "audio-output") {
+                	code = SET_AUDIO_OUTPUT;
                 }
             }
 
@@ -363,7 +506,10 @@ bool AudioSwitch::parseMessage(const QString &s, QString &type, QString &cmd, QS
                     code = GET_AUDIO_CURRENT_INPUT;
                 } else if (cmdstr.toLower() == "audio-priority") {
                     code = GET_AUDIO_PRIORITY;
+				} else if (cmdstr.toLower() == "audio-output") {
+                	code = GET_AUDIO_CURRENT_OUTPUT;
                 }
+
             }
 
             qDebug() << "code:" << hex << code;
@@ -420,6 +566,19 @@ bool AudioSwitch::getCurrentInput(struct sockaddr_un &cliaddr, socklen_t len)
     return ret;
 }
 
+bool AudioSwitch::getCurrentOutput(struct sockaddr_un &cliaddr, socklen_t len)
+{
+    bool ret = false;
+    
+    QString msg;
+    msg = output;
+
+    int n = sendto(sock, qPrintable(msg), msg.length(), 0, (struct sockaddr *)&cliaddr, len);
+    if (n > 0) {
+        ret = true;
+    }
+    return ret;
+}
 
 
 bool AudioSwitch::getCurrentMode(struct sockaddr_un &cliaddr, socklen_t len)
@@ -487,6 +646,18 @@ bool AudioSwitch::handlerMessage(quint32 code, const QString &args, struct socka
         ret = getPriority(cliaddr, len);
         break;
     }
+
+	 case SET_AUDIO_OUTPUT: {
+     	ret = setCurrentOutput(args);
+     	break;
+     }
+
+     case GET_AUDIO_CURRENT_OUTPUT: {
+        ret = getCurrentOutput(cliaddr, len);
+        break;
+    }
+
+
 
     default:
         break;

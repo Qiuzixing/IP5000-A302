@@ -26,6 +26,11 @@ int MainSwitch::manualPort = INPUT_HDMI1;
 Json::Value rootJson;
 
 
+QStringList switchModeList;
+QStringList prioritySourceList;
+QStringList sourceList;
+
+
 MainSwitch::MainSwitch(QObject *parent)
     : QObject(parent),
       isSignalValid(std::string("000")),
@@ -72,6 +77,20 @@ MainSwitch::~MainSwitch()
     }
 }
 
+void MainSwitch::init()
+{
+    switchModeList.append("last connected");
+    switchModeList.append("priority");
+    switchModeList.append("manual");
+
+    prioritySourceList.append("hdmi in1");
+    prioritySourceList.append("hdmi in2");
+    prioritySourceList.append("usb in3");
+
+    sourceList.append("hdmi in1");
+    sourceList.append("hdmi in2");
+    sourceList.append("usb in3");
+}
 
 void MainSwitch::start()
 {
@@ -82,6 +101,8 @@ void MainSwitch::start()
     connect(sockNotifier, SIGNAL(activated(int)),
             this, SLOT(sockReadyRead()));
 
+    init();
+
     writeDefaultJsonConfig();
 
     parseConfigFile();
@@ -90,16 +111,19 @@ void MainSwitch::start()
 
 void MainSwitch::writeJsonConfig()
 {
+#if 0
     std::string str;
     str = rootJson.toStyledString();
 
     std::ofstream ofs(DEFAULT_CONFIG_FILE_PATH);
     ofs << str;
     ofs.close();
+#endif
 }
 
 void MainSwitch::writeDefaultJsonConfig()
 {
+#if 0
     QFile file(DEFAULT_CONFIG_FILE_PATH);
 
     if (!file.exists()) {
@@ -123,102 +147,12 @@ void MainSwitch::writeDefaultJsonConfig()
 
         qDebug() << "write default configure.";
     }
+#endif
 
     parseLocalJsonConfig();
 }
 
 bool MainSwitch::parseLocalJsonConfig()
-{
-    bool ret = false;
-    Json::Reader reader;
-    Json::Value root;
-
-    //从文件中读取，保证当前文件存在
-    std::ifstream in(DEFAULT_CONFIG_FILE_PATH, std::ios::binary);
-    if(!in.is_open()) {
-        qDebug() << "open file error:" << DEFAULT_CONFIG_FILE_PATH;
-        return ret;
-    }
-
-    if (reader.parse(in, rootJson)) {
-        if (rootJson.isObject() && rootJson.isMember("Auto Switch Delays")) {
-            Json::Value autoSwitchJson;
-            autoSwitchJson = rootJson["Auto Switch Delays"];
-            qDebug() << "signal loss switching isMember: " << autoSwitchJson.isMember("signal loss switching");
-            qDebug() << "cable unplug isMember: " << autoSwitchJson.isMember("cable unplug");
-            qDebug() << "cable plugin isMember: " << autoSwitchJson.isMember("cable plugin");
-            qDebug() << "manual-override inactive-signal isMember: " << autoSwitchJson.isMember("manual-override inactive-signal");
-            if (autoSwitchJson.isMember("signal loss switching")) {
-                signalLossSwitchingTime = autoSwitchJson["signal loss switching"].asInt();
-                signalLossSwitchingTime *= 1000; //ms
-            }
-
-            if (autoSwitchJson.isMember("cable unplug")) {
-                plugOutIntervalTime = autoSwitchJson["cable unplug"].asInt();
-                plugOutIntervalTime *= 1000; //ms
-            }
-
-            if (autoSwitchJson.isMember("cable plugin")) {
-                plugInIntervalTime = autoSwitchJson["cable plugin"].asInt();
-                plugInIntervalTime *= 1000; //ms
-            }
-
-            if (autoSwitchJson.isMember("manual-override inactive-signal")) {
-                manualOverrideInactiveSignalTime = autoSwitchJson["manual-override inactive-signal"].asInt();
-                manualOverrideInactiveSignalTime *= 1000; //ms
-            }
-            qDebug() << "default signalLossSwitchingTime:" << signalLossSwitchingTime/1000 << "s";
-            qDebug() << "default plugOutIntervalTime:" << plugOutIntervalTime/1000 << "s";
-            qDebug() << "default plugInIntervalTime:" << plugInIntervalTime/1000 << "s";
-            qDebug() << "default manualOverrideInactiveSignalTime:" << manualOverrideInactiveSignalTime/1000 << "s";
-
-            Json::Value switchJson = rootJson["Auto Switch"];
-            qDebug() << "mode isMember: " << switchJson.isMember("mode");
-            qDebug() << "priority isMember: " << switchJson.isMember("priority");
-            qDebug() << "manual port isMember: " << switchJson.isMember("mannual port");
-            if (switchJson.isMember("mode")) {
-                currentMode = switchJson["mode"].asInt();
-            }
-            qDebug() << "currentMode:" << currentMode;
-
-            if (switchJson.isMember("priority")) {
-                Json::Value root = switchJson["priority"];
-                for (quint32 cnt = 0; cnt < root.size(); ++cnt) {
-                    priorityList.append(root[cnt].asInt());
-                }
-            }
-            qDebug() << "priority:" << priorityList;
-            if (switchJson.isMember("manual port")) {
-                manualPort = switchJson["mannual port"].asInt();
-                if (-1 == manualPort) {
-                    qDebug() << "default manual port.";
-                    manualPort = priorityList.at(0);
-                }
-                qDebug () << "manualPort" << manualPort;
-            }
-        } else {
-            qDebug() << "invalid json file" << CONFIG_FILE_PATH;
-        }
-    }
-
-    return ret;
-}
-
-
-bool MainSwitch::isValidType(const QString &s)
-{
-    bool ret = false;
-    if ((s.toLower() == "event")
-       || (s.toLower() == "set")
-       || (s.toLower() == "get"))
-    {
-        ret = true;
-    }
-
-    return ret;
-}
-
-bool MainSwitch::parseConfigFile()
 {
     bool ret = false;
     Json::Reader reader;
@@ -233,10 +167,10 @@ bool MainSwitch::parseConfigFile()
             return ret;
         }
 
-        if (reader.parse(in, root)) {
-            if (root.isObject() && root.isMember("Auto Switch Delays")) {
+        if (reader.parse(in, rootJson)) {
+            if (rootJson.isObject() && rootJson.isMember("Auto Switch Delays")) {
                 Json::Value autoSwitchJson;
-                autoSwitchJson = root["Auto Switch Delays"];
+                autoSwitchJson = rootJson["Auto Switch Delays"];
                 qDebug() << "signal loss switching isMember: " << autoSwitchJson.isMember("signal loss switching");
                 qDebug() << "cable unplug isMember: " << autoSwitchJson.isMember("cable unplug");
                 qDebug() << "cable plugin isMember: " << autoSwitchJson.isMember("cable plugin");
@@ -264,12 +198,132 @@ bool MainSwitch::parseConfigFile()
                 qDebug() << "plugOutIntervalTime:" << plugOutIntervalTime/1000 << "s";
                 qDebug() << "plugInIntervalTime:" << plugInIntervalTime/1000 << "s";
                 qDebug() << "manualOverrideInactiveSignalTime:" << manualOverrideInactiveSignalTime/1000 << "s";
+
+
             } else {
                 qDebug() << "invalid json file" << CONFIG_FILE_PATH;
             }
         }
     } else {
-        qDebug() << CONFIG_FILE_PATH << "config file not exists";
+        signalLossSwitchingTime = 10*1000;
+        manualOverrideInactiveSignalTime = 10*1000;
+        plugOutIntervalTime = 0;
+        plugInIntervalTime = 0;
+        qDebug() << "default signalLossSwitchingTime:" << signalLossSwitchingTime/1000 << "s";
+        qDebug() << "default plugOutIntervalTime:" << plugOutIntervalTime/1000 << "s";
+        qDebug() << "default plugInIntervalTime:" << plugInIntervalTime/1000 << "s";
+        qDebug() << "default manualOverrideInactiveSignalTime:" << manualOverrideInactiveSignalTime/1000 << "s";;
+    }
+
+    return ret;
+}
+
+
+bool MainSwitch::isValidType(const QString &s)
+{
+    bool ret = false;
+    if ((s.toLower() == "event")
+       || (s.toLower() == "set")
+       || (s.toLower() == "get"))
+    {
+        ret = true;
+    }
+
+    return ret;
+}
+
+bool MainSwitch::parseConfigFile()
+{
+    bool ret = false;
+    Json::Reader reader;
+    Json::Value root;
+
+    QFile file(CONFIG_FILE_AUTO_SETTING);
+    if (file.exists()) {
+        //从文件中读取，保证当前文件存在
+        std::ifstream in(CONFIG_FILE_AUTO_SETTING, std::ios::binary);
+        if(!in.is_open()) {
+            qDebug() << "open file error:" << CONFIG_FILE_AUTO_SETTING;
+            return ret;
+        }
+
+        if (reader.parse(in, root)) {
+            if (root.isObject() && root.isMember("auto switch setting")) {
+                Json::Value switchJson = root["auto switch setting"];
+                qDebug() << "switch mode isMember: " << switchJson.isMember("switch mode");
+                qDebug() << "priority isMember: " << switchJson.isMember("priority");
+                qDebug() << "source select isMember: " << switchJson.isMember("source select");
+                if (switchJson.isMember("switch mode")) {
+                    //currentMode = switchJson["switch mode"].asInt();
+                    QString switchModeStr = switchJson["switch mode"].asCString();
+                    qDebug() << "switch mode:" << switchModeStr;
+                    if (switchModeList.contains(switchModeStr)) {
+                        currentMode = switchModeList.indexOf(switchModeStr);
+                    }
+                }
+                qDebug() << "currentMode:" << currentMode;
+
+                if (switchJson.isMember("source select")) {
+                    QString portStr = switchJson["source select"].asCString();
+                    if (sourceList.contains(portStr)) {
+                        manualPort = sourceList.indexOf(portStr);
+                    }
+                    //manualPort = switchJson["source select"].asInt();
+                    if (-1 == manualPort) {
+                        qDebug() << "default manual port.";
+                        manualPort = priorityList.at(0);
+                    }
+                    switchToSourceForce(manualPort);
+                    qDebug () << "source select:" << manualPort;
+                }
+
+                if (switchJson.isMember("priority")) {
+                    Json::Value priorJson = switchJson["priority"];
+                    quint32 cnt = 0;
+                    bool foundError = false;
+                    for (cnt = 0; cnt < priorJson.size(); ++cnt) {
+                        QString s = priorJson[cnt].asCString();
+                        if (!prioritySourceList.contains(s)) {
+                            foundError = true;
+                            break;
+                        }
+                        //priorityList.append(root[cnt].asInt());
+                    }
+
+                    if (!foundError) {
+                        for (cnt = 0; cnt < priorJson.size(); ++cnt) {
+                            QString s = priorJson[cnt].asCString();
+                            priorityList.append(prioritySourceList.indexOf(s));
+                            //priorityList.append(root[cnt].asInt());
+                        }
+                        qDebug() << "priority:" << priorityList;
+                    } else {
+                        priorityList.append(INPUT_HDMI1);
+                        priorityList.append(INPUT_HDMI2);
+                        priorityList.append(INPUT_HDMI3);
+                        qDebug() << "default priority:" << priorityList;;
+                    }
+                }
+
+
+            } else {
+                qDebug() << "invalid json file" << CONFIG_FILE_AUTO_SETTING;
+            }
+        } else {
+            qDebug() << "parse json file error" << CONFIG_FILE_AUTO_SETTING;
+        }
+    } else {
+        qDebug() << CONFIG_FILE_AUTO_SETTING << "config file not exists";
+        qDebug() << "default currentMode:" << currentMode;
+        priorityList.append(INPUT_HDMI1);
+        priorityList.append(INPUT_HDMI2);
+        priorityList.append(INPUT_HDMI3);
+        qDebug() << "default priority:" << priorityList;
+        if (-1 == manualPort) {
+            qDebug() << "default manual port.";
+            manualPort = priorityList.at(0);
+        }
+        qDebug () << "default source select:" << manualPort;
     }
 
     return ret;
@@ -716,10 +770,12 @@ bool MainSwitch::setCurrentMode(const QString &args)
         switchToSourceForce(manualPort);
     }
 
+#if 0
     if (rootJson["Auto Switch"]["mode"] != currentMode) {
         rootJson["Auto Switch"]["mode"] = currentMode;
         writeJsonConfig();
     }
+#endif
     return ret;
 }
 
@@ -739,10 +795,12 @@ bool MainSwitch::setCurrentInput(const QString &args)
     int num = str.mid(4).toUInt();
     if (currentMode == MODE_MANUAL) {
         switchToSourceForce(num - 1);
+#if 0
         if (rootJson["Auto Switch"]["manual port"] != currentMode) {
             rootJson["Auto Switch"]["manual port"] = currentMode;
             writeJsonConfig();
         }
+#endif
     } else {
         prevMode = currentMode;
         prevPort = currentPort;
@@ -773,11 +831,13 @@ bool MainSwitch::setPriority(const QString &args)
             && slist.contains(INPUT_HDMI3)) {
         priorityList = slist;
 
+#if 0
         rootJson["Auto Switch"]["priority"].resize(0);
         for (int cnt = 0; cnt < priorityList.size(); ++cnt) {
             rootJson["Auto Switch"]["priority"].append(priorityList.at(cnt));
         }
         writeJsonConfig();
+#endif
     }
 
     qDebug() << "current priorityList" << priorityList;
