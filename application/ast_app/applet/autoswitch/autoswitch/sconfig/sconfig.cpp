@@ -20,6 +20,227 @@ using namespace std;
 
 static int sock = -1;
 
+/*
+ * sconfig --event {plugin|plugout|signal-valid|signal-invalid} HDMI[1-3]
+ * event:plugin|plugout|signal-valid|signal-invalid
+ * source:HDMI[1-3]
+ */
+bool sendEventMsg(int sock, const char *event, const char *source)
+{
+    bool ret = false;
+    std::string msg("event ");
+    msg += event;
+    msg += " ";
+    msg += source;
+
+    ssize_t nbytes = unixsock_send_message(sock, MAIN_SOCKET_NAME, msg.c_str(), msg.length());
+    if (nbytes > 0)
+        ret = true;
+
+    return ret;
+}
+
+/*
+ * sconfig --audio-event {plugin|plugout} {dante|analog|hdmi}
+ * event:plugin|plugout
+ * source:dante|analog|hdmi
+ */
+bool audioSendEventMsg(int sock, const char *event, const char *source)
+{
+    bool ret = false;
+    std::string msg("audio-event ");
+    msg += event;
+    msg += " ";
+    msg += source;
+
+    ssize_t nbytes = unixsock_send_message(sock, MAIN_AUDIO_SOCKET_NAME, msg.c_str(), msg.length());
+    if (nbytes > 0)
+        ret = true;
+    return ret;
+}
+
+/*
+ * sconfig --mode {FILO|priority|manual}
+ * mode:FILO|priority|manual
+ */
+bool setWorkModeMsg(int sock, const char *mode)
+{
+    bool ret = false;
+    std::string msg("set mode ");
+    msg += mode;
+    ssize_t nbytes = unixsock_send_message(sock, MAIN_SOCKET_NAME, msg.c_str(), msg.length());
+    if (nbytes > 0)
+        ret = true;
+    return ret;
+}
+
+/*
+ * sconfig --audio-mode {FILO|priority|manual}
+ * mode:FILO|priority|manual
+ */
+bool setAudioModeMsg(int sock, const char *mode)
+{
+    bool ret = false;
+    std::string msg("set audio-mode ");
+    msg += mode;
+    ssize_t nbytes = unixsock_send_message(sock, MAIN_AUDIO_SOCKET_NAME, msg.c_str(), msg.length());
+    if (nbytes > 0)
+        ret = true;
+    return ret;
+}
+
+/*
+ * sconfig --priority {HDMI1 HDMI2 HDMI3}
+ * src1:HDMI1|HDMI2|HDMI3
+ * src2:HDMI1 HDMI2 HDMI3
+ * src3:HDMI1 HDMI2 HDMI3
+ */
+bool setPriorityMsg(int sock, const char *src1, const char *src2, const char *src3)
+{
+    bool ret = false;
+    std::string msg("set priority ");
+    msg += src1;
+    msg += " ";
+    msg += src2;
+    msg += " ";
+    msg += src3;
+    ssize_t nbytes = unixsock_send_message(sock, MAIN_SOCKET_NAME, msg.c_str(), msg.length());
+    if (nbytes > 0)
+        ret = true;
+    return ret;
+}
+
+/*
+ * sconfig --audio-priority {dante analog hdmi}
+ * src1: dante|analog|hdmi
+ * src2: dante|analog|hdmi
+ * src3: dante|analog|hdmi
+ */
+bool setAudioPriorityMsg(int sock, const char *src1, const char *src2, const char *src3)
+{
+    bool ret = false;
+    std::string msg("set audio-priority ");
+    msg += src1;
+    msg += " ";
+    msg += src2;
+    msg += " ";
+    msg += src3;
+    ssize_t nbytes = unixsock_send_message(sock, MAIN_AUDIO_SOCKET_NAME, msg.c_str(), msg.length());
+    if (nbytes > 0)
+        ret = true;
+    return ret;
+}
+
+/*
+ * sconfig --input {HDMI1 | HDMI2 | HDMI3}
+ * source: HDMI1|HDMI2|HDMI3
+ *
+ */
+bool setInputSourceMsg(int sock, const char *source)
+{
+    bool ret = false;
+    std::string msg("set input ");
+    msg += source;
+    ssize_t nbytes = unixsock_send_message(sock, MAIN_SOCKET_NAME, msg.c_str(), msg.length());
+    if (nbytes > 0)
+        ret = true;
+    return ret;
+}
+
+/*
+ * sconfig --audio-input {dante|analog|hdmi}
+ * source: dante|analog|hdmi
+ *
+ */
+bool setAudioSourceMsg(int sock, const char *source)
+{
+    bool ret = false;
+    std::string msg("set audio-input ");
+    msg += source;
+    ssize_t nbytes = unixsock_send_message(sock, MAIN_AUDIO_SOCKET_NAME, msg.c_str(), msg.length());
+    if (nbytes > 0)
+        ret = true;
+    return ret;
+}
+
+/*
+ * sconfig --audio-output {dante|analog|hdmi|lan|no}
+ * src1: dante|analog|hdmi|lan|""
+ * src2: dante|analog|hdmi|lan|""
+ * src3: dante|analog|hdmi|lan|""
+ * src4: dante|analog|hdmi|lan|""
+ **/
+bool setAudioOutputMsg(int sock, const char *src1, const char *src2, const char *src3, const char *src4)
+{
+    bool ret = false;
+    std::string msg("set audio-output ");
+    std::string s1(src1);
+    std::string s2(src2);
+    std::string s3(src3);
+    std::string s4(src4);
+    if (s1.empty() && s2.empty() && s3.empty() && s4.empty()) {
+        msg += "no";
+    } else {
+        msg += s1;
+        msg += s2;
+        msg += s3;
+        msg += s4;
+    }
+
+    ssize_t nbytes = unixsock_send_message(sock, MAIN_AUDIO_SOCKET_NAME, msg.c_str(), msg.length());
+    if (nbytes > 0)
+        ret = true;
+    return ret;
+}
+
+/*
+ * sconfig --show audio-mode|audio-priority|audio-input|audio-output
+ * item: audio-mode|audio-priority|audio-input|audio-output
+ *
+ */
+bool showAudioSwitchInformation(int sock, const char *item, std::string &str)
+{
+    bool ret = false;
+    std::string msg("get ");
+    msg += item;
+    msg += " ";
+    msg += "nouse";
+    ssize_t nbytes = unixsock_send_message(sock, MAIN_AUDIO_SOCKET_NAME, msg.c_str(), msg.length());
+    if (nbytes > 0) {
+        ret = true;
+    }
+    char buff[BUFSIZ] = {0};
+    int numBytes = recvfrom(sock, buff, BUFSIZ, 0, NULL, NULL);
+    if (numBytes == -1) {
+        perror("recvfrom");
+    } else {
+        std::string info(buff);
+        str = info;
+        //std::cout << buff << "\n";
+    }
+
+    return ret;
+}
+
+/*
+ *  sconfig --show mode|priority|input
+ * item: mode|priority|input
+ *
+ */
+bool showVideoSwitchInformation(int sock, const char *item)
+{
+    bool ret = false;
+    std::string msg("get ");
+    msg += item;
+    msg += " ";
+    msg += "nouse";
+    ssize_t nbytes = unixsock_send_message(sock, MAIN_SOCKET_NAME, msg.c_str(), msg.length());
+    if (nbytes > 0) {
+        ret = true;
+    }
+    return ret;
+}
+
 bool sendEvent(int argc, char *argv[])
 {
     bool ret = false;
@@ -43,16 +264,7 @@ bool sendEvent(int argc, char *argv[])
         return ret;
     }
 
-    std::string msg("event ");
-    msg += argv[2];
-    msg += " ";
-    msg += argv[3];
-
-    ssize_t nbytes = unixsock_send_message(sock, MAIN_SOCKET_NAME, msg.c_str(), msg.length());
-    if (nbytes > 0)
-        ret = true;
-
-    return ret;
+    return sendEventMsg(sock, argv[2], argv[3]);
 }
 
 
@@ -78,16 +290,7 @@ bool audioSendEvent(int argc, char *argv[])
         return ret;
     }
 
-    std::string msg("audio-event ");
-    msg += argv[2];
-    msg += " ";
-    msg += argv[3];
-
-    ssize_t nbytes = unixsock_send_message(sock, MAIN_AUDIO_SOCKET_NAME, msg.c_str(), msg.length());
-    if (nbytes > 0)
-        ret = true;
-
-    return ret;
+    return audioSendEventMsg(sock, argv[2], argv[3]);
 }
 
 //sconfig --mode {FILO|priority|manual}
@@ -100,12 +303,8 @@ bool setWorkMode(int argc, char *argv[])
         std::cout << "sconfig --mode {FILO|priority|manual}\n";
         return ret;
     }
-    std::string msg("set mode ");
-    msg += argv[2];
-    ssize_t nbytes = unixsock_send_message(sock, MAIN_SOCKET_NAME, msg.c_str(), msg.length());
-    if (nbytes > 0)
-        ret = true;
-    return ret;
+
+    return setWorkModeMsg(sock, argv[2]);
 }
 
 
@@ -119,12 +318,8 @@ bool setAudioMode(int argc, char *argv[])
         std::cout << "sconfig --audio-mode {FILO|priority|manual}\n";
         return ret;
     }
-    std::string msg("set audio-mode ");
-    msg += argv[2];
-    ssize_t nbytes = unixsock_send_message(sock, MAIN_AUDIO_SOCKET_NAME, msg.c_str(), msg.length());
-    if (nbytes > 0)
-        ret = true;
-    return ret;
+
+    return setAudioModeMsg(sock, argv[2]);
 }
 
 //sconfig --priority {HDMI1 HDMI2 HDMI3}
@@ -142,16 +337,7 @@ bool setPriority(int argc, char *argv[])
         std::cout << "sconfig --priority {FILO|priority|manual}\n";
         return ret;
     }
-    std::string msg("set priority ");
-    msg += argv[2];
-    msg += " ";
-    msg += argv[3];
-    msg += " ";
-    msg += argv[4];
-    ssize_t nbytes = unixsock_send_message(sock, MAIN_SOCKET_NAME, msg.c_str(), msg.length());
-    if (nbytes > 0)
-        ret = true;
-    return ret;
+    return setPriorityMsg(sock, argv[2], argv[3], argv[4]);
 }
 
 //sconfig --audio-priority {dante analog hdmi}
@@ -169,16 +355,8 @@ bool setAudioPriority(int argc, char *argv[])
         std::cout << "sconfig --audio-priority {dante analog hdmi}\n";
         return ret;
     }
-    std::string msg("set audio-priority ");
-    msg += argv[2];
-    msg += " ";
-    msg += argv[3];
-    msg += " ";
-    msg += argv[4];
-    ssize_t nbytes = unixsock_send_message(sock, MAIN_AUDIO_SOCKET_NAME, msg.c_str(), msg.length());
-    if (nbytes > 0)
-        ret = true;
-    return ret;
+
+    return setAudioPriorityMsg(sock, argv[2], argv[3], argv[4]);
 }
 
 //sconfig --input {HDMI1 | HDMI2 | HDMI3}
@@ -192,31 +370,20 @@ bool setInputSource(int argc, char *argv[])
         return ret;
     }
 
-    std::string msg("set input ");
-    msg += argv[2];
-    ssize_t nbytes = unixsock_send_message(sock, MAIN_SOCKET_NAME, msg.c_str(), msg.length());
-    if (nbytes > 0)
-        ret = true;
-    return ret;
+    return setInputSourceMsg(sock, argv[2]);
 }
 
 //sconfig --audio-input {dante|analog|hdmi}
 bool setAudioSource(int argc, char *argv[])
 {
-    bool ret = false;
     if (!(!strcasecmp(argv[2], "dante")
          || !strcasecmp(argv[2], "analog")
          || !strcasecmp(argv[2], "hdmi"))) {
         std::cout << "sconfig --audio-input {dante|analog|hdmi}\n";
-        return ret;
+        return false;
     }
 
-    std::string msg("set audio-input ");
-    msg += argv[2];
-    ssize_t nbytes = unixsock_send_message(sock, MAIN_AUDIO_SOCKET_NAME, msg.c_str(), msg.length());
-    if (nbytes > 0)
-        ret = true;
-    return ret;
+    return setAudioSourceMsg(sock, argv[2]);
 }
 
 //sconfig --audio-output {dante|analog|hdmi|lan|no}
@@ -239,17 +406,15 @@ bool setAudioOutput(int argc, char *argv[])
         }
     }
 
-    std::string msg("set audio-output ");
-    for (int cnt = 2; cnt < argc; ++cnt) {
-        msg += argv[cnt];
-        if ((cnt + 1) != argc) {
-            msg += " ";
-        }
+    if (argc == 3) {
+        return setAudioOutputMsg(sock, argv[2], "", "", "");
+    } else if (argc == 4) {
+        return setAudioOutputMsg(sock, argv[2], argv[3], "", "");
+    } else if (argc == 5) {
+        return setAudioOutputMsg(sock, argv[2], argv[3], argv[4], "");
+    } else if (argc >= 6) {
+        return setAudioOutputMsg(sock, argv[2], argv[3], argv[4], argv[5]);
     }
-    
-    ssize_t nbytes = unixsock_send_message(sock, MAIN_AUDIO_SOCKET_NAME, msg.c_str(), msg.length());
-    if (nbytes > 0)
-        ret = true;
     return ret;
 }
 

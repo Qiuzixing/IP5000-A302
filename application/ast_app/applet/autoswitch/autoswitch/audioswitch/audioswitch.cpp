@@ -119,7 +119,7 @@ bool AudioSwitch::switchToSource(int index)
     bool ret = true;
 
     QString cmd;
-    cmd.sprintf("plug in audio%d", (index + 1));
+    cmd.sprintf("ipc @m_lm_set s audio_in:%d", index);
     QProcess::execute(cmd);
     qDebug() << "Run command:" << cmd;
     qDebug() << "Switch to audio" << audioList.at(index);
@@ -348,6 +348,7 @@ bool AudioSwitch::parseConfigFile()
                     }
                     output = dstList.join(" ");
                     qDebug() << "destination select:" << dstList;
+                    setCurrentOutput(output);
                 }
             } else {
                 qDebug() << "invalid json file" << AUDIO_CONFIG_FILE_PATH;
@@ -413,13 +414,52 @@ bool AudioSwitch::setCurrentInput(const QString &args)
     return ret;
 }
 
-//sconfig --audio-output {dante|analog|hdmi}
+//sconfig --audio-output {dante|analog|hdmi|lan}
 bool AudioSwitch::setCurrentOutput(const QString &args)
 {
     bool ret = true;
     qDebug() << __PRETTY_FUNCTION__;
     QString cmd;
-    cmd.sprintf("set output %s", args);
+    QString outputStr;
+    bool prefix = false;
+    if (args.contains("dante")) {
+        outputStr += "0";
+        prefix = true;
+    }
+
+    if (args.contains("analog")) {
+        if (prefix) {
+            outputStr += ":1";
+        } else {
+            outputStr += "1";
+        }
+        prefix = true;
+    }
+
+    if (args.contains("hdmi")) {
+        if (prefix) {
+            outputStr += ":2";
+        } else {
+            outputStr += "2";
+        }
+        prefix = true;
+    }
+
+    if (args.contains("lan")) {
+        if (prefix) {
+            outputStr += ":3";
+        } else {
+            outputStr += "3";
+        }
+    }
+
+    if (args.toLower() == "no") {
+        outputStr = "";
+    }
+    qDebug() << "args:" << args;
+    qDebug() << "outputStr:" << outputStr;
+
+    cmd.sprintf("ipc @m_lm_set s audio_out:%s", qPrintable(outputStr));
     QProcess::execute(cmd);
     qDebug() << "Run command:" << cmd;
     if (args.toLower() == "no") {
