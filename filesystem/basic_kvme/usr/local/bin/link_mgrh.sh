@@ -1253,6 +1253,20 @@ handle_e_key()
 	esac
 }
 
+handle_e_audio_detect()
+{
+	case "$*" in
+		e_audio_detect_pressed)
+			echo "audio pull in"
+		;;
+		e_audio_detect_released)
+			echo "audio pull out"
+		;;
+		*)
+		;;
+	esac
+}
+
 state_machine()
 {
 	# Bruce160308. Try to ignore all TERM signals.
@@ -1278,6 +1292,9 @@ state_machine()
 			;;
 			e_key_?*)
 				handle_e_key "$event"
+			;;
+			e_audio_detect?*)
+				handle_e_audio_detect "$event"
 			;;
 			e_ip_got::?*)
 				handle_e_ip_got "$event"
@@ -1512,6 +1529,18 @@ signal_handler()
 	echo ""
 }
 
+adc_pin_mux_gpio()
+{
+	#qzx20210722:they(ADC PIN) are invalid in leds driver,So need to set it manually
+	reg_value=`io 0 0x1E6E20A0 | awk '{printf $3}'`
+	reg_value=0x$reg_value
+	bit_clear=0xf7ffffff
+	bit_set=0x08000000
+	reg_value=$((reg_value&bit_clear))
+	reg_value=`printf "%x" $((reg_value|bit_set))`
+	io 1 0x1E6E20A0 $reg_value
+}
+
 #set -x
 #### main #####
 export PATH="${PATH}":/usr/local/bin
@@ -1592,8 +1621,6 @@ if [ $UGP_FLAG = 'success' ];then
 	ipc @m_lm_set s set_gpio_config:9:15:1:35:1:8:1:36:1:37:1:32:1:33:1:11:1:12:1
 	ipc @m_lm_set s set_gpio_val:9:15:1:35:1:8:1:36:1:37:1:32:1:33:1:11:1:12:1
 fi
-
-
 # start event_monitor
 ast_event_monitor &
 EM_PID=$!
@@ -1607,7 +1634,11 @@ echo 1 > /proc/sys/vm/overcommit_memory
 
 # Start state machine in another process scope
 state_machine &
-
+usleep 1000
+if [ $UGP_FLAG = 'success' ];then
+	echo 500 > /sys/class/leds/audio_detect/delay
+	adc_pin_mux_gpio
+fi
 # Bruce130123. Moved to state_machine. Avoid parameter scope problem.
 #start_network 2
 #do_s_init

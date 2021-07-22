@@ -296,6 +296,11 @@ static int ast1500_led_probe(struct platform_device *dev)
 	{
 		gpio_set_value(pdata->gpio,0);
 	}
+	if(0 == strcmp(pdata->name,"audio_sense_mid"))
+	{
+		gpio_set_value(pdata->gpio,0);
+	}
+
 	if(0 == strcmp(pdata->name,"mcu_reset"))
 	{
 		gpio_direction_output(pdata->gpio, 0);

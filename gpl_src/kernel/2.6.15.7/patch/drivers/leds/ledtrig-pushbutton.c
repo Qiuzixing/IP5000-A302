@@ -228,13 +228,19 @@ static void pb_pressed(unsigned long data)
 			if (tdata->long_press_val == 0) {
 				//This is a short press. Just notify the short message.
 				char msg[MAX_PAYLOAD];
-				snprintf(msg, MAX_PAYLOAD, "e_%s", led_cdev->name);
-				ast_notify_user(msg);
-				tdata->indicated = 1;
+				if(0 != strcmp(led_cdev->name,"audio_detect"))
+				{
+					snprintf(msg, MAX_PAYLOAD, "e_%s", led_cdev->name);
+					ast_notify_user(msg);
+					tdata->indicated = 1;
+				}
 				led_set_brightness(led_cdev, PB_INT_ON);
 			} else {
 				//This is the end of long press.
-				tdata->indicated = 1;
+				if(0 != strcmp(led_cdev->name,"audio_detect"))
+				{
+					tdata->indicated = 1;
+				}
 				led_set_brightness(led_cdev, PB_INT_ON);
 			}
 			{ //Add event to indicate pressed/released
@@ -245,7 +251,7 @@ static void pb_pressed(unsigned long data)
 
 		} else {
 			tdata->long_press_cnt++;
-			if (tdata->long_press_cnt == tdata->long_press_cnt_interval) {
+			if (tdata->long_press_cnt == tdata->long_press_cnt_interval && 0 != strcmp(led_cdev->name,"audio_detect")) {
 				char msg[MAX_PAYLOAD];
 
 				tdata->long_press_val++;
