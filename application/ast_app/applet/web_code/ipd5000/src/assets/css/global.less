@@ -1,0 +1,252 @@
+@font-face {
+  font-family: 'open sans regular';
+  src: url('../fonts/opensans_regular_macroman/OpenSans-Regular-webfont.eot');
+  src: url('../fonts/opensans_regular_macroman/OpenSans-Regular-webfont.eot?#iefix') format('embedded-opentype'),
+  url('../fonts/opensans_regular_macroman/OpenSans-Regular-webfont.woff') format('woff'),
+  url('../fonts/opensans_regular_macroman/OpenSans-Regular-webfont.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: fallback;
+}
+@font-face {
+  font-family: 'open sans semiblold';
+  src: url('../fonts/opensans_semibold_macroman/OpenSans-Semibold-webfont.eot');
+  src: url('../fonts/opensans_semibold_macroman/OpenSans-Semibold-webfont.eot?#iefix') format('embedded-opentype'),
+  url('../fonts/opensans_semibold_macroman/OpenSans-Semibold-webfont.woff') format('woff'),
+  url('../fonts/opensans_semibold_macroman/OpenSans-Semibold-webfont.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'open sans bold';
+  src: url('../fonts/opensans_bold_macroman/OpenSans-Bold-webfont.eot');
+  src: url('../fonts/opensans_bold_macroman/OpenSans-Bold-webfont.eot?#iefix') format('embedded-opentype'),
+  url('../fonts/opensans_bold_macroman/OpenSans-Bold-webfont.woff') format('woff'),
+  url('../fonts/opensans_bold_macroman/OpenSans-Bold-webfont.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  font-family: 'open sans regular',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  color: #4D4D4F;
+  font-size: 15px;
+}
+button, input, optgroup, select, textarea{
+  line-height: 1;
+}
+.main-setting{
+  padding-left: 64px;
+  padding-top: 50px;
+  .setting-model{
+    margin-bottom: 30px;
+    .h3{
+      margin-bottom: 24px;
+    }
+    .setting-title{
+      color: #4D4D4F
+    }
+  }
+  .setting-model-title{
+    font-family: 'open sans semiblold';
+    margin-top: 0;
+    flex-shrink: 0;
+    font-size: 15px;
+    width: 300px;
+    color: #35ACF8;
+  }
+  .radio-setting{
+    display: flex;
+  }
+  .setting{
+    display: flex;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+  .setting-text{
+    font-family: "open sans regular";
+    flex-shrink: 0;
+    padding: 5px;
+    width: 180px;
+    color: #4D4D4F;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    border-bottom: 1px solid #4D4D4F;
+    box-sizing: border-box;
+    &:focus{
+      outline: none;
+    }
+    &[disabled]{
+      opacity: .5;
+      cursor: not-allowed;
+    }
+  }
+  .setting-title{
+    font-family: 'open sans semiblold', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    width: 300px;
+    font-size: 15px;
+    flex-shrink: 0;
+    //color: #35ACF8;
+  }
+}
+// button
+
+.btn, .el-button {
+  box-sizing: border-box;
+  height: 36px;
+  min-width: 90px;
+  padding: 8px 18px;
+  border-radius: 3px;
+  font-size: 14px;
+  font-family: "open sans semiblold";
+  overflow: visible;
+  border: 0;
+  white-space: nowrap;
+  text-transform: none;
+  -webkit-appearance: button;
+  cursor: pointer;
+  &:focus{
+    outline: none;
+  }
+  &[disabled]{
+    cursor: not-allowed;
+    opacity: .5;
+  }
+}
+.el-button{
+  width: 50px;
+  min-width: 50px;
+  height: 26px;
+  padding: 0;
+  &~.el-button{
+    margin-left: 5px;
+  }
+}
+.btn-plain-primary, .el-button{
+  border: 2px solid #35acf8;
+  background-color: #FFFFFF;
+  color: #35ACF8;
+  &:hover{
+    background-color: #f9f9f9;
+  }
+  &:active {
+    background: #fafafa;
+    box-shadow: inset 1px 1px 1px rgb(0 0 0 / 20%), 0 0 1px transparent;
+  }
+}
+.btn-primary{
+  background-color: #35ACF8;
+  color: #FFFFFF;
+  &:hover{
+    background-color: #0098e3;
+  }
+  &:active {
+    background: #0087d2;
+  }
+}
+.btn-default {
+  color: #4D4D4F;
+  background-color: #EBEBEB;
+  &:hover{
+    background-color: #e2e2e2;
+  }
+  &:active {
+    background-color: #EBEBEB;
+  }
+}
+
+// vodal
+.vodal-close:before, .vodal-close:after{
+  border-radius: 0;
+}
+.vodal-dialog {
+  padding: 20px 24px;
+}
+.vodal-model{
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.vodal-header{
+  font-family: 'open sans semiblold';
+  font-size: 20px;
+  height: 27px;
+}
+.vodal-body{
+  padding-top: 15px;
+  flex: 1;
+  font-size: 16px;
+}
+.vodal-footer{
+  display: flex;
+  justify-content: space-between;
+}
+.alert-title{
+  font-family: 'open sans semiblold';
+  font-size: 16px;
+  color: #4D4D4F;
+}
+.error-input {
+  position: relative;
+  //.setting-text{
+  //  color: #ED0006!important;
+  //  border-bottom: 1px solid #ED0006!important;
+  //}
+  .alert-error{
+    display: block;
+  }
+}
+.alert-error{
+  position: absolute;
+  top: 105%;
+  display: none;
+  color: #D50000;
+  font-size: 12px;
+  font-family: "open sans bold";
+}
+
+
+.vue-numeric-input .numeric-input{
+  border-radius: 0;
+}
+
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+/*滚动条里面小方块样式*/
+::-webkit-scrollbar-thumb {
+  border-radius: 100px;
+  -webkit-box-shadow: inset 0 0 5px #d9d9d9;
+  background: #d9d9d9;
+}
+/*滚动条里面轨道样式*/
+::-webkit-scrollbar-track {
+  -webkit-box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+// 设置滑块里范围值位置
+.vue-slider{
+  .slider-range{
+    position: absolute;
+    width: 34px;
+    display: block;
+    text-align: center;
+  }
+  .slider-min{
+    left: -18px;
+    top: 20px;
+  }
+  .slider-max{
+    right: -15px;
+    top: 20px;
+  }
+}
+.el-popconfirm__main{
+  font-family: 'open sans semiblold';
+  color: #4D4D4F;
+}
