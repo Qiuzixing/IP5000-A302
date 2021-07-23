@@ -32,13 +32,13 @@ export default {
     }
   },
   created () {
-    this.$socket.sendMsg('#CONNECTION-LIST? ')
+    this.$socket.sendMsg('#NET-STAT? ')
     this.$socket.sendMsg('#HW‑TEMP? 0')
     this.$socket.sendMsg('#PORT-DIRECTION? both.ir.1.ir')
   },
   methods: {
     handleMsg (msg) {
-      if (msg.search(/@CONNECTION-LIST /i) !== -1) {
+      if (msg.search(/@NET-STAT /i) !== -1) {
         this.handleConnList(msg)
       }
     },

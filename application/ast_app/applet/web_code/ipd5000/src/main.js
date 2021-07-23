@@ -27,7 +27,6 @@ if (process.env.NODE_ENV !== 'production') {
 }
 locale.use(lang)
 Vue.component('colorPicker', colorPicker)
-// Vue.use(Pagination);
 Vue.use(Dialog)
 Vue.use(InputNumber)
 Vue.use(Popover)

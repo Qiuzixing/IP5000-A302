@@ -82,8 +82,8 @@
         <button
           @click="setDisplayInfo('2')"
           class="btn"
-          :disabled="osdConfig['Device Info'].Enabled === 'on'"
-          :class="[osdConfig['Device Info'].Enabled ==='off' ? 'btn-plain-primary' : 'btn-default']"
+          :disabled="osdConfig['Device Info'].Enabled === 'ON'"
+          :class="[osdConfig['Device Info'].Enabled ==='OFF' ? 'btn-plain-primary' : 'btn-default']"
           type="button"
           style="margin-left: 24px">DISPLAY NOW</button>
       </div>
@@ -274,7 +274,7 @@ export default {
     getOsdJson () {
       this.$http.post('/osd/overlay').then(msg => {
         if (msg.data) {
-          this.osdConfig =msg.data
+          this.osdConfig = msg.data
         }
       })
     },
@@ -352,7 +352,7 @@ export default {
       return name.match(/^[A-Za-z0-9 ]{1,15}$/)
     },
     setDisplayInfo (val) {
-      this.$socket.sendMsg('#KDS_OSD_DISPLAY ' + (val === '2' ? val : (val === 'on' ? 1 : 0)))
+      this.$socket.sendMsg('KDS-OSD-DISPLAY ' + (val === '2' ? val : (val === 'on' ? 1 : 0)))
     },
     save () {
       this.$http.post('/osd/set_overlay', this.osdConfig)

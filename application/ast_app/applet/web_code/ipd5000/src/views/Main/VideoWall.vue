@@ -72,7 +72,6 @@ export default {
   created () {
     this.$socket.sendMsg('#VIEW-MOD? ')
     this.$socket.sendMsg('#VIDEO-WALL-SETUP? ')
-    this.$socket.sendMsg('#WND-STRETCH? ')
     this.$socket.sendMsg('#WND-BEZEL? ')
   },
   methods: {
@@ -102,9 +101,10 @@ export default {
       const arr = data.split(' ')[1].split(',')
       this.selectedId = +arr[0]
       this.videoRotation = arr[1]
+      this.$socket.sendMsg('#WND-STRETCH? ' + this.selectedId)
     },
     handleStretch (data) {
-      this.stretchType = data.split(' ')[1]
+      this.stretchType = data.split(' ')[1].split(',')[1]
     },
     handleBEZEL (data) {
       this.bezel = +data.split(',')[2]
@@ -120,7 +120,7 @@ export default {
     save () {
       this.$socket.sendMsg(`#VIEW-MOD 15,${this.col},${this.row}`)
       this.$socket.sendMsg(`#VIDEO-WALL-SETUP ${this.selectedId},${this.videoRotation}`)
-      this.$socket.sendMsg('#WND-STRETCH ' + this.stretchType)
+      this.$socket.sendMsg(`#WND-STRETCH ${this.selectedId},${this.stretchType}`)
       this.$socket.sendMsg(`#WND-BEZEL 0,1,${this.bezel},${this.bezel},${this.bezel},${this.bezel}`)
     }
   }
