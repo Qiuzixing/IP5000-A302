@@ -2694,6 +2694,7 @@ _echo_parameters_host()
 	echo "LOOPBACK_DEFAULT_ON=$LOOPBACK_DEFAULT_ON"
 	echo "V_RX_DRV=$V_RX_DRV"
 	echo "V_FRAME_RATE=$V_FRAME_RATE"
+	echo "BOARD_NAME=$BOARD_NAME"
 	sleep 0.01
 }
 
