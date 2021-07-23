@@ -37,6 +37,8 @@ enum AudioCode
     GET_AUDIO_PRIORITY,
     SET_AUDIO_OUTPUT,
     GET_AUDIO_CURRENT_OUTPUT,
+    SET_AUDIO_ANALOG,
+    GET_AUDIO_ANALOG
 };
 
 enum AudioMode
@@ -87,8 +89,11 @@ public:
 
     bool setCurrentInput(const QString &args);
 	
-	bool setCurrentOutput(const QString &args);
+    bool setCurrentOutput(const QString &args);
 
+    bool setAudioAnalog(const QString &args);
+
+    bool getAudioAnalog(struct sockaddr_un &cliaddr, socklen_t len);
 
     bool setPriority(const QString &args);
 

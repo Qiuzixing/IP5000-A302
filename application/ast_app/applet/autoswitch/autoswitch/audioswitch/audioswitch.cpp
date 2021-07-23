@@ -281,11 +281,16 @@ bool AudioSwitch::parseConfigFile()
                 if (switchJson.isMember("analog direction")) {
                     QString analogDirection = switchJson["analog direction"].asCString();
                     qDebug() << "analog direction:" << analogDirection;
+                    QString analogCmd;
                     if (analogDirection.toLower() == "in") {
                         isAnalogInput = true;
+                        analogCmd.sprintf("ipc @m_lm_set s set_gpio_val:1:70:1");
+                    } else {
+                        analogCmd.sprintf("ipc @m_lm_set s set_gpio_val:1:70:0");
                     }
-                    QString analogCmd("xxx");
+
                     QProcess::execute(analogCmd);
+                    qDebug() << "execute cmd:" << analogCmd;
                 }
                 qDebug() << "isAnalogInput:" << isAnalogInput;
 
@@ -395,6 +400,50 @@ bool AudioSwitch::setCurrentMode(const QString &args)
     return ret;
 }
 
+//sconfig --audio-analog {in|out}
+bool AudioSwitch::setAudioAnalog(const QString &args)
+{
+    bool ret = false;
+    qDebug() << __PRETTY_FUNCTION__;
+    QString str = args.trimmed().toLower();
+    QRegExp exp("^(in|out)$");
+    if (-1 == exp.indexIn(str)) {
+        qDebug() << "setAudioAnalog args:" << args;
+        return ret;
+    }
+
+    QString cmd;
+    if (str.toLower() == "in") {
+        isAnalogInput = true;
+        str.sprintf("ipc @m_lm_set s set_gpio_val:1:70:1");
+    } else {
+        isAnalogInput = false;
+        str.sprintf("ipc @m_lm_set s set_gpio_val:1:70:0");
+    }
+    QProcess::execute(cmd);
+    qDebug() << "run cmd:" << cmd;
+
+    qDebug() << "isAnalogInput:" << isAnalogInput;
+    return ret;
+}
+
+//sconfig --show audio-analog
+bool AudioSwitch::getAudioAnalog(sockaddr_un &cliaddr, socklen_t len)
+{
+    bool ret = false;
+    QString msg;
+    if (isAnalogInput) {
+        msg = "in";
+    } else {
+        msg = "out";
+    }
+    qDebug() << "direction:" << msg;
+    int n = sendto(sock, qPrintable(msg), msg.length(), 0, (struct sockaddr *)&cliaddr, len);
+    if (n > 0) {
+        ret = true;
+    }
+    return ret;
+}
 
 //sconfig --audio-input {dante|analog|hdmi}
 bool AudioSwitch::setCurrentInput(const QString &args)
@@ -536,6 +585,8 @@ bool AudioSwitch::parseMessage(const QString &s, QString &type, QString &cmd, QS
                     code = SET_AUDIO_PRIORITY;
 				} else if (cmdstr.toLower() == "audio-output") {
                 	code = SET_AUDIO_OUTPUT;
+                } else if (cmdstr.toLower() == "audio-analog") {
+                    code = SET_AUDIO_ANALOG;
                 }
             }
 
@@ -548,8 +599,9 @@ bool AudioSwitch::parseMessage(const QString &s, QString &type, QString &cmd, QS
                     code = GET_AUDIO_PRIORITY;
 				} else if (cmdstr.toLower() == "audio-output") {
                 	code = GET_AUDIO_CURRENT_OUTPUT;
+                } else if (cmdstr.toLower() == "audio-analog") {
+                    code = GET_AUDIO_ANALOG;
                 }
-
             }
 
             qDebug() << "code:" << hex << code;
@@ -697,6 +749,15 @@ bool AudioSwitch::handlerMessage(quint32 code, const QString &args, struct socka
         break;
     }
 
+    case SET_AUDIO_ANALOG: {
+        ret = setAudioAnalog(args);
+        break;
+    }
+
+    case GET_AUDIO_ANALOG: {
+        ret = getAudioAnalog(cliaddr, len);
+        break;
+    }
 
 
     default:

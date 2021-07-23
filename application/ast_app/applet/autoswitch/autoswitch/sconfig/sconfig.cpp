@@ -181,9 +181,31 @@ bool setAudioOutputMsg(int sock, const char *src1, const char *src2, const char 
     if (s1.empty() && s2.empty() && s3.empty() && s4.empty()) {
         msg += "no";
     } else {
+        bool prefix = false;
         msg += s1;
+        if (!s1.empty()) {
+            prefix = true;
+        }
+
+        if (prefix) {
+            msg += " ";
+        }
         msg += s2;
+        if (!s2.empty()) {
+            prefix = true;
+        }
+
+        if (prefix) {
+            msg += " ";
+        }
         msg += s3;
+        if (!s3.empty()) {
+            prefix = true;
+        }
+
+        if (prefix) {
+            msg += " ";
+        }
         msg += s4;
     }
 
@@ -240,6 +262,23 @@ bool showVideoSwitchInformation(int sock, const char *item)
     }
     return ret;
 }
+
+/*
+ * sconfig --audio-analog {in|out}
+ * dir: in|out
+ *
+ */
+bool setAudioAnalogMsg(int sock, const char *dir)
+{
+    bool ret = false;
+    std::string msg("set audio-analog ");
+    msg += dir;
+    ssize_t nbytes = unixsock_send_message(sock, MAIN_AUDIO_SOCKET_NAME, msg.c_str(), msg.length());
+    if (nbytes > 0)
+        ret = true;
+    return ret;
+}
+
 
 bool sendEvent(int argc, char *argv[])
 {
@@ -418,6 +457,24 @@ bool setAudioOutput(int argc, char *argv[])
     return ret;
 }
 
+//sconfig --audio-analog {in|out}
+bool setAudioAnalog(int argc, char *argv[])
+{
+    bool ret = false;
+    if (argc < 3) {
+        std::cout << "sconfig --audio-analog {in|out}\n";
+        return ret;
+    }
+
+    if (!(!strcasecmp(argv[2], "in")
+         || !strcasecmp(argv[2], "out"))) {
+        std::cout << "sconfig --audio-analog {in|out}\n";
+        return false;
+    }
+
+    return setAudioAnalogMsg(sock, argv[2]);
+}
+
 
 bool showInformation(int argc, char *argv[])
 {
@@ -428,7 +485,8 @@ bool showInformation(int argc, char *argv[])
          || !strcasecmp(argv[2], "audio-mode")
          || !strcasecmp(argv[2], "audio-priority")
          || !strcasecmp(argv[2], "audio-input")
-         || !strcasecmp(argv[2], "audio-output"))) {
+         || !strcasecmp(argv[2], "audio-output")
+         || !strcasecmp(argv[2], "audio-analog"))) {
         return ret;
     }
 
@@ -500,6 +558,9 @@ int main(int argc, char *argv[])
     //sconfig --audio-output {dante|analog|hdmi|lan}
     parser.add<string>("audio-output", 0, "set current audio output", false, "");
 
+    //sconfig --audio-analog {in|out}
+    parser.add<string>("audio-analog", 0, "set audio analog in or out", false, "");
+
     parser.add("help", 0, "print this message");
 
     bool status = parser.parse(argc, argv);
@@ -558,6 +619,10 @@ int main(int argc, char *argv[])
 
     if (parser.exist("audio-output")) {
         setAudioOutput(argc, argv);
+    }
+
+    if (parser.exist("audio-analog")) {
+        setAudioAnalog(argc, argv);
     }
 
     if (sock != -1) {
