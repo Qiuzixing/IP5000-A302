@@ -42,6 +42,7 @@ int P3K_HandleSharkResp(char*data)
 	sprintf(tmpdata,"%s%s",P3K_RESPMSG_PREFIX,P3K_RESPMSG_SUFFIX);
 
 	memcpy(data,tmpdata,strlen(tmpdata));
+	return 0;
 }
 
 int P3K_SimpleRespCmdBurstification(P3K_SimpleCmdInfo_S *cmd,char *dstdata)
@@ -76,7 +77,7 @@ int P3K_SimpleReqCmdBurstification(P3K_SimpleCmdInfo_S *cmd,char *dstdata)
 		return -1;
 	}
 	char tmpdata[384] ={0};
-	int tmplen = 0;
+	//int tmplen = 0;
 	memset(tmpdata,0,384);
 	sprintf(tmpdata,"%c%s %s%c",P3K_REQMSG_PREFIX,cmd->command,cmd->param,P3K_REQMSG_SUFFIX);
 	return 0;
@@ -154,7 +155,7 @@ int P3K_SimpleReqPacketUnpack(char*data,int len,P3K_SimpleCmdInfo_S *cmd)
 int P3K_SimpleReqCmdUnpack(char*data,P3K_SimpleCmdInfo_S*cmdInfo)
 {
 	P3K_SimpleCmdInfo_S cmd;
-	int i = 0;
+	//int i = 0;
 	if(data == NULL)
 	{
 		return -1;

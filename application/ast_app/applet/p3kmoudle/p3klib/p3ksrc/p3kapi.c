@@ -177,24 +177,12 @@ static P3KReqistMsg_S* P3K_GetReqistMsgByID(int id)//通过ID获取Handle
 	
 }
 
-static int  P3K_SelectHandleID(int iId,char * aIds)
-{
-	int num = 0;
-	for(num =0;num < 10;num ++)
-	{
-		if(aIds[num] == iId)
-		{
-			return iId;	
-		}
-	}
-	//aIds[strlen(aIds)] = iId;
-	return 0;
-}
+
 
 static int  P3K_PhraserIDParam(char *param,int len,	char str[][MAX_PARAM_LEN] )
 {
 	int tmpLen = 0 ;
-	int s32Ret = 0;
+	//int s32Ret = 0;
 	int i = 0;
 	char *tmpdata = param;
 	char *tmpdata1 = param;
@@ -239,8 +227,6 @@ static void * P3K_DataExcuteProc(void*arg)
 	char dstdata[512] = {0};
 	int s32Ret = 0;
 	int tmplen = 0;
-	int flag = 0;
-	char aIds[10] = {0};
 	char aOtherCh[128] = {0};
 	char userDefine[MAX_USR_STR_LEN+1] = {0};
 	//函数处理执行线程
@@ -250,19 +236,28 @@ static void * P3K_DataExcuteProc(void*arg)
 	while(1)//P3K_GetApiInitFlag())
 	{
 		memset(&pmsg,0,sizeof(P3KMsgQueueMember_S));
-		
+		 
 		s32Ret = P3K_MSgQueueGetMsg(&pmsg);
-		if( pmsg.handleId==P3K_SelectHandleID(pmsg.handleId,aIds))
-		{
+		
 		memset(aOtherCh,0,sizeof(aOtherCh));
-			//int ret1 = 1;
-			int ret1 = P3K_OtherChanges(aOtherCh);
-			if(ret1 > 0)
-			{
-				printf(">>>>%s\n",aOtherCh);
-				registMsg->sendMsg(pmsg.handleId,aOtherCh,strlen(aOtherCh));
-			}
+		//int ret1 = 1;
+		int ret1 = EX_AutomaticReporting(aOtherCh);
+		if(ret1 > 0)
+		{
+			HandleList_S * tmphandle = &(gs_handleMng.listHandleHead); 
+			P3KReqistMsg_S *upregistMsg = NULL;
+			printf(">>>>%s\n",aOtherCh);
+			do{
+				upregistMsg = (P3KReqistMsg_S *)HandleManageGetNextHandle(tmphandle);
+				if(upregistMsg)
+				{
+					upregistMsg->sendMsg(upregistMsg->handleId,aOtherCh,strlen(aOtherCh));
+				}
+				upregistMsg = NULL;
+				tmphandle = tmphandle->next;
+			}while(tmphandle != NULL && tmphandle->next != NULL);
 		}
+		
 		if(s32Ret != 0)
 		{
             			//usleep(20*1000);
@@ -354,7 +349,7 @@ static int P3K_RecvMessage(int handleId,char*data,int len )
 				gs_LDFWStatus.handleId[gs_LDFWStatus.num] = handleId;
 				gs_LDFWStatus.num += 1;
 				iFlieSize = atoi(cmd[i].param);
-				char str[] = "~";
+				char str[] = "~01@";
 				char aMsg[256] = {0};
 				DBG_InfoMsg("SPECIAL CMD =%s\n",cmd[i].command);
 				P3KReqistMsg_S *registMsg = NULL;

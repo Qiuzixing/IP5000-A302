@@ -39,7 +39,7 @@ $(TARGET):$(OBJS)
 	cd $(ROOTDIR) 
 	make -C $(LIB_PWD)
 	cp -f $(LIB_PWD)$(LIB) ./
-	$(CC)  -o $@ $^  -lpthread -lm $(LIB)
+	$(CC)  -o $@ $^  -lpthread -lm $(LIB) -lstdc++
 	$(STRIP) $(TARGET)
 $(OBJS) :%.o : %.c
 	@echo complie $@

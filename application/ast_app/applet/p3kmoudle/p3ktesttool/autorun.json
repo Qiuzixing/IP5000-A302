@@ -1,0 +1,9 @@
+{
+	"cmd":[
+			{"cmd":"KDS-AUD","sleep":"1000"},
+			{"cmd":"KDS-AUD?","sleep":"1000"},
+			{"cmd":"X-AUD-LVL","sleep":"4000"},
+			{"cmd":"X-AUD-LVL?","sleep":"700"},
+			{"cmd":"X-AUD-DESC?","sleep":"1000"}
+	]
+}

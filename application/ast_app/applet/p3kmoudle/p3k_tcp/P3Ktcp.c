@@ -196,7 +196,7 @@ int Cheak_TcpLink(TimeOut_S * head,int socket)
 void * LoginTimtOut(void * fd)
 {
 	int soket = *(int *)fd;
-	sleep(10);
+	sleep(300);
 	TimeOut_S * tmp = sTimeOut->next;
 	TimeOut_S * rec = sTimeOut;
 	while(tmp != NULL)
@@ -360,13 +360,8 @@ int Tcp_NetUnInit()
 }
 int main (int argc, char const *argv[])
 {
-	if(argc < 3)
-	{
-		Tcp_NetInit(5000);
-		sTcpLogin.iFlag = 0;
-		flagS = 1;
-	}
-	else
+	
+	if(argc == 3)
 	{
 		if(!memcmp(argv[2],"-l",strlen("-l")))
 		{
@@ -374,7 +369,12 @@ int main (int argc, char const *argv[])
 		}
 		Tcp_NetInit(atoi(argv[1]));
 	}
-	
+	else
+	{
+		Tcp_NetInit(5000);
+		sTcpLogin.iFlag = 0;
+		flagS = 1;
+	}
 	char ch =0;
 	while(1)
 	{

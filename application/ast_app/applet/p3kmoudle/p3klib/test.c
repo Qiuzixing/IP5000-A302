@@ -114,10 +114,10 @@ int main(int argc ,char*argv[])
 	P3K_ApiInit();
 	gs_p3khandle.sendMsg = T_senddata;
 	P3K_ApiRegistHandle(&gs_p3khandle);
-	char  cmdbuf[512] ={0};
-	char strCmd[64] ;
-	char strParam[256] ;
-	char ch = 0;
+	//char  cmdbuf[512] ={0};
+	//char strCmd[64] ;
+	//char strParam[256] ;
+	//char ch = 0;
 	int handleId=gs_p3khandle.handleId;
 	int i= 0;
 	while(1)

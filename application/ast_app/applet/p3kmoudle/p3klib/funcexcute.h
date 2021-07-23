@@ -55,6 +55,13 @@ typedef enum _PortSignalType_E
 	PORT_USB_A,
 	PORT_USB_B,
 	PORT_USB_C,
+	PORT_DANTE,
+	PORT_HDBT,
+	PORT_AMPLIFIED_AUDIO,
+	PORT_TOS,
+	PORT_SPDIF,
+	PORT_MIC,
+	PORT_STREAM,
 }PortSignalType_E;
 typedef enum _SignalType_E
 {
@@ -62,7 +69,8 @@ typedef enum _SignalType_E
 	SIGNAL_AUDIO,
 	SIGNAL_RS232,
 	SIGNAL_IR,
-	SIGNALE_USB,
+	SIGNAL_USB,
+	SIGNAL_ARC,
 }SignalType_E;
 typedef enum _HDCPMode_E
 {
@@ -146,6 +154,22 @@ typedef enum _EdidModeType_E
 	CUSTOM,
 	DEFAULT,
 }EdidModeType_E;
+
+typedef enum _State_E
+{
+	OFF,
+	ON,
+}State_E;
+
+typedef struct   _MuteInfo_S
+{
+       PortDirectionType_E direction;
+	PortSignalType_E portFormat;
+	int portIndex ;
+	SignalType_E signal;
+	int index;
+	State_E state;
+}MuteInfo_S;
 
 typedef struct   _EdidInfo_S
 {
@@ -374,7 +398,7 @@ int EX_SetCECGateWayMode(int mode);
 
 int EX_SendIRmessage(IRMessageInfo_S*info);
 int EX_SendIRStop(int irId,int serialNumb,char*command);
-int EX_SetRouteMatch(PortInfo_S*inPortInfo,PortInfo_S*matchPortInfo);
+int EX_SetRouteMatch(PortInfo_S*inPortInfo,PortInfo_S*matchPortInfo,int num);
 int EX_GetRouteMatch(PortInfo_S*inPortInfo,PortInfo_S*matchPortInfo);
 int EX_SetUartConf(UartMessageInfo_S*conf);
 int EX_GetUartConf(int comId,UartMessageInfo_S*conf);
@@ -388,8 +412,8 @@ int EX_SetUSBCtrl(int type);
 int EX_GetMulticastInfo(char*ip,int *ttl);
 int EX_SetMacAddr(int netid,char*macAddr);
 int EX_GetMacAddr(int netid,char*macAddr);
-int EX_SetDNSName(char*name);
-int EX_GetDNSName(char*name);
+int EX_SetDNSName(int id,char*name);
+int EX_GetDNSName(int id,char*name);
 int EX_ResetDNSName(char *name);
 int EX_SetDHCPMode(int netid,int mode);
 int EX_GetDHCPMode(int netid,int* mode);
@@ -449,12 +473,12 @@ int EX_GetRecvMsgNum(int msg,char*date );
 int EX_GetVidOutRatio(char*date );
 int EX_SetChannelName(char date[32] );
 int EX_GetChannelName(char * date);
-int EX_SetVidMute(int mute );
-int EX_GetVidMute(void);
+int EX_SetVidMute(MuteInfo_S * mute );
+int EX_GetVidMute(MuteInfo_S * mute);
 int EX_GetConnectionList(char info[][MAX_SIGNALE_LEN],int num);
 int EX_GetHWVersion(char * date);
 int EX_GetDevStatus(void);
-int EX_GetHWTemp(int id);
+int EX_GetHWTemp(int  id,int iMode);
 int EX_GetAutoSwitchPriority(AudioInfo_S * gain,int count);
 int EX_SetDanteName(char date[32]);
 int EX_GetDanteName(char * date);
@@ -477,17 +501,28 @@ int EX_SetGatewayPort(int iGw_Type,int iNetw_Id);
 int EX_GetGatewayPort(int iGw_Type);
 int EX_SetVlanTag(int iGw_Type,int iTag);
 int EX_GetVlanTag(int iGw_Type);
-int EX_SetPassword(char * iOld_Pass,char * iNew_Pass);
+int EX_SetPassword(char * login_level,char * iNew_Pass);
+int EX_GetPassword(char * login_level);
 int EX_SetRollback(char * type);
 int EX_GetLogEvent(int * action,int * period);
 int EX_GetLogResetEvent(int * iLog,char*date,char*hms);
 int EX_SetIRGateway(int  iIr_mode);
 int EX_GetIRGateway(void);
 int EX_GetStandbyMode(int * value);
+int EX_SetStandbyTimeOut(int  iTime );
+int EX_GetStandbyTimeOut(void);
+int EX_RmEDID(int iEDID);
+int EX_SetVideoWallStretch(int  index,int mode );
+int EX_GetVideoWallStretch(int  index);
 int EX_AutomaticReporting(char * info);
 int EX_GetCECGateWayMode(void);
+
+
+int classTest(int a,int b);
 #ifdef __cplusplus
 }
 #endif
+
+
 
 #endif

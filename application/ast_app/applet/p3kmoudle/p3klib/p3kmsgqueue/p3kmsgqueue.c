@@ -64,6 +64,9 @@ int P3K_MsgQueueUinit()
 	gs_queueInfo.queueMng.totalRecvMsg = 0;
 
 	pthread_mutex_destroy(&(gs_queueInfo.selflock));
+
+	return 0;
+
 }
 int P3K_MSgQueueAddMsg(P3KMsgQueueMember_S *msg)
 {
@@ -99,9 +102,9 @@ int P3K_MSgQueueAddMsg(P3KMsgQueueMember_S *msg)
 
 	SetQueueMngHandle(&msgMng);
 	
-	printf("/----------11-------------//\n");
+	//printf("/----------11-------------//\n");
 	pthread_mutex_unlock(&(gs_queueInfo.selflock));
-	printf("/---------1--------------//\n");
+	//printf("/---------1--------------//\n");
 	return 0;
 }
 int P3K_MSgQueueGetMsg(P3KMsgQueueMember_S *msg)
