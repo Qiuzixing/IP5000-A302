@@ -360,6 +360,8 @@ int APP_Comm_Recv(CmdProtocolParam * param)
     int i = 0;
     ipc_relay_msg ipc_msg;
     memset(&ipc_msg, 0, sizeof(ipc_msg));
+    uint8_t dante_data_buf[DANTE_UART_BUFFER] = {0};
+    U16 uart_data_len = 0;
     switch(param->CMD)
     {
         case CMD_UPDATE_MCU_STATUS:
@@ -416,6 +418,15 @@ int APP_Comm_Recv(CmdProtocolParam * param)
                 ipc_set(IPC_RELAY_CH,&ipc_msg,sizeof(ipc_msg));
                 ipc_querycmd_index = -1;
             }
+            break;
+        case CMD_UART_PASSTHROUGH:
+            memcpy(dante_data_buf,(const char*)param->Data,param->DataLen);
+            uart_data_len = (dante_data_buf[3]<<8 | dante_data_buf[2]);
+            //the data start from the dante_data_buf[4]
+/*             for(i = 4;i<256;i++)
+            {
+                printf("dante_data_buf[%d] = 0x%x\n",i,dante_data_buf[i]);
+            } */
             break;
         default:
             printf("----\n");

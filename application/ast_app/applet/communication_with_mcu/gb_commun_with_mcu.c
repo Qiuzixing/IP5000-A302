@@ -30,6 +30,7 @@
 #include "./commun_with_mcu/command.h"
 #include "gb_commun_with_mcu.h"
 #include "auto_swtich_socket.h"
+#include "dante_cmd_packet.h"
 
 #define mymin(a, b) (a > b ? b : a)
 #define versionnum_len 15
@@ -82,7 +83,7 @@ const ipc_cmd_struct ipc_cmd_list[] =
         {IPC_HDMI_AUDIO_CONTROL,        "unknown",                  sizeof("unknown"),              CMD_HDMI_AUDIO_CONTROL,             SEND_CMD},
         {IPC_SET_AUDIO_INSERT_EXTRACT,  "set_audio_insert",         sizeof("set_audio_insert"),     CMD_HDMI_SET_AUDIO_INSERT_EXTRACT,  SEND_CMD},
         //other command
-        {IPC_UART_PASSTHROUGH,          "unknown",                  sizeof("unknown"),              CMD_UART_PASSTHROUGH,               SEND_CMD},
+        {IPC_UART_PASSTHROUGH,          "set_dante",                sizeof("set_dante"),            CMD_UART_PASSTHROUGH,               SEND_CMD},
         {IPC_SET_GPIO_CONFIG,           "set_gpio_config",          sizeof("set_gpio_config"),      CMD_GPIO_CONFIG,                    SEND_CMD},
         {IPC_EVENT_GPIO_VAL,            "unknown",                  sizeof("unknown"),              EVENT_GPIO_VAL,                     SEND_CMD},
         {IPC_GET_GPIO_VAL,              "get_gpio_val",             sizeof("get_gpio_val"),         CMD_GPIO_GET_VAL,                   QUERY_CMD},
@@ -543,6 +544,56 @@ static void do_handle_set_audio_insert_extract(uint16_t cmd,char *cmd_param)
     APP_Comm_Send(cmd, (U8*)&ado_insert, sizeof(ado_insert));
 }
 
+static void do_handle_uart_pass(uint16_t cmd,char *cmd_param)
+{
+    char *dante_cmd = strtok(cmd_param,":");
+    unsigned char dante_cmd_buff[DANTE_UART_BUFFER] = {0};
+    int dante_cmd_len = 0;
+    int cmd_index = 0;
+    int i = 0;
+    struct CmdDataUartPassthrough *uart_pass = NULL;
+    if(dante_cmd != NULL)
+    {
+        cmd_index = atoi(dante_cmd);
+    }
+    else
+    {
+        printf("warn:Illegal parameter, discard directly\n");
+        return;
+    }
+    
+    switch(cmd_index)
+    {
+        case SET_DANTE_HOSTNAME:
+            break;
+        case SET_DANTE_MAC:
+            break;
+        case SET_DANTE_REBOOT:
+            dante_cmd_len = dnt_reboot_packet(dante_cmd_buff);
+            break;
+        default:
+            printf("warn:Illegal parameter, discard directly\n");
+            break;
+    }
+
+    uart_pass = (struct CmdDataUartPassthrough *)calloc(dante_cmd_len + 4, sizeof(uint8_t));
+    if (NULL == uart_pass)
+    {
+        printf("Failed to allocate memory\n");
+        return;
+    }
+    uart_pass->fromPort = UART_PORT_2;
+    uart_pass->toPort = UART_PORT_4;
+    uart_pass->dataLength = dante_cmd_len;
+    for(i=0;i<dante_cmd_len;i++)
+    {
+        uart_pass->data[i] = dante_cmd_buff[i];
+        printf("uart_pass->data[%d] = 0x%x\n",i,uart_pass->data[i]);
+    }
+    APP_Comm_Send(CMD_UART_PASSTHROUGH, (U8*)uart_pass, dante_cmd_len + 4);
+    free(uart_pass);
+}
+
 static void do_handle_ipc_cmd(int index,char *cmd_param)
 {
     uint32_t uctemp = CMD_NULL_DATA;
@@ -591,6 +642,7 @@ static void do_handle_ipc_cmd(int index,char *cmd_param)
     
     // other command
     case IPC_UART_PASSTHROUGH:
+        do_handle_uart_pass(ipc_cmd_list[index].a30_cmd,cmd_param);
         break;
     case IPC_SET_GPIO_CONFIG:
         do_handle_set_gpio_config(ipc_cmd_list[index].a30_cmd,cmd_param);

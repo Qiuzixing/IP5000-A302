@@ -79,4 +79,6 @@ typedef struct
     uint8_t type;
 } ipc_cmd_struct;
 
+#define DANTE_UART_BUFFER 256
+
 #endif
