@@ -71,14 +71,6 @@
           </el-slider>
           <span style="margin-left: 15px">{{avSignal['frame rate percentage']}}</span>
         </div>
-        <div class="setting">
-          <span class="setting-title">Force 8-bit Color Depth</span>
-          <v-checkbox v-model="avSignal['color depth']" active-value="8-bit" inactive-value="Follow Output"></v-checkbox>
-        </div>
-        <div class="setting">
-          <span class="setting-title">Force RGB</span>
-          <v-checkbox v-model="forceRGB" active-value="1" inactive-value="0"></v-checkbox>
-        </div>
       </div>
     </div>
     <footer><button class="btn btn-primary" @click="save">SAVE</button></footer>
@@ -86,13 +78,9 @@
 </template>
 
 <script>
-import vCheckbox from '@/components/checkbox.vue'
 
 export default {
   name: 'audioPage',
-  components: {
-    vCheckbox
-  },
   data () {
     return {
       forceRGB: '0',
@@ -134,7 +122,6 @@ export default {
     this.$socket.sendMsg('#HDCP-MOD? 1')
     this.$socket.sendMsg('#HDCP-MOD? 2')
     this.$socket.sendMsg('#HDCP-MOD? 3')
-    this.$socket.sendMsg('#CS-CONVERT? 1')
     this.getAVSignal()
     this.getDisplayDelay()
   },
@@ -194,7 +181,6 @@ export default {
     save () {
       this.setDisplayDelay()
       this.setAVSingle()
-      this.$socket.sendMsg(`#CS-CONVERT 1,${this.forceRGB}`)
     }
   }
 }

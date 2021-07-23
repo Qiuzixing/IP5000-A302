@@ -68,12 +68,12 @@ export default {
     }
   },
   created () {
-    this.$socket.sendMsg('#KDS-LOGOUT-TIMEOUT? ')
+    this.$socket.sendMsg('#LOGOUT-TIMEOUT? ')
   },
   methods: {
     handleMsg (msg) {
       console.log(msg)
-      if (msg.search(/@KDS-LOGOUT-TIMEOUT /i) !== -1) {
+      if (msg.search(/@LOGOUT-TIMEOUT /i) !== -1) {
         this.handleLogout(msg)
         return
       }
@@ -92,7 +92,7 @@ export default {
       this.logoutTime = parseInt(msg.split(' ')[1])
     },
     setLogout () {
-      this.$socket.sendMsg('#KDS-LOGOUT-TIMEOUT ' + this.logoutTime)
+      this.$socket.sendMsg('#LOGOUT-TIMEOUT ' + this.logoutTime)
     },
     setPassword () {
       if (this.confirmPwd.length === 0 || this.confirmPwd !== this.newPwd) return

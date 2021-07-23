@@ -1,4 +1,4 @@
-const version = 'V1.0.1'
+const version = 'V1.0.2'
 const path = require('path')
 function resolve (dir) {
   return path.join(__dirname, dir)

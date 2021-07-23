@@ -176,7 +176,7 @@ export default {
       ttl: 64,
       danteTag1: 1,
       danteTag2: 1,
-      danteTag3: 1,
+      danteTag3: 1
     }
   },
   beforeCreate () {

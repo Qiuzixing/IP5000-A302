@@ -149,9 +149,8 @@ export default {
       }
     },
     handleInputSelect (msg) {
-      const data = msg.split(',')[1]
       // ~nn@X-ROUTE out.hdmi.1.video.1,in.stream.{1}.video.1<CR><LF>
-      this.inputSelect.val = data.split('.')[2]
+      this.inputSelect.val = msg.split(',')[1].split('.')[2]
     },
     setInputSelect (val) {
       this.$socket.sendMsg(`#X-ROUTE out.hdmi.1.video.1,in.hdmi.${val}.video.1`)

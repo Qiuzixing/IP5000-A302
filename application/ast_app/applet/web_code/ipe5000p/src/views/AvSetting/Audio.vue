@@ -102,13 +102,10 @@ export default {
     this.$socket.sendMsg('#PORT-DIRECTION? both.analog.1.audio')
     this.$socket.sendMsg('#X-AV-SW-MODE? out.hdmi.1.audio.1')
     this.$socket.sendMsg('#X-PRIORITY? out.hdmi.1.audio')
-    this.$socket.sendMsg('#KDS-AUD-OUTPUT? ')
-    this.$socket.sendMsg('#KDS-DANTE-NAME? ')
+    this.$socket.sendMsg('#X-ROUTE? ')
+    this.$socket.sendMsg('#NAME? ')
     this.$socket.sendMsg('#KDS-AUD? ')
     this.getAVSignal()
-    // this.$socket.sendMsg('#CS-CONVERT? 1')
-    // this.getAVSignal()
-    // this.getDisplayDelay()
   },
   methods: {
     handleMsg (msg) {
@@ -125,12 +122,16 @@ export default {
         this.handleSwitchPriority(msg)
         return
       }
-      if (msg.search(/@KDS-AUD-OUTPUT /i) !== -1) {
+      if (msg.search(/@X-ROUTE /i) !== -1) {
         this.handleAudioDestination(msg)
         return
       }
-      if (msg.search(/@KDS-DANTE-NAME /i) !== -1) {
+      if (msg.search(/@NAME /i) !== -1) {
         this.handleDanteName(msg)
+        return
+      }
+      if (msg.search(/@KDS-AUD /i) !== -1) {
+        this.audioSource.val = msg.split(' ').pop()
       }
     },
     handleDirection (msg) {
@@ -169,7 +170,7 @@ export default {
       this.audioDestination.forEach((item, index) => {
         if (item === 1) data.push(index + 1)
       })
-      this.$socket.sendMsg(`#KDS-AUD-OUTPUT [${data.join(',')}]`)
+      this.$socket.sendMsg(`#X-ROUTE [${data.join(',')}]`)
     },
     setAVSingle () {
       this.$http.post('/set_av_signal', {
@@ -188,7 +189,7 @@ export default {
       if (this.audioMode.val === '0') {
         this.$socket.sendMsg(`#KDS-AUD ${this.audioSource.val}`)
       }
-      this.$socket.sendMsg(`#KDS-DANTE-NAME ${this.danteName}`)
+      this.$socket.sendMsg(`#NAME ${this.danteName}`)
       this.setAVSingle()
       this.setAudioDestination()
     }

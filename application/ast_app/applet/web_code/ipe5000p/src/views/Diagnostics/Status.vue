@@ -90,7 +90,7 @@ export default {
   },
   created () {
     this.$socket.sendMsg('#DEV-STATUS? ')
-    this.$socket.sendMsg('#HW‑TEMP? 0')
+    this.$socket.sendMsg('#HW-TEMP? 0,0')
     this.$socket.sendMsg('#LOG-RESET? ')
     this.$socket.sendMsg('#SIGNALS-LIST? ')
   },

@@ -141,7 +141,7 @@ export default {
     }
   },
   created () {
-    this.$socket.sendMsg('#NAME? ')
+    this.$socket.sendMsg('#NAME? 1')
     this.$socket.sendMsg('#MODEL? ')
     this.$socket.sendMsg('#HW-VERSION? ')
     this.$socket.sendMsg('#NET-MAC? 0')
@@ -191,7 +191,7 @@ export default {
         this.handleStandbyVer(msg)
         return
       }
-      if (msg.search(/@KDS-STANDBY-TIMEOUT /i) !== -1) {
+      if (msg.search(/@STANDBY-TIMEOUT /i) !== -1) {
         this.handleAutoStandbyTime(msg)
         return
       }
@@ -236,7 +236,7 @@ export default {
       this.$socket.sendMsg('#FACTORY')
     },
     setHostName () {
-      this.$socket.sendMsg(`#NAME ${this.hostname}`)
+      this.$socket.sendMsg(`#NAME 1,${this.hostname}`)
     },
     setDeviceModel () {
       this.$socket.sendMsg(`#MODEL ${this.deviceModel}`)
@@ -245,12 +245,12 @@ export default {
       this.$socket.sendMsg('#IDV')
     },
     setAutoStandbyTime () {
-      this.$socket.sendMsg(`#KDS-STANDBY-TIMEOUT ${this.autoStandbyTime}`)
+      this.$socket.sendMsg(`#STANDBY-TIMEOUT ${this.autoStandbyTime}`)
     },
     handleAutoStandbyTime (msg) {
       this.autoStandbyTime = parseInt(msg.split(' ')[1])
     },
-    rollback () {
+    rollBack () {
       this.$socket.sendMsg('#ROLLBACK')
     }
   }
