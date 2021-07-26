@@ -25,6 +25,12 @@ enum
     COMMUNICATION
 };
 
+enum
+{
+    DANTE_AUDIO_DETECTED = 0,
+    DANTE_AUDIO_DISCONNECT ,
+    UNKNOW_DANTE_STATUS = 0xff
+};
 typedef enum
 {
     SEND_CMD = 0,

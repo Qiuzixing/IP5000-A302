@@ -20,10 +20,12 @@
 #include "../ipc.h"
 #include "../gb_commun_with_mcu.h"
 #include "../auto_swtich_socket.h"
+#include "../dante_example_code/app/example/example_rx_uhip.h"
 int APP_Comm_Recv(CmdProtocolParam * param);
 int APP_Comm_Send(U16 CMD,U8 *buf, int len);
 extern int ipc_querycmd_index;
 extern const ipc_cmd_struct ipc_cmd_list[];
+int dante_state = UNKNOW_DANTE_STATUS;
 
 int Cmdfd;
 CommandInterfaceFun Cmdfun;
@@ -423,13 +425,23 @@ int APP_Comm_Recv(CmdProtocolParam * param)
             memcpy(dante_data_buf,(const char*)param->Data,param->DataLen);
             uart_data_len = (dante_data_buf[3]<<8 | dante_data_buf[2]);
             //the data start from the dante_data_buf[4]
-/*             for(i = 4;i<256;i++)
+            handle_uhip_rx(dante_data_buf+4,uart_data_len);
+            if(dante_state == DANTE_AUDIO_DETECTED)
             {
-                printf("dante_data_buf[%d] = 0x%x\n",i,dante_data_buf[i]);
-            } */
+                printf("dante audio connect\n");
+            }
+            else if(dante_state == DANTE_AUDIO_DISCONNECT)
+            {
+                printf("dante audio disconnect\n");
+            }
+            else
+            {
+                //
+            }
+            dante_state = UNKNOW_DANTE_STATUS;
             break;
         default:
-            printf("----\n");
+            printf("warning:known mcu cmd\n");
             break;
     }
 
