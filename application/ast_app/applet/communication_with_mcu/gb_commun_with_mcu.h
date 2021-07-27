@@ -5,7 +5,7 @@
 
 #define IPC_CH "@m_lm_get"
 #define IPC_RELAY_CH "@m_lm_reply"
-#define PARAM_SIZE 256
+#define AUDIO_OUT_TYPE_NUM 4
 
 enum
 {
@@ -37,6 +37,31 @@ typedef enum
     QUERY_CMD,
     UNKNOW_CMD_TYPE = 0xFF
 } cmd_type;
+
+typedef enum
+{
+    AUDIO_IN_DANTE = 0,
+    AUDIO_IN_ANALOG ,
+    AUDIO_IN_HDMI,
+    AUDIO_IN_LAN,
+
+    AUDIO_IN_NULL = 0xff
+}audio_in_type;
+
+typedef enum
+{
+    AUDIO_OUT_DANTE = 0,
+    AUDIO_OUT_ANALOG ,
+    AUDIO_OUT_HDMI,
+    AUDIO_OUT_LAN,
+
+    AUDIO_OUT_NULL = 0xff
+}audio_out_type;
+
+typedef struct  {
+    uint8_t audio_in;
+    uint8_t audio_out[AUDIO_OUT_TYPE_NUM + 1];  //The last value must be AUDIO_OUT_NULL;
+}audio_inout_info_struct;
 
 typedef enum
 {
@@ -72,6 +97,10 @@ typedef enum
     IPC_GET_GPIO_VAL,
     IPC_SET_GPIO_VAL,
 
+    //audio_autoswitch
+    IPC_AUDIO_IN,
+    IPC_AUDIO_OUT,
+
     IPC_CmdCnt,
     IPC_UnknownCmd = 0xFF
 } ipc_cmd_typedef;
@@ -85,6 +114,8 @@ typedef struct
     uint8_t type;
 } ipc_cmd_struct;
 
+void do_handle_set_gpio_val(uint16_t cmd,char *cmd_param);
+void do_handle_set_audio_insert_extract(uint16_t cmd,char *cmd_param);
 #define DANTE_UART_BUFFER 256
 
 #endif

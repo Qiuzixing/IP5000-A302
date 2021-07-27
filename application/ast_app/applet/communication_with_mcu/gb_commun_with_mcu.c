@@ -29,8 +29,9 @@
 #include "./commun_with_mcu/uart_mcu_cmd.h"
 #include "./commun_with_mcu/command.h"
 #include "gb_commun_with_mcu.h"
-#include "auto_swtich_socket.h"
-#include "dante_cmd_packet.h"
+#include "./audio_switch/auto_swtich_socket.h"
+#include "./dante_example_code/dante_cmd/dante_cmd_packet.h"
+#include "./audio_switch/audio_switch_cmd.h"
 
 #define mymin(a, b) (a > b ? b : a)
 #define versionnum_len 15
@@ -56,7 +57,7 @@ uint8_t Up_Fail_Flag = 0;
 uint8_t Recv_Cmd_Timeout = 0; //read cmd timeout flag
 int ipc_querycmd_index = 0;
 uint8_t up_or_commun_flag = UPGRADE;
-
+audio_inout_info_struct audio_inout_info;
 
 const ipc_cmd_struct ipc_cmd_list[] =
     {
@@ -88,6 +89,9 @@ const ipc_cmd_struct ipc_cmd_list[] =
         {IPC_EVENT_GPIO_VAL,            "unknown",                  sizeof("unknown"),              EVENT_GPIO_VAL,                     SEND_CMD},
         {IPC_GET_GPIO_VAL,              "get_gpio_val",             sizeof("get_gpio_val"),         CMD_GPIO_GET_VAL,                   QUERY_CMD},
         {IPC_SET_GPIO_VAL,              "set_gpio_val",             sizeof("set_gpio_val"),         CMD_GPIO_SET_VAL,                   SEND_CMD},
+        //audio_autoswitch
+        {IPC_AUDIO_IN,                  "audio_in",                 sizeof("audio_in"),             0,                                  SEND_CMD},
+        {IPC_AUDIO_OUT,                 "audio_out",                sizeof("audio_out"),            0,                                  SEND_CMD}
     }; 
 
 static int setserial(int s, struct termios *cfg, int speed, int data, unsigned char parity, int stopb)
@@ -472,7 +476,7 @@ static void do_handle_get_gpio_val(uint16_t cmd,char *cmd_param)
     free(gpio_list);
 }
 
-static void do_handle_set_gpio_val(uint16_t cmd,char *cmd_param)
+void do_handle_set_gpio_val(uint16_t cmd,char *cmd_param)
 {
     char *tmp_p = strtok(cmd_param,":");
     uint8_t uctemp = 0;
@@ -525,7 +529,7 @@ static void do_handle_set_gpio_val(uint16_t cmd,char *cmd_param)
     free(gpio_val);
 }
 
-static void do_handle_set_audio_insert_extract(uint16_t cmd,char *cmd_param)
+void do_handle_set_audio_insert_extract(uint16_t cmd,char *cmd_param)
 {
     struct CmdDataAudioInsertAndExtract ado_insert;
     char *from_port = strtok(cmd_param,":");
@@ -594,6 +598,53 @@ static void do_handle_uart_pass(uint16_t cmd,char *cmd_param)
     free(uart_pass);
 }
 
+static void handle_audio()
+{
+    mute_control(ANALOG_OUT_MUTE,MUTE);
+    mute_control(ANALOG_IN_MUTE,MUTE);
+    mute_control(DANTE_MUTE,MUTE);
+    set_io_select(HDMI);
+
+    all_switch_set_high();
+    mDelay(300);
+    audio_switch();
+}
+
+static void do_handle_audio_in(char *cmd_param)
+{
+    char *audio_in_type = strtok(cmd_param,":");
+    int i = 0;
+    int ret = 0;
+    if(audio_in_type != NULL)
+    {
+        audio_inout_info.audio_in = atoi(audio_in_type);
+        handle_audio();
+    }
+}
+
+static void do_handle_audio_out(char *cmd_param)
+{
+    char *audio_out_type = strtok(cmd_param,":");
+    int i = 0;
+    int ret = 0;
+    while(audio_out_type != NULL)
+    {
+        audio_inout_info.audio_out[i] = atoi(audio_out_type);
+        i++;
+        if( i == AUDIO_OUT_TYPE_NUM)
+        {
+            break;
+        }
+        audio_out_type = strtok(NULL,":");
+    }
+    audio_inout_info.audio_out[i] = AUDIO_OUT_NULL;
+
+    if(audio_inout_info.audio_in != AUDIO_IN_NULL)
+    {
+        handle_audio();
+    }
+}
+
 static void do_handle_ipc_cmd(int index,char *cmd_param)
 {
     uint32_t uctemp = CMD_NULL_DATA;
@@ -654,6 +705,14 @@ static void do_handle_ipc_cmd(int index,char *cmd_param)
         break;
     case IPC_SET_GPIO_VAL:
         do_handle_set_gpio_val(ipc_cmd_list[index].a30_cmd,cmd_param);
+        break;
+
+    //audio_autoswitch
+    case IPC_AUDIO_IN:
+        do_handle_audio_in(cmd_param);
+        break;
+    case IPC_AUDIO_OUT:
+        do_handle_audio_out(cmd_param);
         break;
     default:
         break;
@@ -725,6 +784,12 @@ int time_difference_from_last_time(struct timespec* last_time)
     return time_diff;
 }
 
+static void set_audio_inout_default()
+{
+    audio_inout_info.audio_in = AUDIO_IN_NULL;
+    memset(audio_inout_info.audio_out,AUDIO_OUT_NULL,sizeof(audio_inout_info.audio_out));
+}
+
 void print_usage() {
 	/* TODO */
 	printf("Usage: communication_with_mcu -u/-c\n");
@@ -781,7 +846,6 @@ int main(int argc, char *argv[])
         }   
     }
 
-
     fd_set rset;
     int maxfd = 0;
     int ipc_fd = -1;
@@ -793,7 +857,7 @@ int main(int argc, char *argv[])
         perror("unix socker error.");
         return -1;
     }
-
+    set_audio_inout_default();
     arm_send_cmd(CMD_CLEAR_RECORD_FLAG);
     clock_gettime(CLOCK_MONOTONIC,&last_time);
     while(1)

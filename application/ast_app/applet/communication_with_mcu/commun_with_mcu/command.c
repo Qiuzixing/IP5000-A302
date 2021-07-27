@@ -19,7 +19,7 @@
 #include "command.h"
 #include "../ipc.h"
 #include "../gb_commun_with_mcu.h"
-#include "../auto_swtich_socket.h"
+#include "../audio_switch/auto_swtich_socket.h"
 #include "../dante_example_code/app/example/example_rx_uhip.h"
 int APP_Comm_Recv(CmdProtocolParam * param);
 int APP_Comm_Send(U16 CMD,U8 *buf, int len);
