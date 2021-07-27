@@ -1,0 +1,10 @@
+/Makefile
+/audioswitch/Makefile
+/audioswitch/audioswitch
+/audioswitch/moc_audioswitch.cpp
+/mainswitch/Makefile
+/mainswitch/mainswitch
+/mainswitch/moc_mainswitch.cpp
+/sconfig/Makefile
+/sconfig/sconfig
+/utilities/Makefile
