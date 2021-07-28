@@ -1984,11 +1984,6 @@ if [ $UGP_FLAG = 'success' ];then
 	usleep 10000
 fi
 
-#if [ $UGP_FLAG = 'success' ];then
-#	echo "p3ktcp start."
-#	p3ktcp &
-#fi
-
 if [ $UGP_FLAG = 'success' ];then
 	#set lineio_sel pin to default to line_out;0:line_out;1:line_in
 	ipc @m_lm_set s set_gpio_config:1:70:1
@@ -2021,6 +2016,12 @@ if [ $UGP_FLAG = 'success' ];then
 	echo 500 > /sys/class/leds/audio_detect/delay
 	adc_pin_mux_gpio
 fi
+
+if [ $UGP_FLAG = 'success' ];then
+	echo "p3ktcp start."
+	p3ktcp &
+fi
+
 # Bruce130123. Moved to state_machine. Avoid parameter scope problem.
 #start_network 2
 #do_s_init

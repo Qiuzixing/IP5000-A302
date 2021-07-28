@@ -3007,6 +3007,12 @@ echo 1 > /proc/sys/vm/overcommit_memory
 VIDEO_MODE='V_MODE_UNKNOWN'
 # Start state machine in another process scope
 state_machine &
+
+if [ $UGP_FLAG = 'success' ];then
+	echo "p3ktcp start."
+	p3ktcp &
+fi
+
 # Bruce130123. Moved to state_machine. Avoid parameter scope problem.
 #start_network 1
 #do_s_init
