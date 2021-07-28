@@ -397,7 +397,15 @@ int main(int argc, char *argv[])
 			/* Make sure event_msg is null ended. */
 			event_msg[len] = 0;
 			//printf("%s", NLMSG_DATA(nlh));
-			break;
+			//qzx20210728:ignore audio_detect msg,it will handle in audio_detect process
+			if(0 == strncmp("e_audio_detect_pressed",event_msg,sizeof("e_audio_detect_pressed")) || 0 == strncmp("e_audio_detect_released",event_msg,sizeof("e_audio_detect_released")))
+			{
+				continue;
+			}
+			else
+			{
+				break;
+			}
 		}
 		not_tick = strncmp(event_msg, "tick", 4);
 		if (not_tick)

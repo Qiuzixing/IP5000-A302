@@ -1613,20 +1613,6 @@ handle_e_p3k()
 	esac
 }
 
-handle_e_audio_detect()
-{
-	case "$*" in
-		e_audio_detect_pressed)
-			echo "audio pull in"
-		;;
-		e_audio_detect_released)
-			echo "audio pull out"
-		;;
-		*)
-		;;
-	esac
-}
-
 state_machine()
 {
 	# Bruce160308. Try to ignore all TERM signals.
@@ -1655,9 +1641,6 @@ state_machine()
 			;;
 			e_p3k_?*)
 				handle_e_p3k "$event"
-			;;
-			e_audio_detect?*)
-				handle_e_audio_detect "$event"
 			;;
 			e_ip_got::?*)
 				handle_e_ip_got "$event"
@@ -2011,6 +1994,7 @@ echo 1 > /proc/sys/vm/overcommit_memory
 
 # Start state machine in another process scope
 state_machine &
+audio_detect &
 usleep 1000
 if [ $UGP_FLAG = 'success' ];then
 	echo 500 > /sys/class/leds/audio_detect/delay
