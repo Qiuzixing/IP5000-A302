@@ -1,3 +1,4 @@
+include $(AST_SDK_ROOT)/ast-current.cfg
 export ROOT_DIR:=$(shell pwd)
 
 GPULS = $(CROSS_COMPILE)gcc
@@ -35,6 +36,13 @@ INCLUDES       :=  $(foreach dir,$(INCLUDE_DIR), -I$(dir))
 CFLAGS = -Wall  -O2 -Wunused-but-set-variable
 CXXFLAGS = -Wall -O2 -Wunused-but-set-variable
 
+ifeq ($(BUILD_TYPE),host)
+CFLAGS += -DCONFIG_P3K_HOST
+CXXFLAGS  += -DCONFIG_P3K_HOST
+else
+CFLAGS += -DCONFIG_P3K_CLIENT
+CXXFLAGS  += -DCONFIG_P3K_CLIENT
+endif
 
 COMPILE         =  $(GPULS) $(CFLAGS) $(INCLUDES) -c "$<" -o "$@" 
 COMPILECXX      =  $(GPULSCXX) $(CXXFLAGS) $(INCLUDES) -c "$<" -o "$@" 

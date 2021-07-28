@@ -420,6 +420,30 @@ handle_ae_param_set()
 	echo "$_key=$_value"
 }
 
+
+handle_ae_level()
+{
+	#Parse ae_level:$LEVEL
+	local _level="$1"
+
+	echo "ae_level!!! $_level"
+}
+
+handle_ae_dir()
+{
+	#Parse ae_dir:$DIR
+	local _dir="$1"
+
+	#sconfig --audio-analog "$_dir"
+	echo "ae_dir!!! $_dir"
+}
+
+handle_ae_mute()
+{
+	local _para1=$1
+	echo "handle_ae_mute.($_para1)" 
+}
+
 handle_ae_var()
 {
 	# running in subshell to prevent my variables been modified.

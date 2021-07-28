@@ -3,6 +3,8 @@
 #include <string.h>
 #include <time.h>
 #include "funcexcute.h"
+#include "ast_send_event.h"
+
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -70,12 +72,32 @@ int sendCmdtoGUI(const char *buf)
 	return mode;
 }
 
+//"#KDS-AUD" 0:hdmi;1:analog;4:dante
 int  EX_SetAudSrcMode(int mode)
 {
-	int a =5;
-	int b = 7;
-	printf("...........%d\n",classTest(a,b));
+//	int a =5;
+//	int b = 7;
+//	printf("...........%d\n",classTest(a,b));
 	printf("EX_SetAudSrcMode mode =%d\n",mode);
+
+#ifdef CONFIG_P3K_HOST	
+	char sCmd[64] = "";
+	if(mode == 0)
+		sprintf(sCmd,"e_p3k_audio_src::hdmi");
+	else if(mode == 1)
+		sprintf(sCmd,"e_p3k_audio_src::analog");
+	else if(mode == 4)
+		sprintf(sCmd,"e_p3k_audio_src::dante");
+	else
+	{
+		printf(" !!! Error mode:%d \n",mode);
+		return 0;
+	}
+	printf("ast_send_event %s\n",sCmd);
+	ast_send_event(-1,sCmd);
+#else
+	printf(" !!! This is Decoder\n");
+#endif
 	return 0;
 }
 int  EX_GetAudSrcMode(int *mode)
@@ -90,14 +112,68 @@ int  EX_GetAudSrcMode(int *mode)
 int EX_SetAudGainLevel(PortInfo_S*info,int gain)
 {
 	printf("gain =%d\n",gain);
+	char sCmd[64] = "";
+
+	if(info->signal == SIGNAL_AUDIO)
+	{
+		sprintf(sCmd,"e_p3k_audio_level::%d",gain);
+	}
+	else
+	{
+		return 0;
+	}
+	printf("ast_send_event %s\n",sCmd);		
+	ast_send_event(-1,sCmd);	
 	return 0;
 }
 
 int EX_SetAudAnalogGainDir(AudioInfo_S*info,char * gain)
 {
-	printf("gain =%s\n",gain);
+	printf("EX_SetAudAnalogGainDir, gain =%s\n",gain);
+	char sCmd[64] = "";
+
+	if(info->portFormat == PORT_IR)
+	{
+		if((!strcmp(gain,"IN"))||(!strcmp(gain,"in")))
+		{
+			sprintf(sCmd,"e_p3k_ir_dir::in");
+		}
+		else if((!strcmp(gain,"OUT"))||(!strcmp(gain,"out")))
+		{
+			sprintf(sCmd,"e_p3k_ir_dir::out");
+		}	
+		else
+		{
+			printf("EX_SetIRDir Error, gain =%s\n",gain);		
+			return 0;
+		}
+	}
+	else if(info->portFormat == PORT_ANALOG_AUDIO)
+	{
+		if((!strcmp(gain,"IN"))||(!strcmp(gain,"in")))
+		{
+			sprintf(sCmd,"e_p3k_audio_dir::in");
+		}
+		else if((!strcmp(gain,"OUT"))||(!strcmp(gain,"out")))
+		{
+			sprintf(sCmd,"e_p3k_audio_dir::out");
+		}
+		else
+		{
+			printf("EX_SetAudioDir Error, gain =%s\n",gain);
+			return 0;
+		}
+	}
+	else
+	{
+		return 0;
+	}
+	printf("ast_send_event %s\n",sCmd);	
+	ast_send_event(-1,sCmd);
+		
 	return 0;
 }
+
 
 int EX_GetAudAnalogGainDir(AudioInfo_S*info,char * gain)
 {
@@ -106,70 +182,32 @@ int EX_GetAudAnalogGainDir(AudioInfo_S*info,char * gain)
 	return 0;
 }
 
-int EX_SetAutoSwitchPriority(AudioInfo_S * info,AudioInfo_S * gain,int count)
-{
-	pid_t status;
-	int num = 1;
-	char  cmd2[128] = {0};
-	printf("%d,%d,%d,%d",info[1].direction,info[1].portFormat,info[1].portIndex,info[1].signal);
-	sprintf(cmd2,"./sconfig --priority HDMI%d HDMI%d HDMI%d",info[2].portIndex,info[3].portIndex,info[4].portIndex);
-	printf("%s\n",cmd2);
-	status = system(cmd2);
-	
-	return 0;
-}
 
-int EX_GetAutoSwitchPriority(AudioInfo_S * gain,int count)
-{
-	pid_t status;
-	int ret =0;
-	int num = 0;
-	char buf[24] = {0};
-	char * p;
-	char m[] = " ";
-	FILE * ptr;
-	char * cmd2 = "./sconfig --show priority";
-	status = system(cmd2);
-	if((ptr = popen(cmd2,"r")) != NULL)
-	{
-		fgets(buf,24,ptr);
-		pclose(ptr);
-	}
-	p = strtok(buf,m);
-	while(p)
-	{
-		//printf(">>>%s\n",p);
-		if(!memcmp(p,"HDMI3",strlen("HDMI3")))
-		{
-			gain[num].direction = DIRECTION_IN;
-			gain[num].portFormat = PORT_USB_C;
-			gain[num].portIndex = 3;
-			gain[num].signal = SIGNAL_VIDEO;
-		}
-		else if(!memcmp(p,"HDMI2",strlen("HDMI2")))
-		{
-			gain[num].direction = DIRECTION_IN;
-			gain[num].portFormat = PORT_HDMI;
-			gain[num].portIndex = 2;
-			gain[num].signal = SIGNAL_VIDEO;
-		}
-		else if(!memcmp(p,"HDMI1",strlen("HDMI1")))
-		{
-			gain[num].direction = DIRECTION_IN;
-			gain[num].portFormat = PORT_HDMI;
-			gain[num].portIndex = 1;
-			gain[num].signal = SIGNAL_VIDEO;
-		}
-		num += 1;
-		p = strtok(NULL,m);
-	}
-	return num;
-}
 
 int EX_SetEDIDMode(EdidInfo_S *info)
 {
 	//printf("gain =%s\n",gain);
 	printf(">>EX_SetEDIDMode %d,%d\n",info->input_id,info->index);
+#ifdef CONFIG_P3K_HOST	
+	char sCmd[64] = "";
+	if(info->mode == PASSTHRU)
+		sprintf(sCmd,"e_p3k_video_edid_mode::passthru");
+	else if(info->mode == DEFAULT)
+		sprintf(sCmd,"e_p3k_video_edid_mode::default");
+	else if(info->mode == CUSTOM)
+	{
+		sprintf(sCmd,"e_p3k_video_edid_mode::custom::%d",info->index);
+	}
+	else
+	{
+		printf(" !!! Error para mode:%d\n",info->mode);
+		return 0;
+	}
+	printf("ast_send_event %s\n",sCmd);	
+	ast_send_event(-1,sCmd);		
+#else
+	printf(" !!! This is Decoder\n");
+#endif
 	return 0;
 }
 
@@ -186,24 +224,56 @@ int EX_GetEDIDMode(int cmdID,EdidInfo_S * info)
 int EX_AddEDID(EdidName_S * info)
 {
 	printf(">>EX_AddEDID %d %s\n",info->index,info->name);
+#ifdef CONFIG_P3K_HOST	
+	char sCmd[64] = "";
+	sprintf(sCmd,"e_p3k_video_edid_add::%d::%s",info->index,info->name);
+	printf("ast_send_event %s\n",sCmd);
+	ast_send_event(-1,sCmd);		
+#else
+	printf(" !!! This is Decoder\n");
+#endif
 	return 0;
 }
 
 int EX_RemoveEDID(int comID)
 {
 	printf(">>EX_RemoveEDID %d \n",comID);
+#ifdef CONFIG_P3K_HOST	
+	char sCmd[64] = "";
+	sprintf(sCmd,"e_p3k_video_edid_remove::%d",comID);
+	printf("ast_send_event %s\n",sCmd);
+	ast_send_event(-1,sCmd);		
+#else
+	printf(" !!! This is Decoder\n");
+#endif
 	return 0;
 }
 
 int EX_SetActiveEDID(int input_ID,int index_ID )
 {
 	printf(">>EX_SetActiveEDID %d,%d \n",input_ID,index_ID);
+#ifdef CONFIG_P3K_HOST	
+	char sCmd[64] = "";
+	sprintf(sCmd,"e_p3k_video_edid_active::%d",index_ID);
+	printf("ast_send_event %s\n",sCmd);	
+	ast_send_event(-1,sCmd);		
+#else
+	printf(" !!! This is Decoder\n");
+#endif
 	return 0;
 }
 
 int EX_SetEDIDNetSrc(int input_ID,char*macAddr )
 {
 	printf(">>EX_SetEDIDNetSrc id=%d mac=%s \n",input_ID,macAddr);
+#ifdef CONFIG_P3K_HOST	
+	char sCmd[64] = "";
+	sprintf(sCmd,"e_p3k_video_edid_src::%s",macAddr);
+	printf("ast_send_event %s\n",sCmd);
+	ast_send_event(-1,sCmd);		
+#else
+	printf(" !!! This is Decoder\n");
+#endif
 	return 0;
 }
 int EX_GetEDIDNetSrc(int input_ID,char*macAddr )
@@ -237,8 +307,7 @@ int EX_SetChannelName(char date[32] )
 }
 
 int EX_SetDanteName(char date[32])
-{
-	
+{	
 	printf("Set Encoder Dante Hostl Name. %s\n",date);
 
 	return 0;
@@ -250,7 +319,17 @@ int EX_SetVidMute(MuteInfo_S * mute )
 	printf(">>EX_SetVidMute %d,%d,%d,%d,%d,%d\n",mute->direction,mute->portFormat,mute->portIndex,
 		mute->signal,mute->index,mute->state);
 	//0	¨C off for unmute  1	¨C on for mute
-
+	char sCmd[64] = "";
+	if(mute->signal == SIGNAL_AUDIO)
+		sprintf(sCmd,"e_p3k_audio_mute::%d",mute->state);
+	else
+	{
+		printf(" !!!parameter Error signal=%d\n",mute->signal);
+		return 0;
+	}
+	
+	printf("ast_send_event %s\n",sCmd);		
+	ast_send_event(-1,sCmd);
 	return 0;
 }
 
@@ -271,10 +350,22 @@ int EX_GetTimeOut(void)
 }
 
 int EX_SetVideoWallStretch(int  index,int mode )
-{
-	
+{	
 	printf(">>EX_SetVideoWallStretch %d\n",index);
-	//time ¨C minutes of logout time
+#ifdef CONFIG_P3K_CLIENT	
+	char sCmd[64] = "";
+
+	if((mode == 0)||(mode == 1))
+		sprintf(sCmd,"e_p3k_video_vw_stretch::%d",mode);
+	else
+	{
+		printf(" !!! Error para mode:%d\n",mode);
+	}		
+	printf("ast_send_event %s\n",sCmd);
+	ast_send_event(-1,sCmd);		
+#else
+	printf(" !!! This is Encoder\n");
+#endif
 	return 0;
 }
 int EX_GetVideoWallStretch(int  index)
@@ -312,7 +403,18 @@ int EX_SetRollback(char * type)
 int EX_SetIRGateway(int  iIr_mode)
 {
 	printf("Tr gw mode = %d\n",iIr_mode);
-	return 0;
+	char sCmd[64] = "";
+	if((iIr_mode == 0)||(iIr_mode == 1))
+	{
+		sprintf(sCmd,"e_p3k_ir_gw::%d",iIr_mode);				
+	}
+	else 
+	{
+		printf(" !!! Error para iIr_mode:%d\n",iIr_mode);
+		return 0;					
+	}
+	printf("ast_send_event %s\n",sCmd);
+	ast_send_event(-1,sCmd);		return 0;
 }
 
 int EX_GetIRGateway(void)
@@ -446,25 +548,6 @@ int EX_GetDaisyChain(void)
 	return daisy_state;
 }
 
-int EX_SetWndStretch(int  mode )
-{
-	
-	printf(">>SetWndStretch %d\n",mode);
-	//mode - Strech mode:
-			//0 = fit in
-			//11= fit out
-
-	return 0;
-}
-
-int EX_GetWndStretch(int *mode )
-{
-	
-	mode =0;
-
-	return 0;
-}
-
 int EX_GetVidMute(MuteInfo_S * mute)
 {
 	//int mute_mode = 0;
@@ -593,9 +676,35 @@ int EX_GetAudParam(PortInfo_S*info,AudioSignalInfo_S*param)
 int EX_SetAutoSwitchMode(PortInfo_S*info,AVConnectMode_E mode)
 {
 	printf("EX_SetAutoSwitchMode mode =%d\n",mode);
-	pid_t status;
-	char * cmd2 = "./sconfig --mode manual";
-	status = system(cmd2);
+#ifdef CONFIG_P3K_HOST	
+	char sCmd[64] = "";
+	if(info->signal == SIGNAL_VIDEO)
+		sprintf(sCmd,"e_p3k_switch_mode");
+	else if(info->signal == SIGNAL_AUDIO)
+		sprintf(sCmd,"e_p3k_audio_mode");
+	else
+	{
+		printf(" !!!parameter Error signal=%d\n",info->signal);
+		return 0;
+	}
+	
+	if(mode == CONNECT_MANUAL)
+		sprintf(sCmd,"%s::manual",sCmd);
+	else if(mode == CONNECT_PRIROITY)
+		sprintf(sCmd,"%s::priority",sCmd);
+	else if(mode == CONNECT_LAST)
+		sprintf(sCmd,"%s::FILO",sCmd);
+	else
+	{
+		printf(" !!!parameter Error mode = %d\n",mode);
+		return 0;
+	}
+
+	printf("ast_send_event %s\n",sCmd);		
+	ast_send_event(-1,sCmd);
+#else
+	printf(" !!! This is Decoder\n");
+#endif
 	return 0;
 }
 int EX_GetAutoSwitchMode(PortInfo_S*info,AVConnectMode_E *mode)
@@ -605,6 +714,107 @@ int EX_GetAutoSwitchMode(PortInfo_S*info,AVConnectMode_E *mode)
 	status = system(cmd2);
 	*mode = CONNECT_MANUAL;
 	return 0;
+}
+
+//#X-PRIORITY <direction_type>. <port_format>. <port_index> .<signal_type> , [<direction_type>. <port_format>. <port_index>.<signal_type> ,...]<CR>
+int EX_SetAutoSwitchPriority(AudioInfo_S * info,AudioInfo_S * gain,int count)
+{
+	printf("EX_SetAutoSwitchPriority\n");
+	if(count == 0)
+	{
+		printf(" !!! Error Count = %d\n",count);
+		return 0;
+	}
+	
+#ifdef CONFIG_P3K_HOST	
+	char sCmd[128] = "";
+	if(gain[0].signal == SIGNAL_VIDEO)
+	{
+		sprintf(sCmd,"e_p3k_switch_pri");
+
+		for(int i = 1;i < count;i++)
+		{
+			sprintf(sCmd,"%s::HDMI%d",sCmd,gain[i].portIndex);
+		}
+	}
+	else if(gain[0].signal == SIGNAL_AUDIO)
+	{
+		sprintf(sCmd,"e_p3k_audio_pri");
+
+		for(int i = 1; i < count;i++)
+		{
+			if(gain[i].portFormat == PORT_HDMI)
+			{
+				sprintf(sCmd,"%s::hdmi",sCmd);
+			}
+			else if(gain[i].portFormat == PORT_ANALOG_AUDIO)
+			{
+				sprintf(sCmd,"%s::analog",sCmd);
+			}
+			else if(gain[i].portFormat == PORT_DANTE)
+			{
+				sprintf(sCmd,"%s::dante",sCmd);
+			}
+		}
+	}
+	else
+	{
+		return 0;
+	}
+	printf("ast_send_event %s\n",sCmd);		
+	ast_send_event(-1,sCmd);
+#else
+	printf(" !!! This is Decoder\n");
+#endif
+	
+	return 0;
+}
+
+int EX_GetAutoSwitchPriority(AudioInfo_S * gain,int count)
+{
+	pid_t status;
+	//int ret =0;
+	int num = 0;
+	char buf[24] = {0};
+	char * p;
+	char m[] = " ";
+	FILE * ptr;
+	char * cmd2 = "./sconfig --show priority";
+	status = system(cmd2);
+	if((ptr = popen(cmd2,"r")) != NULL)
+	{
+		fgets(buf,24,ptr);
+		pclose(ptr);
+	}
+	p = strtok(buf,m);
+	while(p)
+	{
+		//printf(">>>%s\n",p);
+		if(!memcmp(p,"HDMI3",strlen("HDMI3")))
+		{
+			gain[num].direction = DIRECTION_IN;
+			gain[num].portFormat = PORT_USB_C;
+			gain[num].portIndex = 3;
+			gain[num].signal = SIGNAL_VIDEO;
+		}
+		else if(!memcmp(p,"HDMI2",strlen("HDMI2")))
+		{
+			gain[num].direction = DIRECTION_IN;
+			gain[num].portFormat = PORT_HDMI;
+			gain[num].portIndex = 2;
+			gain[num].signal = SIGNAL_VIDEO;
+		}
+		else if(!memcmp(p,"HDMI1",strlen("HDMI1")))
+		{
+			gain[num].direction = DIRECTION_IN;
+			gain[num].portFormat = PORT_HDMI;
+			gain[num].portIndex = 1;
+			gain[num].signal = SIGNAL_VIDEO;
+		}
+		num += 1;
+		p = strtok(NULL,m);
+	}
+	return num;
 }
 int EX_CopyEDID(EDIDPortInfo_S*src,EDIDPortInfo_S*dest,int bitMap,int safemode)
 {
@@ -631,7 +841,21 @@ int EX_GetEDIDColorSpaceMode(PortInfo_S *info,ColorSpaceMode_E *mode)
 int EX_SetEDIDLockStatus(int index,int lock)
 {
 	printf("EX_SetEDIDLockStatus index =%d lock=%d\n",index,lock);
-	return 0;
+#ifdef CONFIG_P3K_HOST	
+	char sCmd[64] = "";
+	if((lock == 0)||(lock == 1))
+		sprintf(sCmd,"e_p3k_video_edid_lock::%d",lock);
+	else
+	{
+		printf(" !!! Error para lock:%d\n",lock);
+		return 0;
+	}
+	printf("ast_send_event %s\n",sCmd);	
+	ast_send_event(-1,sCmd);		
+#else
+	printf(" !!! This is Decoder\n");
+#endif
+return 0;
 }
 int EX_GetEDIDLockStatus(int index,int *lock)
 {
@@ -641,6 +865,22 @@ int EX_GetEDIDLockStatus(int index,int *lock)
 int EX_SetHDCPMode(int index,HDCPMode_E mode)
 {
 	printf("EX_SetHDCPMode index=%d mode=%d\n",index,mode);
+#ifdef CONFIG_P3K_HOST	
+	char sCmd[64] = "";
+
+	if((mode == HDCP_OFF)||(mode == HDCP_ON)||(mode == HDCP_MIRROR))
+	{
+		sprintf(sCmd,"e_p3k_video_hdcp_mode::%d::%d",index,mode);
+	}
+	else
+	{
+		printf(" !!! Error para mode:%d\n",mode);
+	}
+	printf("ast_send_event %s\n",sCmd);
+	ast_send_event(-1,sCmd);		
+#else
+	printf(" !!! This is Decoder\n");
+#endif
 	return 0;
 }
 int EX_GetHDCPMode(int index,HDCPMode_E *mode)
@@ -659,6 +899,27 @@ int EX_GetHDCPStatus(int io,int index)
 int EX_SetViewMode(ViewMode_E mode,ViewModeInfo_S*info)
 {
 	printf("EX_SetViewMode h = %d v = %d\n",info->hStyle,info->vStyle);
+#ifdef CONFIG_P3K_CLIENT	
+	char sCmd[64] = "";
+
+	if((mode == VIEW_MODE_VIDEOWALL)
+		&&(info->hStyle >= 1)
+		&&(info->hStyle <= 16) 
+		&&(info->vStyle >= 1)
+		&&(info->vStyle <= 16))
+	{
+		sprintf(sCmd,"e_p3k_video_vw_mode::%d::%d",info->hStyle,info->vStyle);
+	}
+	else
+	{
+		printf(" !!! Error para mode:%d,h = %d,v = %d\n",mode,info->hStyle,info->vStyle);
+	}
+	
+	printf("ast_send_event %s\n",sCmd);
+	ast_send_event(-1,sCmd);		
+#else
+	printf(" !!! This is Encoder\n");
+#endif
 	return 0;
 }
 int EX_GetViewMode(ViewMode_E *mode,ViewModeInfo_S*info)
@@ -672,6 +933,21 @@ int EX_GetViewMode(ViewMode_E *mode,ViewModeInfo_S*info)
 int EX_SetWndBezelInfo( int mode ,int index, WndBezelinfo_S*info)
 {
 	printf("EX_SetWndBezelInfo =%d %d %d %d\n",info->hValue,info->vValue,info->hOffset,info->vOffset);
+#ifdef CONFIG_P3K_CLIENT	
+	char sCmd[64] = "";
+
+	if((index >= 1)&&(index <= 256))
+		sprintf(sCmd,"e_p3k_video_vw_bezel::%d::%d::%d::%d::%d",index,info->hValue,info->vValue,info->hOffset,info->vOffset);
+	else
+	{
+		printf(" !!! Error para index:%d\n",index);
+	}		
+
+	printf("ast_send_event %s\n",sCmd);
+	ast_send_event(-1,sCmd);		
+#else
+	printf(" !!! This is Encoder\n");
+#endif
 	return 0;
 }
 int EX_GetWndBezelInfo( int *mode ,int *index, WndBezelinfo_S*info)
@@ -687,6 +963,21 @@ int EX_GetWndBezelInfo( int *mode ,int *index, WndBezelinfo_S*info)
 int EX_SetVideoWallSetupInfo(int id,VideoWallSetupInfo_S *info)
 {
 	printf("EX_SetVideoWallSetupInfo id =%d,rotaion=%d\n",id,info->rotation);
+#ifdef CONFIG_P3K_CLIENT	
+	char sCmd[64] = "";
+
+	if((id >= 1) &&(id <= 256) &&(info->rotation <= 3))
+		sprintf(sCmd,"e_p3k_video_vw_id::%d::%d",id,info->rotation);
+	else
+	{
+		printf(" !!! Error para id:%d,info->rotation:%d\n",id,info->rotation);
+	}		
+
+	printf("ast_send_event %s\n",sCmd);
+	ast_send_event(-1,sCmd);		
+#else
+	printf(" !!! This is Encoder\n");
+#endif
 	return 0;
 }
 int EX_GetVideoWallSetupInfo(int* id,VideoWallSetupInfo_S *info)
@@ -700,7 +991,7 @@ int EX_StartOverlay(char*confFile,int outtime)
 	char startOverlayCmd[BUFSIZE] = {0};
 	sprintf(startOverlayCmd,"START_OVERLAY %s %d",confFile,outtime);
 	int mode = sendCmdtoGUI(startOverlayCmd);
-	printf("filename = %s, outtime =%d\n",confFile,outtime);
+	printf("filename = %s, outtime =%d mode =%d\n",confFile,outtime,mode);
 	return 0;
 }
 int EX_StopOverlay(void)
@@ -708,12 +999,21 @@ int EX_StopOverlay(void)
 	const char stopOverlay[BUFSIZE] = {"STOP_OVERLAY"};
 	
 	int mode = sendCmdtoGUI(stopOverlay);
+	printf(" mode =%d\n",mode);
 	return 0;
 }
 
 int EX_SetEncoderAVChannelId(int id)
 {
 	printf("EX_SetEncoderAVChannelId id=%d\n",id);
+#ifdef CONFIG_P3K_HOST	
+	char sCmd[64] = "";
+	sprintf(sCmd,"e_reconnect::%04d",id);
+	printf("ast_send_event %s\n",sCmd);
+	ast_send_event(-1,sCmd);
+#else
+	printf(" !!! This is Decoder\n");
+#endif
 	return 0;
 }
 int EX_GetEncoderAVChannelId(int *id)
@@ -725,6 +1025,18 @@ int EX_GetEncoderAVChannelId(int *id)
 int EX_SetDecoderAVChannelId(ChSelect_S * id)
 {
 	printf(" EX_SetDecoderAVChannelId id =%d\n",id->ch_id);
+#ifdef CONFIG_P3K_CLIENT	
+	char sCmd[64] = "";
+	sprintf(sCmd,"e_reconnect::%04d",id->ch_id);
+
+	if(id->signal == SIGNAL_IR)
+		sprintf(sCmd,"%s::r",sCmd);
+		
+	printf("ast_send_event %s\n",sCmd);
+	ast_send_event(-1,sCmd);
+#else
+	printf(" !!! This is Encoder\n");
+#endif
 	return 0;
 }
 int EX_GetDecoderAVChannelId(ChSelect_S * id)
@@ -747,6 +1059,23 @@ int EX_GetVideoImageStatus(int scalerId,VideoStatusType_E *status)
 int EX_SetVideoCodecAction(CodecActionType_E type)
 {
 	printf("EX_SetVideoCodecAction type=%d\n",type);
+#ifdef CONFIG_P3K_CLIENT	
+	char sCmd[64] = "";
+	if(type == CODEC_ACTION_PLAY)
+		sprintf(sCmd,"e_reconnect");
+	else if(type == CODEC_ACTION_STOP)
+		sprintf(sCmd,"e_stop_link");
+	else
+	{
+		printf(" !!! Error para %d\n",type);
+		return 0;
+	}
+	
+	printf("ast_send_event %s\n",sCmd);
+	ast_send_event(-1,sCmd);		
+#else
+	printf(" !!! This is Encoder\n");
+#endif
 	return 0;
 }
 int EX_GetVideoCodecAction(CodecActionType_E *type)
@@ -757,6 +1086,23 @@ int EX_GetVideoCodecAction(CodecActionType_E *type)
 int EX_SetColorSpaceConvertMode(int index,int convertMode)
 {
 	printf("EX_SetColorSpaceConvertMode id = %d mode =%d\n",index,convertMode);
+#ifdef CONFIG_P3K_CLIENT	
+	char sCmd[64] = "";
+	if((convertMode == 0)||(convertMode == 1))
+	{
+		sprintf(sCmd,"e_p3k_video_rgb::%d",convertMode);
+	}
+	else
+	{
+		printf(" !!! Error para %d\n",convertMode);
+		return 0;
+	}	
+	printf("ast_send_event %s\n",sCmd);
+	ast_send_event(-1,sCmd);
+	printf(" !!! This is Decoder\n");		
+#else
+	printf(" !!! This is Encoder\n");
+#endif
 	return 0;
 }
 int EX_GetColorSpaceConvertMode(int index,int *convertMode)
@@ -764,9 +1110,43 @@ int EX_GetColorSpaceConvertMode(int index,int *convertMode)
 	*convertMode = 0;
 	return 0;
 }
-int EX_SetVideoImageScaleMode(int mode,char*res)
+
+//e_p3k_video_scale::pass|1080p60|1080p50|2160p30|2160p25|720p60
+int EX_SetVideoImageScaleMode(int mode,int res)
 {
-	strcpy(res,"16");
+#ifdef CONFIG_P3K_CLIENT	
+	char sCmd[64] = "";
+	if(mode == 0)
+		sprintf(sCmd,"e_p3k_video_scale::pass");
+	else if(mode == 1)
+	{
+		if(res == 74)//2160p30
+			sprintf(sCmd,"e_p3k_video_scale::2160p30");
+		else if(res == 73)//2160p25
+			sprintf(sCmd,"e_p3k_video_scale::2160p25");
+		else if(res == 16)//1080p60
+			sprintf(sCmd,"e_p3k_video_scale::1080p60");
+		else if(res == 31)//1080p50
+			sprintf(sCmd,"e_p3k_video_scale::1080p50");
+		else if(res == 4)//720p60
+			sprintf(sCmd,"e_p3k_video_scale::720p60");
+		else
+		{
+			printf(" !!! Error para res:%d\n",res);
+			return 0;
+		}					
+	}
+	else
+	{
+		printf(" !!! Error para mode:%d\n",mode);
+		return 0;
+	}
+	
+	printf("ast_send_event %s\n",sCmd);
+	ast_send_event(-1,sCmd);		
+#else
+	printf(" !!! This is Encoder\n");
+#endif
 	return 0;
 }
 int EX_GetVideoImageScaleMode(int *mode,char*res)
@@ -795,6 +1175,18 @@ int EX_GetVideoBitRate(int *kbps)
 int EX_SendCECMsg(CECMessageInfo_S*info)
 {
 	int sendStatus = 0;
+	char sCmd[128] = "";
+	if((info->hexByte > 0)&&(info->hexByte <= 16))
+	{
+		sprintf(sCmd,"e_p3k_cec_send::%s",info->cmdComent);				
+	}
+	else 
+	{
+		printf(" !!! Error para info->hexByte:%d\n",info->hexByte);
+		return 0;					
+	}
+	printf("ast_send_event %s\n",sCmd);
+	ast_send_event(-1,sCmd);
 	return sendStatus;
 }
 
@@ -808,6 +1200,18 @@ int EX_RecvCECNtfy(int *port,int*hexByte,char*cmdComment)
 int EX_SetCECGateWayMode(int mode)
 {
 	printf("EX_SetCECGateWayMode mode =%d\n",mode);
+	char sCmd[64] = "";
+	if((mode >= 0)&&(mode<=3))
+	{
+		sprintf(sCmd,"e_p3k_cec_gw::%d",mode);				
+	}
+	else 
+	{
+		printf(" !!! Error para mode:%d\n",mode);
+		return 0;					
+	}
+	printf("ast_send_event %s\n",sCmd);
+	ast_send_event(-1,sCmd);	
 	return 0;
 }
 
@@ -819,8 +1223,13 @@ int EX_GetCECGateWayMode(void)
 
 int EX_SendIRmessage(IRMessageInfo_S*info)
 {
-	printf("EX_SendIRmessage cmdname =%s cmdcomment =%s\n",info->cmdName,info->cmdName);
-	return 0;
+	printf("EX_SendIRmessage cmdname =%s cmdcomment =%s\n",info->cmdName,info->cmdComent);
+	char sCmd[128] = "";
+	
+	sprintf(sCmd,"e_p3k_ir_send::%s",info->cmdComent);				
+
+	printf("ast_send_event %s\n",sCmd);
+	ast_send_event(-1,sCmd);	return 0;
 }
 int EX_SendIRStop(int irId,int serialNumb,char*command)
 {
@@ -831,6 +1240,51 @@ int EX_SetRouteMatch(PortInfo_S*inPortInfo,PortInfo_S*matchPortInfo,int num)
 {
 
 	printf("EX_SetRouteMatch  num=====%d  %d   %d\n",num, inPortInfo[2].index,matchPortInfo->index);
+#ifdef CONFIG_P3K_HOST	
+	char sCmd[128] = "";
+	if(matchPortInfo->signal == SIGNAL_VIDEO)
+	{
+		sprintf(sCmd,"e_p3k_switch_in::HDMI%d",matchPortInfo->portIndex);	
+			
+	}
+	else if(matchPortInfo->signal == SIGNAL_AUDIO)
+	{
+		sprintf(sCmd,"e_p3k_audio_dst");	
+		if(num == 0)	
+		{
+			sprintf(sCmd,"%s::0",sCmd);
+		}
+		else
+		{
+			sprintf(sCmd,"%s::%d",sCmd,num);
+		}
+
+		for(int i = 0; i < num;i++)
+		{
+			if(inPortInfo[i].portFormat == PORT_HDMI)
+			{
+				sprintf(sCmd,"%s::hdmi",sCmd);
+			}
+			else if(inPortInfo[i].portFormat == PORT_ANALOG_AUDIO)
+			{
+				sprintf(sCmd,"%s::analog",sCmd);
+			}
+			else if(inPortInfo[i].portFormat == PORT_DANTE)
+			{
+				sprintf(sCmd,"%s::dante",sCmd);
+			}
+			else if(inPortInfo[i].portFormat == PORT_STREAM)
+			{
+				sprintf(sCmd,"%s::lan",sCmd);
+			}
+		}
+			
+	}
+	printf("ast_send_event %s\n",sCmd);
+	ast_send_event(-1,sCmd);
+#else
+	printf(" !!! This is Decoder\n");
+#endif
 	return 0;
 }
 
@@ -917,6 +1371,19 @@ int EX_GetMacAddr(int netid,char*macAddr)
 int EX_SetDNSName(int id,char*name)
 {
 	printf("EX_SetDNSName name =%s\n",name);
+#ifdef CONFIG_P3K_HOST	
+	if(id == 1)
+	{	if(strlen(name)>0)
+		{
+			char sCmd[64] = "";
+			sprintf(sCmd,"e_p3k_audio_dante_name::%s",name);
+			printf("ast_send_event %s\n",sCmd);
+			ast_send_event(-1,sCmd);
+		}
+	}
+#else
+	printf(" !!! This is Decoder\n");
+#endif		
 	return 0;
 }
 int EX_GetDNSName(int id,char*name)
@@ -1217,9 +1684,3 @@ int EX_AutomaticReporting(char * info)
 	memset(sUpInfo,0,sizeof(sUpInfo));
 	return iLength;
 }
-
-
-
-
-
-

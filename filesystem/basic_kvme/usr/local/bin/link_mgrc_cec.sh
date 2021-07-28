@@ -438,6 +438,20 @@ handle_ce_test()
 	return
 }
 
+handle_ce_gw()
+{
+	local _para1=$1
+
+	echo "handle_ce_gw.($_para1)" 
+}
+
+handle_ce_send
+{
+	local _para1=$1
+
+	echo "handle_ce_send.($_para1)" 
+}
+
 clm_init()
 {
 	# create lock file before starting ipc_server

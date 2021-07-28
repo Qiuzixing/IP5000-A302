@@ -237,6 +237,29 @@ handle_ae_lm_destroy()
 	exit 0
 }
 
+handle_ae_level()
+{
+	#Parse ae_level:$LEVEL
+	local _level="$1"
+
+	echo "ae_level!!! $_level"
+}
+
+handle_ae_dir()
+{
+	#Parse ae_dir:$DIR
+	local _dir="$1"
+
+	#sconfig --audio-analog "$_dir"
+	echo "ae_dir!!! $_dir"
+}
+
+handle_ae_mute()
+{
+	local _para1=$1
+	echo "handle_ae_mute.($_para1)" 
+}
+
 handle_ae_test()
 {
 	return

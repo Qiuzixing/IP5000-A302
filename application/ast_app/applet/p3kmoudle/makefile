@@ -1,4 +1,4 @@
-include $(AST_SDK_ROOT)/ast.cfg
+include $(AST_SDK_ROOT)/ast-current.cfg
 
 TARGET_FOLDER_NAME=$(TARGET)-$(CONFIG)
 

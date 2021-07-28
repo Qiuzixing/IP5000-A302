@@ -474,6 +474,18 @@ handle_ve_test()
 	return
 }
 
+handle_ve_rgb()
+{
+	local _para1=$1
+	echo "handle_ve_rgb.($_para1)" 
+}
+
+handle_ve_scale()
+{
+	local _para1=$1
+	echo "handle_ve_scale.($_para1)" 
+}
+
 # TODO. Need an include.sh for sub-LMs.
 load_sii9678_drv()
 {

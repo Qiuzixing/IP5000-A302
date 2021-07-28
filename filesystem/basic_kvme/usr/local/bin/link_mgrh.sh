@@ -1253,6 +1253,366 @@ handle_e_key()
 	esac
 }
 
+handle_e_p3k_switch_mode()
+{
+	local _switch_mode
+
+	#e_p3k_switch_mode::switch_mode
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	_switch_mode="$1"
+	
+	echo "set p3k switch mode!!! $_switch_mode"
+	sconfig --mode "$_switch_mode"
+}
+
+handle_e_p3k_switch_pri()
+{
+	echo "handle_e_p3k_switch_pri."
+	local _pri_1
+	local _pri_2
+	local _pri_3
+
+	#e_p3k_switch_in::switch_input
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	_pri_1="$1"
+
+	shift 2
+	_pri_2="$1"
+
+	shift 2
+	_pri_3="$1"
+	
+	echo "set p3k switch pri!!! $_pri_1 $_pri_2 $_pri_3"
+	sconfig --priority "$_pri_1" "$_pri_2" "$_pri_3"
+}
+
+handle_e_p3k_switch_in()
+{
+	echo "handle_e_p3k_switch_in."
+	local _switch_input
+
+	#e_p3k_switch_in::switch_input
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	_switch_input="$1"
+	
+	echo "set p3k switch input!!! $_switch_input"
+	sconfig --input "$_switch_input"
+}
+
+handle_e_p3k_switch()
+{
+	echo "handle_e_p3k_switch."
+	case "$*" in
+		e_p3k_switch_mode::?*)
+			handle_e_p3k_switch_mode "$event"
+		;;
+		e_p3k_switch_pri::?*)
+			handle_e_p3k_switch_pri "$event"
+		;;
+		e_p3k_switch_in::?*)
+			handle_e_p3k_switch_in "$event"
+		;;
+		*)
+		;;
+	esac
+}
+
+handle_e_p3k_edid()
+{
+	echo "handle_e_p3k_edid."
+	case "$*" in
+		e_p3k_video_edid_lock::?*)
+			echo "e_p3k_video_edid_lock ($event) received"
+		;;
+		e_p3k_video_edid_mode::?*)
+			echo "e_p3k_video_edid_mode ($event) received"
+		;;
+		e_p3k_video_edid_add::?*)
+			echo "e_p3k_video_edid_add ($event) received"
+		;;
+		e_p3k_video_edid_remove::?*)
+			echo "e_p3k_video_edid_remove ($event) received"
+		;;
+		e_p3k_video_edid_active::?*)
+			echo "e_p3k_video_edid_active ($event) received"
+		;;
+		e_p3k_video_edid_src::?*)		
+			echo "e_p3k_video_edid_src ($event) received"
+		;;
+		*)
+		;;
+	esac
+}
+
+handle_e_p3k_video()
+{
+	echo "handle_e_p3k_video."
+	local _para1
+	local _para2
+
+	#e_p3k_switch_in::switch_input
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	_para1="$1"
+
+	case "$event" in
+		e_p3k_video_edid?*)
+			handle_e_p3k_edid "$event"
+		;;	
+		e_p3k_video_hdcp_mode::?*)
+			echo "e_p3k_video_hdcp_mode ($event) received"
+		;;
+		*)
+		echo "ERROR!!!! Invalid event ($event) received"
+		;;
+	esac
+}
+
+handle_e_p3k_audio_src()
+{
+	echo "handle_e_p3k_audio_src."
+	local _switch_input
+
+	#e_p3k_switch_in::switch_input
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	_switch_input="$1"
+	
+	echo "set p3k switch input!!! $_switch_input"
+	sconfig --audio-input "$_switch_input"
+}
+
+handle_e_p3k_audio_dst()
+{
+	echo "handle_e_p3k_audio_dst."
+	local _dst_num
+	local _dst_1
+	local _dst_2
+	local _dst_3
+	local _dst_4
+	
+	#e_p3k_switch_in::switch_input
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	_dst_num="$1"
+	_dst_1="$3"
+	_dst_2="$5"
+	_dst_3="$7"
+	_dst_4="$9"
+
+	case "$_dst_num" in
+		0)
+			sconfig --audio-output no
+			echo "sconfig --audio-output no"		
+		;;	
+		1)
+			sconfig --audio-output "$_dst_1"
+			echo "sconfig --audio-output $_dst_1"		
+		;;
+		2)
+			sconfig --audio-output "$_dst_1" "$_dst_2"
+			echo "sconfig --audio-output $_dst_1 $_dst_2"		
+		;;	
+		3)
+			sconfig --audio-output "$_dst_1" "$_dst_2" "$_dst_3"
+			echo "sconfig --audio-output $_dst_1 $_dst_2 $_dst_3"		
+		;;
+		4)
+			sconfig --audio-output "$_dst_1" "$_dst_2" "$_dst_3" "$_dst_4"
+			echo "sconfig --audio-output $_dst_1 $_dst_2 $_dst_3 $_dst_4"		
+		;;	
+		*)
+		echo "ERROR!!!! Invalid dst_num ($_dst_num) received"
+		;;
+	esac
+	
+}
+
+handle_e_p3k_audio_pri()
+{
+	echo "handle_e_p3k_audio_pri."
+	local _pri_1
+	local _pri_2
+	local _pri_3
+
+	#e_p3k_switch_in::switch_input
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	_pri_1="$1"
+
+	shift 2
+	_pri_2="$1"
+
+	shift 2
+	_pri_3="$1"
+	
+	echo "set p3k switch pri!!! $_pri_1 $_pri_2 $_pri_3"
+	sconfig --audio-priority "$_pri_1" "$_pri_2" "$_pri_3"
+}
+
+handle_e_p3k_audio_mode()
+{
+	echo "handle_e_p3k_audio_mode."
+	local _switch_mode
+
+	#e_p3k_switch_mode::switch_mode
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	_switch_mode="$1"
+	
+	echo "set p3k switch mode!!! $_switch_mode"
+	sconfig --audio-mode "$_switch_mode"
+}
+
+handle_e_p3k_audio_switch()
+{
+	echo "handle_e_p3k_audio_switch."
+	local _para1
+	local _para2
+
+	#e_p3k_switch_in::switch_input
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	_para1="$1"
+
+	case "$event" in
+		e_p3k_audio_src?*)
+			handle_e_p3k_audio_src "$event"
+		;;	
+		e_p3k_audio_dante_name::?*)
+			echo "e_p3k_audio_dante_name ($event) received"
+		;;
+		e_p3k_audio_dst?*)
+			handle_e_p3k_audio_dst "$event"
+		;;	
+		e_p3k_audio_pri::?*)
+			handle_e_p3k_audio_pri "$event"
+		;;
+		e_p3k_audio_mode?*)
+			handle_e_p3k_audio_mode "$event"
+		;;	
+		*)
+		echo "ERROR!!!! Invalid event ($event) received"
+		;;
+	esac
+}
+
+handle_e_p3k_audio()
+{
+	echo "handle_e_p3k_audio."
+	local _para1
+
+	#e_p3k_switch_in::switch_input
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	_para1="$1"
+
+	case "$event" in
+		e_p3k_audio_level::?*)
+			ipc @a_lm_set s ae_level:$_para1
+		;;
+		e_p3k_audio_dir::?*)
+			ipc @a_lm_set s ae_dir:$_para1
+		;;
+		e_p3k_audio_mute::?*)
+			ipc @a_lm_set s ae_mute:$_para1
+		;;
+		e_p3k_audio_?*)
+			handle_e_p3k_audio_switch "$event"	
+		;;
+		*)
+		echo "ERROR!!!! Invalid event ($event) received"
+		;;
+	esac
+
+}
+
+handle_e_p3k_ir()
+{
+	echo "handle_e_p3k_ir."
+	local _para1
+
+	#e_p3k_ir_dir::dir
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	_para1="$1"
+
+	case "$event" in
+		e_p3k_ir_dir::?*)
+			ipc @r_lm_set s re_dir:$_para1
+		;;
+		e_p3k_ir_gw::?*)
+			ipc @r_lm_set s re_gw:$_para1
+		;;
+		e_p3k_ir_send::?*)
+			ipc @r_lm_set s re_send:$_para1
+		;;
+		*)
+		;;
+	esac
+}
+
+handle_e_p3k_cec()
+{
+	echo "handle_e_p3k_cec."
+	local _para1
+
+	#e_p3k_ir_dir::dir
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	_para1="$1"
+
+	case "$event" in
+		e_p3k_cec_gw::?*)
+			ipc @c_lm_set s ce_gw:$_para1
+		;;
+		e_p3k_cec_send::?*)
+			ipc @c_lm_set s ce_send:$_para1
+		;;
+		*)
+		;;
+	esac
+}
+
+handle_e_p3k()
+{
+	echo "handle_e_p3k."
+	case "$*" in
+		e_p3k_switch_?*)
+			handle_e_p3k_switch "$event"
+		;;
+		e_p3k_video_?*)
+			handle_e_p3k_video "$event"
+		;;
+		e_p3k_audio_?*)
+			handle_e_p3k_audio "$event"
+		;;
+		e_p3k_ir_?*)
+			handle_e_p3k_ir "$event"
+		;;
+		e_p3k_cec_?*)
+			handle_e_p3k_cec "$event"
+		;;
+		*)
+		;;
+	esac
+}
+
 handle_e_audio_detect()
 {
 	case "$*" in
@@ -1277,7 +1637,7 @@ state_machine()
 
 	while true; do
 		event=`lm_get_event 2>/dev/null`
-		#echo "Receive $event event on $STATE state "`cat /proc/uptime`
+		echo "Receive $event event on $STATE state "`cat /proc/uptime`
 		case "$event" in
 			tick)
 				sleep 0.001
@@ -1292,6 +1652,9 @@ state_machine()
 			;;
 			e_key_?*)
 				handle_e_key "$event"
+			;;
+			e_p3k_?*)
+				handle_e_p3k "$event"
 			;;
 			e_audio_detect?*)
 				handle_e_audio_detect "$event"
@@ -1620,6 +1983,11 @@ if [ $UGP_FLAG = 'success' ];then
 	communication_with_mcu -c &
 	usleep 10000
 fi
+
+#if [ $UGP_FLAG = 'success' ];then
+#	echo "p3ktcp start."
+#	p3ktcp &
+#fi
 
 if [ $UGP_FLAG = 'success' ];then
 	#set lineio_sel pin to default to line_out;0:line_out;1:line_in

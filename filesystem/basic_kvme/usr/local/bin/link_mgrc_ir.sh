@@ -453,6 +453,43 @@ handle_re_param_set()
 	echo "$_key=$_value"
 }
 
+handle_re_dir()
+{
+	#Parse re_dir:$DIR
+	echo "re_dir!!! $1"
+
+	case "$1" in
+		in)
+			ipc @m_lm_set s set_gpio_config:71:1
+			ipc @m_lm_set s set_gpio_val:71:1
+			echo 1 >$IR_SYS_PATH/type
+		;;
+		out)
+			ipc @m_lm_set s set_gpio_config:71:1
+			ipc @m_lm_set s set_gpio_val:71:0
+			echo 0 >$IR_SYS_PATH/type			
+		;;		
+		*)
+			echo "ERROR!!!! Invalid event ($_1) received"
+		;;
+	esac	
+
+}
+
+handle_re_gw()
+{
+	local _para1=$1
+
+	echo "handle_re_gw.($_para1)" 
+}
+
+handle_re_send
+{
+	local _para1=$1
+
+	echo "handle_re_send.($_para1)" 
+}
+
 handle_re_var()
 {
 	# running in subshell to prevent my variables been modified.

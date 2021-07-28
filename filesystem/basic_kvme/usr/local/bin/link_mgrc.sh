@@ -2444,6 +2444,159 @@ construct_default_chg_list()
 	fi
 }
 
+handel_e_p3k_vw()
+{
+	echo "handle_e_p3k_vw."
+	local _para1
+
+	#e_p3k_switch_in::switch_input
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	_para1="$1"
+
+	case "$event" in
+		e_p3k_video_vw_mode::?*)
+			echo "e_p3k_video_vw_mode ($event) received"
+		;;
+		e_p3k_video_vw_id::?*)
+			echo "e_p3k_video_vw_id ($event) received"
+		;;
+		e_p3k_video_vw_stretch::?*)
+			echo "e_p3k_video_vw_stretch ($event) received"
+		;;
+		e_p3k_video_vw_bezel::?*)
+			echo "e_p3k_video_vw_bezel ($event) received"
+		;;
+		*)
+		echo "ERROR!!!! Invalid event ($event) received"
+		;;
+	esac
+}
+
+handle_e_p3k_video()
+{
+	echo "handle_e_p3k_video."
+	local _para1
+
+	#e_p3k_switch_in::switch_input
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	_para1="$1"
+
+
+	case "$event" in
+		e_p3k_video_rgb::?*)
+			ipc @v_lm_set s ve_rgb:$_para1
+		;;
+		e_p3k_video_scale::?*)
+			ipc @v_lm_set s ve_scale:$_para1
+		;;
+		*)
+		echo "ERROR!!!! Invalid event ($event) received"
+		;;
+	esac
+}
+
+handle_e_p3k_audio()
+{
+	echo "handle_e_p3k_audio."
+	local _para1
+
+	#e_p3k_switch_in::switch_input
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	_para1="$1"
+
+	case "$event" in
+		e_p3k_audio_level::?*)
+			ipc @a_lm_set s ae_level:$_para1
+		;;
+		e_p3k_audio_dir::?*)
+			ipc @a_lm_set s ae_dir:$_para1
+		;;
+		e_p3k_audio_mute::?*)
+			ipc @a_lm_set s ae_mute:$_para1
+		;;
+		*)
+		echo "ERROR!!!! Invalid event ($event) received"
+		;;
+	esac
+
+}
+
+handle_e_p3k_ir()
+{
+	echo "handle_e_p3k_ir."
+	local _para1
+
+	#e_p3k_ir_dir::dir
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	_para1="$1"
+
+	case "$event" in
+		e_p3k_ir_dir::?*)
+			ipc @r_lm_set s re_dir:$_para1
+		;;
+		e_p3k_ir_gw::?*)
+			ipc @r_lm_set s re_gw:$_para1
+		;;
+		e_p3k_ir_send::?*)
+			ipc @r_lm_set s re_send:$_para1
+		;;
+		*)
+		;;
+	esac
+}
+
+handle_e_p3k_cec()
+{
+	echo "handle_e_p3k_cec."
+	local _para1
+
+	#e_p3k_ir_dir::dir
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	_para1="$1"
+
+	case "$event" in
+		e_p3k_cec_gw::?*)
+			ipc @c_lm_set s ce_gw:$_para1
+		;;
+		e_p3k_cec_send::?*)
+			ipc @c_lm_set s ce_send:$_para1
+		;;
+		*)
+		;;
+	esac
+}
+
+handle_e_p3k()
+{
+	echo "handle_e_p3k."
+	case "$*" in
+		e_p3k_video_?*)
+			handle_e_p3k_video "$event"
+		;;
+		e_p3k_audio_?*)
+			handle_e_p3k_audio "$event"
+		;;
+		e_p3k_ir_?*)
+			handle_e_p3k_ir "$event"
+		;;
+		e_p3k_cec_?*)
+			handle_e_p3k_cec "$event"
+		;;
+		*)
+		;;
+	esac
+}
+
 # Worst case 0.05s message loop without handling any event.
 state_machine()
 {
@@ -2478,6 +2631,9 @@ state_machine()
 			;;
 			e_btn_?*)
 				handle_"$event" "$event"
+			;;
+			e_p3k_?*)
+				handle_e_p3k "$event"
 			;;
 			e_vw_?*)
 				handle_e_vw "$event"

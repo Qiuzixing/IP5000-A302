@@ -74,9 +74,9 @@ typedef enum _SignalType_E
 }SignalType_E;
 typedef enum _HDCPMode_E
 {
-	HDCP_OFF,
-	HDCP_ON,
-	HDCP_MIRROR,
+	HDCP_OFF = 0,
+	HDCP_ON = 1,
+	HDCP_MIRROR = 3,
 }HDCPMode_E;
 
 typedef enum _ViewMode_E
@@ -383,7 +383,7 @@ int EX_GetVideoCodecAction(CodecActionType_E *type);
 int EX_SetColorSpaceConvertMode(int index,int convertMode);
 int EX_GetColorSpaceConvertMode(int index,int *convertMode);
 
-int EX_SetVideoImageScaleMode(int mode,char*res);
+int EX_SetVideoImageScaleMode(int mode,int res);
 int EX_GetVideoImageScaleMode(int *mode,char*res);
 int EX_GetVideoViewReslotion(int mode, int index, int nativeFlag,int * res);
 int EX_GetVideoFrameRate(int *fps);
@@ -486,8 +486,6 @@ int EX_GetStandbyVersion(char * date);
 int EX_GetUPGTime(char * day,char * time);
 int EX_SetVidOutput(char info[][MAX_PARAM_LEN],int count );
 int EX_GetVidOutput(char * date);
-int EX_SetWndStretch(int mode );
-int EX_GetWndStretch(int *mode );
 int EX_SetOsdDisplay(int  mode );
 int EX_GetOsdDisplay(void);
 int EX_SetDaisyChain(int  mode );

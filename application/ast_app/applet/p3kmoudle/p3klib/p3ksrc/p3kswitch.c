@@ -1340,20 +1340,21 @@ static int P3K_SetVideoOutScaler(char*reqparam,char*respParam,char*userdata)
 	DBG_InfoMsg("P3K_SetVideoOutScaler\n");
 	int s32Ret = 0;
 	int mode = 0;
-	char res[64]={0};
+	int res  = 0;
 	int count = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
 	
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	mode =atoi(str[0]);
+	res = atoi(str[1]);
 	
 	s32Ret = EX_SetVideoImageScaleMode(mode, res);
 	if(s32Ret)
 	{
 		DBG_ErrMsg("EX_SetVideoImageScaleMode err\n");
 	}
-	sprintf(tmpparam,"%d,%s",mode,res);
+	sprintf(tmpparam,"%d,%d",mode,res);
 	memcpy(respParam,tmpparam,strlen(tmpparam));
 	return 0;
 }
@@ -3626,49 +3627,6 @@ static int P3K_GetAudOutput(char*reqparam,char*respParam,char*userdata)
 		DBG_ErrMsg("EX_GetVidOutput err\n");
 	}
 	sprintf(tmpparam," %s",aOutput);
-	memcpy(respParam,tmpparam,strlen(tmpparam));
-	return 0;
-}
-
-//Set Video Wall Stretch Type
-static int P3K_SetWndStretch(char*reqparam,char*respParam,char*userdata)
-{
-	//#WND-STRETCH mode<CR>
-	//~nn@WND-STRETCH mode<CR><LF>
-	DBG_InfoMsg("P3K_SetWndStretch\n");
-	int s32Ret = 0;
-	int count = 0;
-	int mode = 0;
-	char tmpparam[MAX_PARAM_LEN] = {0};
-	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
-	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
-	mode = atoi(str[0]);
-	
-	s32Ret =  EX_SetWndStretch(mode);
-	if(s32Ret)
-	{
-		DBG_ErrMsg("EX_SetWndStretch err\n");
-	}
-	memcpy(respParam,reqparam,strlen(reqparam));
-	return 0;
-}
-
-static int P3K_GetWndStretch(char*reqparam,char*respParam,char*userdata)
-{
-	//#WND-STRETCH?<CR>
-	//~nn@WND-STRETCH mode<CR><LF>
-	DBG_InfoMsg("P3K_GetWndStretch\n");
-	int s32Ret = 0;
-	int mode = 0;
-	char tmpparam[MAX_PARAM_LEN] = {0};
-	
-	s32Ret = EX_GetWndStretch(&mode);
-	if(s32Ret)
-	{
-		DBG_ErrMsg("EX_GetWndStretch err\n");
-	}
-	sprintf(tmpparam,"%d",mode);
 	memcpy(respParam,tmpparam,strlen(tmpparam));
 	return 0;
 }
