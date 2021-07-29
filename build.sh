@@ -2,7 +2,7 @@
 
 set -e
 
-ver=`sed -n 1p gbversion`
+ver=`sed -n 1p version`
 
 build_IPE5000()
 {
