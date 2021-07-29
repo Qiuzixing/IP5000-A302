@@ -63,4 +63,4 @@ $(OBJS) :%.o : %.c
 $(OBJSCXX) :%.o : %.cpp
 	$(COMPILECXX)
 clean:
-	$(RM)  $(OBJS) $(TARGET) $(LIB_TARGET)
+	$(RM)  $(OBJS) $(OBJSCXX) $(TARGET) $(LIB_TARGET)

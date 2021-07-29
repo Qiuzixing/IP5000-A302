@@ -131,11 +131,11 @@ int P3K_MSgQueueGetMsg(P3KMsgQueueMember_S *msg)
 	{
 			msgMng.readPoint = 0;
 	}
-	printf("/---------P3K_MSgQueueGetMsg--------------/\n");
+	//printf("/---------P3K_MSgQueueGetMsg--------------/\n");
 	SetQueueMngHandle(&msgMng);
 	pthread_mutex_unlock(&(gs_queueInfo.selflock));
 	//printf("selflock===%p\n",gs_queueMng.selflock);
-	printf("/---------P3K_MSgQueueGetMsg1--------------/\n");
+	//printf("/---------P3K_MSgQueueGetMsg1--------------/\n");
 	return 0;
 
 }

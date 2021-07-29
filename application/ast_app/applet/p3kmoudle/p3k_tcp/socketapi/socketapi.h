@@ -12,7 +12,7 @@ typedef struct _NetCliInfo_T{
 	int		fromPort;
 	int		recvSocket;
 	int 	recvLen;
-	char	recvmsg[20*1024*1024];
+	char	recvmsg[100*1024];
 	char	recvIp[IP_ADRESS_LEN];
 	int		recvPort;
 	char	ethName[IP_ADRESS_LEN];

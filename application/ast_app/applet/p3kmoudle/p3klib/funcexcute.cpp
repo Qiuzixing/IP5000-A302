@@ -28,7 +28,7 @@ int sendCmdtoGUI(const char *buf)
 {
 	char sendbuf[BUFSIZE] = {0};
 	memcpy(sendbuf,buf,strlen(buf)+1);
-	// ³õÊ¼»¯
+	// Â³ÃµÃŠÂ¼Â»Â¯
 	int fd = socket(AF_INET,SOCK_DGRAM,0);	
 	printf("fd: %d\n",fd);
 	if(fd < 0)
@@ -37,7 +37,7 @@ int sendCmdtoGUI(const char *buf)
 		return -1;
 	}
 	
-	// µØÖ·¶Ë¿Ú³õÊ¼»¯
+	// ÂµÃ˜Ã–Â·Â¶Ã‹Â¿ÃšÂ³ÃµÃŠÂ¼Â»Â¯
 	struct sockaddr_in sockaddr_dest;
 	sockaddr_dest.sin_family = AF_INET;
 	sockaddr_dest.sin_addr.s_addr = inet_addr("127.0.0.1");
@@ -318,7 +318,7 @@ int EX_SetVidMute(MuteInfo_S * mute )
 	
 	printf(">>EX_SetVidMute %d,%d,%d,%d,%d,%d\n",mute->direction,mute->portFormat,mute->portIndex,
 		mute->signal,mute->index,mute->state);
-	//0	¨C off for unmute  1	¨C on for mute
+	//0	Â¨C off for unmute  1	Â¨C on for mute
 	char sCmd[64] = "";
 	if(mute->signal == SIGNAL_AUDIO)
 		sprintf(sCmd,"e_p3k_audio_mute::%d",mute->state);
@@ -338,7 +338,7 @@ int EX_SetTimeOut(int  iTime )
 {
 	
 	printf(">>EX_SetOsdDisplay %d\n",iTime);
-	//time ¨C minutes of logout time
+	//time Â¨C minutes of logout time
 	return 0;
 }
 int EX_GetTimeOut(void)
@@ -381,7 +381,7 @@ int EX_SetStandbyTimeOut(int  iTime )
 {
 	
 	printf(">>EX_SetStandbyTimeOut %d\n",iTime);
-	//time ¨C minutes of logout time
+	//time Â¨C minutes of logout time
 	return 0;
 }
 int EX_GetStandbyTimeOut(void)
@@ -501,7 +501,7 @@ int EX_SetMethod(int  mode )
 {
 	
 	printf(">>EX_SetOsdDisplay %d\n",mode);
-	//osd mode {0	¨C off,1	¨C on,2	¨C display now,}
+	//osd mode {0	Â¨C off,1	Â¨C on,2	Â¨C display now,}
 	return 0;
 }
 int EX_GetMethod(void)
@@ -519,7 +519,7 @@ int EX_SetOsdDisplay(int  mode )
 	sprintf(setOSDDisplayCmd,"%s %d",str,mode);
 	int ret = sendCmdtoGUI(setOSDDisplayCmd);
 	//printf(">>EX_SetOsdDisplay %d\n",mode);
-	//osd mode {0	¨C off,1	¨C on,2	¨C display now,}
+	//osd mode {0	Â¨C off,1	Â¨C on,2	Â¨C display now,}
 	return 0;
 }
 int EX_GetOsdDisplay(void)
@@ -536,8 +536,8 @@ int EX_SetDaisyChain(int  mode )
 {
 	
 	printf(">>EX_SetDaisyChain %d\n",mode);
-	//0	¨C OFF (disables dainsy chain)
-	//11	¨C ON (enables dainsy chain)
+	//0	Â¨C OFF (disables dainsy chain)
+	//11	Â¨C ON (enables dainsy chain)
 	return 0;
 }
 int EX_GetDaisyChain(void)
@@ -570,7 +570,7 @@ int EX_SetVidOutput(char info[][MAX_PARAM_LEN],int count )
 
 int EX_GetVidOutput(char * date)
 {
-//Audio output {0	¨C HDMI  1	¨C Analog  2	¨C Stream,3	¨C Dante}
+//Audio output {0	Â¨C HDMI  1	Â¨C Analog  2	Â¨C Stream,3	Â¨C Dante}
 	char * str = "1,2,3";
 	memcpy(date,str,strlen(str));
 	return 0;

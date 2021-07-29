@@ -260,7 +260,7 @@ static void * P3K_DataExcuteProc(void*arg)
 		
 		if(s32Ret != 0)
 		{
-            			//usleep(20*1000);
+            	usleep(200*1000);
 				continue;
 		}
 		memset(&respCmdInfo,0,sizeof(P3K_SimpleCmdInfo_S));

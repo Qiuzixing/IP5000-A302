@@ -383,7 +383,7 @@ int main (int argc, char const *argv[])
 		{
 			break;
 		}
-		usleep(1000000);
+		usleep(2000000);
 	}
 	Tcp_NetUnInit();
 	return 0;
