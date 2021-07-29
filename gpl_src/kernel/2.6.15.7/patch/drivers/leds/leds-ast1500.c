@@ -233,6 +233,37 @@ static int ast1500_led_probe(struct platform_device *dev)
 
 	platform_set_drvdata(dev, led);
 
+	if(ast_scu.board_info.ip5000_a30_board_type == IPD5000W_A30)
+	{
+		//GPIOE2
+		if(0 == strcmp(pdata->name,"key_left"))
+		{
+			pdata->name = "led_hdmi";
+			pdata->flags = AST_LEDF_DEFAULT_ON;
+			pdata->def_trigger = NULL;
+		}
+		//GPIOE3
+		if(0 == strcmp(pdata->name,"key_right"))
+		{
+			pdata->name = "on_red";
+			pdata->flags = AST_LEDF_DEFAULT_ON;
+			pdata->def_trigger = NULL;
+		}
+		//GPIOE4
+		if(0 == strcmp(pdata->name,"key_enter"))
+		{
+			pdata->name = "spi_wp";
+			pdata->flags = AST_LEDF_DEFAULT_ON;
+			pdata->def_trigger = NULL;
+		}
+		//GPIOH6
+		if(0 == strcmp(pdata->name,"poweron_1V3"))
+		{
+			pdata->name = "poweron_1V0";
+			pdata->flags = AST_LEDF_DEFAULT_ON;
+		}
+	}
+
 	led->cdev.brightness_set = ast1500_led_set;
 	led->cdev.default_trigger = pdata->def_trigger;
 	led->cdev.name = pdata->name;

@@ -21,6 +21,13 @@ typedef enum {
 	VT_DISABLE  = 0x1,
 } video_type_e;
 
+typedef enum {
+	IPE5000_A30   = 0x0,
+	IPE5000P_A30  = 0x1,
+	IPD5000_A30   = 0x2,
+	IPD5000W_A30  = 0x3,
+} a30_board_type;
+
 #define I2S_SAMPLE_RATE_32K    3
 #define I2S_SAMPLE_RATE_44d1K  0
 #define I2S_SAMPLE_RATE_48K    2
@@ -64,6 +71,7 @@ typedef struct {
 	unsigned int soc_ver; // 1:AST1500, 2:AST1510, 3:AST1520
 	unsigned int soc_revision; // X0: A0, X1: A1. Where 'X' is SOC_VER
 	unsigned int ve_encode_clk;
+	a30_board_type ip5000_a30_board_type;//0:IPE5000 , 1:IPE5000P , 2:IPD5000 , 3:IPD5000W
 } board_info_t;
 
 typedef struct {

@@ -20,8 +20,9 @@
 
 #ifdef ASTPARAM
 // This program assumes both RW and RO block uses the same size (64KB).
-#define RW_OFFSET (ASPEED_SMC_FLASH_BASE+0xFE0000)
-#define RO_OFFSET (ASPEED_SMC_FLASH_BASE+0xFF0000)
+//qzx20210729:It was replaced with 32MB flash in IP5000-A30 project
+#define RW_OFFSET (ASPEED_SMC_FLASH_BASE+0x1FE0000)
+#define RO_OFFSET (ASPEED_SMC_FLASH_BASE+0x1FF0000)
 #define BLOCK_SIZE 0x10000 //64KB
 
 static char *buf_rw = NULL;
