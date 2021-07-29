@@ -47,7 +47,10 @@ typedef struct _query_struct_
 }query_struct, *pquery_struct;
 
 #define MAX_STATUS_LENGTH 32
-#define MAX_NAME_LENGTH 256
+#define MAX_NAME_LENGTH 64
+#define MAX_MODEL_LENGTH 32
+#define MAX_VER_LENGTH 16
+#define MAX_RESERVED_LENGTH 144
 typedef struct _reply_struct_
 {
 	AST_Device_Type	device_type;
@@ -57,6 +60,9 @@ typedef struct _reply_struct_
 	char device_status[MAX_STATUS_LENGTH];
 //	unsigned int	device_name_length;
 	char device_name[MAX_NAME_LENGTH];
+	char model_name[MAX_MODEL_LENGTH];
+	char version[MAX_VER_LENGTH];
+	char reserved[MAX_RESERVED_LENGTH];
 }reply_struct, *preply_struct;
 
 //AST_Device_Status device_status = Status_Unknown;

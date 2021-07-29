@@ -986,7 +986,7 @@ handle_e_chg_hostname()
 	refresh_4bits_ch
 	refresh_ch_params
 	refresh_hostname_params
-	HOSTNAME="${HOSTNAME_PREFIX}${HOSTNAME_RX_MIDDLE}${HOSTNAME_ID}"
+	HOSTNAME="${MODEL_NUMBER}-${_HOSTNAME_ID}"
 
 	echo "HOSTNAME=$HOSTNAME"
 	astsetname $HOSTNAME
@@ -1331,7 +1331,7 @@ handle_e_ip_got()
 		fi
 
 		# The $HOSTNAME_ID is now decided in init_share_param_from_flash()
-		HOSTNAME="${HOSTNAME_PREFIX}${HOSTNAME_RX_MIDDLE}${HOSTNAME_ID}"
+		HOSTNAME="${MODEL_NUMBER}-${HOSTNAME_ID}"
 		ast_send_event "$EM_PID" "e_name_id::$HOSTNAME_ID"
 
 		echo "HOSTNAME:$HOSTNAME"
@@ -2946,6 +2946,9 @@ while [ -n "$1" ]; do
 	fi
 	shift 1
 done
+
+init_version_file
+init_info_file
 
 # $AST_PLATFORM = ast1500cv4 or ptv1500cv2 or pce1500cv3
 echo ""

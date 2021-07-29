@@ -145,14 +145,9 @@ rootfs:
 	#######################################################################
 	# Create Version file
 	#######################################################################
-	@date -R  > $(IMAGE_FOLDER)/version-$(CONFIG)
-	@( \
-		cd $(IMAGE_FOLDER) && \
-		cksum $(UBOOT_IMAGE) >> $(IMAGE_FOLDER)/version-$(CONFIG) && \
-		cksum $(KERNEL_IMAGE) >> $(IMAGE_FOLDER)/version-$(CONFIG); \
-	) || exit 1
-	@echo `tar c -C $(ROOTFS) . | cksum` initrd2m >> $(IMAGE_FOLDER)/version-$(CONFIG)
-	@cat $(AST_SDK_ROOT)/version_tag >> $(IMAGE_FOLDER)/version-$(CONFIG)
+	@echo KDS-6X > $(IMAGE_FOLDER)/version-$(CONFIG)
+	@cat $(AST_SDK_ROOT)/version >> $(IMAGE_FOLDER)/version-$(CONFIG)
+	@date -R  >> $(IMAGE_FOLDER)/version-$(CONFIG)
 
 	#######################################################################
 	# Copy Version file

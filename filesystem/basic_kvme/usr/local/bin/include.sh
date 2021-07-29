@@ -2074,7 +2074,7 @@ init_share_param_from_flash()
 	if echo "$HOSTNAME_TX_MIDDLE" | grep -q "not defined" ; then
 		HOSTNAME_TX_MIDDLE=`astparam r hostname_tx_middle`
 		if echo "$HOSTNAME_TX_MIDDLE" | grep -q "not defined" ; then
-			HOSTNAME_TX_MIDDLE='-gateway'
+			HOSTNAME_TX_MIDDLE='UNKNOWN'
 			#HOSTNAME_TX_MIDDLE='-Tx-'
 		fi
 	fi
@@ -2083,7 +2083,7 @@ init_share_param_from_flash()
 	if echo "$HOSTNAME_RX_MIDDLE" | grep -q "not defined" ; then
 		HOSTNAME_RX_MIDDLE=`astparam r hostname_rx_middle`
 		if echo "$HOSTNAME_RX_MIDDLE" | grep -q "not defined" ; then
-			HOSTNAME_RX_MIDDLE='-client'
+			HOSTNAME_RX_MIDDLE='UNKNOWN'
 			#HOSTNAME_RX_MIDDLE='-Rx-'
 		fi
 	fi
@@ -2094,10 +2094,10 @@ init_share_param_from_flash()
 		if echo "$HOSTNAME_PREFIX" | grep -q "not defined" ; then
 			case "$SOC_OP_MODE" in
 				1)
-					HOSTNAME_PREFIX='ast'
+					HOSTNAME_PREFIX=''
 				;;
 				*)
-					HOSTNAME_PREFIX="ast$SOC_OP_MODE"
+					HOSTNAME_PREFIX=""
 				;;
 			esac
 		fi
@@ -2374,6 +2374,25 @@ init_share_param_from_flash()
 		fi
 	fi
 
+	MODEL_NUMBER=$(astparam r model_number)
+	if echo "$MODEL_NUMBER" | grep -q "not defined"; then
+		MODEL_NUMBER='UNKNOWN'
+	fi
+
+	BOARD_VERSION=$(astparam r board_version)
+	if echo "$BOARD_VERSION" | grep -q "not defined"; then
+		BOARD_VERSION='UNKNOWN'
+	fi
+
+	SERIAL_NUMBER=$(astparam r serial_number)
+	if echo "$SERIAL_NUMBER" | grep -q "not defined"; then
+		SERIAL_NUMBER='UNKNOWN'
+	fi
+
+	ETH_ADDR=`astparam r ethaddr`
+	if echo "$ETH_ADDR" | grep -q "not defined"; then
+		ETH_ADDR='RANDOM'
+	fi
 
 	######### Always buttom ##############################################
 	WEB_UI_CFG=`astparam g web_ui_cfg`
@@ -2694,7 +2713,6 @@ _echo_parameters_host()
 	echo "LOOPBACK_DEFAULT_ON=$LOOPBACK_DEFAULT_ON"
 	echo "V_RX_DRV=$V_RX_DRV"
 	echo "V_FRAME_RATE=$V_FRAME_RATE"
-	echo "BOARD_NAME=$BOARD_NAME"
 	sleep 0.01
 }
 
@@ -3572,4 +3590,19 @@ update_node_info()
 notify_node_info_chg()
 {
 	node_query --reply_type NQ_NOTIFY_CHG --match_key FROM_MAC=$MY_MAC --match_key SESSION=$RANDOM --match_key CHG_INFO=essential &
+}
+
+init_version_file() {
+	sed -i "1 c $MODEL_NUMBER" /etc/version
+}
+
+init_info_file() {
+	FIRMWARE_VERSION=`sed -n 2p /etc/version`
+	echo "{" > /etc/board_info.json
+	echo "    \"model\": \"$MODEL_NUMBER\"," >> /etc/board_info.json
+	echo "    \"serial number\": \"$SERIAL_NUMBER\"," >> /etc/board_info.json
+	echo "    \"mac address\": \"$ETH_ADDR\"," >> /etc/board_info.json
+	echo "    \"board version\": \"$BOARD_VERSION\"," >> /etc/board_info.json
+	echo "    \"firmware version\": \"$FIRMWARE_VERSION\"" >> /etc/board_info.json
+	echo "}" >> /etc/board_info.json
 }

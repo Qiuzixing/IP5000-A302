@@ -430,7 +430,7 @@ _chg_hostname()
 
 	local _HOSTNAME_ID="$1"
 
-	HOSTNAME="${HOSTNAME_PREFIX}${HOSTNAME_TX_MIDDLE}${_HOSTNAME_ID}"
+	HOSTNAME="${MODEL_NUMBER}-${_HOSTNAME_ID}"
 
 	echo "HOSTNAME=$HOSTNAME"
 	astsetname $HOSTNAME
@@ -639,7 +639,7 @@ handle_e_ip_got()
 			tcp.sh
 		fi
 		# The $HOSTNAME_ID is now decided in init_share_param_from_flash()
-		HOSTNAME="${HOSTNAME_PREFIX}${HOSTNAME_TX_MIDDLE}${HOSTNAME_ID}"
+		HOSTNAME="${MODEL_NUMBER}-${HOSTNAME_ID}"
 
 		echo "HOSTNAME=$HOSTNAME"
 		astsetname $HOSTNAME
@@ -1860,14 +1860,6 @@ init_param_from_flash()
 		fi
 	fi
 
-	BOARD_NAME=`astparam g board_name`
-	if echo "$BOARD_NAME" | grep -q "not defined" ; then
-		BOARD_NAME=`astparam r board_name`
-		if echo "$BOARD_NAME" | grep -q "not defined" ; then
-			BOARD_NAME='IPE5000-A30'
-		fi
-	fi
-
 	# Print the final parameters
 	echo_parameters
 }
@@ -1937,6 +1929,9 @@ while [ -n "$1" ]; do
 	shift 1
 done
 
+init_version_file
+init_info_file
+
 # $AST_PLATFORM = ast1500hv4 or ptv1500hv2 or pce1500hv3
 echo ""
 echo "#### platform info:$AST_PLATFORM ####"
@@ -1971,7 +1966,7 @@ if [ $UGP_FLAG = 'success' ];then
 	#set lineio_sel pin to default to line_out;0:line_out;1:line_in
 	ipc @m_lm_set s set_gpio_config:1:70:1
 	ipc @m_lm_set s set_gpio_val:1:70:0
-	if [ $BOARD_NAME = 'IPE5000P-A30' ];then
+	if [ $MODEL_NUMBER = 'KDS-SW3-EN-6X' ];then
 		#IPE5000P:Turn on all audio switches by default  
 		ipc @m_lm_set s set_gpio_config:9:15:1:35:1:8:1:36:1:37:1:32:1:33:1:11:1:12:1
 		ipc @m_lm_set s set_gpio_val:9:15:1:35:1:8:1:36:1:37:1:32:1:33:1:11:1:12:1

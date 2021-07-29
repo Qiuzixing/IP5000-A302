@@ -19,6 +19,7 @@
 
 #define AST_DEVICE_NAME_FILE "/etc/hostname"
 #define AST_DEVICE_STATUS_FILE "/var/ast_device_status"
+#define AST_VERSION_FILE "/etc/version"
 
 #if 0
 static void signal_handler(int i)
@@ -86,6 +87,9 @@ static void do_reply(AST_Device_Type device_type, AST_Device_Function device_fun
 					char device_status[MAX_STATUS_LENGTH];
 					FILE *fpn = fopen(AST_DEVICE_NAME_FILE, "r");
 					char device_name[MAX_NAME_LENGTH];
+					FILE *fpv = fopen(AST_VERSION_FILE, "r");
+					char model_name[MAX_MODEL_LENGTH];
+					char version[MAX_VER_LENGTH];
 					if ((fps) && (fpn))
 					{
 						fgets(device_status, 31, fps);
@@ -96,6 +100,15 @@ static void do_reply(AST_Device_Type device_type, AST_Device_Function device_fun
 						//remove possible new line in the end
 						if (device_name[strlen(device_name) - 1] == '\n')
 							device_name[strlen(device_name) - 1] = '\0';
+						fgets(model_name, 31, fpv);
+						//remove possible new line in the end
+						if (model_name[strlen(model_name) - 1] == '\n')
+							model_name[strlen(model_name) - 1] = '\0';
+						fgets(version, 15, fpv);
+						//remove possible new line in the end
+						if (version[strlen(version) - 1] == '\n')
+							version[strlen(version) - 1] = '\0';
+						
 						addr.sin_port = htons(AST_NAME_SERVICE_REPLY_PORT);
 						reply.device_type = device_type;
 						reply.device_function = device_function;
@@ -103,12 +116,17 @@ static void do_reply(AST_Device_Type device_type, AST_Device_Function device_fun
 						strcpy (reply.device_status, device_status);
 	//					reply.device_name_length = strlen(device_name);
 						strcpy (reply.device_name, device_name);
+						strcpy (reply.model_name, model_name);
+						strcpy (reply.version, version);
+						reply.reserved[0] = '\0';
 						sendto(r_fd, &reply, sizeof(reply), 0, (struct sockaddr *)&addr, addr_len);
 					}
 					if (fps)
 						fclose(fps);
 					if (fpn)
 						fclose(fpn);
+					if (fpv)
+						fclose(fpv);
 					close(r_fd);
 				}
 			}
@@ -171,7 +189,7 @@ int main(int argc, char *argv[])
 		dbg("device_function = %d\n", device_function);
 	}
 
-	daemon(0,0);	
+	daemon(0,0);
 #if 0
 	set_signal();
 #endif

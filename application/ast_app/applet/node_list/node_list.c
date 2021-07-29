@@ -71,7 +71,7 @@ static void do_query(AST_Device_Type device_type, AST_Device_Function device_fun
 	//receive until timeout & prepare list
 	timeout.tv_usec = 0;
 	timeout.tv_sec = WAIT_REPLY_TIMEOUT;
-	info("IP\tHostname\tStatus\n");
+	info("IP\tHostname\tModel\tVersion\tStatus\n");
 	info(">>>>>\n");
 	while (select(r_fd + 1, &fds, NULL, NULL, &timeout) > 0)
 	{
@@ -119,6 +119,8 @@ static void do_query(AST_Device_Type device_type, AST_Device_Function device_fun
 			}
 #endif
 //			info("device status: %d\n", reply.device_status);
+			info("%s\t", reply.model_name);
+			info("%s\t", reply.version);
 			info("%s", reply.device_status);
 			info("\n");
 			//info("--------------------------------------------------\n");

@@ -330,33 +330,31 @@ static void update_sinfo_fw()
 {
 #define MAX_SIZE 256
 	FILE *fp;
+	char name[MAX_SIZE];
+	char ver[MAX_SIZE];
 	char date[MAX_SIZE];
-	char loader[MAX_SIZE];
-	char kernel[MAX_SIZE];
-	char rootfs[MAX_SIZE];
 	char day[8];
 	char month[8];
 	char year[8];
-	unsigned int lv = 0;
-	unsigned int kv = 0;
-	unsigned int fv = 0;
+	int lver = 0;
 	
 	fp = fopen("/etc/version", "r");
 	if (fp == NULL) {
 		err("ERROR! can't open event_pipe?!\n");
 		goto err;
 	}
+	fgets(name, MAX_SIZE, fp);
+	fgets(ver, MAX_SIZE, fp);
 	fgets(date, MAX_SIZE, fp);
-	fgets(loader, MAX_SIZE, fp);
-	fgets(kernel, MAX_SIZE, fp);
-	fgets(rootfs, MAX_SIZE, fp);
+
+	for (lver = strlen(ver); lver > 0 && (ver[lver - 1] == '\r' || ver[lver - 1] == '\n'); lver--)
+	{
+		ver[lver - 1] = '\0';
+	}
+
+	sscanf(date, "%*s%7s%7s %7s%*s%*s", day, month, year);
 	
-	sscanf(date, "%*s%7s%7s %*c%*c%7s%*s%*s", day, month, year);
-	sscanf(loader, "%*s%d%*s", &lv);
-	sscanf(kernel, "%*s%d%*s", &kv);
-	sscanf(rootfs, "%*s%d%*s", &fv);
-	
-	snprintf(sinfo.FW, MAX_STR_LEN, "%s-%s-%s %04x", year, month, day, (lv+kv+fv)&0xFFFF);
+	snprintf(sinfo.FW, MAX_STR_LEN, "%s-%s-%s %s", day, month, year, ver);
 	err("%s\n", sinfo.FW);
 	
 	fclose(fp);
