@@ -22,6 +22,7 @@ build:
 clean:
 	( \
 		cd autoswitch; \
+		qmake || exit 1; \
 		make clean || exit 1; \
 	) || exit 1;
 
