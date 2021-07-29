@@ -10,10 +10,157 @@
 #include <arpa/inet.h>
 #include "classsum.h"
 
+#include "json/json.h"
+#include <iostream>
+#include <string> 
+#include <fstream>
+
+using namespace std;
+
 #define BUFSIZE 128
 #define PORT 5588
 
 static char  sUpInfo[256] = {0};
+
+int GetBoardInfo(BoardInfoType_E type, char* info, int size)
+{
+	FILE *fp;
+
+	memset(info,0,size);
+
+	printf("GetBoardInfo type:%d,size:%d start\n",type,size);
+	
+	if(type == BOARD_HOSTNAME)
+	{
+		fp = fopen(KDS_HOSTNAME_FILE, "r");
+		if (fp == NULL) {
+			printf("ERROR! can't open hostname\n");
+			return -1;
+		}
+		fread(info,1,size,fp);		
+	}
+	else if(type == BOARD_BUILD_DATE)
+	{	
+		fp = fopen(KDS_VSRSION_FILE, "r");
+		if (fp == NULL) {
+			printf("ERROR! can't open hostname\n");
+			return -1;
+		}
+
+		char model[128];
+		char fw_version[128];
+		char date[128];
+		fgets(model, 128, fp);
+		fgets(fw_version, 128, fp);
+		fgets(date, 128, fp);
+
+		if(strlen(date) > 0)
+		{
+			strcpy(info,date);
+		}
+		else
+		{
+			printf("ERROR! can't open date\n");
+		}
+	}
+	else
+	{
+		Json::Reader reader;  
+		Json::Value root; 
+		char pBuf[1024] = "";
+
+		fp = fopen(KDS_BOARD_INFO_FILE, "r");
+		if (fp == NULL) {
+			printf("ERROR! can't open boardinfo\n");
+			return -1;
+		}
+
+		int len = fread(pBuf,1,sizeof(pBuf),fp);
+		
+		if(reader.parse(pBuf, root))  
+		{   
+			if(type == BOARD_MODEL)
+			{
+				if(!root["model"].empty())
+				{
+					string buf = root["model"].asString();
+					if(buf.length() > size)
+					{
+						printf("ERROR! model is too long\n");
+					}
+					else
+					{
+						strcpy(info,buf.c_str());
+					}
+				}
+			}
+			else if(type == BOARD_SN)
+			{
+				if(!root["serial number"].empty())
+				{
+					string buf = root["serial number"].asString();
+					if(buf.length() > size)
+					{
+						printf("ERROR! serial number is too long\n");
+					}
+					else
+					{
+						strcpy(info,buf.c_str());
+					}
+				}
+			}	
+			else if(type == BOARD_MAC)
+			{
+				if(!root["mac address"].empty())
+				{
+					string buf = root["mac address"].asString();
+					if(buf.length() > size)
+					{
+						printf("ERROR! smac address is too long\n");
+					}
+					else
+					{
+						strcpy(info,buf.c_str());
+					}
+				}
+			}				
+			else if(type == BOARD_HW_VERSION)
+			{
+				if(!root["board version"].empty())
+				{
+					string buf = root["board version"].asString();
+					if(buf.length() > size)
+					{
+						printf("ERROR! board version is too long\n");
+					}
+					else
+					{
+						strcpy(info,buf.c_str());
+					}
+				}
+			}	
+			else if(type == BOARD_FW_VERSION)
+			{
+				if(!root["firmware version"].empty())
+				{
+					string buf = root["firmware version"].asString();
+					if(buf.length() > size)
+					{
+						printf("ERROR! firmware version is too long\n");
+					}
+					else
+					{
+						strcpy(info,buf.c_str());
+					}
+				}
+			}				
+		}
+	}
+	fclose(fp);	
+
+	printf("GetBoardInfo type:%d,info:%s end\n",type,info);
+	return 0;
+}
 
 int classTest(int a,int b)
 {
@@ -578,8 +725,13 @@ int EX_GetVidOutput(char * date)
 
 int EX_GetHWVersion(char * date)
 {
-	char * version = "1.12.123";
-	memcpy(date,version,strlen(version));
+	//char * version = "1.12.123";
+	//memcpy(date,version,strlen(version));
+
+	if(date != NULL)
+	{
+		GetBoardInfo(BOARD_HW_VERSION, date, 24);
+	}
 	return 0;
 }
 
@@ -1364,31 +1516,54 @@ int EX_SetMacAddr(int netid,char*macAddr)
 }
 int EX_GetMacAddr(int netid,char*macAddr)
 {
+//	strcpy(macAddr,"00-14-22-01-23-45");
+	printf("EX_GetMacAddr\n");
+	int nMac[6];
+	if(macAddr != NULL)
+	{
+		printf("macAddr != NULL\n");
 
-	strcpy(macAddr,"00-14-22-01-23-45");
+		char buf[128];
+		GetBoardInfo(BOARD_MAC, buf, 128);
+
+		printf("buf = %s\n",buf);
+
+		sscanf(buf,"%x:%x:%x:%x:%x:%x",&nMac[0],&nMac[1],&nMac[2],&nMac[3],&nMac[4],&nMac[5]);
+		
+		sprintf(macAddr,"%02x-%02x-%02x-%02x-%02x-%02x",nMac[0],nMac[1],nMac[2],nMac[3],nMac[4],nMac[5]);
+	}
+
+	netid = 0;
 	return 0;
 }
 int EX_SetDNSName(int id,char*name)
 {
 	printf("EX_SetDNSName name =%s\n",name);
-#ifdef CONFIG_P3K_HOST	
 	if(id == 1)
-	{	if(strlen(name)>0)
-		{
-			char sCmd[64] = "";
-			sprintf(sCmd,"e_p3k_audio_dante_name::%s",name);
-			printf("ast_send_event %s\n",sCmd);
-			ast_send_event(-1,sCmd);
+	{
+#ifdef CONFIG_P3K_HOST	
+		{	if(strlen(name)>0)
+			{
+				char sCmd[64] = "";
+				sprintf(sCmd,"e_p3k_audio_dante_name::%s",name);
+				printf("ast_send_event %s\n",sCmd);
+				ast_send_event(-1,sCmd);
+			}
 		}
-	}
 #else
-	printf(" !!! This is Decoder\n");
-#endif		
+		printf(" !!! This is Decoder\n");
+#endif			
+	}
+		
 	return 0;
 }
 int EX_GetDNSName(int id,char*name)
 {
-	strcpy(name,"room-1");
+	if(id == 0)
+	{
+		GetBoardInfo(BOARD_HOSTNAME, name, MAX_DEV_NAME_LEN);
+	}
+	//strcpy(name,"room-1");
 	return 0;
 }
 int EX_ResetDNSName(char *name)
@@ -1459,8 +1634,13 @@ int EX_Logout(void)
 }
 int EX_GetDevVersion(char*version)
 {
-	char * tmp = "1.2.1";
-	strcpy(version,tmp);
+	//char tmp[32];
+	if(version != NULL)
+	{
+		GetBoardInfo(BOARD_FW_VERSION, version, 32);
+	}
+	
+	//strcpy(version,tmp);
 	return 0;
 }
 int EX_Upgrade(void)
@@ -1474,7 +1654,11 @@ int EX_SetDeviceNameModel(char*mod)
 }
 int EX_GetDeviceNameModel(char*mod)
 {
-	strcpy(mod,"dip-20");
+	if(mod != NULL)
+	{
+		GetBoardInfo(BOARD_MODEL, mod, MAX_DEV_MOD_NAME_LEN);
+	}
+
 	return 0;
 }
 int EX_SetSerialNumber(char*data)
@@ -1484,7 +1668,11 @@ int EX_SetSerialNumber(char*data)
 }
 int EX_GetSerialNumber(char*data)
 {
-	strcpy(data,"12345678987654");
+	//strcpy(data,"12345678987654");
+	if(data != NULL)
+	{
+		GetBoardInfo(BOARD_SN, data, SERIAL_NUMBER_LEN);
+	}
 	return 0;
 }
 
@@ -1543,13 +1731,13 @@ int EX_FactoryRecovery(void)
 }
 int EX_GetDevBuildDate(char *date,char*hms)
 {
-	time_t secTime;
-	struct tm *ptime =NULL;
-	secTime = time(NULL);
-	ptime = localtime(&secTime);
+	if((date != NULL)&&(hms!= NULL))
+	{
+		char buf[128];
+		GetBoardInfo(BOARD_BUILD_DATE, buf, 128);
 
-	sprintf(date,"%04d/%02d/%02d",ptime->tm_year+1900,ptime->tm_mon+1,ptime->tm_mday);
-	sprintf(hms,"%02d:%02d:%02d",ptime->tm_hour,ptime->tm_min,ptime->tm_sec);
+		sscanf(buf,"%s,%s",date,hms);
+	}
 	return 0;
 }
 int EX_SetTimeAndDate(char*weekDay,char*date,char*hms)

@@ -5,6 +5,10 @@
 extern "C"{
 #endif
 
+#define KDS_BOARD_INFO_FILE "/etc/board_info.json"
+#define KDS_VSRSION_FILE	"/etc/version"
+#define KDS_HOSTNAME_FILE	"/etc/hostname"
+
 #define MAX_CHAN_NAME_LEN 32
 #define MAX_CHAN_IP_LEN 64
 #define CEC_MAX_CMD_NAME_LEN 32
@@ -12,10 +16,10 @@ extern "C"{
 #define IR_MAX_CMD_NAME_LEN 15
 #define IR_MAX_CMD_COMENT_LEN 32
 #define MAX_IP_ADDR_LEN 64
-#define MAX_DEV_MOD_NAME_LEN 19
-#define MAX_DEV_NAME_LEN 15
+#define MAX_DEV_MOD_NAME_LEN 64
+#define MAX_DEV_NAME_LEN 64
 #define MAC_ADDR_LEN 32
-#define SERIAL_NUMBER_LEN 14
+#define SERIAL_NUMBER_LEN 16
 #define MAX_SIGNALE_LEN  64
 #define MAX_PORT_LEN 32
 #define MAX_EDID_LEN 32
@@ -334,6 +338,20 @@ typedef struct _EDIDPortInfo_S
 	int id;
 	int type;
 }EDIDPortInfo_S;
+
+typedef enum _BoardInfoType_E
+{
+	BOARD_HOSTNAME,
+	BOARD_MODEL,
+	BOARD_SN,
+	BOARD_MAC,
+	BOARD_HW_VERSION,
+	BOARD_FW_VERSION,
+	BOARD_BUILD_DATE
+}BoardInfoType_E;
+
+int GetBoardInfo(BoardInfoType_E type, char* info, int size);
+
 int  EX_SetAudSrcMode(int mode);
 int  EX_GetAudSrcMode(int *mode);
 int EX_SetAudGainLevel(PortInfo_S*info,int gain);
