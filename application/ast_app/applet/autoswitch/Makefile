@@ -22,6 +22,6 @@ build:
 clean:
 	( \
 		cd autoswitch; \
-		make distclean || exit 1; \
+		make clean || exit 1; \
 	) || exit 1;
 
