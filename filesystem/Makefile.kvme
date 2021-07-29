@@ -147,7 +147,7 @@ rootfs:
 	#######################################################################
 	@echo KDS-6X > $(IMAGE_FOLDER)/version-$(CONFIG)
 	@cat $(AST_SDK_ROOT)/version >> $(IMAGE_FOLDER)/version-$(CONFIG)
-	@date -R  >> $(IMAGE_FOLDER)/version-$(CONFIG)
+	@date -u +%Y/%m/%d,%H:%M:%S >> $(IMAGE_FOLDER)/version-$(CONFIG)
 
 	#######################################################################
 	# Copy Version file
