@@ -270,24 +270,6 @@ static struct ast_led_platdata ast1500_pdata_led5v = {
 	.name		= "gsv_5v",
 };
 
-static struct ast_led_platdata ast1500_pdata_ledg6 = {
-	.gpio		= SEG_LEDC,
-	.flags		= AST_LEDF_DEFAULT_ON,
-	.name		= "seg_ledc",
-};
-
-static struct ast_led_platdata ast1500_pdata_ledg7 = {
-	.gpio		= SEG_LEDD,
-	.flags		= AST_LEDF_DEFAULT_ON,
-	.name		= "seg_ledd",
-};
-
-static struct ast_led_platdata ast1500_pdata_ledi7 = {
-	.gpio		= ON_G,
-	.flags		= AST_LEDF_DEFAULT_ON,
-	.name		= "on_green",
-};
-
 #if (BOARD_DESIGN_VER_MISC >= 104)
 //#if defined(CONFIG_AST1500_BOARD_V4) || defined (CONFIG_AST1500_BOARD_V5) || defined(CONFIG_AST1510_BOARD_EVA_V4)
 
@@ -597,30 +579,6 @@ static struct platform_device ast_ledd3 = {
 	},
 };
 
-static struct platform_device ast_ledg6 = {
-	.name		= "ast1500_led",
-	.id		= 43,
-	.dev		= {
-		.platform_data = &ast1500_pdata_ledg6,
-	},
-};
-
-static struct platform_device ast_ledg7 = {
-	.name		= "ast1500_led",
-	.id		= 44,
-	.dev		= {
-		.platform_data = &ast1500_pdata_ledg7,
-	},
-};
-
-static struct platform_device ast_ledi7 = {
-	.name		= "ast1500_led",
-	.id		= 45,
-	.dev		= {
-		.platform_data = &ast1500_pdata_ledi7,
-	},
-};
-
 #if (BOARD_DESIGN_VER_MISC >= 104)
 
 #endif
@@ -718,9 +676,6 @@ static struct platform_device __initdata *ast_devs[] = {
 	&ast_led5v,
 	&ast_ledd4,
 	&ast_ledd3,
-	&ast_ledg6,
-	&ast_ledg7,
-	&ast_ledi7,
 #if (BOARD_DESIGN_VER_MISC >= 104)
 
 #endif

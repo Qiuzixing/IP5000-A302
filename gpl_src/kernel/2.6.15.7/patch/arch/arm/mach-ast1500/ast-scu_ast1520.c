@@ -493,25 +493,6 @@ static u32 get_board_revision(void)
 	return result;
 }
 
-static a30_board_type get_ip5000_a30_board_type(void)
-{
-	u32 result;
-
-	if (astparam_get_int("a30_board_type", &result))
-	{
-		if(ast_scu.board_info.is_client == 1)
-		{
-			result = IPD5000_A30;
-		}
-		else
-		{
-			result = IPE5000_A30;
-		}
-	}
-
-	return result;
-}
-
 #ifdef CONFIG_ARCH_AST1500_CLIENT
 static u32 _calc_ring(u32 step)
 {
@@ -2475,7 +2456,6 @@ inline void _scu_init_board_info(void)
 	info->is_client = get_board_type();
 	info->video_type = get_video_type();
 	info->board_revision = get_board_revision();
-	info->ip5000_a30_board_type = get_ip5000_a30_board_type();
 	/* NOTE: info->video_type must be valid before calling get_video_loopback_type(). */
 	/* NOTE: info->board_revision must be valid before calling get_video_loopback_type(). */
 	info->video_loopback_type = get_video_loopback_type();
