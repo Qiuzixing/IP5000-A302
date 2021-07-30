@@ -333,9 +333,6 @@ static void update_sinfo_fw()
 	char name[MAX_SIZE];
 	char ver[MAX_SIZE];
 	char date[MAX_SIZE];
-	char day[8];
-	char month[8];
-	char year[8];
 	int lver = 0;
 	
 	fp = fopen("/etc/version", "r");
@@ -351,10 +348,8 @@ static void update_sinfo_fw()
 	{
 		ver[lver - 1] = '\0';
 	}
-
-	sscanf(date, "%*s%7s%7s %7s%*s%*s", day, month, year);
 	
-	snprintf(sinfo.FW, MAX_STR_LEN, "%s-%s-%s %s", day, month, year, ver);
+	snprintf(sinfo.FW, MAX_STR_LEN, "%s %s", date, ver);
 	err("%s\n", sinfo.FW);
 	
 	fclose(fp);
