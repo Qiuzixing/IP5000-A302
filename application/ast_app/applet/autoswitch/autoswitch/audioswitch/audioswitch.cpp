@@ -101,7 +101,7 @@ void AudioSwitch::audioPlugInTimeout()
 void AudioSwitch::audioPlugOutTimeout()
 {
     audioPlugOutTimer->stop();
-
+    qDebug() << __PRETTY_FUNCTION__;
     if (runList.size() > 0) {
         int prevSource = runList.at(0);
         switchToSource(prevSource);
