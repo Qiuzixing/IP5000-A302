@@ -7,7 +7,7 @@
 #define ANALOG_OUT_MUTE     "/sys/class/leds/lineout_mute/brightness"
 #define DANTE_MUTE          "/sys/class/leds/dante_mute/brightness"
 #define IO_SELECT           "/sys/devices/platform/1500_i2s/io_select"
-#define TIME_OUT            1000
+#define TIME_OUT            500
 typedef enum
 {
     LOW_LEVEL = 0,

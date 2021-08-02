@@ -98,16 +98,17 @@ void mute_control(const char *file_name,mute_value value)
 static void set_gsv_insert_audio(insert_value value)
 {
     uint16_t cmd = CMD_HDMI_SET_AUDIO_INSERT_EXTRACT;
-    char param[32] = {0};
+    char insert_param[] = "33:16";
+    char no_insert_param[] = "0:16";
     if(value == INSERT)
     {
-        memcpy(param,"33:16",strlen("33:16"));
+        do_handle_set_audio_insert_extract(cmd,insert_param);
     }
     else
     {
-        memcpy(param,"0:16",strlen("0:16"));
+        do_handle_set_audio_insert_extract(cmd,no_insert_param);
     }
-    do_handle_set_audio_insert_extract(cmd,param);
+   
 }
 
 static void analog_in_xxx_out()

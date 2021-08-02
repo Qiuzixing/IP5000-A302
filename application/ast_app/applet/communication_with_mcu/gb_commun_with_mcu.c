@@ -498,7 +498,6 @@ void do_handle_set_gpio_val(uint16_t cmd,char *cmd_param)
         return;
     }
     gpio_val->numOfGpio = uctemp; 
- 
     for(i=0;i<uctemp;i++)
     {
         tmp_p = strtok(NULL,":");
@@ -524,6 +523,18 @@ void do_handle_set_gpio_val(uint16_t cmd,char *cmd_param)
             free(gpio_val);
             return;
         }
+
+        if(gpio_val->gpio[i][0] == 70)  //70 Indicates setting analog input or output
+        {
+            if(gpio_val->gpio[i][1] == 1)   //line_in
+            {
+                mute_control(ANALOG_IN_MUTE,UNMUTE);
+            }
+            else                            //line_out
+            {
+                mute_control(ANALOG_IN_MUTE,MUTE);
+            }
+        }
     }
     APP_Comm_Send(cmd, (U8*)gpio_val, uctemp*2 + 2);
     free(gpio_val);
@@ -540,6 +551,7 @@ void do_handle_set_audio_insert_extract(uint16_t cmd,char *cmd_param)
         ado_insert.toPort = atoi(to_port);
     }
     printf("cmd[0x%x] audio fromport[0x%x] toport[0x%x]\n", cmd, ado_insert.fromPort, ado_insert.toPort);
+    ado_insert.ttlMode = TTLMODE_I2S;
     ado_insert.audioCoding = AUDIO_CODING_LPCM;
     ado_insert.channels = AUDIO_CH_2;
     ado_insert.i2sFormat = I2S_FORMAT_NORMAL;
@@ -601,7 +613,6 @@ static void do_handle_uart_pass(uint16_t cmd,char *cmd_param)
 static void handle_audio()
 {
     mute_control(ANALOG_OUT_MUTE,MUTE);
-    mute_control(ANALOG_IN_MUTE,MUTE);
     mute_control(DANTE_MUTE,MUTE);
     set_io_select(HDMI);
 

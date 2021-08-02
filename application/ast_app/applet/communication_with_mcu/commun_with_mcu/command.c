@@ -397,6 +397,20 @@ int APP_Comm_Recv(CmdProtocolParam * param)
             {
                 sendEvent(sock_fd,send_socket_msg.type,send_socket_msg.source);
             }
+            if(vdo_status.isStable == 1)
+            {
+                audioSendEventMsg(sock_fd,"plugin","hdmi");
+            }
+            else if(vdo_status.isStable == 0)
+            {
+                audioSendEventMsg(sock_fd,"plugout","hdmi");
+            }
+            else
+            {
+                /* code */
+            }
+            
+            
             break;
         case EVENT_HDMI_EDID:
             memset(&edid_data, 0, sizeof(edid_data));
@@ -429,10 +443,12 @@ int APP_Comm_Recv(CmdProtocolParam * param)
             if(dante_state == DANTE_AUDIO_DETECTED)
             {
                 printf("dante audio connect\n");
+                audioSendEventMsg(sock_fd,"plugin","dante");
             }
             else if(dante_state == DANTE_AUDIO_DISCONNECT)
             {
                 printf("dante audio disconnect\n");
+                audioSendEventMsg(sock_fd,"plugout","dante");
             }
             else
             {

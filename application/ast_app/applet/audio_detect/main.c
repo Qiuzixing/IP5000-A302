@@ -25,7 +25,7 @@
 #include <pthread.h>
 #include <sys/types.h>
 #include <sys/select.h>
-
+#include "auto_swtich_socket.h"
 #define THINK_AUDIO_OUT_TIME 5
 #define MAX_PAYLOAD 1024  /* maximum payload size*/
 #define UNIX_PATH_MAX    108
@@ -129,7 +129,11 @@ int main(int argc, char *argv[])
 	unsigned char *event_msg;
 
 	int flag = AUDIO_UNKNOW;
-
+	int sock_fd = create_unixsocket(MSG_SOCKET);
+    if (sock_fd == -1) {
+        perror("unix socker error.");
+        return -1;
+    }
 	int ret = 0;
     int maxfd = 0;
 	fd_set rset;
@@ -163,7 +167,7 @@ int main(int argc, char *argv[])
 				{
 					if(time_difference_from_last_time(&last_time) > THINK_AUDIO_OUT_TIME)
 					{
-						printf("audio out\n");
+						audioSendEventMsg(sock_fd,"plugout","analog");
 						flag = AUDIO_UNKNOW;
 					}
 				}
@@ -183,7 +187,7 @@ int main(int argc, char *argv[])
 				{
 					if(flag == AUDIO_UNKNOW)
 					{
-						printf("audio in\n");
+						audioSendEventMsg(sock_fd,"plugin","analog");
 						flag = AUDIO_IN;
 					}
 					clock_gettime(CLOCK_MONOTONIC,&last_time);
@@ -202,7 +206,7 @@ int main(int argc, char *argv[])
 					{
 						if(time_difference_from_last_time(&last_time) > THINK_AUDIO_OUT_TIME)
 						{
-							printf("audio out\n");
+							audioSendEventMsg(sock_fd,"plugout","analog");
 							flag = AUDIO_UNKNOW;
 						}
 					}
@@ -210,5 +214,7 @@ int main(int argc, char *argv[])
 				break;
 		}
 	}
+	close(sock_fd);
+	return 0;
 
 }

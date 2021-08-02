@@ -1919,18 +1919,6 @@ signal_handler()
 	echo ""
 }
 
-adc_pin_mux_gpio()
-{
-	#qzx20210722:they(ADC PIN) are invalid in leds driver,So need to set it manually
-	reg_value=`io 0 0x1E6E20A0 | awk '{printf $3}'`
-	reg_value=0x$reg_value
-	bit_clear=0xf7ffffff
-	bit_set=0x08000000
-	reg_value=$((reg_value&bit_clear))
-	reg_value=`printf "%x" $((reg_value|bit_set))`
-	io 1 0x1E6E20A0 $reg_value
-}
-
 #set -x
 #### main #####
 export PATH="${PATH}":/usr/local/bin
@@ -1998,28 +1986,6 @@ if [ $UGP_FLAG = 'success' ];then
 	audioswitch &
 fi
 
-if [ $UGP_FLAG = 'success' ];then
-	echo "lock file for @m_lm_query" > /var/lock/@m_lm_query.lck
-	ipc_server_listen_one @m_lm_set @m_lm_get @m_lm_query @m_lm_reply &
-	usleep 1000
-	communication_with_mcu -c &
-	usleep 10000
-fi
-
-if [ $UGP_FLAG = 'success' ];then
-	#set lineio_sel pin to default to line_out;0:line_out;1:line_in
-	ipc @m_lm_set s set_gpio_config:1:70:1
-	ipc @m_lm_set s set_gpio_val:1:70:0
-	if [ $MODEL_NUMBER = 'KDS-SW3-EN-6X' ];then
-		#IPE5000P:Turn on all audio switches by default  
-		ipc @m_lm_set s set_gpio_config:9:15:1:35:1:8:1:36:1:37:1:32:1:33:1:11:1:12:1
-		ipc @m_lm_set s set_gpio_val:9:15:1:35:1:8:1:36:1:37:1:32:1:33:1:11:1:12:1
-	else
-		#IPE5000:the switch is set to ast1520 by default
-		ipc @m_lm_set s set_gpio_config:1:72:1
-		ipc @m_lm_set s set_gpio_val:1:72:0
-	fi
-fi
 # start event_monitor
 ast_event_monitor &
 EM_PID=$!
@@ -2030,12 +1996,6 @@ update_node_info STATE $STATE
 
 # Disable OOM Killer
 echo 1 > /proc/sys/vm/overcommit_memory
-
-audio_detect &
-if [ $UGP_FLAG = 'success' ];then
-	echo 500 > /sys/class/leds/audio_detect/delay
-	adc_pin_mux_gpio
-fi
 
 # Start state machine in another process scope
 state_machine &

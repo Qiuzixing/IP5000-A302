@@ -24,8 +24,8 @@ build : clean audio_detect
 	cp -f audio_detect $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 	@#cp -f audio_detect /tftpboot
 
-audio_detect : main.o
-	$(cc) $(ldflags) -o audio_detect main.o
+audio_detect : main.o	auto_swtich_socket.o
+	$(cc) $(ldflags) -o audio_detect main.o auto_swtich_socket.o
 
 %.o : %.c Makefile
 	${cc} ${cflags} -c $<
