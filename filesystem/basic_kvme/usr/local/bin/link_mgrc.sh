@@ -538,9 +538,8 @@ handle_e_sys_ip_chg()
 	pkill -9 heartbeat
 	pkill -9 node_responser
 	pkill -9 name_service
-	pkill -9 remote_event_monitor
 	pkill -9 inetd
-	pkill -9 lighttpd
+	pkill -9 httpd
 	pkill -9 telnetd
 	pkill -9 p3ktcp
 
