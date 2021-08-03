@@ -462,7 +462,7 @@ int main(void)
 	/* Set up our address */
 	bzero((char *)&myaddr, sizeof(myaddr));
 	myaddr.sin_family = AF_INET;
-	myaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	myaddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 	myaddr.sin_port = htons(IR_S_D_PORT);
 
 	ret = setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(reuseaddr));

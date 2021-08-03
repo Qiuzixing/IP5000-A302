@@ -565,7 +565,7 @@ static void do_msgd_host(void)
 	SetNodelay(lsock);
 
 	gw_addr.sin_family = AF_INET;
-	gw_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	gw_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 	gw_addr.sin_port = htons(MSGD_FE_PORT);
 	ret = bind(lsock, (struct sockaddr *)&gw_addr, sizeof(gw_addr));
 	if (ret != 0) {
