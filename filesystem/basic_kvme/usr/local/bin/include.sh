@@ -1439,7 +1439,7 @@ init_share_param_from_flash()
 	if echo "$RESET_CH_ON_BOOT" | grep -q "not defined" ; then
 		RESET_CH_ON_BOOT=`astparam r reset_ch_on_boot`
 		if echo "$RESET_CH_ON_BOOT" | grep -q "not defined" ; then
-			RESET_CH_ON_BOOT='y'
+			RESET_CH_ON_BOOT='n'
 		fi
 	fi
 
@@ -1556,8 +1556,8 @@ init_share_param_from_flash()
 		KMOIP_PORTS=`astparam r kmoip_ports`
 		if echo "$KMOIP_PORTS" | grep -q "not defined" ; then
 			# default export all ports. Valid options example: '1 3'
-			#KMOIP_PORTS='all'
-			KMOIP_PORTS='1 2'
+			KMOIP_PORTS='all'
+			#KMOIP_PORTS='1 2'
 		fi
 	fi
 
@@ -1615,7 +1615,7 @@ init_share_param_from_flash()
 	if echo "$MULTICAST_ON" | grep -q "not defined" ; then
 		MULTICAST_ON=`astparam r multicast_on`
 		if echo "$MULTICAST_ON" | grep -q "not defined" ; then
-			MULTICAST_ON='n'
+			MULTICAST_ON='y'
 		fi
 	fi
 	# Read after MULTICAST_ON
@@ -1661,7 +1661,7 @@ init_share_param_from_flash()
 	if echo "$IP_MODE" | grep -q "not defined" ; then
 		IP_MODE=`astparam r ip_mode`
 		if echo "$IP_MODE" | grep -q "not defined" ; then
-			IP_MODE='autoip'
+			IP_MODE='dhcp'
 		fi
 	fi
 	# Are we going to use Serial over IP ?
@@ -1669,7 +1669,7 @@ init_share_param_from_flash()
 	if echo "$NO_SOIP" | grep -q "not defined" ; then
 		NO_SOIP=`astparam r no_soip`
 		if echo "$NO_SOIP" | grep -q "not defined" ; then
-			NO_SOIP='y'
+			NO_SOIP='n'
 		fi
 	fi
 
