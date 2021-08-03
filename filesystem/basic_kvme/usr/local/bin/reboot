@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# Sid 20180110 mute the codec 1st
+echo 0 > /sys/devices/platform/1500_i2s/analog_out_vol
+
+/bin/busybox reboot
