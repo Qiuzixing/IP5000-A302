@@ -43,10 +43,10 @@ typedef enum {
 
 #define BOARD_REV_PATCH_DEFAULT		BOARD_REV_PATCH_NONE
 
-#define CRT_CONSOLE_DEFAULT_X    640
-#define CRT_CONSOLE_DEFAULT_Y    480
+#define CRT_CONSOLE_DEFAULT_X    1280
+#define CRT_CONSOLE_DEFAULT_Y    720
 #define CRT_CONSOLE_DEFAULT_RR   60 //Refresh rate
-#define CRT_CONSOLE_DEFAULT_HDMI 0 /* is HDMI? */
+#define CRT_CONSOLE_DEFAULT_HDMI 1 /* is HDMI? */
 
 #define HDCP_CTS_DISABLE_AUTO_FW_UPDATE  (0x1UL << 31)
 #define HDCP_CTS_HDCP14_ONLY             (0x1UL << 0) //SiI9678 Only. Useless so far.
