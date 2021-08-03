@@ -500,7 +500,7 @@ config_ip_addr()
 		fi
 	elif [ "$IP_MODE" = 'dhcp' ]; then
 		#turn on udhcp will stop autoip from setting ip. Use -w in autoipd if you want to turn on udhcpc
-		udhcpc -n &
+		udhcpc -f &
 	elif [ "$IP_MODE" = 'static' ]; then
 		ifconfig eth0:stat "$IPADDR"
 		config_netmask_n_gw

@@ -11,6 +11,10 @@
 					;;
 		bound)
 					echo "udhcpc bound"
+					if /sbin/avahi-autoipd -c eth0; then
+						echo "Stop avahi-autoipd"
+						/sbin/avahi-autoipd -k eth0
+					fi
 					[ -n "$broadcast" ] && BROADCAST="broadcast $broadcast"
 					[ -n "subnet" ] && NETMASK="netmask $subnet"
 					ifconfig $interface:dhcp $ip $BROADCAST $NETMASK up
@@ -34,6 +38,10 @@
 					#ifconfig eth1 $eth1
 					#echo "Start avahi-autoipd"
 					#/sbin/avahi-autoipd -wD eth0
+					if ! /sbin/avahi-autoipd -c eth0; then
+						echo "Start avahi-autoipd"
+						/sbin/avahi-autoipd -D eth0 --script=/etc/avahi/avahi-autoipd.action
+					fi
 					;;
 		renew)
 					echo "udhcpc renew"

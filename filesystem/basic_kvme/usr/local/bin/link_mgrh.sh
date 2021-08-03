@@ -314,6 +314,35 @@ handle_e_button_link_1()
 	handle_"$BTN1_LONG"
 }
 
+# when ip changed, maybe from autoip to dhcp or dhcp to autoip, something need be did
+handle_e_sys_ip_chg()
+{
+	route add -net 224.0.0.0 netmask 240.0.0.0 dev eth0
+	echo 2 > /proc/sys/net/ipv4/conf/eth0/force_igmp_version
+
+	avahi-daemon -k
+	pkill -9 heartbeat
+	pkill -9 node_responser
+	pkill -9 name_service
+	pkill -9 httpd
+	pkill -9 telnetd
+
+	avahi-daemon -D
+	name_service -thost
+	httpd -h /www &
+	start_telnetd
+
+	update_node_info
+
+	node_responser --mac $MY_MAC &
+	heartbeat &
+
+	ulmparam s RELOAD_KMOIP 1
+	ast_send_event -1 e_reconnect
+
+	set_igmp_leave_force
+}
+
 _link_on_off()
 {
 	# Save the state into flash
@@ -657,6 +686,8 @@ handle_e_ip_got()
 		start_telnetd
 
 		ast_send_event -1 "e_sys_init_ok"
+	else
+		ast_send_event -1 "e_sys_ip_chg"
 	fi
 
 	set_igmp_report

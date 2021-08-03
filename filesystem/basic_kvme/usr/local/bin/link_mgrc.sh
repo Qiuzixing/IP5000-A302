@@ -528,6 +528,40 @@ handle_e_sys_init_ok()
 	fi
 }
 
+# when ip changed, maybe from autoip to dhcp or dhcp to autoip, something need be did
+handle_e_sys_ip_chg()
+{
+	route add -net 224.0.0.0 netmask 240.0.0.0 dev eth0
+	echo 2 > /proc/sys/net/ipv4/conf/eth0/force_igmp_version
+
+	avahi-daemon -k
+	pkill -9 heartbeat
+	pkill -9 node_responser
+	pkill -9 name_service
+	pkill -9 remote_event_monitor
+	pkill -9 inetd
+	pkill -9 lighttpd
+	pkill -9 telnetd
+
+	avahi-daemon -D
+	name_service -tclient
+	inetd &
+	httpd -h /www &
+	start_telnetd
+	# it is harmless to send igmp leave in background because the switch will query immediately after a leave received.
+	inform_gui_ui_feature_action "GUI_refresh_node"
+
+	update_node_info
+
+	node_responser --mac $MY_MAC &
+	heartbeat &
+
+	ulmparam s MY_IP $MY_IP
+	ast_send_event -1 e_reconnect
+
+	set_igmp_leave_force
+}
+
 _link_on_off()
 {
 	if [ "$ACCESS_ON" = 'y' ]; then
@@ -1367,6 +1401,8 @@ handle_e_ip_got()
 		fi
 
 		ast_send_event -1 "e_sys_init_ok"
+	else
+		ast_send_event -1 "e_sys_ip_chg"
 	fi
 
 	set_igmp_report
