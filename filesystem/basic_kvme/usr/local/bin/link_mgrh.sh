@@ -326,6 +326,7 @@ handle_e_sys_ip_chg()
 	pkill -9 name_service
 	pkill -9 httpd
 	pkill -9 telnetd
+	pkill -9 p3ktcp
 
 	avahi-daemon -D
 	name_service -thost
@@ -336,6 +337,7 @@ handle_e_sys_ip_chg()
 
 	node_responser --mac $MY_MAC &
 	heartbeat &
+	p3ktcp &
 
 	ulmparam s RELOAD_KMOIP 1
 	ast_send_event -1 e_reconnect
@@ -684,6 +686,17 @@ handle_e_ip_got()
 		httpd -h /www &
 		# Start telnetd
 		start_telnetd
+		p3ktcp &
+		case $MODEL_NUMBER in
+			KDS-SW3-EN-6X)
+				lcd_display IPE5000P &
+			;;
+			KDS-EN-6X)
+				lcd_display IPE5000 &
+			;;
+			*)
+			;;
+		esac
 
 		ast_send_event -1 "e_sys_init_ok"
 	else
@@ -2018,19 +2031,14 @@ update_node_info STATE $STATE
 # Disable OOM Killer
 echo 1 > /proc/sys/vm/overcommit_memory
 
-# Start state machine in another process scope
-state_machine &
 audio_detect &
-usleep 1000
 if [ $UGP_FLAG = 'success' ];then
 	echo 500 > /sys/class/leds/audio_detect/delay
 	adc_pin_mux_gpio
 fi
 
-if [ $UGP_FLAG = 'success' ];then
-	echo "p3ktcp start."
-	p3ktcp &
-fi
+# Start state machine in another process scope
+state_machine &
 
 # Bruce130123. Moved to state_machine. Avoid parameter scope problem.
 #start_network 2

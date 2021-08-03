@@ -542,6 +542,7 @@ handle_e_sys_ip_chg()
 	pkill -9 inetd
 	pkill -9 lighttpd
 	pkill -9 telnetd
+	pkill -9 p3ktcp
 
 	avahi-daemon -D
 	name_service -tclient
@@ -555,6 +556,7 @@ handle_e_sys_ip_chg()
 
 	node_responser --mac $MY_MAC &
 	heartbeat &
+	p3ktcp &
 
 	ulmparam s MY_IP $MY_IP
 	ast_send_event -1 e_reconnect
@@ -1389,6 +1391,14 @@ handle_e_ip_got()
 		httpd -h /www &
 		# Start telnetd
 		start_telnetd
+		p3ktcp &
+		case $MODEL_NUMBER in
+			KDS-DEC-6X)
+				lcd_display IPD5000 &
+			;;
+			*)
+			;;
+		esac
 		# it is harmless to send igmp leave in background because the switch will query immediately after a leave received.
 		inform_gui_ui_feature_action "GUI_refresh_node"
 		# Bruce171122. console screen is ready but dialog not yet. show/hide dialog at this point.
@@ -3046,11 +3056,6 @@ echo 1 > /proc/sys/vm/overcommit_memory
 VIDEO_MODE='V_MODE_UNKNOWN'
 # Start state machine in another process scope
 state_machine &
-
-if [ $UGP_FLAG = 'success' ];then
-	echo "p3ktcp start."
-	p3ktcp &
-fi
 
 # Bruce130123. Moved to state_machine. Avoid parameter scope problem.
 #start_network 1
