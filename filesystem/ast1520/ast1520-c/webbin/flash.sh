@@ -27,11 +27,11 @@ echo "FW_ROOTFS_DEV=$FW_ROOTFS_DEV"
 total_fw_size()
 {
 	fsize='0'
-	if [ -f "$FW_PATH/$FW_BOOT" ]; then
-		set -- `ls -l $FW_PATH/$FW_BOOT`
-		#echo "$FW_BOOT size $5 B"
-		fsize=`expr $fsize + $5`
-	fi
+	# if [ -f "$FW_PATH/$FW_BOOT" ]; then
+	# 	set -- `ls -l $FW_PATH/$FW_BOOT`
+	# 	#echo "$FW_BOOT size $5 B"
+	# 	fsize=`expr $fsize + $5`
+	# fi
 	if [ -f "$FW_PATH/$FW_KERNEL" ]; then
 		set -- `ls -l $FW_PATH/$FW_KERNEL`
 		#echo "$FW_KERNEL size $5 B"
@@ -42,11 +42,11 @@ total_fw_size()
 		#echo "$FW_ROOTFS size $5 B"
 		fsize=`expr $fsize + $5`
 	fi
-	if [ -f "$FW_PATH/$FW_LOGO" ]; then
-		set -- `ls -l $FW_PATH/$FW_LOGO`
-		#echo "$FW_LOGO size $5 B"
-		fsize=`expr $fsize + $5`
-	fi
+	# if [ -f "$FW_PATH/$FW_LOGO" ]; then
+	# 	set -- `ls -l $FW_PATH/$FW_LOGO`
+	# 	#echo "$FW_LOGO size $5 B"
+	# 	fsize=`expr $fsize + $5`
+	# fi
 	echo "$fsize"
 }
 
@@ -125,18 +125,18 @@ esac
 # ToDo. Check version.
 # Start update
 html_info "Start programming flash..."
-if [ -f "$FW_BOOT" ]; then
-	html_info "programming bootloader..."
-	if ! [ -e /dev/"$FW_BOOT" ]; then
-		mknod /dev/"$FW_BOOT" b 31 0
-	fi
-	if ! dd if="$FW_BOOT" of=/dev/"$FW_BOOT" bs=64k; then
-		fail_out
-	else
-		rm -f "$FW_BOOT"
-	fi
-fi
-html_set_fw_size_remain `total_fw_size`
+# if [ -f "$FW_BOOT" ]; then
+# 	html_info "programming bootloader..."
+# 	if ! [ -e /dev/"$FW_BOOT" ]; then
+# 		mknod /dev/"$FW_BOOT" b 31 0
+# 	fi
+# 	if ! dd if="$FW_BOOT" of=/dev/"$FW_BOOT" bs=64k; then
+# 		fail_out
+# 	else
+# 		rm -f "$FW_BOOT"
+# 	fi
+# fi
+# html_set_fw_size_remain `total_fw_size`
 if [ -f "$FW_KERNEL" ]; then
 	html_info "programming kernel..."
 	if ! [ -e /dev/"$FW_KERNEL_DEV" ]; then
@@ -161,24 +161,24 @@ if [ -f "$FW_ROOTFS" ]; then
 	fi
 fi
 html_set_fw_size_remain `total_fw_size`
-if [ -f "$FW_LOGO" ]; then
-	html_info "programming logo..."
-	if ! [ -e /dev/"$FW_LOGO" ]; then
-		mknod /dev/"$FW_LOGO" b 31 4
-	fi
-	if ! dd if="$FW_LOGO" of=/dev/"$FW_LOGO" bs=64k; then
-		fail_out
-	else
-		rm -f "$FW_LOGO"
-	fi
-fi
-if [ -f "$FILE_FLAGS" ]; then
-	html_info "programming parameters..."
-	chmod a+x "$FILE_FLAGS"
-	./"$FILE_FLAGS"
-	rm -f "$FILE_FLAGS"
-fi
-html_set_fw_size_remain `total_fw_size`
+# if [ -f "$FW_LOGO" ]; then
+# 	html_info "programming logo..."
+# 	if ! [ -e /dev/"$FW_LOGO" ]; then
+# 		mknod /dev/"$FW_LOGO" b 31 4
+# 	fi
+# 	if ! dd if="$FW_LOGO" of=/dev/"$FW_LOGO" bs=64k; then
+# 		fail_out
+# 	else
+# 		rm -f "$FW_LOGO"
+# 	fi
+# fi
+# if [ -f "$FILE_FLAGS" ]; then
+# 	html_info "programming parameters..."
+# 	chmod a+x "$FILE_FLAGS"
+# 	./"$FILE_FLAGS"
+# 	rm -f "$FILE_FLAGS"
+# fi
+# html_set_fw_size_remain `total_fw_size`
 
 if [ "$cursys" == "b" ]; then
     astparam misc s cursys a
