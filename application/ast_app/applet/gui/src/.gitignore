@@ -3,3 +3,9 @@
 /moc_dialog.cpp
 /qrc_resource.cpp
 /ui_dialog.h
+/moc_mainwidget.cpp
+/moc_modulepanel.cpp
+/moc_osdlabel.cpp
+/moc_p3ktcp.cpp
+/moc_sleeppanel.cpp
+/moc_videolistwidget.cpp

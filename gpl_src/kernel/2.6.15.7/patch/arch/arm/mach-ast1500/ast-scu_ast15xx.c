@@ -20,8 +20,8 @@
 
 #ifdef ASTPARAM
 // This program assumes both RW and RO block uses the same size (64KB).
-#define RW_OFFSET (ASPEED_SMC_FLASH_BASE+0xFE0000)
-#define RO_OFFSET (ASPEED_SMC_FLASH_BASE+0xFF0000)
+#define RW_OFFSET (ASPEED_SMC_FLASH_BASE+0x1FE0000)
+#define RO_OFFSET (ASPEED_SMC_FLASH_BASE+0x1FF0000)
 #define BLOCK_SIZE 0x10000 //64KB
 
 static char *buf_rw = NULL;
@@ -537,4 +537,18 @@ void scu_init_astparam(void *context, astparam_t *astparam)
 	astparam->a_force_dual_output = get_a_force_dual_output(); /* force dual output even under old soc_op_mode. */
 	astparam->v_tx_drv_option = get_v_tx_drv_option();
 	astparam->net_drv_option = get_net_drv_option();
+	
+	/* Because astparam_find() function returns a pointer to a global variable --buf_ro or buf_rw, So it can be assigned directly in this way */
+	astparam->model_number = astparam_find("model_number");
+	if(astparam->model_number == NULL)
+	{
+		if(ast_scu.board_info.is_client == 1)
+		{
+			astparam->model_number = "KDS-DEC-6X";
+		}
+		else
+		{
+			astparam->model_number = "KDS-SW3-EN-6X";
+		}
+	}
 }

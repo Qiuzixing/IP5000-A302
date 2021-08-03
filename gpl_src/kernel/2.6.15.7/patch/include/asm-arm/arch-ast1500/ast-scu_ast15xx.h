@@ -138,6 +138,7 @@ typedef struct {
 	 *  1: software forced the mode, we switch between fiber and copper in each reset operation
 	 */
 	unsigned int net_drv_option;
+	char *model_number;
 } astparam_t;
 
 void scu_init_ability(ability_info_t *ab);
