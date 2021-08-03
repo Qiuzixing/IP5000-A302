@@ -18,7 +18,13 @@
 #define ENET_PHY_CONFIG_25V 0
 #define ENET_PHY_CONFIG_18V 1
 
-
+static void handle_multicast_settings(void)
+{
+    rtl8367c_setAsicReg(0x0a30,0x021e);
+    rtl8367c_setAsicReg(0x08c9,0x0);
+    rtl8367c_setAsicReg(0x0891,0x0);
+    rtl8367c_setAsicReg(0x1c00,0x0629);
+}
 
 return_t enet_phy_init(void)
 {
@@ -76,6 +82,8 @@ return_t enet_phy_init(void)
     //rtk_port_macForceLinkExt_set(asic_port, MODE_EXT_RGMII, &portability);
 
     //enet_phy_delay_set(config);
+
+    handle_multicast_settings();
 
     return STATUS_OK;
 }

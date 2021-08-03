@@ -2578,6 +2578,34 @@ static void _ftgmac100_write_phy_register(unsigned int ioaddr,
 	ftgmac100_phy_rw_waiting(ioaddr, 0);
 }
 
+static ssize_t store_rtl836x_reg(struct device *pdev, struct device_attribute *attr,
+		const char *buf, size_t count)
+{
+	unsigned int c, index, value;
+	unsigned short int tmp = 0;
+	struct net_device *dev = (struct net_device *)pdev->driver_data;
+	struct ftgmac100_local *lp = (struct ftgmac100_local *)dev->priv;
+	unsigned long ioaddr = dev->base_addr;
+	c = sscanf(buf, "%x %x", &index, &value);
+	if (c != 0)
+	{
+		if (c == 2)
+		{
+			printk("Write 0x%x to Reg0x%x\n", value, index);
+			gb_rtl8367_phy_write_register(value,index);
+		}
+		else if (c == 1) {
+			tmp = gb_rtl8367_phy_read_register(index);
+			printk("Read 0x%x is 0x%x\n",index,tmp);
+		}
+	}
+	else
+	{
+		printk("Usage:\nIndex (Value)\n");
+	}
+	return count;
+}
+DEVICE_ATTR(rtl836x_reg, (S_IRUGO | S_IWUSR), NULL, store_rtl836x_reg);
 
 static ssize_t show_phy_reg(struct device *pdev, struct device_attribute *attr, char *buf)
 {
@@ -3001,6 +3029,7 @@ static struct attribute *dev_attrs[] = {
 	&dev_attr_link_state.attr,
 	&dev_attr_phy_reg.attr,
 	&dev_attr_random.attr,
+	&dev_attr_rtl836x_reg.attr,
 #if REALTEK_SWITCH_EEPROM
 	&dev_attr_eeprom_content.attr,
 #endif
