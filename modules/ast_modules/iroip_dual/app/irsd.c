@@ -366,7 +366,7 @@ static int pronto_to_dma(int *pronto, unsigned int num, struct ir_dma_buffer *pd
 	if (num < (4 + 2)) /* header: 4, at least one pair: 2 */
 		return -1;
 
-	once_max = 4 + (pronto[2] * 2);
+	once_max = 4 + ((pronto[2] + pronto[3]) * 2);
 
 	if (num < once_max)
 		return -1;
