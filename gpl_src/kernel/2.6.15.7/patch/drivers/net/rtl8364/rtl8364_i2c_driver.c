@@ -14,15 +14,16 @@
 #include "rtl8367c_asicdrv_inbwctrl.h"
 #include "rtl8367c_asicdrv_port.h"
 #include "port.h"
-
+#include <asm/arch/ast-scu.h>
+#include <asm/arch/drivers/board_def.h>
 #define ENET_PHY_CONFIG_25V 0
 #define ENET_PHY_CONFIG_18V 1
 
 static void handle_multicast_settings(void)
 {
     rtl8367c_setAsicReg(0x0a30,0x021e);
-    rtl8367c_setAsicReg(0x08c9,0x0);
-    rtl8367c_setAsicReg(0x0891,0x0);
+    //rtl8367c_setAsicReg(0x08c9,0x0);
+    //rtl8367c_setAsicReg(0x0891,0x0);
     rtl8367c_setAsicReg(0x1c00,0x0629);
 }
 
@@ -83,7 +84,15 @@ return_t enet_phy_init(void)
 
     //enet_phy_delay_set(config);
 
-    handle_multicast_settings();
+    /* only rtl8367 need to do it,rtl8364 not need it for now */
+    if(0 == strcmp(ast_scu.astparam.model_number,"KDS-SW3-EN-6X"))
+    {
+        handle_multicast_settings();
+    }
+    else
+    {
+
+    }
 
     return STATUS_OK;
 }
