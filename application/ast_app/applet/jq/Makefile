@@ -37,9 +37,6 @@ build: jq
 
 jq: $(LIBJQ_SRC:.c=.o)
 	$(CC) -o $(bin_PROGRAMS) $(LIBJQ_SRC:.c=.o) -lm -lpthread
-	
-install:
-	cp -f $(bin_PROGRAMS)  ../../../customer/bin/
 
 clean:
 	rm -f $(bin_PROGRAMS) $(LIBJQ_SRC:.c=.o)

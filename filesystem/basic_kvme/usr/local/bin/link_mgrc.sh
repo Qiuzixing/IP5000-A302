@@ -539,14 +539,16 @@ handle_e_sys_ip_chg()
 	pkill -9 node_responser
 	pkill -9 name_service
 	pkill -9 inetd
-	pkill -9 httpd
+	#pkill -9 httpd
+	pkill -9 web
 	pkill -9 telnetd
 	pkill -9 p3ktcp
 
 	avahi-daemon -D
 	name_service -tclient
 	inetd &
-	httpd -h /www &
+	#httpd -h /www &
+	web &
 	start_telnetd
 	# it is harmless to send igmp leave in background because the switch will query immediately after a leave received.
 	inform_gui_ui_feature_action "GUI_refresh_node"
@@ -1387,7 +1389,8 @@ handle_e_ip_got()
 
 		# Start inetd
 		inetd &
-		httpd -h /www &
+		#httpd -h /www &
+		web &
 		# Start telnetd
 		start_telnetd
 		p3ktcp &

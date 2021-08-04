@@ -324,13 +324,15 @@ handle_e_sys_ip_chg()
 	pkill -9 heartbeat
 	pkill -9 node_responser
 	pkill -9 name_service
-	pkill -9 httpd
+	#pkill -9 httpd
+	pkill -9 web
 	pkill -9 telnetd
 	pkill -9 p3ktcp
 
 	avahi-daemon -D
 	name_service -thost
-	httpd -h /www &
+	#httpd -h /www &
+	web &
 	start_telnetd
 
 	update_node_info
@@ -683,7 +685,8 @@ handle_e_ip_got()
 
 		avahi-daemon -D
 		name_service -thost
-		httpd -h /www &
+		#httpd -h /www &
+		web &
 		# Start telnetd
 		start_telnetd
 		p3ktcp &
