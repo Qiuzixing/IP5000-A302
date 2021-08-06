@@ -27,6 +27,12 @@ enum
 
 enum
 {
+    TX_BOARD = 0,
+    RX_BOARD
+};
+
+enum
+{
     DANTE_AUDIO_DETECTED = 0,
     DANTE_AUDIO_DISCONNECT ,
     UNKNOW_DANTE_STATUS = 0xff
@@ -83,6 +89,8 @@ typedef enum
     IPC_SET_HDCP_CAP,
     IPC_EVENT_HDCP_STATUS,
     IPC_GET_HDCP_STATUS,
+    IPC_GET_HDCP_MODE,
+    IPC_SET_HDCP_MODE,
 
     //audio command
     IPC_EVENT_HDMI_AUDIO_STATUS,
@@ -116,6 +124,7 @@ typedef struct
 
 void do_handle_set_gpio_val(uint16_t cmd,char *cmd_param);
 void do_handle_set_audio_insert_extract(uint16_t cmd,char *cmd_param);
+void do_handle_set_hdcp_cap(uint16_t cmd,char *cmd_param);
 #define DANTE_UART_BUFFER 256
 
 #endif

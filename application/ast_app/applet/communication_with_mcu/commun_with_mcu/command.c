@@ -21,12 +21,13 @@
 #include "../gb_commun_with_mcu.h"
 #include "../audio_switch/auto_swtich_socket.h"
 #include "../dante_example_code/app/example/example_rx_uhip.h"
+#include "../set_hdcp_status.h"
 int APP_Comm_Recv(CmdProtocolParam * param);
 int APP_Comm_Send(U16 CMD,U8 *buf, int len);
 extern int ipc_querycmd_index;
 extern const ipc_cmd_struct ipc_cmd_list[];
 int dante_state = UNKNOW_DANTE_STATUS;
-
+extern uint8_t board_type_flag;
 int Cmdfd;
 CommandInterfaceFun Cmdfun;
 U8 CmdinitFlag=0;//0->nomal  1->init   防止没有初始化就发送指令 
@@ -377,7 +378,8 @@ int APP_Comm_Recv(CmdProtocolParam * param)
             memset(&hdcp_status, 0, sizeof(hdcp_status));
             memcpy(&hdcp_status, &param->Data, sizeof(hdcp_status));
             printf("port[0x%x] hdcp isEncrypted[0x%x] status[0x%x]\n", hdcp_status.port, hdcp_status.isEncrypted, hdcp_status.status);
-            break;
+            if(board_type_flag == TX_BOARD)
+                set_hdcp_status(TX_HDCP_STATUS_DIR,hdcp_status.status);
             break;
         case EVENT_HDMI_LINK_STATUS:
             memset(&vdo_link, 0, sizeof(vdo_link));
@@ -409,8 +411,6 @@ int APP_Comm_Recv(CmdProtocolParam * param)
             {
                 /* code */
             }
-            
-            
             break;
         case EVENT_HDMI_EDID:
             memset(&edid_data, 0, sizeof(edid_data));
@@ -426,7 +426,8 @@ int APP_Comm_Recv(CmdProtocolParam * param)
             memset(&hdcp_cap, 0, sizeof(hdcp_cap));
             memcpy(&hdcp_cap, &param->Data, sizeof(hdcp_cap));
             printf("port[0x%x] hdcp cap[0x%x]\n", hdcp_cap.port, hdcp_cap.cap);
-            
+            if(board_type_flag == RX_BOARD)
+                set_hdcp_status(RX_HDCP_STATUS_DIR,hdcp_cap.cap);
             if(ipc_querycmd_index > 0 && ipc_cmd_list[ipc_querycmd_index - 1].a30_cmd == EVENT_HDCP_CAP)
             {
                 ipc_msg.port = hdcp_cap.port;

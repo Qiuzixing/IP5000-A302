@@ -58,6 +58,8 @@ uint8_t Recv_Cmd_Timeout = 0; //read cmd timeout flag
 int ipc_querycmd_index = 0;
 uint8_t up_or_commun_flag = UPGRADE;
 audio_inout_info_struct audio_inout_info;
+uint8_t board_type_flag = RX_BOARD;
+
 
 const ipc_cmd_struct ipc_cmd_list[] =
     {
@@ -78,6 +80,8 @@ const ipc_cmd_struct ipc_cmd_list[] =
         {IPC_SET_HDCP_CAP,              "set_hdcp_cap",             sizeof("set_hdcp_cap"),         CMD_HDCP_SET_CAP,                   SEND_CMD},
         {IPC_EVENT_HDCP_STATUS,         "event_hdcp_status",        sizeof("event_hdcp_status"),    EVENT_HDCP_STATUS,                  SEND_CMD},
         {IPC_GET_HDCP_STATUS,           "get_hdcp_status",          sizeof("get_hdcp_status"),      CMD_HDCP_GET_STATUS,                QUERY_CMD},
+        {IPC_GET_HDCP_MODE,             "get_hdcp_mode",            sizeof("get_hdcp_mode"),        CMD_HDCP_GET_MODE,                  QUERY_CMD},
+        {IPC_SET_HDCP_MODE,             "set_hdcp_mode",            sizeof("set_hdcp_mode"),        CMD_HDCP_SET_MODE,                  SEND_CMD},
         //audio command     
         {IPC_EVENT_HDMI_AUDIO_STATUS,   "unknown",                  sizeof("unknown"),              EVENT_HDMI_AUDIO_STATUS,            SEND_CMD},
         {IPC_GET_AUDIO_STATUS,          "unknown",                  sizeof("unknown"),              CMD_HDMI_GET_AUDIO_STATUS,          SEND_CMD},
@@ -355,7 +359,7 @@ static void do_handle_input_source(uint16_t cmd,char *cmd_param)
 
 }
 
-static void do_handle_set_hdcp_cap(uint16_t cmd,char *cmd_param)
+void do_handle_set_hdcp_cap(uint16_t cmd,char *cmd_param)
 {
     char *port_num = strtok(cmd_param,":");
     char *cap = strtok(NULL,":");
@@ -379,6 +383,32 @@ static void do_handle_set_hdcp_cap(uint16_t cmd,char *cmd_param)
         hdcp_cap.cap = 2;
     }
     APP_Comm_Send(cmd, (U8*)&hdcp_cap, sizeof(hdcp_cap));
+}
+
+void do_handle_set_hdcp_mode(uint16_t cmd,char *cmd_param)
+{
+    char *port_num = strtok(cmd_param,":");
+    char *mode = strtok(NULL,":");
+    struct CmdDataHDCPMode hdcp_mode;
+    memset((unsigned char *)&hdcp_mode, 0, sizeof(hdcp_mode));
+    if(port_num != NULL)
+    {
+        hdcp_mode.port = atoi(port_num);
+    }
+    else
+    {
+        hdcp_mode.port = HDMIRX1;
+    }
+
+    if(mode != NULL)
+    {
+        hdcp_mode.mode = atoi(mode);
+    }
+    else
+    {
+        hdcp_mode.mode = 0;
+    }
+    APP_Comm_Send(cmd, (U8*)&hdcp_mode, sizeof(hdcp_mode));
 }
 
 static void do_handle_set_gpio_config(uint16_t cmd,char *cmd_param)
@@ -690,6 +720,9 @@ static void do_handle_ipc_cmd(int index,char *cmd_param)
     case IPC_SET_HDCP_CAP:
         do_handle_set_hdcp_cap(ipc_cmd_list[index].a30_cmd,cmd_param);
         break;
+    case IPC_SET_HDCP_MODE:
+        do_handle_set_hdcp_mode(ipc_cmd_list[index].a30_cmd,cmd_param);
+        break;
 
     // audio command
     case IPC_EVENT_HDMI_AUDIO_STATUS:
@@ -803,7 +836,7 @@ static void set_audio_inout_default()
 
 void print_usage() {
 	/* TODO */
-	printf("Usage: communication_with_mcu -u/-c\n");
+	printf("Usage: communication_with_mcu -u/-c [-h]\n");
 }
 
 int main(int argc, char *argv[])
@@ -817,6 +850,7 @@ int main(int argc, char *argv[])
     static struct option long_options[] = {
         {"upgrade",                     no_argument,       0,  'u' },
 		{"communication",               no_argument,       0,  'c' },
+        {"tx_board",                    no_argument,       0,  't' },
 		{0,                             0,                 0,  0   }
 	};
 
@@ -827,6 +861,9 @@ int main(int argc, char *argv[])
 			break;
 		case 'c': 
             up_or_commun_flag = COMMUNICATION; 
+			break;
+        case 't': 
+            board_type_flag = TX_BOARD; 
 			break;
 		default:
 			print_usage();

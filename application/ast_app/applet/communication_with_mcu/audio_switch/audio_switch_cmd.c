@@ -256,5 +256,5 @@ void audio_switch()
         default:
             break;
     }
-    return 0;
+    return;
 }

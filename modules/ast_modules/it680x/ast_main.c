@@ -35,6 +35,7 @@ module_param(drv_param, int, S_IRUGO);
 #define LOOP_MSEC 150
 
 struct platform_device *pdev;
+static uint8_t ast_hdcp_status = 0;
 
 static void it680x_fsm_timer(struct it680x_drv_data *d)
 {
@@ -592,6 +593,42 @@ static ssize_t store_cec_poll(struct device *dev, struct device_attribute *attr,
 static DEVICE_ATTR(cec_poll, (S_IRUGO | S_IWUSR), show_cec_poll, store_cec_poll);
 #endif
 
+static ssize_t show_ast_hdcp_status(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	int num = 0;
+
+	num += snprintf(buf + num, PAGE_SIZE - num,  "%d\n\n", ast_hdcp_status);
+
+	return num;
+}
+
+static ssize_t store_ast_hdcp_status(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	char c, cfg;
+	c = sscanf(buf, "%c", &cfg);
+
+ 	if (c >= 1)
+	{
+		switch(cfg)
+		{
+			case '0':
+				ast_hdcp_status = 0;
+				break;
+			case '1':
+				ast_hdcp_status = 1;
+				break;
+			case '2':
+				ast_hdcp_status = 2;
+				break;
+			default:
+				printk("warning:error param\n");
+				break;
+		}
+	}
+
+	return count;
+}
+static DEVICE_ATTR(ast_hdcp_status, (S_IRUGO | S_IWUSR), show_ast_hdcp_status, store_ast_hdcp_status);
 static struct attribute *dev_attrs[] = {
 	&dev_attr_registers.attr,
 	&dev_attr_registers_bank.attr,
@@ -599,6 +636,7 @@ static struct attribute *dev_attrs[] = {
 	&dev_attr_LoopbackEnable.attr,
 	&dev_attr_csc_bypass.attr,
 	&dev_attr_n_cts.attr,
+	&dev_attr_ast_hdcp_status.attr,
 #ifdef Enable_IT6802_CEC
 	&dev_attr_cec_poll.attr,
 #endif
@@ -608,6 +646,41 @@ static struct attribute *dev_attrs[] = {
 static struct attribute_group dev_attr_group = {
 	.attrs = dev_attrs,
 };
+
+static int get_hdcp_status(void)
+{
+	int ret = HDCP_DISABLE;
+	uint8_t HdcpState = ast_hdcp_status;
+
+	switch (HdcpState & 0x3) {
+	case 0: /* no HDCP */
+		ret = HDCP_DISABLE;
+		break;
+	case 1: /* HDCP 1.X */
+		ret = HDCP_V_1X;
+		break;
+	case 2: /* HDCP 2.2 */
+		ret = HDCP_V_22;
+		break;
+	default:
+		BUG();
+	}
+
+	if (ast_v_hdcp_param() & PARAM_DISABLE_HDCP)
+		ret = HDCP_DISABLE;
+
+	return ret;
+}
+
+static void hook_init(void)
+{
+	ast_v_hdcp_status = get_hdcp_status;
+}
+
+static void hook_fini(void)
+{
+	ast_v_hdcp_status = NULL;
+}
 
 static void recver_info_init(void)
 {
@@ -758,6 +831,8 @@ static int __devinit it680x_probe(struct platform_device *pdev)
 	queue_delayed_work(d->wq, &d->cec_pa_work, msecs_to_jiffies(CEC_PA_MSEC));
 #endif
 
+	hook_init();
+
 	return ret;
 
 err1:
@@ -796,7 +871,7 @@ static int __devexit it680x_remove(struct platform_device *pdev)
 	sysfs_remove_group(&pdev->dev.kobj, &dev_attr_group);
 	//BruceToDo. move to _remove_workqueue()
 	destroy_works_and_thread(d);
-
+	hook_fini();
 	kfree(d);
 
 	return 0;

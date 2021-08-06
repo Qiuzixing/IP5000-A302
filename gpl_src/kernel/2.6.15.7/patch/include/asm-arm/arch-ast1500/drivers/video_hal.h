@@ -231,6 +231,7 @@ typedef struct _VIDEO_MODE_INFO
 #define HDCP_V_20	2
 #define HDCP_V_21	3
 #define HDCP_V_22	4
+#define HDCP_V_11_AND_22	5
 	/* NOTE: EnHDCP is limited to 3bits size due to CAPTURE_INFO structure define. */
 	unsigned char EnHDCP; /* False: Disable HDCP, True: See above HDCP version */
 	unsigned int HStart;

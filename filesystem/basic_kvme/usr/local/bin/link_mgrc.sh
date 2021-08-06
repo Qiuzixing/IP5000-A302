@@ -2668,6 +2668,23 @@ handle_e_p3k()
 	esac
 }
 
+handle_e_hdcp()
+{
+	case "$1" in
+		e_hdcp_no_hdcp)
+			ipc @m_lm_set s set_hdcp_mode:16:0
+		;;
+		e_hdcp_1.x)
+			ipc @m_lm_set s set_hdcp_mode:16:1
+		;;
+		e_hdcp_2.x)
+			ipc @m_lm_set s set_hdcp_mode:16:2
+		;;
+		*)
+		;;
+	esac
+}
+
 # Worst case 0.05s message loop without handling any event.
 state_machine()
 {
@@ -2714,6 +2731,9 @@ state_machine()
 			;;
 			callback=*)
 				handle_e_sh_jsonp "$event"
+			;;
+			e_hdcp_?*)
+				handle_e_hdcp "$event"
 			;;
 			e_pwr_status_chg_?*)
 				tickle_watchdog

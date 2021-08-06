@@ -1,0 +1,5 @@
+DRIVER=gsv200x
+obj-$(CONFIG_AST1500_DIGITAL_SINK) += $(DRIVER).o
+obj-$(CONFIG_AST1500_DIGITAL_SOURCE) += $(DRIVER).o
+
+$(DRIVER)-objs := ast_main.o
