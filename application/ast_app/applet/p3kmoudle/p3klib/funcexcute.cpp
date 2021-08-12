@@ -1862,13 +1862,19 @@ int EX_GetLogTail(int lineNumber,char log[][MAX_ONELOG_LEN])
 	return i;
 }
 
-int EX_AutomaticReporting(char * info)
+int EX_AutomaticReporting(char * info)//Active reporting
 {
 	//char * str = "~01@KDS-DANTE-NAME  KDS-LONG\r\n";
 	char * str = "";
 	memcpy(info,sUpInfo,strlen(sUpInfo));
 	int iLength = 0;
 	iLength = strlen(sUpInfo);
-	memset(sUpInfo,0,sizeof(sUpInfo));
+	//memset(sUpInfo,0,sizeof(sUpInfo));
 	return iLength;
+}
+
+int Clear_Re(void)
+{
+	memset(sUpInfo,0,sizeof(sUpInfo));
+	return 0;
 }

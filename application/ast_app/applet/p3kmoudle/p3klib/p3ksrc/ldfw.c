@@ -40,7 +40,7 @@ int P3K_LDWFGetUpgradeHandle()
 
 	return gs_transStatus.handleId;
 }
-
+int fd;
 int P3K_LDWFCmdProcess(int handleId,P3K_SimpleCmdInfo_S *cmdreq,P3K_SimpleCmdInfo_S *cmdresp)
 {
 	int handeId = 0;
@@ -57,13 +57,18 @@ int P3K_LDWFCmdProcess(int handleId,P3K_SimpleCmdInfo_S *cmdreq,P3K_SimpleCmdInf
 	else
 	{
 		//if()
-		int fd = open("./demo.txt", O_CREAT |O_TRUNC | O_RDWR, S_IRUSR | S_IWUSR);
+#ifdef CONFIG_P3K_HOST
+		fd = open("/dev/shm/IPE5000-A30_upgrade_v0.1.0.bin", O_CREAT |O_TRUNC | O_RDWR, 0666);
+#else
+		fd = open("/dev/shm/IPD5000-A30_upgrade_v0.1.0.bin", O_CREAT |O_TRUNC | O_RDWR, 0666);//S_IRUSR | S_IWUSR);
+#endif
 		int length = atoi(cmdreq->param);
-		lseek(fd,length  - 1, SEEK_SET);
-		write(fd, "1", 1); 
+		//lseek(fd,length  - 1, SEEK_SET);
+		//write(fd, "1", 1); 
 		sprintf(aReady,"%s,%s",cmdreq->param,REA_STR);
 		memcpy(cmdresp->command,cmdreq->command,MAX_COMMANDNAME_LEN);
 		memcpy(cmdresp->param,aReady,strlen(aReady));
+		lseek(fd,0, SEEK_SET);
 		//rewind(fd);
 	}
 	//Éý¼¶handle
@@ -72,7 +77,7 @@ int P3K_LDWFCmdProcess(int handleId,P3K_SimpleCmdInfo_S *cmdreq,P3K_SimpleCmdInf
 	
 	return 0;
 };
-int P3K_LDWFRecvFileData(char*data)
+int P3K_LDWFRecvFileData(char*data,char * aPnum ,int len)
 {
 	if(P3K_LDWFGetUpgradeHandle() <= 0)
 	{
@@ -81,18 +86,18 @@ int P3K_LDWFRecvFileData(char*data)
 	}
 	//char aHeadData[2] = {0};
 	//char aData[]
-	char aPacketID[4] = {0};
-	char aLength[4] = {0};
-	char aData[4] = {0};
-	char aCRC[4] = {0};
-	//acketID = data[0];
-	//sprintf(aPacketID,"%s%s",data[0],data[1]);
-	//sprintf(aLength,"%s%s",data[2],data[3]);
-	//sprintf(aData,"%s%s",data[4],data[5]);
-	//sprintf(aCRC,"%s%s",data[6],data[7]);
-	memcpy(aPacketID,data,2);
-	printf("AAAAaPacketID = %s\n",aPacketID);
-	
+	char aPacketID[8] = {0};
+	char aLength[8] = {0};
+	char aData[8] = {0};
+	char aCRC[8] = {0};
+	char * str = "";
+	//memcpy(aPacketID,data,2);
+	sprintf(aPacketID,"%02x%02x",data[0],data[1]);
+	//memcpy(str,data,strlen(data)-4);
+	write(fd, data+4, len);
+	//memcpy(fd,data,len);
+	//printf("AAAAaPacketID = %s   \n",aPacketID);
+	memcpy(aPnum,aPacketID,strlen(aPacketID));
 	//
 	return 0;
 }

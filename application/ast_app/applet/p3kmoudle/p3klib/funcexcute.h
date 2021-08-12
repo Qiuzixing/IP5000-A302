@@ -532,7 +532,7 @@ int EX_SetVideoWallStretch(int  index,int mode );
 int EX_GetVideoWallStretch(int  index);
 int EX_AutomaticReporting(char * info);
 int EX_GetCECGateWayMode(void);
-
+int Clear_Re(void);
 
 int classTest(int a,int b);
 #ifdef __cplusplus
