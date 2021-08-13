@@ -403,6 +403,49 @@ static unsigned int get_net_drv_option(void)
 	return result;
 }
 
+static a30_board_type get_board_type()
+{
+	a30_board_map board_type_list[] = {
+		{A30_IPE5000,"KDS-EN7"},
+		{A30_IPE5000P,"KDS-SW3-EN7"},
+		{A30_IPE5000W,"WP-SW2-EN7"},
+		{A30_IPD5000,"KDS-DEC7"},
+		{A30_IPD5000W ,"WP-DEC7"}
+	};
+	int i = 0;
+	char *board_name = NULL;
+	board_name = astparam_find("model_number");
+	if(board_name == NULL)
+	{
+		if(ast_scu.board_info.is_client == 1)
+		{
+			return A30_IPD5000;
+		}
+		else
+		{
+			return A30_IPE5000P;
+		}
+	}
+	
+	for(i = 0;i < A30_BOARD_CNT;i++)
+	{
+		if(0 == strcmp(board_name,board_type_list[i].model_number))
+		{
+			return board_type_list[i].type_index;
+		}
+	}
+
+	if(ast_scu.board_info.is_client == 1)
+	{
+		return A30_IPD5000;
+	}
+	else
+	{
+		return A30_IPE5000P;
+	}
+	
+}
+
 static void scu_chg_ability(ability_info_t *ab, unsigned int ver)
 {
 	uinfo("Use SoC OP Mode %d under SoC Ver %d\n", ver, ast_scu.board_info.soc_ver);
@@ -521,7 +564,7 @@ void scu_init_ability(ability_info_t *ab)
 void scu_init_astparam(void *context, astparam_t *astparam)
 {
 	scu_t *scu = (scu_t *)context;
-
+	
 	astparam->console_default_x = CRT_CONSOLE_DEFAULT_X;
 	astparam->console_default_y = CRT_CONSOLE_DEFAULT_Y;
 	astparam->console_default_rr = CRT_CONSOLE_DEFAULT_RR;
@@ -538,17 +581,6 @@ void scu_init_astparam(void *context, astparam_t *astparam)
 	astparam->v_tx_drv_option = get_v_tx_drv_option();
 	astparam->net_drv_option = get_net_drv_option();
 	
-	/* Because astparam_find() function returns a pointer to a global variable --buf_ro or buf_rw, So it can be assigned directly in this way */
-	astparam->model_number = astparam_find("model_number");
-	if(astparam->model_number == NULL)
-	{
-		if(ast_scu.board_info.is_client == 1)
-		{
-			astparam->model_number = "KDS-DEC-6X";
-		}
-		else
-		{
-			astparam->model_number = "KDS-SW3-EN-6X";
-		}
-	}
+	//0:KDS-SW3-EN-6X 1:KDS-SW3-EN7 2:KDS-EN7 3:KDS-DEC-6X 
+	astparam->model_number = get_board_type();
 }

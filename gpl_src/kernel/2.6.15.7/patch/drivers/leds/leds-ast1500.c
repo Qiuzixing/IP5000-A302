@@ -232,8 +232,7 @@ static int ast1500_led_probe(struct platform_device *dev)
 	gpio_inv_sw_patch(dev->id, pdata);
 
 	platform_set_drvdata(dev, led);
-
-	if(0 == strcmp(ast_scu.astparam.model_number,"IPD5000W"))
+ 	if(ast_scu.astparam.model_number == A30_IPD5000W)
 	{
 		//GPIOE2
 		if(0 == strcmp(pdata->name,"key_left"))
@@ -262,7 +261,7 @@ static int ast1500_led_probe(struct platform_device *dev)
 			pdata->name = "poweron_1V0";
 			pdata->flags = AST_LEDF_DEFAULT_ON;
 		}
-	}
+	} 
 
 	led->cdev.brightness_set = ast1500_led_set;
 	led->cdev.default_trigger = pdata->def_trigger;

@@ -85,14 +85,14 @@ return_t enet_phy_init(void)
     //enet_phy_delay_set(config);
 
     /* only rtl8367 need to do it,rtl8364 not need it for now */
-    if(0 == strcmp(ast_scu.astparam.model_number,"KDS-SW3-EN-6X"))
+    if(ast_scu.astparam.model_number == A30_IPE5000P)
     {
         handle_multicast_settings();
     }
     else
     {
 
-    }
+    } 
 
     return STATUS_OK;
 }

@@ -21,6 +21,20 @@ typedef enum {
 	VT_DISABLE  = 0x1,
 } video_type_e;
 
+typedef enum {
+	A30_IPE5000   = 0x0,
+	A30_IPE5000P     = 0x1,
+	A30_IPE5000W      = 0x2,
+	A30_IPD5000  = 0x3,
+	A30_IPD5000W  = 0x4,
+	A30_BOARD_CNT
+} a30_board_type;
+
+typedef struct{
+	a30_board_type type_index;
+	char *model_number;
+}a30_board_map;
+
 #define I2S_SAMPLE_RATE_32K    3
 #define I2S_SAMPLE_RATE_44d1K  0
 #define I2S_SAMPLE_RATE_48K    2
@@ -138,7 +152,10 @@ typedef struct {
 	 *  1: software forced the mode, we switch between fiber and copper in each reset operation
 	 */
 	unsigned int net_drv_option;
-	char *model_number;
+
+	/* qzx2021.8.13:use char *model_number before,but I don't know why in rtl8364_i2c_driver.c it will be NULL,and it is useful in leds-ast1500.c.
+					So I don't use char *,I use emun type */
+	a30_board_type model_number;
 } astparam_t;
 
 void scu_init_ability(ability_info_t *ab);
