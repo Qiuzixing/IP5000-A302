@@ -58,13 +58,13 @@ int P3K_LDWFCmdProcess(int handleId,P3K_SimpleCmdInfo_S *cmdreq,P3K_SimpleCmdInf
 	{
 		//if()
 #ifdef CONFIG_P3K_HOST
-		fd = open("/dev/shm/IPE5000-A30_upgrade_v0.1.0.bin", O_CREAT |O_TRUNC | O_RDWR, 0666);
+		fd = open("/dev/shm/IPE5000-A30_upgrade.bin", O_CREAT |O_TRUNC | O_RDWR, 0666);
 #else
-		fd = open("/dev/shm/IPD5000-A30_upgrade_v0.1.0.bin", O_CREAT |O_TRUNC | O_RDWR, 0666);//S_IRUSR | S_IWUSR);
+		fd = open("/dev/shm/IPD5000-A30_upgrade.bin", O_CREAT |O_TRUNC | O_RDWR, 0666);//S_IRUSR | S_IWUSR);
 #endif
 		int length = atoi(cmdreq->param);
 		//lseek(fd,length  - 1, SEEK_SET);
-		//write(fd, "1", 1); 
+		//write(fd, "1", 1);
 		sprintf(aReady,"%s,%s",cmdreq->param,REA_STR);
 		memcpy(cmdresp->command,cmdreq->command,MAX_COMMANDNAME_LEN);
 		memcpy(cmdresp->param,aReady,strlen(aReady));
@@ -74,7 +74,7 @@ int P3K_LDWFCmdProcess(int handleId,P3K_SimpleCmdInfo_S *cmdreq,P3K_SimpleCmdInf
 	//Éý¼¶handle
 	P3K_LDWFSetUpgradeHandle(handleId);
 	//·µ»Ø
-	
+
 	return 0;
 };
 int P3K_LDWFRecvFileData(char*data,char * aPnum ,int len)

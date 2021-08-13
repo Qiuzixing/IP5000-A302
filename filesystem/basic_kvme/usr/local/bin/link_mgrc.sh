@@ -2647,6 +2647,16 @@ handle_e_p3k_cec()
 	esac
 }
 
+handle_e_p3k_upgrade()
+{
+	cd /dev/shm/
+	mv IPD5000-A30_upgrade*.bin `echo *.bin | sed 's/.bin/.tar.gz/g'`
+	tar -zxvf ./IPD5000-A30*.tar.gz
+	./flash.sh
+
+	reboot
+}
+
 handle_e_p3k()
 {
 	echo "handle_e_p3k."
@@ -2662,6 +2672,9 @@ handle_e_p3k()
 		;;
 		e_p3k_cec_?*)
 			handle_e_p3k_cec "$event"
+		;;
+		e_p3k_upgrade_fw*)
+			handle_e_p3k_upgrade
 		;;
 		*)
 		;;

@@ -21,7 +21,7 @@
 #include "debugtool.h"
 #define DF_NET_MSGBUFLEN  20*1024
 
- 
+
 typedef enum _SOCKETTYPE_E{
 	SOCKETTYPE_ENUM_NULL   = 0x00,
 	SOCKETTYPE_ENUM_MAIN	= 0x01,
@@ -30,7 +30,7 @@ typedef enum _SOCKETTYPE_E{
 
 typedef struct _SocketList_S{
 	int 					sockfd;
-	SOCKETTYPE_E 			socketType; 
+	SOCKETTYPE_E 			socketType;
 	char					ip[16];
 	int						port;
 	struct					listnode _list;
@@ -63,7 +63,7 @@ static  int GetSockInfo(int  socked, char *ipaddr,int *port)
 		return 1;
 	}
 	return 0;
-} 
+}
 
 
 static int CheckSelectExcept(fd_set *exceptfds,SocketList_S *sockInfo)
@@ -106,7 +106,7 @@ static int CheckSelectRead(fd_set *readfds,SocketList_S *head,SocketList_S *sock
 			DBG_ErrMsg("accept err\n");
 			return -1;
 		}
-		
+
 		newnode =  (SocketList_S *)malloc(sizeof(SocketList_S));
 		if(NULL == newnode){
 			return -1;
@@ -116,7 +116,7 @@ static int CheckSelectRead(fd_set *readfds,SocketList_S *head,SocketList_S *sock
 		newnode->port = ntohs(client_addr.sin_port);
 		inet_ntop(AF_INET, (void *)(&client_addr.sin_addr.s_addr), newnode->ip, IP_ADRESS_LEN);
 		//snprintf(newnode->ip,16,"%s",inet_ntoa(client_addr.sin_addr));
-		list_add_tail(&(head->_list),&(newnode->_list));	
+		list_add_tail(&(head->_list),&(newnode->_list));
 	}else if(SOCKETTYPE_ENUM_SUB == sockInfo->socketType){//从套接字
 		//cli = (NetCliInfo_T *)malloc_checkout(sizeof(NetCliInfo_T));
 		//if(NULL == cli){
@@ -129,10 +129,10 @@ static int CheckSelectRead(fd_set *readfds,SocketList_S *head,SocketList_S *sock
 			FD_ZERO(&readfd);
 			FD_ZERO(&errorfd);
 			FD_SET(sockInfo->sockfd,&readfd); //添加描述符
-			FD_SET(sockInfo->sockfd,&errorfd); 
+			FD_SET(sockInfo->sockfd,&errorfd);
 		 	maxfd = sockInfo->sockfd;
 			timeout.tv_sec = 0;
-			timeout.tv_usec = 100000;//select函数会不断修改timeout的值，所以每次循环都应该重新赋值[windows不受此影响]	
+			timeout.tv_usec = 100000;//select函数会不断修改timeout的值，所以每次循环都应该重新赋值[windows不受此影响]
 			ret  = select (maxfd + 1, &readfd, NULL, &errorfd, &timeout);
 			if (ret > 0){
 				if(0 == FD_ISSET(sockInfo->sockfd, &readfd)){
@@ -147,9 +147,9 @@ static int CheckSelectRead(fd_set *readfds,SocketList_S *head,SocketList_S *sock
 					cli->recvSocket = sockInfo->sockfd;
 					GetSockInfo(cli->recvSocket,cli->recvIp,&(cli->recvPort));
 					{
-						struct timeval timeout = {0,300 * 1000};    
+						struct timeval timeout = {0,300 * 1000};
 						setsockopt(cli->recvSocket, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,sizeof(struct timeval));
-						
+
 						param->readcb(cli);
 						break;
 					}
@@ -179,7 +179,7 @@ static int CheckSelectRead(fd_set *readfds,SocketList_S *head,SocketList_S *sock
 				//DF_DEBUG("select error");
 				goto READ_ERROR;
 			}
-			usleep(10*1000);//程序空跑 CPU不至于100%		
+			usleep(10*1000);//程序空跑 CPU不至于100%
 		}
 	}
 	return 0;
@@ -187,7 +187,7 @@ READ_ERROR:
 	if(NULL != cli->usrdef){
 		free(cli->usrdef);
 	}
-	
+
 //	free(cli);
 #if 1
 	list_remove(&(sockInfo->_list));
@@ -204,8 +204,8 @@ READ_ERROR:
 	int listenfd = 0;
 	int sockfd = 0;
 	int opt = 1;
-	
-	struct sockaddr_in server_addr;	
+
+	struct sockaddr_in server_addr;
 	memset(&server_addr,0,sizeof(server_addr));
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_port = htons(port);
@@ -222,14 +222,14 @@ READ_ERROR:
 	bindfd = bind(sockfd,(struct sockaddr *)&server_addr,sizeof(struct sockaddr));
 	if(bindfd != 0)
 	{
-		
+
 		close(sockfd);
 		return 0;
 	}
-	
+
 	listenfd = listen(sockfd,LISTEN_MAX_FD);
 	if(listenfd != 0)
-	{	
+	{
 		close(sockfd);
 		return 0;
 	}
@@ -272,7 +272,7 @@ READ_ERROR:
 		close(param->mainSockfd);
 		return NULL;
 	}
-	
+
 	newnode->sockfd = param->mainSockfd;
 	newnode->socketType = SOCKETTYPE_ENUM_MAIN;
 	list_add_tail(&(head->_list),&(newnode->_list));
@@ -283,11 +283,11 @@ READ_ERROR:
 		list_for_each(node,&(head->_list)){
 			sockInfo = (SocketList_S *)node_to_item(node,SocketList_S,_list);
 			FD_SET(sockInfo->sockfd,&readfd); //添加描述符
-			FD_SET(sockInfo->sockfd,&errorfd); 
+			FD_SET(sockInfo->sockfd,&errorfd);
 			if(maxfd < sockInfo->sockfd) maxfd = sockInfo->sockfd;
 		}
 		timeout.tv_sec = 1;
-		timeout.tv_usec = 5000000;//select函数会不断修改timeout的值，所以每次循环都应该重新赋值[windows不受此影响]	
+		timeout.tv_usec = 5000000;//select函数会不断修改timeout的值，所以每次循环都应该重新赋值[windows不受此影响]
 		ret  = select (maxfd + 1, &readfd, NULL, &errorfd, &timeout);
 		if (ret > 0){
 			//list_for_each(node, &(head->_list)){
@@ -295,7 +295,7 @@ READ_ERROR:
 	 		for (node = head->_list.next; node != &(head->_list); ){
 				sockInfo = (SocketList_S *)node_to_item(node,SocketList_S,_list);
 				if (0 >= sockInfo->sockfd) {
-					
+
 					continue;
 				}
 				nextnode = node->next;
@@ -307,12 +307,12 @@ READ_ERROR:
 			//DF_DEBUG("Service Select Timeout");
 			continue;
 		}else {
-		
+
 			list_for_each(node, &(head->_list)){
 				sockInfo = (SocketList_S *)node_to_item(node, SocketList_S, _list);
 				struct stat tStat;
 				if (0 != fstat(sockInfo->sockfd, &tStat)) {
-					//DF_DEBUG("fstat %d error:%s\n", sockInfo->sockfd, strerror(errno));					
+					//DF_DEBUG("fstat %d error:%s\n", sockInfo->sockfd, strerror(errno));
 					if(param != NULL && param->closecb != NULL)
 					{
 						param->closecb(sockInfo->sockfd);
@@ -325,9 +325,9 @@ READ_ERROR:
 			}
 		}
 		usleep(20*1000);//程序空跑 CPU不至于100%
-	}	
+	}
 }
- 
+
 
 int SOCKET_CreateTcpServer(SocketWorkInfo_S*serverhandle)
 {
@@ -370,7 +370,7 @@ static int  P3K_SelectHandleID(int iId,char * aIds)
 	{
 		if(aIds[num] == iId)
 		{
-			return iId;	
+			return iId;
 		}
 	}
 	//aIds[strlen(aIds)] = iId;
@@ -384,8 +384,8 @@ static int  P3K_PhraserIDParam(char *param,int len,	char str[][MAX_PARAM_LEN] )
 	int i = 0;
 	char *tmpdata = param;
 	char *tmpdata1 = param;
-	
-	
+
+
 	if(param == NULL ||len <=0)
 	{
 		return -1;
@@ -394,10 +394,10 @@ static int  P3K_PhraserIDParam(char *param,int len,	char str[][MAX_PARAM_LEN] )
 	{
 		tmpdata = strchr(tmpdata,',');
 		if(tmpdata != NULL)
-		{	
+		{
 			tmpLen = tmpdata-tmpdata1;
 			memcpy(str[i],tmpdata1,tmpLen);
-		
+
 			i++;
 			if(len > tmpdata-param+1)
 			{
@@ -423,25 +423,25 @@ int SOCKET_TcpSendMessage(int sockfd,char *msg,int len)
 {
 	int ret = -1;
 	int iSend = 0;
-	int Total = 0;    
+	int Total = 0;
 	int lenSend = 0;
 	int cont = 0;
-	struct timeval tv;    
-	fd_set wset,errorfd; 
-	
+	struct timeval tv;
+	fd_set wset,errorfd;
+
 	while(1)
 	{
-		FD_ZERO(&wset);    
+		FD_ZERO(&wset);
 		FD_ZERO(&errorfd);
 		FD_SET(sockfd, &wset);
 		FD_SET(sockfd, &errorfd);
-		tv.tv_sec = 3;//3;	 
-		tv.tv_usec = 0;//500;	
+		tv.tv_sec = 3;//3;
+		tv.tv_usec = 0;//500;
 //		DF_DEBUG("select start");
 		iSend = select(sockfd + 1, NULL, &wset, &errorfd, &tv);
 //		DF_DEBUG("select end");
-		if (iSend > 0)//3.5秒之内可以send，即socket可以写入	 
-		{	
+		if (iSend > 0)//3.5秒之内可以send，即socket可以写入
+		{
 			if(0 != FD_ISSET(sockfd, &errorfd)){
 				return -1;
 			}
@@ -450,25 +450,25 @@ int SOCKET_TcpSendMessage(int sockfd,char *msg,int len)
 			}
 			//printf("<<<<<<<<%s\n",msg);
 			//flag = 1;
-			
-			lenSend = send(sockfd,msg + Total,len - Total,0);    
-			if(lenSend <= 0)				{	
+
+			lenSend = send(sockfd,msg + Total,len - Total,0);
+			if(lenSend <= 0)				{
 			     DBG_ErrMsg("socketfd %d send data length %d  err\n",sockfd,len);
 				ret = -1;
 				break;
 			}
-			
-			Total += lenSend;	
-			if(Total == len)	
-			{	
-				DBG_InfoMsg("socketfd %d send data length %d \n",sockfd,len);
-				ret = len;	
+
+			Total += lenSend;
+			if(Total == len)
+			{
+				//DBG_InfoMsg("socketfd %d send data length %d \n",sockfd,len);
+				ret = len;
 				break;
 			}
 		}
 		else if (iSend == 0)
 		{
-			
+
 			cont ++;
 			if (2 == cont)
 			{
@@ -476,7 +476,7 @@ int SOCKET_TcpSendMessage(int sockfd,char *msg,int len)
 			}
 			continue;
 		}
-		else  //3.5秒之内socket还是不可以写入，认为发送失败	
+		else  //3.5秒之内socket还是不可以写入，认为发送失败
 		{
 			DBG_ErrMsg("socketfd %d send data length %d  err\n",sockfd,len);
 			ret = -1;
@@ -484,7 +484,7 @@ int SOCKET_TcpSendMessage(int sockfd,char *msg,int len)
 			{
 			}
 			break;
-		}	
+		}
 	}
 	return ret;
 
@@ -540,7 +540,7 @@ void *udpServerThead(void *arg)
 		//	continue;
 		//}
 		memset(cli->recvmsg,0,sizeof(cli->recvmsg));
-		
+
 		n = recvfrom(param->mainSockfd, cli->recvmsg, DF_NET_MSGBUFLEN, 0,(struct sockaddr *) &peeraddr, &socklen);
 		if (n < 0) {
 			DBG_ErrMsg("recvfrom err in udptalk!\n");
@@ -549,13 +549,13 @@ void *udpServerThead(void *arg)
 		}else {
 			/* 成功接收到数据报 */
 			cli->fromPort = ntohs(peeraddr.sin_port);
-			inet_ntop(AF_INET,&peeraddr.sin_addr,cli->fromIP,IP_ADRESS_LEN); 
+			inet_ntop(AF_INET,&peeraddr.sin_addr,cli->fromIP,IP_ADRESS_LEN);
 			//DF_DEBUG("SUCCESS RECV MSG\r\n");
 			cli->recvLen = n;
 			param->readcb(cli);
 		//	free(cli);
 		}
-		
+
 	}
 
 	free(param);
@@ -570,9 +570,9 @@ int NetMulicastServerSocketInit(char *mulicastip,int mulicastPort)
 //	struct hostent *group;
 	struct ip_mreq mreq;
 	int ret = -1;
-	unsigned  char  one = 1; 
-    char  sock_opt = 1; 
-	
+	unsigned  char  one = 1;
+    char  sock_opt = 1;
+
 	/* 创建 socket 用于UDP通讯 */
 	sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 	if (sockfd < 0) {
@@ -585,19 +585,19 @@ int NetMulicastServerSocketInit(char *mulicastip,int mulicastPort)
 	mreq.imr_multiaddr.s_addr = inet_addr(mulicastip);
 	mreq.imr_interface.s_addr = htonl(INADDR_ANY);
 
- 	if((setsockopt(sockfd, SOL_SOCKET,SO_REUSEADDR, ( void  *) &sock_opt,  sizeof  (sock_opt)))== -1) { 
-	
+ 	if((setsockopt(sockfd, SOL_SOCKET,SO_REUSEADDR, ( void  *) &sock_opt,  sizeof  (sock_opt)))== -1) {
+
      }  // 设置 允许重用本地地址和端口
-	 
-    if  ((setsockopt(sockfd, IPPROTO_IP,IP_MULTICAST_LOOP,&one,  sizeof  (unsigned  char ))) == -1){ 
-		
-     }  //	
+
+    if  ((setsockopt(sockfd, IPPROTO_IP,IP_MULTICAST_LOOP,&one,  sizeof  (unsigned  char ))) == -1){
+
+     }  //
 	/* 把本机加入组播地址，即本机网卡作为组播成员，只有加入组才能收到组播消息 */
 
 
 	if (setsockopt(sockfd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char *)&mreq,sizeof(struct ip_mreq)) < 0) {
 		perror("Add Membership");
-		
+
 		return -1;
 	}
 
@@ -613,7 +613,7 @@ int NetMulicastServerSocketInit(char *mulicastip,int mulicastPort)
 		//assert(0);
 		return -1;
 	}
-	
+
 	return sockfd;
 }
 
@@ -633,14 +633,14 @@ int SOCKET_CreateUdpMulticast(SocketWorkInfo_S *multicasthandle)
 		return -1;
 	}
       uTsockFlag= 1;
-	DBG_InfoMsg("NetCreateUdpMulicast!!!!\n");	
-	multicasthandle->sockfd = param->mainSockfd;	
-	extParam->mainSockfd = param->mainSockfd;	
+	DBG_InfoMsg("NetCreateUdpMulicast!!!!\n");
+	multicasthandle->sockfd = param->mainSockfd;
+	extParam->mainSockfd = param->mainSockfd;
 	extParam->mulicastIp = multicasthandle->mulicastip;
 	extParam->getNetCabInfo = multicasthandle->getNetCabInfo;
-	
+
 	pthread_attr_t attr;
-		
+
 	pthread_attr_init (&attr);
 	pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED);
 	pthread_create(&pthaddMulicast, &attr, addMulicastTimerTask, (void *)extParam);
@@ -675,27 +675,27 @@ int  SOCKET_UdpSendMessage(char *ip, int port,char *msg,int len,char *ethname)
 		DBG_ErrMsg("socket err\n");
 		return -1;
 	}
-	
+
 	socklen = sizeof(struct sockaddr_in);
 	memset(&peeraddr, 0, socklen);
 	peeraddr.sin_family = AF_INET;
 	peeraddr.sin_port = htons(port);
 	inet_pton(AF_INET,ip, &peeraddr.sin_addr);
-	
-	//struct sockaddr_in addrSelf;//本地地址  
-    //addrSelf.sin_addr.S_un.S_addr = inet_addr(ethIP);//指定网卡的地址  
-    //addrSelf.sin_family = AF_INET;  
+
+	//struct sockaddr_in addrSelf;//本地地址
+    //addrSelf.sin_addr.S_un.S_addr = inet_addr(ethIP);//指定网卡的地址
+    //addrSelf.sin_family = AF_INET;
 	//bind(sockfd , (struct sockaddr *)&addrSelf , sizeof(struct sockaddr_in));
 
 #if defined(WIN32)
-	
+
 #else
 	struct ifreq inter;
  	memset(&inter, 0x00, sizeof(inter));
 	strncpy(inter.ifr_ifrn.ifrn_name,ethname,strlen(ethname));
 //	DF_DEBUG("ethname = %s",ethname);
 	if (setsockopt(sockfd, SOL_SOCKET, SO_BINDTODEVICE,(char *)&inter, sizeof(inter))  < 0) {
-    
+
       /* Deal with error... */
 	}
 #endif

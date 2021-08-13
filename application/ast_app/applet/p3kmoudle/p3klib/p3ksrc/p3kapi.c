@@ -65,7 +65,7 @@ static int P3K_SetLDFWStatus(P3KLDFWStatus_S *gs_LDFWStatus, int handleId)
 		}
 		tmp = tmp->next;
 	}
-	
+
 	return 0;
 }*/
 
@@ -213,7 +213,7 @@ static int P3K_ApiMngListUnInit()
 {
 	gs_modleMng.enable = 0;
 	memset(&gs_modleMng,0,sizeof(P3kApiMng_S));
-	
+
 	return 0;
 }
 static int P3K_GetApiInitFlag()
@@ -244,7 +244,7 @@ static int P3K_MakeUsrID()//注册ID
 	do
 	{
 		tempUsrID++;
-		HandleManageGetHandleByInt(P3K_GetMngHandleHead(), handleId, tempUsrID, resultHandle, P3KReqistMsg_S);		
+		HandleManageGetHandleByInt(P3K_GetMngHandleHead(), handleId, tempUsrID, resultHandle, P3KReqistMsg_S);
 	}while(resultHandle != NULL && tempUsrID < MAX_HANDLE);
 	if(resultHandle != NULL)
 	{
@@ -264,7 +264,7 @@ static P3KReqistMsg_S* P3K_GetReqistMsgByID(int id)//通过ID获取Handle
 		return NULL;
 	}
 	return handle;
-	
+
 }
 
 
@@ -276,8 +276,8 @@ static int  P3K_PhraserIDParam(char *param,int len,	char str[][MAX_PARAM_LEN] )
 	int i = 0;
 	char *tmpdata = param;
 	char *tmpdata1 = param;
-	
-	
+
+
 	if(param == NULL ||len <=0)
 	{
 		return -1;
@@ -286,10 +286,10 @@ static int  P3K_PhraserIDParam(char *param,int len,	char str[][MAX_PARAM_LEN] )
 	{
 		tmpdata = strchr(tmpdata,',');
 		if(tmpdata != NULL)
-		{	
+		{
 			tmpLen = tmpdata-tmpdata1;
 			memcpy(str[i],tmpdata1,tmpLen);
-		
+
 			i++;
 			if(len > tmpdata-param+1)
 			{
@@ -331,7 +331,7 @@ static void * P3K_DataExcuteProc(void*arg)
 		int ret1 = EX_AutomaticReporting(aOtherCh);
 		if(ret1 > 0)
 		{
-			HandleList_S * tmphandle = &(gs_handleMng.listHandleHead); 
+			HandleList_S * tmphandle = &(gs_handleMng.listHandleHead);
 			P3KReqistMsg_S *upregistMsg = NULL;
 			printf(">>>>%s\n",aOtherCh);
 			do{
@@ -354,7 +354,7 @@ static void * P3K_DataExcuteProc(void*arg)
 		memset(&respCmdInfo,0,sizeof(P3K_SimpleCmdInfo_S));
 		//解析处理数据
 		//特殊命令分开执行可放在这里?
-	
+
 		memset(userDefine,0,MAX_USR_STR_LEN);
 			s32Ret = P3K_SilmpleReqCmdProcess(&pmsg.cmdinfo,&respCmdInfo,userDefine);
 			if(s32Ret != 0)
@@ -376,8 +376,8 @@ static void * P3K_DataExcuteProc(void*arg)
 			}
 			//char * str1 = "~01@KDS-DANTE-NAME  KDS-LONG\r\n";
 			//registMsg->sendMsg(pmsg.handleId,str1,strlen(str1));
-			
-		
+
+
 		}
 	return  NULL;
 }
@@ -398,21 +398,21 @@ int P3K_DataExcuteThread()
 }
 
 long fun(char *s)
-{	
-	int i,t;             //t记录临时加的数 	
-	long sum =0;	
-	for(i=0;s[i];i++)	
-		{		
-		if(s[i]>='0'&&s[i]<='9'){		
-			t=s[i]-'0';     }  //当字符是0~9时保持原数不变		
-		if(s[i]>='a'&&s[i]<='z'){		
-				t=s[i]-'a'+10;}		
-		if(s[i]>='A'&&s[i]<='Z'){		
-				t=s[i]-'A'+10;}	
-		sum=sum*16+t;	
-	}	
+{
+	int i,t;             //t记录临时加的数
+	long sum =0;
+	for(i=0;s[i];i++)
+		{
+		if(s[i]>='0'&&s[i]<='9'){
+			t=s[i]-'0';     }  //当字符是0~9时保持原数不变
+		if(s[i]>='a'&&s[i]<='z'){
+				t=s[i]-'a'+10;}
+		if(s[i]>='A'&&s[i]<='Z'){
+				t=s[i]-'A'+10;}
+		sum=sum*16+t;
+	}
 	return sum;
-} 
+}
 
 
 static int P3K_RecvMessage(int handleId,char*data,int len )
@@ -429,7 +429,7 @@ static int P3K_RecvMessage(int handleId,char*data,int len )
 	int flag = 0;
 	int iFlieSize = 0;
 	memset(cmd,0,sizeof(P3K_SimpleCmdInfo_S)*16);
-	
+
 	//flag = P3K_GetLDFWStatus(&gs_LDFWStatus, handleId);
 	if(LDFWflag == 1)
 	{
@@ -440,7 +440,7 @@ static int P3K_RecvMessage(int handleId,char*data,int len )
 		char aMsg[56] = {0};
 		sprintf(numlength,"%02x%02x",data[2],data[3]);
 		iLength = (fun(numlength)) - 2;
-		printf(">>>>>packetID =%02x%02x length =%d\n",data[0],data[1],iLength); 
+		printf(">>>>>packetID =%02x%02x length =%d\n",data[0],data[1],iLength);
 		if( 0 == memcmp(data,"end",strlen("end")))
 		{
 			//P3K_SetLDFWStatus(&gs_LDFWStatus, flag);
@@ -457,13 +457,13 @@ static int P3K_RecvMessage(int handleId,char*data,int len )
 			char sum[5] = {0};
 			char sum1[5] = {0};
 			sprintf(sum1,"%04x",CRCnum);
-			printf("crc==%s,newcrc= %s....%d\n",hexcrc,sum1,CRCnum);
+			//printf("crc==%s,newcrc= %s....%d\n",hexcrc,sum1,CRCnum);
 			if(0 == memcmp(sum1,hexcrc,strlen(hexcrc)))
 			{
-				
+
 				P3K_LDWFRecvFileData(data,&num,iLength);
 				sprintf(aMsg,"~%s ok\r\n",num);
-				printf("<<<%s\n",aMsg);
+				//printf("<<<%s\n",aMsg);
 				registMsg = P3K_GetReqistMsgByID(handleId);
 				if(registMsg)
 				{
@@ -488,7 +488,7 @@ static int P3K_RecvMessage(int handleId,char*data,int len )
 		if(cmdCount<= 0)
 		{
 			//特殊命令附加数据
-			
+
 		}
 		else
 		{
@@ -502,7 +502,7 @@ static int P3K_RecvMessage(int handleId,char*data,int len )
 				//gs_LDFWStatus.handleId[gs_LDFWStatus.num] = handleId;
 				//gs_LDFWStatus.num += 1;
 				iFlieSize = atoi(cmd[i].param);
-				
+
 				char str[] = "~01@";
 				char aMsg[256] = {0};
 				DBG_InfoMsg("SPECIAL CMD =%s\n",cmd[i].command);
@@ -532,7 +532,7 @@ static int P3K_RecvMessage(int handleId,char*data,int len )
 			{
 				char handleshark[16] ={0};
 				P3KReqistMsg_S *registMsg = NULL;
-				
+
 				P3K_HandleSharkResp(handleshark);
 				registMsg = P3K_GetReqistMsgByID(handleId);
 				if(registMsg)
@@ -568,7 +568,7 @@ int P3K_ApiInit()
 		return -1;
 	}
 	//消息处理线程
-	
+
 	s32Ret = P3K_DataExcuteThread();
 	if(s32Ret != 0)
 	{
@@ -639,7 +639,7 @@ int P3K_ApiUnRegistHandle(P3KApiHandle_S*handle)
 	registMsg->handleId = 0;
 	handle->handleId = 0;
 	handle->P3kMsgRecv = NULL;
-	
+
 	return 0;
 }
 int P3K_ApiGetTotalRecvCmd(int *sum)
