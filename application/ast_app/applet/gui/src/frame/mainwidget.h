@@ -6,6 +6,7 @@
 #include <QStackedWidget>
 #include <QTcpSocket>
 #include "osdlabel.h"
+#include "p3ktcp.h"
 
 #include "modules/sleepmode/sleeppanel.h"
 
@@ -60,6 +61,7 @@ public slots:
     void segmentationPic(QString picpath);
 
     void onRecvData(QByteArray data);
+    void parseCmdResult(QByteArray datagram);
 
     void parseOverlayJson(QString jsonpath);
 
@@ -103,10 +105,16 @@ private:
     int m_CmdOuttime;
 
     UdpRecvThread* UdpRecv;
+    P3ktcp *m_p3kTcp;
 
     struct info_hdr hdr;
     QTcpSocket *m_tcpSocket;
-    bool m_bKvmMode;
+
+    int m_nVideoWall_H;
+    int m_nVideoWall_V;
+
+    int m_nVideoWall_ID;
+    int m_nVideoWall_R;
 };
 
 #endif // MAINWIDGET_H

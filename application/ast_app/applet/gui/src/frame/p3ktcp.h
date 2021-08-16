@@ -8,42 +8,49 @@
 #include <QUdpSocket>
 #include <QThread>
 
-//class P3ktcp : public QObject
-//{
-//    Q_OBJECT
-//public:
-//    P3ktcp(QObject *parent);
-//    ~P3ktcp();
+class P3ktcp : public QObject
+{
+    Q_OBJECT
+public:
+    static P3ktcp *getInstance()
+    {
+        if(m_p3kMod==NULL){
+             m_p3kMod = new P3ktcp();
+        }
 
-//signals:
-//    void setOsdDisplay(int mode);
-//    void startOverlay(QString filename,int timeout);
-//    void stopOverlay();
+        return m_p3kMod;
+    }
+    ~P3ktcp();
+    // 发送指令到P3K
+    bool sendCmdToP3k(const char *lpBuf);
 
-//public slots:
-//    // 接收命令返回
-//    void onReadPendingDatagrams();
+signals:
+    void tcpRcvMsg(QByteArray msg);
 
-//protected:
-//    // 连接or关闭
-//    void p3kConnect(QHostAddress ip,int port);
-//    void closeP3kConnect();
+public slots:
+    // 接收命令返回
+    void onReadPendingDatagrams();
 
-//    // 检测连接
-//    bool IsConnected();
+protected:
+    // 连接or关闭
+    void p3kConnect(QHostAddress ip,int port);
+    void closeP3kConnect();
 
-//    // 发送指令到P3K
-//    bool sendCmdToP3k(const char *lpBuf);
-//    void parseCmdResult(QByteArray datagram);
+    // 检测连接
+    bool IsConnected();
+    void parseCmdResult(QByteArray datagram);
 
-//    QString getIPAdress();
-//private:
-//    QTcpSocket *m_TcpConn;
-//    QHostAddress m_IP;
-//    int m_Port;
+    QString getIPAdress();
+private:
+    P3ktcp(QObject *parent = 0);
+    static P3ktcp *m_p3kMod;
 
-//    QQueue<QByteArray> *m_CmdQueue;
-//};
+    QTcpSocket *m_TcpConn;
+    QHostAddress m_IP;
+    int m_Port;
+
+    QQueue<QByteArray> *m_CmdQueue;
+};
 
 
 
