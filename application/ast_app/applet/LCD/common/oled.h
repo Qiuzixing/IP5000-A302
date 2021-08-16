@@ -18,7 +18,7 @@ void OLED_DisPlay_Off(void);
 void OLED_WR_Byte(u8 dat,u8 mode);
 void clear_a_line(u8 x);
 void clear_three_line();
-void new_clear_three_line();
+//void new_clear_three_line();
 void clear_whole_screen(void);
 
 
@@ -31,9 +31,6 @@ void show_a_star(u8 x);
 void clear_list();
 
 void clear_whole_screen();
-
-
-
 
 
 #endif

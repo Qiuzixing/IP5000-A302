@@ -10,6 +10,13 @@
 #include "oled.h"
 #include "IPD5000_info_setting.h"
 #include "msg_queue.h"
+#include "send_p3k_cmd.h"
+
+#define SIZE_D 255
+#define MIN_SIZE_D 10
+
+#define LAN1_ID_D	0
+#define LAN2_ID_D	1
 
 pthread_mutex_t g_lock_D;
 
@@ -23,17 +30,42 @@ enum
 	RIGHT_KEY,
 };
 
-char ip_string_D[] = "192.168.060.213";
-char mask_string_D[] = "255.255.255.000";
-char gateway_string_D[] = "192.168.060.001";
+/*
+PASSTHRU/3840x2160P30 	74
+	/3840x2160P25		73
+	/1920x1080P60/		16
+	1920X1080P50/       31
+	1280x720P60			4
+*/
+#define NO_SIGNAL		0
+#define VIDEO_OUT_74 	74
+#define VIDEO_OUT_73	73
+#define VIDEO_OUT_16	16
+#define VIDEO_OUT_31	31
+#define VIDEO_OUT_4		4
 
+char *blank = " ";
+//从中用来获取显示数据的
+const char *video_out[] = {
+	"VIDEO OUT RES", "NO SIGNAL", "3840x2160P30", "3840x2160P25"
+	"1920x1080P60", "1920X1080P50", "1280x720P60"	
+};
+
+const char *device_status[5] = {
+	"DEVICE STATUS", "POWER_ON", "STANDY BY", "FW DOWNLOAD", "IP FALLBACK"
+}; 
+	
+char video_select_buf[MIN_SIZE_D][SIZE_D];
+char firmware_buf[MIN_SIZE_D][SIZE_D];
+
+//用来显示的
 const char* MAIN_MENU_strings_D[] = {
-	"MAIN MENU", "IP SETTING", "VIDEO IN", "HDCP SETTING",
-	"FIRMWARE INFO", "DEVICE STATUS", "VEDIO_OUT",
+	"MAIN MENU", "VIDEO SELECT", "IP SETTING", "HDCP SETTING",
+	"VEDIO OUT RES", "FIRMWARE INFO", "DEVICE STATUS",
 };
 
 const char* IP_SET_strings_D[] = {
-	"IP SETTING", "LAN1 SETTING", "LAN2 SETTING", "LAN3 SETTING",
+	"IP SETTING", "LAN1 SETTING", "LAN2 SETTING",
 };
 	
 const char* LAN_MODE_strings_D[] = {
@@ -44,35 +76,17 @@ const char* LAN_OPTION_strings_D[] = {
 	"LAN INFO", "LAN ADDR", "LAN MASK", "LAN GATEWAY",
 };
 
-//VIDEO IN
-const char* INACTIVE_VIDEO_IN_strings_D[] = {
-	"VIDEO_IN", "CHANNEL 1", "CHANNEL 2", "CHANNEL 3", "CHANNEL 4", "CHANNEL 5",
+const char* HDCP_strings_D[] = {
+	"HDCP SETTING", "HDCP ON", "HDCP OFF",
 };
 
-const char* ACTIVE_VIDEO_IN_strings_D[] = {
-	"*VIDEO_IN", "*CHANNEL 1", "*CHANNEL 2", "*CHANNEL 3", "*CHANNEL 4", "*CHANNEL 5",
-};
+const char* SAVE_VIDEO_SELECT_D[MIN_SIZE_D+1]		= {"VIDEO SELECT",}; 
+const char* FIRMWARE_strings_D[MIN_SIZE_D+1]		= {"FIRMWARE INFO",};
+const char* DEVICE_STATUS_strings_D[MIN_SIZE_D+1]	= {"DEVICE STATUS",};
+const char* VIDEO_OUT_string_D[MIN_SIZE_D+1]		= {"VIDEO OUT RES",};
 
-const char* SAVE_VIDEO_IN_SHOWWING_D[] = {
-	"VIDEO_IN", "CHANNEL 1", "CHANNEL 2", "CHANNEL 3", "CHANNEL 4", "CHANNEL 5",
-};
-
-//FIRMWARE
-const char* FIRMWARE_strings_D[] = {
-	"FIRMWARE_INFO", "MODULE1 1.0.1", "MODULE1 1.0.2", "MODULE1 1.0.3",
-};
-
-const char* DEVICE_STATUS_strings_D[] = {
-	"DEVICE_STATUS", "STATUS1", "STATUS2", "STATUS3", 
-};
-
-const char* DHCP_strings_D[] = {
-	"DHCP SETTING", "*DHCP ON", "DHCP OFF",
-};
-
-const char* VIDEO_OUT_string_D[] = {
-	"VIDEO_OUT", "*4096X2160P60", "1920X1080P60", "4096X2160P60", "4096X2160P60",
-};
+//用来存储网络配置信息: 网口1：ip, mask gateway.网口2: ip, mask gateway 共6个
+char net_info_D[6][16] = {{0}, {0}, {0}, {0}, {0}, {0}};
 
 typedef struct
 {
@@ -93,8 +107,131 @@ const char *FIRMWARE_SHOWWING_D[4] 		= 	{NULL, NULL, NULL, NULL};
 const char *DEVICE_STATUS_SHOWWING_D[4] = 	{NULL, NULL, NULL, NULL};
 
 //记录中括号的X坐标位置
-//static int last_x = 0, now_x = 0;
 static int move_limit_D = 0; 
+
+/*
+	1.首先获取初始化数据，既要显示的东西
+	2.如果有更改，那么就要往P3K发消息。send
+	3.是不是要再获取一次，看有没有真正改变了。那么这个显示速度问题。
+*/
+int save_LAN_info_D()
+{
+	int i = 0;
+	for (i = 0; i < 6; i++)
+	{
+		net_info_D[i][15] = '\0';
+	}
+	get_ip(LAN1_ID_D, net_info_D[0], net_info_D[1], net_info_D[2]);
+	get_ip(LAN2_ID_D, net_info_D[3], net_info_D[4], net_info_D[5]);
+	
+}
+
+int save_VIDEO_SELECT_info_D()
+{
+	int i = 0;
+	memset(video_select_buf, 0, MIN_SIZE_D*SIZE_D);
+
+	VIDEO_LIST(video_select_buf);
+	
+	for(i = 1; i < MIN_SIZE_D+1; i++)
+	{
+		SAVE_VIDEO_SELECT_D[i] = video_select_buf[i-1];
+	}
+}
+
+int save_FIREWARE_info_D()
+{
+	int i = 0;
+	memset(firmware_buf, 0, MIN_SIZE_D*SIZE_D);
+
+	get_FIRMWARE_INFO(firmware_buf);
+	
+	for(i = 1; i < MIN_SIZE_D+1; i++)
+	{
+		FIRMWARE_strings_D[i] = firmware_buf[i-1];
+	}
+}
+
+int save_DEVICE_STATUS_info_D()
+{
+	int i = 0;
+	int status = -1;
+	get_DEVICE_STATUS(&status);
+	DEVICE_STATUS_strings_D[1] = device_status[status+1];
+}
+
+int get_current_VIDEO_OUT_info_D()
+{
+	int s;
+	int res_type;
+	get_VIDEO_OUT(&res_type);
+	switch(res_type)
+	{
+		case NO_SIGNAL:
+		{
+			s =1;
+			break;
+		}
+		case VIDEO_OUT_74:
+		{
+			s = 2;
+			break;
+		}
+		case VIDEO_OUT_73:
+		{
+			s = 3;
+			break;
+		}
+		case VIDEO_OUT_16:
+		{
+			s = 4;
+			break;
+		}
+		case VIDEO_OUT_31:
+		{
+			s = 5;
+			break;
+		}
+		case VIDEO_OUT_4:
+		{
+			s = 6;
+			break;
+		}
+
+	}
+	VIDEO_OUT_string_D[1] = video_out[s];
+
+}
+
+void save_display_info_D()
+{
+	
+	init_p3k_client("192.168.60.77", 5000);
+	
+	save_LAN_info_D();
+	save_VIDEO_SELECT_info_D();
+	save_FIREWARE_info_D();
+	save_DEVICE_STATUS_info_D();
+	get_current_VIDEO_OUT_info_D();
+}
+
+
+u8 get_elem_num_D(const char **buf, int num)
+{
+	u8 i = 0;
+	while (i < num)
+	{
+		if (buf[i] == NULL|| strlen(buf[i]) == 0)
+		{
+			break;
+		}
+		i++;
+	}
+
+	printf("count=%d\n", i);
+	return i;
+	
+}
 
 /*
 	y: 显示起始列坐标,要取8的整数倍, 0, 8, 16 .... 8*15
@@ -123,16 +260,13 @@ void show_menu_info_D(int y, u8 begin_elem, const char *dest[], const char *src[
 
 	for (i+=1; i < 4; i++)
 	{
-		dest[i] = " ";
+		dest[i] = blank;
 	}
 	
 	//显示
 	for (i = 1; i < 4; i++)
 	{
-		if (dest[i][0] == '*')
-			show_strings(x+2*i, 8, dest[i], strlen(dest[i]));
-		else
-			show_strings(x+2*i, y, dest[i], strlen(dest[i]));
+		show_strings(x+2*i, y, dest[i], strlen(dest[i]));
 	}
 
 }
@@ -208,7 +342,6 @@ info_param down_up_respond_D(int count, info_param param, const char* showwing_s
 						{
 							clear_three_line();
 							show_menu_info_D(y, p-3, showwing_strings, src_string, 3);
-							//first_page = 1;
 						}
 						x = 2;
 					}
@@ -274,11 +407,13 @@ static int recv_key_info_D()
 int IPD5000_MAIN_MENU_SHOW(void)
 {
 	printf("this is IPD5000\n");
+	save_display_info_D();
+	
 	u8 count = sizeof(MAIN_MENU_strings_D)/(sizeof(char*));
 	int p = 4; 
 	int y = 8;
 	int x = 2; //方括号位置
-	int last_page = 0, first_page = 0;
+	int last_page = 0;
 	
 	info_param param;
 	param.x = x;
@@ -315,38 +450,37 @@ int IPD5000_MAIN_MENU_SHOW(void)
 			case ENTER_KEY:
 			{
 				do {
-					if ( strcmp(MAIN_MENU_SHOWWING_D[param.x/2], MAIN_MENU_strings_D[1]) == 0) // IP SETTING
-					{
-						//进入二级目录IP SET显示界面
-						IP_SETTING_MENU_SHOW_D();
-						break;
-					}
-					
-					if ( strcmp(MAIN_MENU_SHOWWING_D[param.x/2], MAIN_MENU_strings_D[2]) == 0) // VEDIO IN SELECET
+					if ( MAIN_MENU_SHOWWING_D[param.x/2] == MAIN_MENU_strings_D[1]) // VEDIO SELECET
 					{
 						VIDEO_IN_SELECT_SHOW_D();
 						break;
 					}
 					
-					if ( strcmp(MAIN_MENU_SHOWWING_D[param.x/2], MAIN_MENU_strings_D[3]) == 0) // HDCP SETTING
+					if (MAIN_MENU_SHOWWING_D[param.x/2] == MAIN_MENU_strings_D[2]) // IP SETTING
 					{
-						DHCP_SHOW_D();
+						IP_SETTING_MENU_SHOW_D();
 						break;
 					}
 					
-					if ( strcmp(MAIN_MENU_SHOWWING_D[param.x/2], MAIN_MENU_strings_D[4]) == 0) // FIRMWARE INFO
+					if (MAIN_MENU_SHOWWING_D[param.x/2] == MAIN_MENU_strings_D[3]) // HDCP SETTING
+					{
+						HDCP_SHOW_D();
+						break;
+					}
+	
+					if ( MAIN_MENU_SHOWWING_D[param.x/2] == MAIN_MENU_strings_D[4]) //  VEDIO OUT RES
+					{
+						VEDIO_OUT_RES_SHOW_D();
+						break;
+					}
+					if (MAIN_MENU_SHOWWING_D[param.x/2] == MAIN_MENU_strings_D[5]) // FIRMWARE INFO
 					{
 						FIRMWARE_INFO_SHOW_D();
 						break;
 					}
-					if ( strcmp(MAIN_MENU_SHOWWING_D[param.x/2], MAIN_MENU_strings_D[5]) == 0) //  DEVICE STATUS
+					if (MAIN_MENU_SHOWWING_D[param.x/2], MAIN_MENU_strings_D[6]) // DEVICE STATUS
 					{
 						DEVICE_STATUS_SHOW_D();
-						break;
-					}
-					if ( strcmp(MAIN_MENU_SHOWWING_D[param.x/2], MAIN_MENU_strings_D[6]) == 0) //  VEDIO OUT RES
-					{
-						VEDIO_OUT_RES_SHOW_D();
 						break;
 					}
 				}while(0);
@@ -386,14 +520,13 @@ void IP_SETTING_MENU_SHOW_D(void)
 	int p = 4; 
 	int y = 16;
 	int x = 2; //方括号位置
-	int last_page = 0, first_page = 0;
+	int last_page = 0;
 
 	info_param param;
 	param.x = x;
 	param.y = y;
 	param.p = p;
 	param.last_page = last_page;
-	//param.first_page = last_page;
 
 	clear_whole_screen();
 	show_strings(0, y, IP_SET_strings_D[0], strlen(IP_SET_strings_D[0]) ); 
@@ -416,26 +549,18 @@ void IP_SETTING_MENU_SHOW_D(void)
 			case RIGHT_KEY:
 			case ENTER_KEY:
 			{
-				do {
-					if (strcmp(IP_SET_SHOWWING_D[param.x/2], IP_SET_strings_D[1]) == 0) 
-					{
-						LAN_MODE_MENU_SHOW_D();
-						break;
-					}
-					
-					if (strcmp(IP_SET_SHOWWING_D[param.x/2], IP_SET_strings_D[2]) == 0)
-					{
-						LAN_MODE_MENU_SHOW_D();
-						break;
-					}
-					
-					if (strcmp(IP_SET_SHOWWING_D[param.x/2], IP_SET_strings_D[3]) == 0)
-					{
-						LAN_MODE_MENU_SHOW_D();		
-						break;
-					}
-				} while(0);
-					
+				//LAN1
+				if (param.x == 2)
+				{
+					LAN_MODE_MENU_SHOW_D(LAN1_ID_D);
+				}
+
+				//LAN2
+				if (param.x == 4)
+				{
+					LAN_MODE_MENU_SHOW_D(LAN2_ID_D);
+				}	
+
 				clear_whole_screen();
 				//从子目录出来，继续显示
 				int i;
@@ -467,17 +592,22 @@ void IP_SETTING_MENU_SHOW_D(void)
 }
 
 //三级目录 LAN MODE 菜单栏显示
-void LAN_MODE_MENU_SHOW_D(void) //DHCP OR STATIC
+void LAN_MODE_MENU_SHOW_D(int lan_id) //DHCP OR STATIC
 {
-	//su8 count = sizeof(LAN_MODE_strings_D)/(sizeof(char*)); //IP_SET_strings的元素个数
- 
+	int i = 0;
 	int y = 16; //有*要显示
 	int x = 2; //方括号位置
-
+	
+	int DHCP_status = -1;
+	get_DHCP_status(lan_id, &DHCP_status);
+	
 	clear_whole_screen();
 	show_strings(0, y, LAN_MODE_strings_D[0], strlen(LAN_MODE_strings_D[0]) ); 
 	show_menu_info_D(y, 1, LAN_MODE_SHOWWING_D, LAN_MODE_strings_D, 2);
 	show_square_breakets(x);
+
+	//显示status： DHCP STATIS 
+	show_a_star(4 - (2 * DHCP_status)); // x = 2 DHCP, x = 4 STATIC 
 
 	int key = 0;
 	while (1)
@@ -485,78 +615,47 @@ void LAN_MODE_MENU_SHOW_D(void) //DHCP OR STATIC
 		key = recv_key_info_D();
 		switch (key)
 		{
-			//if (g_down_key == 1) 
 			case DOWN_KEY:
 			{
-				x += 2;
-				if (x <= 4)
-				{
-					show_square_breakets(x);
-				}
-				else
+				if (x == 2)
 				{
 					x = 4;
-				}
-				break;
-			}
-			
-			//if (g_up_key == 1)
-			case UP_KEY:
-			{
-				x -= 2;
-				if (x >= 2)
-				{
 					show_square_breakets(x);
 				}
-				else
-				{
-					x = 2;
-				}
 				break;
 			}
 			
-			//if (g_right_key == 1 || g_ok_key == 1) 		//进入子目录
+			case UP_KEY:
+			{
+				if (x == 4)
+				{
+					x = 2;
+					show_square_breakets(x);
+				}
+				
+				break;
+			}
+			
 			case RIGHT_KEY:
 			case ENTER_KEY:
 			{				
-				u8 m;
-				show_a_star(x);			//[]在哪里，* 就显示在哪里行
 				if (x == 2)
 				{
-					//显示内容变化
-					LAN_MODE_SHOWWING_D[1] = LAN_MODE_strings_D[1] = "*DHCP";
-					LAN_MODE_SHOWWING_D[2] = LAN_MODE_strings_D[2] = "STATIC";
-					
-					DHCP_strings_D[1] = "*DHCP ON";
-					DHCP_strings_D[2] = "DHCP 0FF";
-					//通知函数
-					
+					show_a_star(x);			
+					set_DHCP_status(lan_id);
+					DHCP_IP_SHOW_D(lan_id);
 				}
 				
 				if (x == 4) 			//选择static
-				{
-					//显示内容变化
-					LAN_MODE_SHOWWING_D[1] = LAN_MODE_strings_D[1] = "DHCP";
-					LAN_MODE_SHOWWING_D[2] = LAN_MODE_strings_D[2] = "*STATIC";
-					
-					DHCP_strings_D[1] = "DHCP ON";
-					DHCP_strings_D[2] = "*DHCP 0FF";
-					
-					//通知函数
-					
-					//这里设置IP 
-					LAN_OPTION_SHOW_D();
+				{					
+					LAN_OPTION_SHOW_D(lan_id);
 				}
-
 				//继续显示这一级目录
-				int i;
-				for (i = 0; i < 3; i++)
-				{
-					if (LAN_MODE_SHOWWING_D[i][0] == '*')
-						show_strings(i*2, y-8, LAN_MODE_SHOWWING_D[i], strlen(LAN_MODE_SHOWWING_D[i]) );
-					else
-						show_strings(i*2, y, LAN_MODE_SHOWWING_D[i], strlen(LAN_MODE_SHOWWING_D[i]) ); 
-				}
+				get_DHCP_status(lan_id, &DHCP_status);
+				clear_whole_screen();
+				show_strings(0, y, LAN_MODE_strings_D[0], strlen(LAN_MODE_strings_D[0]) ); 
+				show_menu_info_D(y, 1, LAN_MODE_SHOWWING_D, LAN_MODE_strings_D, 2);
+				show_a_star(4 - (2 * DHCP_status));
 				
 				show_square_breakets(x);
 
@@ -574,8 +673,29 @@ void LAN_MODE_MENU_SHOW_D(void) //DHCP OR STATIC
 	
 }
 
+//四级目录
+static void DHCP_IP_SHOW_D(int lan_id)
+{
+	int key = 0;
+	get_ip(lan_id, net_info_D[lan_id*3+0], net_info_D[lan_id*3+1], net_info_D[lan_id*3+2]);
+	
+	clear_whole_screen();
+	show_strings(0, 16, "DHCP", 4);
+	show_strings(2, 0, net_info_D[lan_id*3+0], 15);
+	show_strings(4, 0, net_info_D[lan_id*3+1], 15);
+	show_strings(6, 0, net_info_D[lan_id*3+2], 15);
+	while (1)
+	{
+		key = recv_key_info_D();
+		if (key == LEFT_KEY)
+		{
+			break;
+		}
+	}
+}
+
 //四级目录 
-void LAN_OPTION_SHOW_D() //ip mask gateway
+static void LAN_OPTION_SHOW_D(int lan_id) //ip mask gateway
 {	
 	int y = 16;
 	int x = 2; //方括号位置
@@ -585,7 +705,7 @@ void LAN_OPTION_SHOW_D() //ip mask gateway
 	clear_whole_screen();
 	for (i = 0; i < 4; i++)
 	{
-		show_strings(i*2, y, LAN_OPTION_strings_D[i], strlen(LAN_OPTION_strings_D[i]) );
+		show_strings(i*2, y, LAN_OPTION_strings_D[i], strlen(LAN_OPTION_strings_D[i]));
 	}
 	show_square_breakets(x);
 
@@ -624,26 +744,13 @@ void LAN_OPTION_SHOW_D() //ip mask gateway
 			case RIGHT_KEY:
 			case ENTER_KEY:
 			{
-				do {
-					//ip设置
-					if (x == 2) 
-					{
-						LAN_INFO_SET_D(0, ip_string_D, strlen(ip_string_D));
-						break;
-					}
-					if (x == 4) 
-					{
-						LAN_INFO_SET_D(1, mask_string_D, strlen(mask_string_D));
-						break;
-					}
-					if (x == 6) 
-					{
-						LAN_INFO_SET_D(2, gateway_string_D, strlen(gateway_string_D));
-						break;
-					}
-				} while (0);
+				get_ip(lan_id, net_info_D[lan_id*3], net_info_D[lan_id*3 +1], net_info_D[lan_id*3 +2]);
+
+				//x是坐标，x=2:ip, x=4:mask, x=6:gateway
+				LAN_INFO_SET_D(lan_id, (x/2-1), net_info_D[lan_id*3 + (x/2-1)], strlen(net_info_D[lan_id*3 + (x/2-1)]));
+
+				//子目录出来，继续显示这一级目录
 				clear_whole_screen();
-				//继续显示这一级目录
 				int i;
 				for (i = 0; i < 4; i++)
 				{
@@ -657,7 +764,6 @@ void LAN_OPTION_SHOW_D() //ip mask gateway
 				
 			case LEFT_KEY: //返回上一级目录
 			{
-				clear_whole_screen();
 				return;
 			}
 		}
@@ -667,7 +773,7 @@ void LAN_OPTION_SHOW_D() //ip mask gateway
 }
 
 //五级目录 LAN INFO set
-void LAN_INFO_SET_D(u8 offset, char *string, u8 lenth)  //注意ip显示的起始位置，
+static void LAN_INFO_SET_D(int lan_id, u8 offset, char *string, u8 lenth)
 {
 	u8 x = 0, y = 16, y1 = 0;
 	int i = 0;
@@ -685,15 +791,46 @@ void LAN_INFO_SET_D(u8 offset, char *string, u8 lenth)  //注意ip显示的起�
 		switch (key)
 		{
 			case DOWN_KEY:
-			{			
-				if (string[i] < '9')
+			{		
+				if ( (i%4) == 0) //0,4,8,12
 				{
-					string[i]++;
+					if (string[i] < '2')
+					{
+						string[i]++;
+					}
+					else
+					{
+						string[i] = '0';
+					}
+
 				}
 				else
 				{
-					string[i] = '0';
+					if (string[i-(i%4)] == '2' ) //应为IP最高是255，如果它前面的是2了那么后面两位数字不能超过5
+					{
+						if (string[i] < '5')
+						{
+							string[i]++;
+						}
+						else
+						{
+							string[i] = '0';
+						}
+					}
+					else
+					{
+						if (string[i] < '9')
+						{
+							string[i]++;
+						}
+						else
+						{
+							string[i] = '0';
+						}
+					}
+					
 				}
+				
 				show_a_char(x+2, i*8, string[i], 1);//1
 
 				break;
@@ -701,14 +838,45 @@ void LAN_INFO_SET_D(u8 offset, char *string, u8 lenth)  //注意ip显示的起�
 			
 			case UP_KEY:
 			{
-				if (string[i] > '0')
+				if ( (i%4) == 0) //0,4,8,12
 				{
-					string[i]--;
+					if (string[i] > '0')
+					{
+						string[i]--;
+					}
+					else
+					{
+						string[i] = '2';
+					}
+
 				}
 				else
 				{
-					string[i] = '9';
+					if (string[i-(i%4)] == '2' ) //应为IP最高是255，如果它前面的是2了那么后面两位数字不能超过5
+					{
+						if (string[i] > '0')
+						{
+							string[i]--;
+						}
+						else
+						{
+							string[i] = '5';
+						}
+					}
+					else
+					{
+						if (string[i] > '0')
+						{
+							string[i]--;
+						}
+						else
+						{
+							string[i] = '9';
+						}
+					}
+					
 				}
+				
 				show_a_char(x+2, i*8, string[i], 1); //1
 
 				break;
@@ -722,8 +890,7 @@ void LAN_INFO_SET_D(u8 offset, char *string, u8 lenth)  //注意ip显示的起�
 					i++;
 				
 				if (i > 14)
-					return;
-					//i = 0;
+					i = 0;
 				show_a_char(x+2, i*8, string[i], 1); //在新位置上显示光标 //1
 
 				break;
@@ -747,9 +914,9 @@ void LAN_INFO_SET_D(u8 offset, char *string, u8 lenth)  //注意ip显示的起�
 			case ENTER_KEY:
 			{
 				show_a_char(x+2, i*8, string[i], 0); //取消原来位置的光标
-				//这里需要通知IP已经被改了
-				
-				
+
+				//通知IP已经被改了
+				set_ip(lan_id, net_info_D[lan_id*3], net_info_D[lan_id*3+1], net_info_D[lan_id*3+2]);
 				return; //返回到上一级目录
 			}
 			
@@ -758,14 +925,32 @@ void LAN_INFO_SET_D(u8 offset, char *string, u8 lenth)  //注意ip显示的起�
 	}
 }
 
-//二级目录， 2.2EDID_SET
+
+int show_current_VIDEO_SELECT()
+{
+	int i;
+	int channel_num;
+	get_current_voide_channel(&channel_num);
+	printf("channel:%d\n", channel_num);
+	for(i = 1; i < 4; i++)
+	{
+		if (VIDEO_IN_SHOWWING_D[i] == SAVE_VIDEO_SELECT_D[channel_num])
+		{
+			show_a_star(i*2);
+			break;
+		}
+	}
+}
+
+
+//二级目录，
 void VIDEO_IN_SELECT_SHOW_D(void)
 {
-	u8 count = sizeof(SAVE_VIDEO_IN_SHOWWING_D)/(sizeof(char*));
+	u8 count = get_elem_num_D(SAVE_VIDEO_SELECT_D, MIN_SIZE_D+1);
 	int p = 4; 
 	int y = 16; //有*要显示
 	int x = 2; //方括号位置
-	int last_page = 0, first_page = 0;
+	int last_page = 0;
 	
 	info_param param;
 	param.x = x;
@@ -774,10 +959,13 @@ void VIDEO_IN_SELECT_SHOW_D(void)
 	param.last_page = last_page;
 
 	clear_whole_screen();  //新一级的目录，清屏
-	show_strings(0, y, SAVE_VIDEO_IN_SHOWWING_D[0], strlen(SAVE_VIDEO_IN_SHOWWING_D[0]) ); 
-	show_menu_info_D(y, 1, VIDEO_IN_SHOWWING_D, SAVE_VIDEO_IN_SHOWWING_D, count>4? 3 : count-1);
+	show_strings(0, y, SAVE_VIDEO_SELECT_D[0], strlen(SAVE_VIDEO_SELECT_D[0]) ); 
+	show_menu_info_D(y, 1, VIDEO_IN_SHOWWING_D, SAVE_VIDEO_SELECT_D, count>4? 3 : count-1);
 	show_square_breakets(x);
+	//每次进来要查询当前频道
+	show_current_VIDEO_SELECT();
 
+	int i = 0;
 	int key = 0;
 	while (1)
 	{
@@ -787,33 +975,24 @@ void VIDEO_IN_SELECT_SHOW_D(void)
 			case DOWN_KEY:
 			case UP_KEY:
 			{
-				param = down_up_respond_D(count, param, VIDEO_IN_SHOWWING_D, SAVE_VIDEO_IN_SHOWWING_D, key);
+				param = down_up_respond_D(count, param, VIDEO_IN_SHOWWING_D, SAVE_VIDEO_SELECT_D, key);
 				break;
 			}
 			
-			//if (g_right_key == 1 || g_ok_key == 1) //标记*号
 			case RIGHT_KEY:
 			case ENTER_KEY:
 			{				
-				show_a_star(param.x); 
-				
-				int i, n;
-				for (i = 1; i < count; i++)
+				show_a_star(param.x);
+				for(i = 1; i < count; i++)
 				{
-					if (strstr(ACTIVE_VIDEO_IN_strings_D[i], VIDEO_IN_SHOWWING_D[param.x/2]))
+					if(VIDEO_IN_SHOWWING_D[param.x/2] == SAVE_VIDEO_SELECT_D[i])
 					{
-						//重新换一下牌，
-						for (n = 0; n < count; n++)
-						{
-							if (n == i)
-								SAVE_VIDEO_IN_SHOWWING_D[n] = ACTIVE_VIDEO_IN_strings_D[n];
-							else
-								SAVE_VIDEO_IN_SHOWWING_D[n] = INACTIVE_VIDEO_IN_strings_D[n];
-							//通知函数
-						}
+						select_voide_channel(i);  //频道号是i
 						break;
 					}
 				}
+					
+				show_current_VIDEO_SELECT();
 				
 				break;
 			}
@@ -831,12 +1010,11 @@ void VIDEO_IN_SELECT_SHOW_D(void)
 //二级目录
 void VEDIO_OUT_RES_SHOW_D()
 {
-	
-	u8 count = sizeof(VIDEO_OUT_string_D)/(sizeof(char*));
+	u8 count = 2;
 	int p = 4; 
 	int y = 16; //有*要显示
 	int x = 2; //方括号位置
-	int last_page = 0, first_page = 0;
+	int last_page = 0;
 	
 	info_param param;
 	param.x = x;
@@ -844,56 +1022,50 @@ void VEDIO_OUT_RES_SHOW_D()
 	param.p = p;
 	param.last_page = last_page;
 
+	//获取当前的VIDEO OUT
+	get_current_VIDEO_OUT_info_D();
+		
 	clear_whole_screen();  //新一级的目录，清屏
 	show_strings(0, y, VIDEO_OUT_string_D[0], strlen(VIDEO_OUT_string_D[0]) ); 
-	show_menu_info_D(y, 1, VIDEO_OUT_SHOWWING_D, VIDEO_OUT_string_D, count>4? 3 : count-1);
+	show_strings(2, y, VIDEO_OUT_string_D[1], strlen(VIDEO_OUT_string_D[1]) );
 	show_square_breakets(x);
-
+	
 	int key = 0;
 	while (1)
 	{
 		key = recv_key_info_D();
 		switch (key)
 		{
-			case DOWN_KEY:
-			case UP_KEY:
-			{
-				param = down_up_respond_D(count, param, VIDEO_OUT_SHOWWING_D, VIDEO_OUT_string_D, key);
-				break;
-			}
-			
-			case RIGHT_KEY: //标记*号
-			case ENTER_KEY:
-			{
-				break;
-			}
-			
 			case LEFT_KEY:
 			{
 				return; //返回上一级目录
 			}
 		}
-
 	}
 
 }
 
 //二级目录，DHCP show
-void DHCP_SHOW_D() //仅展示
+void HDCP_SHOW_D() //仅展示
 {
+	u8 count = 3;
+	int i = 0;
 	u8 y = 16;
-	clear_whole_screen();
-
-	int i;
-	for (i = 0; i < 3; i++)
-	{
-		if (DHCP_strings_D[i][0] == '*')
-			show_strings(i*2, y-8, DHCP_strings_D[i], strlen(DHCP_strings_D[i]));
-		else
-			show_strings(i*2, y, DHCP_strings_D[i], strlen(DHCP_strings_D[i]));
-	}
-	
 	int key = 0;
+	clear_whole_screen();
+	
+	//查询ON OFF
+	int status = -1;
+	get_HDCP_status(&status);
+
+	for (i = 0; i < count; i++)
+	{
+		show_strings(i*2, y, HDCP_strings_D[i], strlen(HDCP_strings_D[i]));
+	}
+
+	show_a_star(4 - 2*status );
+	
+	
 	while (1)
 	{
 		key = recv_key_info_D();
@@ -903,25 +1075,23 @@ void DHCP_SHOW_D() //仅展示
 			break;
 		}
 		//其他键，无效。
-		
 	}
 }
 
 //二级目录
 void FIRMWARE_INFO_SHOW_D() //仅展示
 {
-	u8 count = sizeof(FIRMWARE_strings_D)/(sizeof(char*));
+	u8 count = get_elem_num_D(FIRMWARE_strings_D, MIN_SIZE_D+1);
 	int p = 4; 
 	int y = 8;
 	int x = 2; //方括号位置
-	int last_page = 0, first_page = 0;
+	int last_page = 0;
 	
 	info_param param;
 	param.x = x;
 	param.y = y;
 	param.p = p;
 	param.last_page = last_page;
-	//param.first_page = last_page;
 
 	clear_whole_screen();
 	show_strings(0, y, FIRMWARE_strings_D[0], strlen(FIRMWARE_strings_D[0]) ); 
@@ -955,11 +1125,11 @@ void FIRMWARE_INFO_SHOW_D() //仅展示
 //二级目录
 void DEVICE_STATUS_SHOW_D() //仅展示
 {
-	u8 count = sizeof(DEVICE_STATUS_strings_D)/(sizeof(char*));
+	u8 count = get_elem_num_D(DEVICE_STATUS_strings_D, MIN_SIZE_D+1);
 	int p = 4; 
 	int y = 16;
 	int x = 2; //方括号位置
-	int last_page = 0, first_page = 0;
+	int last_page = 0;
 	
 	info_param param;
 	param.x = x;

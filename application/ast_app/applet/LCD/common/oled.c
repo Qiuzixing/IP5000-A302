@@ -123,6 +123,7 @@ void clear_three_line()
 	}
 }
 
+/*
 //竖着刷新三行
 void new_clear_three_line()
 {
@@ -149,7 +150,7 @@ void new_clear_three_line()
 	}
 
 }
-
+*/
 
 void clear_whole_screen()
 {
@@ -298,8 +299,7 @@ void show_strings(u8 x, u8 y, const char *str, u8 lenth)
 		OLED_WR_Byte(0xb0+x+i,OLED_CMD);
 		OLED_WR_Byte(m,OLED_CMD);   //设置起始列的低四位字节
 		OLED_WR_Byte(p,OLED_CMD);   //设置起始列的高四位字节 两个拼起来组成列的起始位置.
-
-		for (t=0; t<lenth; t++)
+		for (t = 0; t < lenth; t++)
 		{
 			offset = get_offset(str[t]);
 			for(n=0; n<8; n++)
@@ -307,7 +307,6 @@ void show_strings(u8 x, u8 y, const char *str, u8 lenth)
 				word[count++] |= char_16_8[offset+i][n];
 			}
 		}
-		
 		//一次写多个字节,在这里写128
 		i2c_write_multi_byte(word, count);
 	}
@@ -331,9 +330,6 @@ void show_square_breakets(u8 x)
 		}
 	}
 
-	//last_x = now_x; 	//更新上一次中括号的位置
-	//now_x = x;			//更新现在中括号的位置。
-	//加上更新屏幕，
 }
 
 void show_a_star(u8 x)

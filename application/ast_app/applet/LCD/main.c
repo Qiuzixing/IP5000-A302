@@ -8,6 +8,7 @@
 #include <fcntl.h>
 
 #include "oled.h"
+
 #include "IPD5000_info_setting.h"
 #include "IPE5000_info_setting.h"
 #include "IPE5000P_info_setting.h"
@@ -34,7 +35,6 @@ int main(int argc, char *argv[])
 	i2c_init(I2C_BUS_NUM, I2C_FREQ, I2C_ADDR, LCD_ON);
 	OLED_Init();
     OLED_DisplayTurn(1); //0正常显示，屏幕翻转显示 
-
 	do 
 	{
 		if (strcmp(argv[1], "IPD5000") == 0)
@@ -64,7 +64,9 @@ int main(int argc, char *argv[])
 			break;
 		}
 	}while (0);
-	
+
 	return 0;
 }
+
+
 

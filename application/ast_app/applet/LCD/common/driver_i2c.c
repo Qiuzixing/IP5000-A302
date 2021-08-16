@@ -156,7 +156,6 @@ int i2c_file_close()
 	data: 要写的字节数组
 	size: 要写的字节数
 */
-
 int i2c_write_multi_byte(u8 *data, u8 size)
 {
 	int i=0, j=0;
