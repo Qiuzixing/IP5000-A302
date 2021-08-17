@@ -22,6 +22,7 @@
 #include "../audio_switch/auto_swtich_socket.h"
 #include "../dante_example_code/app/example/example_rx_uhip.h"
 #include "../set_hdcp_status.h"
+#include "../create_socket.h"
 int APP_Comm_Recv(CmdProtocolParam * param);
 int APP_Comm_Send(U16 CMD,U8 *buf, int len);
 extern int ipc_querycmd_index;
@@ -378,7 +379,7 @@ int APP_Comm_Recv(CmdProtocolParam * param)
             memset(&hdcp_status, 0, sizeof(hdcp_status));
             memcpy(&hdcp_status, &param->Data, sizeof(hdcp_status));
             printf("port[0x%x] hdcp isEncrypted[0x%x] status[0x%x]\n", hdcp_status.port, hdcp_status.isEncrypted, hdcp_status.status);
-            if(board_type_flag == TX_BOARD)
+            if(board_type_flag == IPE5000P)
                 set_hdcp_status(TX_HDCP_STATUS_DIR,hdcp_status.status);
             break;
         case EVENT_HDMI_LINK_STATUS:
@@ -415,6 +416,10 @@ int APP_Comm_Recv(CmdProtocolParam * param)
         case EVENT_HDMI_EDID:
             memset(&edid_data, 0, sizeof(edid_data));
             memcpy(&edid_data,(struct CmdDataEDID *)param->Data, sizeof(edid_data));
+            if(board_type_flag == IPD5000)
+            {
+                send_msg_to_local_socket(edid_data.rawEdid);
+            }
             if(ipc_querycmd_index > 0 && ipc_cmd_list[ipc_querycmd_index - 1].a30_cmd == EVENT_HDMI_EDID)
             {
                 memcpy(ipc_msg.rawEdid, edid_data.rawEdid, sizeof(ipc_msg.rawEdid));
@@ -426,7 +431,7 @@ int APP_Comm_Recv(CmdProtocolParam * param)
             memset(&hdcp_cap, 0, sizeof(hdcp_cap));
             memcpy(&hdcp_cap, &param->Data, sizeof(hdcp_cap));
             printf("port[0x%x] hdcp cap[0x%x]\n", hdcp_cap.port, hdcp_cap.cap);
-            if(board_type_flag == RX_BOARD)
+            if(board_type_flag == IPD5000)
                 set_hdcp_status(RX_HDCP_STATUS_DIR,hdcp_cap.cap);
             if(ipc_querycmd_index > 0 && ipc_cmd_list[ipc_querycmd_index - 1].a30_cmd == EVENT_HDCP_CAP)
             {

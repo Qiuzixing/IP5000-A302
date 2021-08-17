@@ -38,7 +38,7 @@ build : communication_with_mcu ipc_server_listen_one
 	cp -f ./*.bin $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/share/ch6001/
 	cp -f ipc_server_listen_one $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 
-communication_with_mcu : gb_commun_with_mcu.o uds_ipc.o ipc.o set_hdcp_status.o\
+communication_with_mcu : gb_commun_with_mcu.o uds_ipc.o ipc.o set_hdcp_status.o create_socket.o\
 					./audio_switch/audio_switch_cmd.o	\
 					./audio_switch/auto_swtich_socket.o	\
 					./dante_example_code/dante_cmd/dante_cmd_packet.o \
@@ -84,7 +84,7 @@ communication_with_mcu : gb_commun_with_mcu.o uds_ipc.o ipc.o set_hdcp_status.o\
 					./dante_example_code/libs/lib_ddp/src/ddp_audio_read_client.o\
 					./dante_example_code/common/audinate/strcasecmp.o\
 					./dante_example_code/common/audinate/dante_common_util.o
-	$(cc) $(ldflags) -o communication_with_mcu gb_commun_with_mcu.o auto_swtich_socket.o uds_ipc.o ipc.o command_protocol.o command.o uart_mcu_cmd.o ymodem.o dante_cmd_packet.o audio_switch_cmd.o	set_hdcp_status.o\
+	$(cc) $(ldflags) -o communication_with_mcu gb_commun_with_mcu.o auto_swtich_socket.o uds_ipc.o ipc.o command_protocol.o command.o uart_mcu_cmd.o ymodem.o dante_cmd_packet.o audio_switch_cmd.o	set_hdcp_status.o create_socket.o\
 						example_uhip_main.o example_rx_uhip.o example_rx_ddp.o example_tx_uhip.o example_tx_ddp.o example_tx_pb.o example_uhip_common.o rx_timer.o tx_timer.o timer_common.o uart_transport.o \
 						aardvark.o uhip_packet_read.o  uhip_util.o uhip_packet_write.o cobs.o frame.o ddp_packet_read.o ddp_util_opcode.o ddp_audio_write_client.o ddp_network_read_client.o ddp_routing_read_client.o \
 						ddp_routing_write_client.o ddp_clocking_util.o ddp_clocking_read_client.o ddp_local_read_client.o ddp_clocking_write_client.o routing_support.o ddp_util.o ddp_packet_write.o ddp_routing.o \

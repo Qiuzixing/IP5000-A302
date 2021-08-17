@@ -3065,9 +3065,10 @@ if [ -z "$AST_PLATFORM" ]; then
 	exit 1;
 fi
 
+rx_tcp_server &
 handle_button_on_boot
 
-if communication_with_mcu -u ; then
+if communication_with_mcu -u -b 2; then
     UGP_FLAG="success"
 else
 	UGP_FLAG="fail"
@@ -3076,7 +3077,8 @@ if [ $UGP_FLAG = 'success' ];then
 	echo "lock file for @m_lm_query" > /var/lock/@m_lm_query.lck
 	ipc_server_listen_one @m_lm_set @m_lm_get @m_lm_query @m_lm_reply &
 	usleep 1000
-	communication_with_mcu -c &
+	#-b:select board_type 0:IPE5000 1:IPE5000P 2:IPD5000 3:IPD5000W
+	communication_with_mcu -c -b 2 &
 	usleep 10000
 fi
 

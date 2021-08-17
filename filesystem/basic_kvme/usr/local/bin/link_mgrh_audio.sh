@@ -435,7 +435,7 @@ start_alm()
 		echo "lock file for @m_lm_query" > /var/lock/@m_lm_query.lck
 		ipc_server_listen_one @m_lm_set @m_lm_get @m_lm_query @m_lm_reply &
 		usleep 1000
-		communication_with_mcu -t -c &
+		communication_with_mcu -c &
 		usleep 10000
 	fi
 

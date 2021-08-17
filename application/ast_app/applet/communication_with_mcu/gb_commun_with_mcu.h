@@ -27,8 +27,11 @@ enum
 
 enum
 {
-    TX_BOARD = 0,
-    RX_BOARD
+    IPE5000 = 0,
+    IPE5000P,
+    IPD5000,
+    IPD5000W,
+    UNKNOW_BOARD
 };
 
 enum

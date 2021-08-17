@@ -58,7 +58,7 @@ uint8_t Recv_Cmd_Timeout = 0; //read cmd timeout flag
 int ipc_querycmd_index = 0;
 uint8_t up_or_commun_flag = UPGRADE;
 audio_inout_info_struct audio_inout_info;
-uint8_t board_type_flag = RX_BOARD;
+uint8_t board_type_flag = IPE5000P;
 
 
 const ipc_cmd_struct ipc_cmd_list[] =
@@ -836,7 +836,7 @@ static void set_audio_inout_default()
 
 void print_usage() {
 	/* TODO */
-	printf("Usage: communication_with_mcu -u/-c [-h]\n");
+	printf("Usage: communication_with_mcu -u/-c [-b]\n");
 }
 
 int main(int argc, char *argv[])
@@ -850,20 +850,20 @@ int main(int argc, char *argv[])
     static struct option long_options[] = {
         {"upgrade",                     no_argument,       0,  'u' },
 		{"communication",               no_argument,       0,  'c' },
-        {"tx_board",                    no_argument,       0,  't' },
+        {"board_type",                    no_argument,       0,  'b' },
 		{0,                             0,                 0,  0   }
 	};
 
-    while ((opt = getopt_long_only(argc, argv, "", long_options, &long_index )) != -1) {
+    while ((opt = getopt_long_only(argc, argv, "ucb:", long_options, &long_index )) != -1) {
 		switch (opt) {
-		case 'u': 
+		case 'u':
             up_or_commun_flag = UPGRADE;
 			break;
-		case 'c': 
-            up_or_commun_flag = COMMUNICATION; 
+		case 'c':
+            up_or_commun_flag = COMMUNICATION;
 			break;
-        case 't': 
-            board_type_flag = TX_BOARD; 
+        case 'b':
+            board_type_flag = (unsigned char)strtoul(optarg, NULL, 0);
 			break;
 		default:
 			print_usage();
@@ -891,9 +891,8 @@ int main(int argc, char *argv[])
         else
         {
             return 1;
-        }   
+        }
     }
-
     fd_set rset;
     int maxfd = 0;
     int ipc_fd = -1;
