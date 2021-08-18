@@ -1,13 +1,14 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Layout from '../views/Layout/index.vue'
-
+import Login from '../views/Login'
 Vue.use(VueRouter)
 
 const routes = [
   {
     path: '/',
-    redirect: '/main/av_routing'
+    name: 'login',
+    component: Login
   },
   {
     path: '/main',
@@ -49,13 +50,12 @@ const routes = [
   {
     path: '/av_setting',
     component: Layout,
-    redirect: '/av_setting/auto_switch',
     children: [
       {
         path: 'auto_switch',
         component: () => import('../views/AvSetting/AutoSwitch.vue'),
         name: 'auto_switch',
-        meta: { title: 'Auto Switch', desc: 'AV Setting > Auto Switch', icon: 'auto_switch' }
+        meta: { title: 'Auto Switch', desc: 'AV Setting > Auto Switch', icon: 'auto_switch', hidden: true}
       },
       {
         path: 'videoPage',
@@ -176,11 +176,26 @@ const routes = [
         meta: { title: 'General Info', desc: 'About', icon: 'about' }
       }
     ]
-  }
+  },
+  {path: '*',redirect:'/'}
 ]
 
 const router = new VueRouter({
   routes
+})
+router.beforeEach((to, from, next) => {
+  if (to.name && to.name === 'login') {
+    next()
+  } else {
+    // 拦截未登录 => main.js Vue.prototype.$global = {}
+    if (!Vue.prototype.$global.isLogin) {
+      next({
+        path: '/'
+      })
+    } else {
+      next()
+    }
+  }
 })
 export const constantRoutes = routes
 export default router

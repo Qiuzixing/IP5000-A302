@@ -7,11 +7,11 @@
           <span class="setting-title">Input 1</span>
           <v-switch v-model="hdcp[0]" active-value="1" inactive-value="0" @change="setHDCP($event, 1)"></v-switch>
         </div>
-        <div class="setting">
+        <div class="setting" v-if="this.$global.deviceType">
           <span class="setting-title">Input 2</span>
           <v-switch v-model="hdcp[1]" active-value="1" inactive-value="0" @change="setHDCP($event, 2)"></v-switch>
         </div>
-        <div class="setting">
+        <div class="setting" v-if="this.$global.deviceType">
           <span class="setting-title">Input 3</span>
           <v-switch v-model="hdcp[2]" active-value="1" inactive-value="0" @change="setHDCP($event, 3)"></v-switch>
         </div>
@@ -120,8 +120,10 @@ export default {
   },
   created () {
     this.$socket.sendMsg('#HDCP-MOD? 1')
-    this.$socket.sendMsg('#HDCP-MOD? 2')
-    this.$socket.sendMsg('#HDCP-MOD? 3')
+    if (this.$global.deviceType) {
+      this.$socket.sendMsg('#HDCP-MOD? 2')
+      this.$socket.sendMsg('#HDCP-MOD? 3')
+    }
     this.getAVSignal()
     this.getDisplayDelay()
   },

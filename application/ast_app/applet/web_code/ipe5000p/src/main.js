@@ -36,6 +36,11 @@ Vue.component('multiselect', Multiselect)
 Vue.use(vSwitch)
 Vue.prototype.$socket = webSocket
 Vue.prototype.$http = Axios
+Vue.prototype.$global = {
+  isLogin: false,
+  deviceModel: '',
+  deviceType: '' // 1 => DKS-SW3-EN-6X  0 =>KDS-EN-6X
+}
 Vue.config.productionTip = false
 
 new Vue({

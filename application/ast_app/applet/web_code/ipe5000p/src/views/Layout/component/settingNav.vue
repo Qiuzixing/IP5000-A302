@@ -1,12 +1,23 @@
 <template>
   <div class="setting-nav">
     <ul>
-      <li v-for="item in navList" :key="item.title" :class="pathName ===item.path ? 'active' : ''">
-        <router-link  :to="item.path">
-          <icon-svg :icon-class="item.icon" />
-          <span>{{item.title}}</span>
-        </router-link>
-      </li>
+      <template v-for="item in navList">
+        <template v-if="item.meta.hidden">
+          <li v-if="$global.deviceType"  :key="item.meta.title" :class="pathName ===item.path ? 'active' : ''">
+            <router-link  :to="item.path">
+              <icon-svg :icon-class="item.meta.icon" />
+              <span>{{item.meta.title}}</span>
+            </router-link>
+          </li>
+        </template>
+        <li v-else  :key="item.meta.title" :class="pathName ===item.path ? 'active' : ''">
+          <router-link  :to="item.path">
+            <icon-svg :icon-class="item.meta.icon" />
+            <span>{{item.meta.title}}</span>
+          </router-link>
+        </li>
+      </template>
+
     </ul>
     <div class="border-line"></div>
   </div>
@@ -20,7 +31,10 @@ export default {
     return {
       navList: [],
       routerNav: constantRoutes,
-      pathName: ''
+      pathName: '',
+      routerMap: {
+
+      }
     }
   },
   created () {
@@ -36,8 +50,7 @@ export default {
           this.navList = this.routerNav[i].children.map(item => {
             return {
               path: firstPath + '/' + item.path,
-              title: item.meta.title,
-              icon: item.meta.icon
+              meta: item.meta
             }
           })
           break

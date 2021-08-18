@@ -2,7 +2,7 @@
   <header class="header">
     <div>
       <img src="../assets/img/kramer_logo_word.svg" class="logo-word" alt="" />
-      <span class="modelName">KDS-SW3-EN-6X</span>
+      <span class="modelName">{{deviceModel}}</span>
     </div>
     <img src="../assets/img/logo.svg" class="logo" alt="">
   </header>
@@ -10,7 +10,8 @@
 
 <script>
 export default {
-  name: 'headerBar'
+  name: 'headerBar',
+  props: ['deviceModel']
 }
 </script>
 

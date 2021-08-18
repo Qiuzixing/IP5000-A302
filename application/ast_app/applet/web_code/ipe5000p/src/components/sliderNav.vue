@@ -7,7 +7,7 @@
         </a>
       </li>
       <li :class="{'active': checkPathActive('/av_setting'), 'hover': hover == 2}" @click="changeActive(2)" @mouseenter="hover=2" @mouseleave="hover=0">
-        <a href="#/av_setting"><img src="../assets/img/nav/streaming_settings.svg" alt="">
+        <a :href="'#/av_setting/' + (this.$global.deviceType ? 'auto_switch' : 'videoPage') "><img src="../assets/img/nav/streaming_settings.svg" alt="">
           <span class="open-slider-nav">AV Settings</span></a>
       </li>
       <li :class="{'active': checkPathActive('/dev_setting'), 'hover': hover == 3}" @click="changeActive(3)" @mouseenter="hover=3" @mouseleave="hover=0">

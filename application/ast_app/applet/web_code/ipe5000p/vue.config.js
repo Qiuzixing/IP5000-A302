@@ -1,4 +1,4 @@
-const version = 'V1.0.2'
+const version = 'V1.0.3'
 const path = require('path')
 function resolve (dir) {
   return path.join(__dirname, dir)
@@ -91,7 +91,7 @@ if (process.env.NODE_ENV !== 'production') {
       } else if (message.startsWith('#NAME? ')) {
         ws.send('~nn@NAME room-442')
       } else if (message.startsWith('#MODEL? ')) {
-        ws.send('~nn@MODEL dip-20')
+        ws.send(`~nn@MODEL ${['KDS-EN7', 'KDS-SW3-EN7'][Math.floor(Math.random() * 2)]}`)
       } else if (message.startsWith('#HW-VERSION? ')) {
         ws.send('~nn@HW-VERSION 1.12.123')
       } else if (message.startsWith('#NET-MAC? ')) {
@@ -120,6 +120,8 @@ if (process.env.NODE_ENV !== 'production') {
         ws.send('~nn@KDS-GW-ETH 2,0')
       } else if (message.startsWith('#CEC-GW-PORT-ACTIVE? ')) {
         ws.send('~nn@CEC-GW-PORT-ACTIVE 0')
+      } else if (message.startsWith('#LOGIN ')) {
+        ws.send('~nn@login ok')
       } else {
         ws.send(message.replace(/#/i, '@'))
       }

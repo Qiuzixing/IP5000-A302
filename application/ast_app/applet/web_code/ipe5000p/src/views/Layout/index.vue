@@ -1,6 +1,6 @@
 <template>
   <div class="view-container">
-    <header-bar></header-bar>
+    <header-bar :device-model="this.$global.deviceModel"></header-bar>
     <section class="main-container">
       <slider-model class="slider-nav"></slider-model>
       <div class="main-content">

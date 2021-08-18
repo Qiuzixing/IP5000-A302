@@ -109,7 +109,6 @@ export default {
   },
   methods: {
     handleMsg (msg) {
-      console.log(msg)
       if (msg.search(/@PORT-DIRECTION /i) !== -1) {
         this.handleDirection(msg)
         return
@@ -158,6 +157,7 @@ export default {
       }
     },
     handleAudioDestination (msg) {
+      console.log(msg)
       const arr = [0, 0, 0, 0]
       const isSelectSource = msg.match(/[^([]+(?=\])/g)[0].replace(/\s/g, '').split(',')
       isSelectSource.forEach(item => {

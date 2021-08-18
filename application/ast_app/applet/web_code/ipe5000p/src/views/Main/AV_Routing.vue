@@ -1,7 +1,7 @@
 <template>
   <div class="main-setting">
     <div class="setting-model">
-      <div class="setting">
+      <div class="setting" v-if="this.$global.deviceType === 1">
         <span class="setting-title">Input Selection</span>
         <multiselect v-model="inputSelect.val" :options="inputSelect.param" @input="setInputSelect"></multiselect>
       </div>
@@ -94,7 +94,9 @@ export default {
     }
   },
   created () {
-    this.$socket.sendMsg('#X-ROUTE? out.hdmi.1.video.1')
+    if (this.$global.deviceType) {
+      this.$socket.sendMsg('#X-ROUTE? out.hdmi.1.video.1')
+    }
     this.$socket.sendMsg('#KDS-DEFINE-CHANNEL? ')
     this.$socket.sendMsg('#KDS-DEFINE-CHANNEL-NAME? ')
     this.$socket.sendMsg('#X-AUD-LVL? out.analog_audio.1.audio.1')
