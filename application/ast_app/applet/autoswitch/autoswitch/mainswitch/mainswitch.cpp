@@ -31,6 +31,9 @@ QStringList prioritySourceList;
 QStringList sourceList;
 
 
+QString model;
+
+
 MainSwitch::MainSwitch(QObject *parent)
     : QObject(parent),
       isSignalValid(std::string("000")),
@@ -149,6 +152,30 @@ void MainSwitch::writeDefaultJsonConfig()
     }
 #endif
 
+    QFile file(CONFIG_BOARD_PATH);
+    Json::Reader reader;
+    Json::Value root;
+    Json::Value configJson;
+    if (file.exists()) {
+        qDebug() << "Parse board configure.";
+
+        //从文件中读取，保证当前文件存在
+        std::ifstream in(CONFIG_BOARD_PATH, std::ios::binary);
+        if(!in.is_open()) {
+            qDebug() << "open file error:" << CONFIG_BOARD_PATH;
+            return;
+        }
+
+        if (reader.parse(in, configJson)) {
+            if (configJson.isObject() && configJson.isMember("model")) {
+                model = configJson["model"].asCString();
+                model = model.toLower();
+            }
+            qDebug() << "model isMember: " << configJson.isMember("model");
+            qDebug() << "Model:" << model;
+        }
+    }
+
     parseLocalJsonConfig();
 }
 
@@ -158,12 +185,17 @@ bool MainSwitch::parseLocalJsonConfig()
     Json::Reader reader;
     Json::Value root;
 
-    QFile file(CONFIG_FILE_PATH);
+    QString path;
+    path.sprintf("/data/configs/%s/switch/auto_switch_delays.json", qPrintable(model));
+
+    qDebug() << "Path:" << path;
+
+    QFile file(path);
     if (file.exists()) {
         //从文件中读取，保证当前文件存在
-        std::ifstream in(CONFIG_FILE_PATH, std::ios::binary);
+        std::ifstream in(qPrintable(path), std::ios::binary);
         if(!in.is_open()) {
-            qDebug() << "open file error:" << CONFIG_FILE_PATH;
+            qDebug() << "open file error:" << path;
             return ret;
         }
 
@@ -201,10 +233,11 @@ bool MainSwitch::parseLocalJsonConfig()
 
 
             } else {
-                qDebug() << "invalid json file" << CONFIG_FILE_PATH;
+                qDebug() << "invalid json file" << path;
             }
         }
     } else {
+        qDebug() << path << "config file not exists";
         signalLossSwitchingTime = 10*1000;
         manualOverrideInactiveSignalTime = 10*1000;
         plugOutIntervalTime = 0;
@@ -238,12 +271,17 @@ bool MainSwitch::parseConfigFile()
     Json::Reader reader;
     Json::Value root;
 
-    QFile file(CONFIG_FILE_AUTO_SETTING);
+    QString path;
+    path.sprintf("/data/configs/%s/switch/auto_switch_setting.json", qPrintable(model));
+
+    qDebug() << "Auto switch setting path" << path;
+
+    QFile file(path);
     if (file.exists()) {
         //从文件中读取，保证当前文件存在
-        std::ifstream in(CONFIG_FILE_AUTO_SETTING, std::ios::binary);
+        std::ifstream in(qPrintable(path), std::ios::binary);
         if(!in.is_open()) {
-            qDebug() << "open file error:" << CONFIG_FILE_AUTO_SETTING;
+            qDebug() << "open file error:" << path;
             return ret;
         }
 
@@ -307,13 +345,13 @@ bool MainSwitch::parseConfigFile()
 
 
             } else {
-                qDebug() << "invalid json file" << CONFIG_FILE_AUTO_SETTING;
+                qDebug() << "invalid json file" << path;
             }
         } else {
-            qDebug() << "parse json file error" << CONFIG_FILE_AUTO_SETTING;
+            qDebug() << "parse json file error" << path;
         }
     } else {
-        qDebug() << CONFIG_FILE_AUTO_SETTING << "config file not exists";
+        qDebug() << path << "config file not exists";
         qDebug() << "default currentMode:" << currentMode;
         priorityList.append(INPUT_HDMI1);
         priorityList.append(INPUT_HDMI2);

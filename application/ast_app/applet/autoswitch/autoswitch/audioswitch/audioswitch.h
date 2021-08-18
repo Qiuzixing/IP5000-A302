@@ -17,6 +17,10 @@
 #define AUDIO_CONFIG_FILE_PATH  "/data/configs/kds-6x/audio/audio_setting.json"
 #endif
 
+#ifndef CONFIG_BOARD_PATH
+#define CONFIG_BOARD_PATH  "/etc/board_info.json"
+#endif
+
 #ifndef AUDIO_INPUT_MAX
 #define AUDIO_INPUT_MAX 3
 #endif
