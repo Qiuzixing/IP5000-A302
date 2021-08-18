@@ -344,14 +344,14 @@ handle_re_dir()
 
 	case "$1" in
 		in)
-			ipc @m_lm_set s set_gpio_config:71:1
-			ipc @m_lm_set s set_gpio_val:71:1
-			echo 1 >$IR_SYS_PATH/type
+			ipc @m_lm_set s set_gpio_config:1:71:1
+			ipc @m_lm_set s set_gpio_val:1:71:1
+			echo 1 > $IR_SYS_PATH/type
 		;;
 		out)
-			ipc @m_lm_set s set_gpio_config:71:1
-			ipc @m_lm_set s set_gpio_val:71:0
-			echo 0 >$IR_SYS_PATH/type			
+			ipc @m_lm_set s set_gpio_config:1:71:1
+			ipc @m_lm_set s set_gpio_val:1:71:0
+			echo 0 > $IR_SYS_PATH/type			
 		;;		
 		*)
 			echo "ERROR!!!! Invalid event ($_1) received"
