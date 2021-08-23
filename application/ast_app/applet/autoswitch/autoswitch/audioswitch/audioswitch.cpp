@@ -66,7 +66,7 @@ void AudioSwitch::init()
     modeList.append("priority");
     modeList.append("manual");
 
-    switchModeList.append("last connected");
+    switchModeList.append("last_connected");
     switchModeList.append("priority");
     switchModeList.append("manual");
 }
@@ -271,16 +271,16 @@ bool AudioSwitch::parseConfigFile()
         }
 
         if (reader.parse(in, root)) {
-            if (root.isObject() && root.isMember("audio setting")) {
-                Json::Value switchJson = root["audio setting"];
-                qDebug() << "analog direction isMember: " << switchJson.isMember("analog direction");
-                qDebug() << "switch mode isMember: " << switchJson.isMember("switch mode");
+            if (root.isObject() && root.isMember("audio_setting")) {
+                Json::Value switchJson = root["audio_setting"];
+                qDebug() << "analog_direction isMember: " << switchJson.isMember("analog_direction");
+                qDebug() << "switch_mode isMember: " << switchJson.isMember("switch_mode");
                 qDebug() << "priority isMember: " << switchJson.isMember("priority");
-                qDebug() << "source select isMember: " << switchJson.isMember("source select");
-                qDebug() << "destination select isMember: " << switchJson.isMember("destination select");
-                if (switchJson.isMember("analog direction")) {
-                    QString analogDirection = switchJson["analog direction"].asCString();
-                    qDebug() << "analog direction:" << analogDirection;
+                qDebug() << "source_select isMember: " << switchJson.isMember("source_select");
+                qDebug() << "destination_select isMember: " << switchJson.isMember("destination_select");
+                if (switchJson.isMember("analog_direction")) {
+                    QString analogDirection = switchJson["analog_direction"].asCString();
+                    qDebug() << "analog_direction:" << analogDirection;
                     QString analogCmd;
                     if (analogDirection.toLower() == "in") {
                         isAnalogInput = true;
@@ -294,17 +294,17 @@ bool AudioSwitch::parseConfigFile()
                 }
                 qDebug() << "isAnalogInput:" << isAnalogInput;
 
-                if (switchJson.isMember("switch mode")) {
-                    QString switchModeStr = switchJson["switch mode"].asCString();
-                    qDebug() << "switch mode:" << switchModeStr;
+                if (switchJson.isMember("switch_mode")) {
+                    QString switchModeStr = switchJson["switch_mode"].asCString();
+                    qDebug() << "switch_mode:" << switchModeStr;
                     if (switchModeList.contains(switchModeStr)) {
                         currentMode = switchModeList.indexOf(switchModeStr);
                     }
                 }
                 qDebug() << "currentMode:" << currentMode;
 
-                if (switchJson.isMember("source select")) {
-                    QString portStr = switchJson["source select"].asCString();
+                if (switchJson.isMember("source_select")) {
+                    QString portStr = switchJson["source_select"].asCString();
                     if (audioList.contains(portStr)) {
                         manualPort = audioList.indexOf(portStr);
                     }
@@ -314,7 +314,7 @@ bool AudioSwitch::parseConfigFile()
                         manualPort = priorityList.at(0);
                     }
                     switchToSource(manualPort);
-                    qDebug () << "source select:" << manualPort;
+                    qDebug () << "source_select:" << manualPort;
                 }
 
                 if (switchJson.isMember("priority")) {
@@ -344,15 +344,15 @@ bool AudioSwitch::parseConfigFile()
                     }
                 }
 
-                if (switchJson.isMember("destination select")) {
-                    Json::Value dstJson = switchJson["destination select"];
+                if (switchJson.isMember("destination_select")) {
+                    Json::Value dstJson = switchJson["destination_select"];
                     QStringList dstList;
                     for (int cnt = 0; cnt < dstJson.size(); ++cnt) {
                         QString s = dstJson[cnt].asCString();
                         dstList.append(s);
                     }
                     output = dstList.join(" ");
-                    qDebug() << "destination select:" << dstList;
+                    qDebug() << "destination_select:" << dstList;
                     setCurrentOutput(output);
                 }
             } else {

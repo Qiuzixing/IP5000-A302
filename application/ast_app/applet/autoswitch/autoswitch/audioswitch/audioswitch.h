@@ -14,7 +14,7 @@
 #endif
 
 #ifndef AUDIO_CONFIG_FILE_PATH
-#define AUDIO_CONFIG_FILE_PATH  "/data/configs/kds-6x/audio/audio_setting.json"
+#define AUDIO_CONFIG_FILE_PATH  "/data/configs/kds-7/audio/audio_setting.json"
 #endif
 
 #ifndef AUDIO_INPUT_MAX
