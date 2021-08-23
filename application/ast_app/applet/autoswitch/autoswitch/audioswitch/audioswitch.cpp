@@ -43,8 +43,6 @@ QStringList audioList;
 QStringList modeList;
 QStringList switchModeList;
 
-QString model;
-
 AudioSwitch::~AudioSwitch()
 {
 	if (0 != audioPlugInTimer) {
@@ -71,30 +69,6 @@ void AudioSwitch::init()
     switchModeList.append("last connected");
     switchModeList.append("priority");
     switchModeList.append("manual");
-
-    QFile file(CONFIG_BOARD_PATH);
-    Json::Reader reader;
-    Json::Value root;
-    Json::Value configJson;
-    if (file.exists()) {
-        qDebug() << "Parse board configure.";
-
-        //从文件中读取，保证当前文件存在
-        std::ifstream in(CONFIG_BOARD_PATH, std::ios::binary);
-        if(!in.is_open()) {
-            qDebug() << "open file error:" << CONFIG_BOARD_PATH;
-            return;
-        }
-
-        if (reader.parse(in, configJson)) {
-            if (configJson.isObject() && configJson.isMember("model")) {
-                model = configJson["model"].asCString();
-                model = model.toLower();
-            }
-            qDebug() << "model isMember: " << configJson.isMember("model");
-            qDebug() << "Model:" << model;
-        }
-    }
 }
 
 void AudioSwitch::start()
@@ -128,7 +102,6 @@ void AudioSwitch::audioPlugOutTimeout()
 {
     audioPlugOutTimer->stop();
     qDebug() << __PRETTY_FUNCTION__;
-
     if (runList.size() > 0) {
         int prevSource = runList.at(0);
         switchToSource(prevSource);
@@ -288,15 +261,12 @@ bool AudioSwitch::parseConfigFile()
     Json::Reader reader;
     Json::Value root;
 
-    QString path;
-    path.sprintf("/data/configs/%s/audio/audio_setting.json", qPrintable(model));
-    qDebug() << "Path" << path;
-    QFile file(path);
+    QFile file(AUDIO_CONFIG_FILE_PATH);
     if (file.exists()) {
         //从文件中读取，保证当前文件存在
-        std::ifstream in(qPrintable(path), std::ios::binary);
+        std::ifstream in(AUDIO_CONFIG_FILE_PATH, std::ios::binary);
         if(!in.is_open()) {
-            qDebug() << "open file error:" << path;
+            qDebug() << "open file error:" << AUDIO_CONFIG_FILE_PATH;
             return ret;
         }
 
@@ -386,13 +356,13 @@ bool AudioSwitch::parseConfigFile()
                     setCurrentOutput(output);
                 }
             } else {
-                qDebug() << "invalid json file" << path;
+                qDebug() << "invalid json file" << AUDIO_CONFIG_FILE_PATH;
             }
         } else {
-            qDebug() << "parse json file error" << path;
+            qDebug() << "parse json file error" << AUDIO_CONFIG_FILE_PATH;
         }
     } else {
-        qDebug() << path << "config file not exists";
+        qDebug() << AUDIO_CONFIG_FILE_PATH << "config file not exists";
         qDebug() << "default currentMode:" << currentMode;
         priorityList.append(AUDIO_DANTE);
         priorityList.append(AUDIO_ANALOG);

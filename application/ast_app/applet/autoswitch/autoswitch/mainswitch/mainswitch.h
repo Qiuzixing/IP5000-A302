@@ -20,8 +20,6 @@ class QTimer;
 
 #define HDMI_INPUT_MAX  3
 
-#define CONFIG_BOARD_PATH  "/etc/board_info.json"
-
 #define CONFIG_FILE_PATH    "/data/configs/kds-6x/switch/auto_switch_delays.json"
 #define CONFIG_FILE_AUTO_SETTING	"/data/configs/kds-6x/switch/auto_switch_setting.json"
 //#define DEFAULT_CONFIG_FILE_PATH    "default.json"//"/data/configs/kds-sw3-en-6x/switch/default.json" //"default.json"
