@@ -3,56 +3,80 @@
     <div class="setting-model">
       <div class="setting">
         <span class="setting-title">Maximum Resolution</span>
-        <multiselect :options="maxResolution.param" v-model="maxResolution.val"></multiselect>
+        <multiselect :options="maxResolution.param"
+                     v-model="maxResolution.val"></multiselect>
       </div>
       <div class="setting-model">
         <h3 class="setting-model-title">Display</h3>
         <div class="setting">
           <span class="setting-title">Sleep (5V-off) Delay On Video Signal Loss (sec)</span>
-          <el-input-number v-model="delay['sleep delay on signal loss sec']" controls-position="right" :max="90" :min="0"></el-input-number>
+          <el-input-number v-model="delay.sleep_delay_on_signal_loss_sec"
+                           controls-position="right"
+                           :max="90"
+                           :min="0"></el-input-number>
         </div>
         <div class="setting">
           <span class="setting-title">Shutdown (CEC) Delay On Video Signal Loss (sec)</span>
-          <el-input-number v-model="delay['shutdown delay on signal loss sec']" controls-position="right" :max="90" :min="0"></el-input-number>
+          <el-input-number v-model="delay.shutdown_delay_on_signal_loss_sec"
+                           controls-position="right"
+                           :max="90"
+                           :min="0"></el-input-number>
         </div>
         <div class="setting">
           <span class="setting-title">Wake-up (CEC) Delay On Video Signal Detection (sec)</span>
-          <el-input-number v-model="delay['wake-up delay on signal detection sec']" controls-position="right" :max="90" :min="0"></el-input-number>
+          <el-input-number v-model="delay.wake_up_delay_on_signal_detection_sec"
+                           controls-position="right"
+                           :max="90"
+                           :min="0"></el-input-number>
           <!--          <button class="btn btn-plain-primary" style="margin-left: 24px;" @click="setDisplayDelay">APPLY</button>-->
         </div>
-<!--        <div class="setting">-->
-<!--          <span class="setting-title">Signal Lost Detection(sec)</span>-->
-<!--          <el-input-number controls-position="right" :max="90" :min="0"></el-input-number>-->
-<!--        </div>-->
+        <!--        <div class="setting">-->
+        <!--          <span class="setting-title">Signal Lost Detection(sec)</span>-->
+        <!--          <el-input-number controls-position="right" :max="90" :min="0"></el-input-number>-->
+        <!--        </div>-->
       </div>
       <div class="radio-setting">
         <span class="setting-title">Sleep Image</span>
         <div class="overlay-setting">
           <div class="overlay-setting-item overlay-img">
-            <span class="file-name" style="display: inline-block;">sleep.png</span>
-            <span class="upload-icon" @click="clickUpload">
-                <icon-svg icon-class="upload_img"/>
-              </span>
-            <input type="file" accept="image/jpeg" ref="upload" style="display: none;">
+            <span class="file-name"
+                  style="display: inline-block;">sleep.png</span>
+            <span class="upload-icon"
+                  @click="clickUpload">
+              <icon-svg icon-class="upload_img" />
+            </span>
+            <input type="file"
+                   accept="image/jpeg"
+                   ref="upload"
+                   style="display: none;">
             <br>
-            <button class="btn btn-plain-primary" style="margin-top: 15px;margin-bottom: 15px;">SLEEP</button>
+            <button class="btn btn-plain-primary"
+                    style="margin-top: 15px;margin-bottom: 15px;">SLEEP</button>
           </div>
         </div>
       </div>
-      <div class="radio-setting" style="margin-bottom: 24px;">
+      <div class="radio-setting"
+           style="margin-bottom: 24px;">
         <span class="setting-title">Image Preview</span>
-        <img src="/preview" alt="" style="max-width: 320px;">
+        <img src="/preview"
+             alt=""
+             style="max-width: 320px;">
       </div>
       <div class="setting">
         <span class="setting-title">Force 8-bit Color Depth</span>
-        <v-checkbox v-model="avSignal['color depth']" active-value="8-bit" inactive-value="Follow Output"></v-checkbox>
+        <v-checkbox v-model="avSignal.color_depth"
+                    active-value="8bit"
+                    inactive-value="bypass"></v-checkbox>
       </div>
       <div class="setting">
         <span class="setting-title">Force RGB</span>
-        <v-checkbox v-model="forceRGB" active-value="1" inactive-value="0"></v-checkbox>
+        <v-checkbox v-model="forceRGB"
+                    active-value="1"
+                    inactive-value="0"></v-checkbox>
       </div>
     </div>
-    <footer><button class="btn btn-primary" @click="save">SAVE</button></footer>
+    <footer><button class="btn btn-primary"
+              @click="save">SAVE</button></footer>
   </div>
 </template>
 
@@ -111,27 +135,21 @@ export default {
             label: 'Full HD (1080p50)'
           },
           {
-            value: '74',
-            label: 'Ultra HD 2160p30'
+            value: '73',
+            label: 'Ultra HD 2160p25'
           },
           {
-            value: '73',
-            label: 'Ultra HD 2160p25, etc.'
+            value: '74',
+            label: 'Ultra HD 2160p30'
           }
         ]
       },
       delay: {
-        'sleep delay on signal loss sec': 0,
-        'shutdown delay on signal loss sec': 0,
-        'wake-up delay on signal detection sec': 0
+        sleep_delay_on_signal_loss_sec: 5,
+        shutdown_delay_on_signal_loss_sec: 10,
+        wake_up_delay_on_signal_detection_sec: 10
       },
       avSignal: {
-        'input maximum resolution': 'Pass Through',
-        'maximum bit rate': 'Best Effort',
-        'frame rate percentage': 100,
-        'color depth': 'Follow Output',
-        'audio connection guard time sec': 0,
-        'dante vlan tag': ''
       }
     }
   },
@@ -158,7 +176,6 @@ export default {
       if (msg.search(/@KDS-SCALE /i) !== -1) {
         this.handleResolution(msg)
       }
-
     },
     clickUpload () {
       this.$refs.upload.click()
@@ -167,30 +184,44 @@ export default {
       this.forceRGB = msg.split(',')[1]
     },
     getAVSignal () {
-      this.$http.post('/av_signal').then(msg => {
-        if (msg.data['AV Signal']) {
-          this.avSignal = msg.data['AV Signal']
-        }
-      })
+      this.$http
+        .get(
+          '/device/json?path=/av_signal/av_signal.json&t=' + Math.random()
+        )
+        .then(msg => {
+          if (msg.data.av_signal) {
+            this.avSignal = msg.data.av_signal
+          }
+        })
     },
     setAVSingle () {
-      this.$http.post('/set_av_signal', {
-        'AV Signal': this.avSignal
+      this.$http.post('/device/json', {
+        path: '/av_signal/av_signal.json',
+        info: {
+          av_signal: this.avSignal
+        }
       })
     },
     getDisplayDelay () {
-      this.$http.post('/display/display_sleep').then(msg => {
-        if (msg.data['Display Delays']) {
-          this.delay = msg.data['Display Delays']
-        }
-      })
+      this.$http
+        .get(
+          '/device/json?path=display/display_sleep.json&t=' + Math.random()
+        )
+        .then(msg => {
+          if (msg.data.display_delays) {
+            this.delay = msg.data.display_delays
+          }
+        })
     },
     handleResolution (data) {
       this.maxResolution.val = data.split(',').pop()
     },
     setDisplayDelay () {
-      this.$http.post('/display/set_display_sleep', {
-        'Display Delays': this.delay
+      this.$http.post('/device/json', {
+        path: '/display/display_sleep.json',
+        info: {
+          display_delays: this.delay
+        }
       })
     },
     save () {
@@ -203,11 +234,11 @@ export default {
 }
 </script>
 <style lang="less" scoped>
-.main-setting{
+.main-setting {
   display: flex;
   flex-direction: column;
 }
-.setting-model{
+.setting-model {
   flex: 1;
 }
 .main-setting footer {
@@ -225,12 +256,13 @@ export default {
   align-items: center;
 
   .overlay-setting-item {
-    flex: 1
+    flex: 1;
   }
 
   .overlay-title {
     width: 176px;
-    font-family: 'open sans semiblold', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: "open sans semiblold", -apple-system, BlinkMacSystemFont,
+      "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
 
   .overlay-img {
@@ -242,7 +274,7 @@ export default {
       line-height: 30px;
       padding-right: 25px;
       box-sizing: border-box;
-      border-bottom: 1px solid #4D4D4F;
+      border-bottom: 1px solid #4d4d4f;
     }
 
     //

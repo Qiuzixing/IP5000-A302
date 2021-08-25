@@ -12,9 +12,9 @@ import Axios from 'axios'
 import {
   Dialog,
   InputNumber,
-  DatePicker,
-  TimeSelect,
-  TimePicker,
+  // DatePicker,
+  // TimeSelect,
+  // TimePicker,
   Popover,
   Popconfirm,
   Slider
@@ -31,14 +31,18 @@ Vue.use(Dialog)
 Vue.use(InputNumber)
 Vue.use(Popover)
 Vue.use(Popconfirm)
-Vue.use(DatePicker)
-Vue.use(TimeSelect)
-Vue.use(TimePicker)
+// Vue.use(DatePicker)
+// Vue.use(TimeSelect)
+// Vue.use(TimePicker)
 Vue.use(Slider)
 Vue.component('multiselect', Multiselect)
 Vue.use(vSwitch)
 Vue.prototype.$socket = webSocket
 Vue.prototype.$http = Axios
+Vue.prototype.$global = {
+  isLogin: false,
+  deviceModel: ''
+}
 Vue.config.productionTip = false
 
 new Vue({

@@ -42,8 +42,6 @@ export default {
   },
   methods: {
     handleChange () {
-      // if()
-      console.log(this.disabled)
       this.$nextTick(() => {
         this.$emit('change', this.model)
       })

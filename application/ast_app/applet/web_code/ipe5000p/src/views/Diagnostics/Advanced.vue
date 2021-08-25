@@ -3,16 +3,22 @@
     <div class="setting-model">
       <div class="setting">
         <span class="setting-title">Active Syslog</span>
-        <v-switch v-model="syslog" active-value="1" inactive-value="2"></v-switch>
+        <v-switch v-model="syslog"
+                  active-value="1"
+                  inactive-value="2"
+                  @change="setActiveLog"></v-switch>
       </div>
       <div class="setting">
         <span class="setting-title">Log Reset Policy</span>
-        <multiselect v-model="logResetPolicy" :options="logResetPolicyParam"></multiselect>
+        <multiselect v-model="logResetPolicy"
+                     :options="logResetPolicyParam"
+                     @input="setActiveLog"></multiselect>
       </div>
       <div class="setting">
         <span class="setting-title">Log</span>
         <button class="btn btn-plain-primary">VIEW</button>
-        <button class="btn btn-plain-primary" style="margin-left: 25px">EXPORT</button>
+        <button class="btn btn-plain-primary"
+                style="margin-left: 25px">EXPORT</button>
       </div>
     </div>
     <div class="setting-model">
@@ -77,7 +83,6 @@ export default {
   },
   created () {
     this.$socket.sendMsg('#LOG-ACTION? ')
-    console.log( this.getDay())
     this.$socket.sendMsg('#GTW-MSG-NUM? 1,' + this.getDay())
     this.$socket.sendMsg('#GTW-MSG-NUM? 2')
     this.$socket.sendMsg('#GTW-MSG-NUM? 3')
@@ -93,9 +98,12 @@ export default {
       }
     },
     handleLogAction (msg) {
-      const data = msg.split(' ')
-      this.syslog = data[1]
-      this.logResetPolicy = data[2]
+      const data = msg.split(' ')[1].split(',')
+      this.syslog = data[0]
+      this.logResetPolicy = data[1]
+    },
+    setActiveLog () {
+      this.$socket.sendMsg(`#LOG-ACTION ${this.syslog},${this.logResetPolicy}`)
     },
     handleSendCounter (msg) {
       const data = msg.split(' ')[1].split(',')
@@ -124,10 +132,10 @@ export default {
 }
 </script>
 <style lang="less" scoped>
-.text-center{
+.text-center {
   text-align: center;
 }
-.setting-title{
+.setting-title {
   width: 200px;
 }
 </style>

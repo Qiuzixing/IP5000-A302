@@ -261,11 +261,13 @@ export default {
     },
     setIp () {
       if (this.ipMode0 !== '1') {
+        this.$socket.sendMsg('#NET-DHCP 0,0')
         this.$socket.sendMsg('#NET-CONFIG 0,' + this.ipInfo0.join(','))
       } else {
         this.$socket.sendMsg('#NET-DHCP 0,1')
       }
       if (this.ipMode1 !== '1') {
+        this.$socket.sendMsg('#NET-DHCP 1,0')
         this.$socket.sendMsg('#NET-CONFIG 1,' + this.ipInfo1.join(','))
       } else {
         this.$socket.sendMsg('#NET-DHCP 1,1')

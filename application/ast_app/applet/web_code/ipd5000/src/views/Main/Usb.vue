@@ -4,53 +4,88 @@
       <div class="radio-setting">
         <span class="setting-title">USB over IP</span>
         <div>
-          <radio-component v-model="kvmMode" label="1">Optimized for KVM</radio-component>
-          <radio-component v-model="kvmMode" label="2">USB Emulation</radio-component>
+          <radio-component v-model="kvmMode"
+                           label="1">Optimized for KVM</radio-component>
+          <radio-component v-model="kvmMode"
+                           label="2">USB Emulation</radio-component>
         </div>
       </div>
-<!--      <div class="setting">-->
-<!--        <span class="setting-title">Active KVM </span>-->
-<!--        <v-switch open-text="Enable" close-text="Disable"></v-switch>-->
-<!--      </div>-->
-<!--      <div class="setting">-->
-<!--        <span class="setting-title">Active per Request</span>-->
-<!--        <v-switch open-text="Enable" close-text="Disable"></v-switch>-->
-<!--      </div>-->
+      <!--      <div class="setting">-->
+      <!--        <span class="setting-title">Active KVM </span>-->
+      <!--        <v-switch open-text="Enable" close-text="Disable"></v-switch>-->
+      <!--      </div>-->
+      <!--      <div class="setting">-->
+      <!--        <span class="setting-title">Active per Request</span>-->
+      <!--        <v-switch open-text="Enable" close-text="Disable"></v-switch>-->
+      <!--      </div>-->
       <div class="setting">
         <span class="setting-title">Request Time Out (min)</span>
-        <el-input-number v-model="timeout" controls-position="right" :min="5" :max="10" @blur="checkBlur"></el-input-number>
+        <el-input-number v-model="timeout"
+                         controls-position="right"
+                         :min="5"
+                         :max="10"
+                         @blur="checkBlur"></el-input-number>
       </div>
       <div class="radio-setting">
         <span class="setting-title">Roaming Master/Slaves</span>
         <div>
-          <radio-component v-model="roaming" label="1">Master</radio-component>
-          <radio-component v-model="roaming" label="0">Slaves</radio-component>
+          <radio-component v-model="roaming"
+                           label="1">Master</radio-component>
+          <radio-component v-model="roaming"
+                           label="0">Slaves</radio-component>
         </div>
       </div>
-      <div class="kvm-view" v-if="roaming === '1'">
+      <div class="kvm-view"
+           v-if="roaming === '1'">
         <div class="error-input">
           Row:
-          <el-input-number style="width: 60px;margin-right: 24px;" controls-position="right"  v-model="row" :max="16" :min="1" @change="handleRowKvmMap" @blur="checkBlur"></el-input-number>
+          <el-input-number style="width: 60px;margin-right: 24px;"
+                           controls-position="right"
+                           v-model="row"
+                           :max="16"
+                           :min="1"
+                           @change="handleRowKvmMap"
+                           @blur="checkBlur"></el-input-number>
           Col:
-          <el-input-number style="width: 60px;margin-right: 24px;" controls-position="right"  v-model="col" :max="16" :min="1" @change="handleColKvmMap" @blur="checkBlur"></el-input-number>
+          <el-input-number style="width: 60px;margin-right: 24px;"
+                           controls-position="right"
+                           v-model="col"
+                           :max="16"
+                           :min="1"
+                           @change="handleColKvmMap"
+                           @blur="checkBlur"></el-input-number>
           <!-- <button class="btn btn-primary">CHANGE</button> -->
-          <span class="alert-error" style="top: 40px;" v-if="(col * row) > 16">Maximum 16 Slaves</span>
+          <span class="alert-error"
+                style="top: 40px;"
+                v-if="(col * row) > 16">Maximum 16 Slaves</span>
         </div>
-        <div v-if="(col * row) <= 16"  class="kvm-layout">
-          <div v-for="(rowItem, y) in row" :key="rowItem" >
-            <div v-for="(colItem, x) in col" class="kvm-child" :key="colItem">
-              <icon-svg icon-class="osd" style="margin: 0 auto; width:60px;height:60px;display: block"/>
+        <div v-if="(col * row) <= 16"
+             class="kvm-layout">
+          <div v-for="(rowItem, y) in row"
+               :key="rowItem">
+            <div v-for="(colItem, x) in col"
+                 class="kvm-child"
+                 :key="colItem">
+              <icon-svg icon-class="osd"
+                        style="margin: 0 auto; width:60px;height:60px;display: block" />
               <div style="text-align: center; margin-top: 15px">
-                <radio-component v-model="master" @input="resetCoord" :label="kvmMap[y][x].h + ',' + kvmMap[y][x].v" style="margin-bottom: 5px;">Master</radio-component>
+                <radio-component v-model="master"
+                                 @input="resetCoord"
+                                 :label="kvmMap[y][x].h + ',' + kvmMap[y][x].v"
+                                 style="margin-bottom: 5px;">Master</radio-component>
                 <span style="display: block; margin: 5px 0 0">MAC Address:</span>
-                <input type="text" v-model="kvmMap[y][x].mac" class="setting-text" style="width: 130px;font-size: 14px;text-align: center" />
+                <input type="text"
+                       v-model="kvmMap[y][x].mac"
+                       class="setting-text"
+                       style="width: 130px;font-size: 14px;text-align: center" />
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-    <footer><button class="btn btn-primary" @click="save">SAVE</button></footer>
+    <footer><button class="btn btn-primary"
+              @click="save">SAVE</button></footer>
   </div>
 </template>
 
@@ -71,12 +106,12 @@ export default {
       usbOverIp: '1',
       master: '0,0',
       roaming: '2',
-      roamingMode: false,
       kvmMap: [[{
         h: 0,
         mac: '',
         v: 0
-      }]]
+      }]],
+      kvm: {}
     }
   },
   beforeCreate () {
@@ -97,23 +132,32 @@ export default {
     },
     save () {
       if (this.roaming === '1' && this.col * this.row > 16) return
-      this.$http.post('/usb/set_km_usb', {
-        'USB-KVM_config': {
-          kvm_usb_mode: this.kvmMode,
-          kvm_timeout_sec: this.timeout,
-          km_roaming: this.roaming === '0' ? [] : this.formatKVMData(this.kvmMap)
+      this.kvm.kvm_timeout_sec = this.timeout
+      this.kvm.kvm_usb_mode = this.kvmMode
+      this.kvm.kvm_col = this.col
+      this.kvm.kvm_row = this.row
+      this.kvm.km_roaming = this.roaming === '0' ? [] : this.formatKVMData(this.kvmMap)
+      this.$http.post('/device/json', {
+        path: '/usb/km_usb.json',
+        info: {
+          usb_kvm_config: this.kvm
         }
       })
     },
     getKVMJson () {
-      this.$http.post('/usb/km_usb').then(msg => {
-        if (msg.data) {
-          const data = msg.data['USB-KVM_config']
-          this.timeout = data.kvm_timeout_sec
-          this.kvmMode = data.kvm_usb_mode
-          this.parseKVM(data.km_roaming)
-        }
-      })
+      this.$http
+        .get(
+          '/device/json?path=/usb/km_usb.json&t=' + Math.random()
+        )
+        .then(msg => {
+          if (msg.data.usb_kvm_config) {
+            this.kvm = msg.data.usb_kvm_config
+            this.timeout = this.kvm.kvm_timeout_sec
+            this.kvmMode = this.kvm.kvm_usb_mode
+            this.roaming = this.kvm.km_roaming.length ? '1' : '0'
+            this.parseKVM(this.kvm.km_roaming)
+          }
+        })
     },
     parseKVM (data) {
       this.roaming = data.length > 0 ? '1' : '0'
@@ -227,11 +271,11 @@ export default {
 }
 </script>
 <style lang="less" scoped>
-.main-setting{
+.main-setting {
   display: flex;
   flex-direction: column;
 }
-.setting-model{
+.setting-model {
   flex: 1;
 }
 .main-setting footer {
@@ -239,9 +283,9 @@ export default {
   margin-top: 15px;
   margin-bottom: 15px;
 }
-.main-setting {
-  //overflow-x: auto !important;
-}
+// .main-setting {
+//   //overflow-x: auto !important;
+// }
 .setting-title {
   width: 220px;
 }
@@ -259,11 +303,11 @@ export default {
 //     width: 150px;
 //   }
 // }
-.kvm-child{
+.kvm-child {
   margin: 15px;
   display: inline-block;
 }
-.kvm-layout{
+.kvm-layout {
   white-space: nowrap;
   max-width: 700px;
   max-height: 590px;

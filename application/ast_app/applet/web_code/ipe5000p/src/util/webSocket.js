@@ -5,8 +5,7 @@ const socket = {
   // 收集发送和返回数据
   data: [],
   stopSend: false,
-  host: window.location.protocol === 'http:'
-    ? 'ws://' + window.location.host + '/websocket' : 'wss://' + window.location.host + '/websocket',
+  host: window.location.protocol === 'http:' ? 'ws://' + window.location.host + '/websocket' : 'wss://' + window.location.host + '/websocket',
   // host: 'ws://' + window.location.hostname + ':18888',
   isCreateWs: false,
   supportWs: true,

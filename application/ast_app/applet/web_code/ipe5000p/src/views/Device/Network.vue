@@ -66,7 +66,7 @@
         <h3 class="setting-model-title">Port Configuration</h3>
         <h3 class="setting-model-title" style="width: 80px;">Eth 0</h3>
         <h3 class="setting-model-title" style="width: 80px;">Eth 1</h3>
-        <h3 class="setting-model-title">Dante VLAN tag</h3>
+        <h3 class="setting-model-title">VLAN tag</h3>
       </div>
       <div class="setting">
         <span class="setting-title">P3K Port</span>
@@ -92,7 +92,7 @@
           <el-input-number v-model="danteTag2" controls-position="right" :max="4095" :min="1"></el-input-number>
         </div>
       </div>
-      <div class="setting">
+      <div class="setting" v-if="this.$global.deviceType">
         <span class="setting-title">Dante Port</span>
         <div class="setting-title" style="width: 80px;">
           <radio-component v-model="configPort2" label="0" :isEmpty="true" style="margin-bottom: 0;"></radio-component>
@@ -191,14 +191,16 @@ export default {
     this.$socket.sendMsg('#NET-CONFIG? 1')
     this.$socket.sendMsg('#KDS-GW-ETH? 0')
     this.$socket.sendMsg('#KDS-GW-ETH? 1')
-    this.$socket.sendMsg('#KDS-GW-ETH? 2')
-    this.$socket.sendMsg('#KDS-DANTE-VLANTAG? 0')
-    this.$socket.sendMsg('#KDS-DANTE-VLANTAG? 1')
-    this.$socket.sendMsg('#KDS-DANTE-VLANTAG? 2')
+    this.$socket.sendMsg('#KDS-VLAN-TAG? 0')
+    this.$socket.sendMsg('#KDS-VLAN-TAG? 1')
     this.$socket.sendMsg('#KDS-METHOD? ')
     this.$socket.sendMsg('#KDS-MULTICAST? ')
     this.$socket.sendMsg('#ETH-PORT? TCP')
     this.$socket.sendMsg('#ETH-PORT? UDP')
+    if (this.$global.deviceType) {
+      this.$socket.sendMsg('#KDS-GW-ETH? 2')
+      this.$socket.sendMsg('#KDS-VLAN-TAG? 2')
+    }
   },
   methods: {
     handleMsg (msg) {
@@ -211,7 +213,7 @@ export default {
         this.handleIP(msg)
         return
       }
-      if (msg.search(/@KDS-DANTE-VLANTAG /i) !== -1) {
+      if (msg.search(/@KDS-VLAN-TAG /i) !== -1) {
         this.handleDanteTag(msg)
         return
       }
@@ -272,7 +274,7 @@ export default {
     },
     handleMulticast (msg) {
       const data = msg.split(' ')[1].split(',')
-      this.multicastAddress = parseInt(data[0])
+      this.multicastAddress = data[0]
       this.ttl = parseInt(data[1])
     },
     save () {
@@ -284,10 +286,12 @@ export default {
     setPortConfig () {
       this.$socket.sendMsg('#KDS-GW-ETH 0,' + this.configPort0)
       this.$socket.sendMsg('#KDS-GW-ETH 1,' + this.configPort1)
-      this.$socket.sendMsg('#KDS-GW-ETH 2,' + this.configPort2)
-      this.$socket.sendMsg('#KDS-DANTE-VLANTAG 0,' + this.danteTag1)
-      this.$socket.sendMsg('#KDS-DANTE-VLANTAG 1,' + this.danteTag2)
-      this.$socket.sendMsg('#KDS-DANTE-VLANTAG 2,' + this.danteTag3)
+      this.$socket.sendMsg('#KDS-VLAN-TAG 0,' + this.danteTag1)
+      this.$socket.sendMsg('#KDS-VLAN-TAG 1,' + this.danteTag2)
+      if (this.$global.deviceType) {
+        this.$socket.sendMsg('#KDS-GW-ETH 2,' + this.configPort2)
+        this.$socket.sendMsg('#KDS-VLAN-TAG 2,' + this.danteTag3)
+      }
     },
     setIpCastingMode () {
       this.$socket.sendMsg('#KDS-METHOD ' + this.castMode)
@@ -301,11 +305,13 @@ export default {
     },
     setIp () {
       if (this.ipMode0 !== '1') {
+        this.$socket.sendMsg('#NET-DHCP 0,0')
         this.$socket.sendMsg('#NET-CONFIG 0,' + this.ipInfo0.join(','))
       } else {
         this.$socket.sendMsg('#NET-DHCP 0,1')
       }
       if (this.ipMode1 !== '1') {
+        this.$socket.sendMsg('#NET-DHCP 1,0')
         this.$socket.sendMsg('#NET-CONFIG 1,' + this.ipInfo1.join(','))
       } else {
         this.$socket.sendMsg('#NET-DHCP 1,1')

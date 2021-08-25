@@ -2,40 +2,69 @@
   <div class="main-setting">
     <div class="setting-model">
       <div>
-        <span class="setting-title" style="margin-right: 15px;">Horizontal</span>
-        <el-input-number style="width: 50px;margin-right: 30px;" v-model="col" :max="16" :min="1" controls-position="right"  class="video-wall-child"></el-input-number>
-        <span class="setting-title" style="margin-right: 15px;">Vertical</span>
-        <el-input-number v-model="row" :max="16" :min="1" style="width: 50px;" @change="checkSelectId" class="video-wall-child" controls-position="right"></el-input-number>
+        <span class="setting-title"
+              style="margin-right: 15px;">Horizontal</span>
+        <el-input-number style="width: 50px;margin-right: 30px;"
+                         v-model="col"
+                         :max="16"
+                         :min="1"
+                         controls-position="right"
+                         class="video-wall-child"></el-input-number>
+        <span class="setting-title"
+              style="margin-right: 15px;">Vertical</span>
+        <el-input-number v-model="row"
+                         :max="16"
+                         :min="1"
+                         style="width: 50px;"
+                         @change="checkSelectId"
+                         class="video-wall-child"
+                         controls-position="right"></el-input-number>
       </div>
-      <p class="setting-title" style="margin: 15px 0 0;">Layout</p>
+      <p class="setting-title"
+         style="margin: 15px 0 0;">Layout</p>
       <div class="video-wall">
-          <div class="video-wall-row" v-for="rowItem in row" :key="rowItem">
-            <div class="video-wall-col" @click="selectedId = (rowItem - 1) * col + colItem" :class="{'active': (rowItem - 1) * col + colItem === selectedId}" v-for="colItem in col"  :key="colItem">
-              <span>Screen {{ (rowItem - 1) * col + colItem}}</span>
-            </div>
+        <div class="video-wall-row"
+             v-for="rowItem in row"
+             :key="rowItem">
+          <div class="video-wall-col"
+               @click="selectedId = (rowItem - 1) * col + colItem"
+               :class="{'active': (rowItem - 1) * col + colItem === selectedId}"
+               v-for="colItem in col"
+               :key="colItem">
+            <span>Screen {{ (rowItem - 1) * col + colItem}}</span>
           </div>
+        </div>
       </div>
       <div class="setting">
         <span class="setting-title">Bezel Compensation</span>
-        <el-input-number v-model="bezel" :max="100" :min="0" controls-position="right" @blur="checkBlur"></el-input-number>
+        <el-input-number v-model="bezel"
+                         :max="100"
+                         :min="0"
+                         controls-position="right"
+                         @blur="checkBlur"></el-input-number>
       </div>
       <div class="radio-setting">
         <span class="setting-title">Stretch Type</span>
         <div>
-          <radio-component v-model="stretchType" label="0">Fit In</radio-component>
-          <radio-component v-model="stretchType" label="1">Fit Out</radio-component>
+          <radio-component v-model="stretchType"
+                           label="0">Fit In</radio-component>
+          <radio-component v-model="stretchType"
+                           label="1">Fit Out</radio-component>
         </div>
       </div>
       <div class="setting">
         <span class="setting-title">Video Rotation</span>
-        <multiselect v-model="videoRotation" :options="rotationParam"></multiselect>
+        <multiselect v-model="videoRotation"
+                     :options="rotationParam"></multiselect>
       </div>
       <div class="setting">
         <span class="setting-title">Video Wall Test</span>
-        <v-switch open-text="Start" close-text="Stop"></v-switch>
+        <v-switch open-text="Start"
+                  close-text="Stop"></v-switch>
       </div>
     </div>
-    <footer><button class="btn btn-primary" @click="save">SAVE</button></footer>
+    <footer><button class="btn btn-primary"
+              @click="save">SAVE</button></footer>
   </div>
 </template>
 
@@ -121,17 +150,17 @@ export default {
       this.$socket.sendMsg(`#VIEW-MOD 15,${this.col},${this.row}`)
       this.$socket.sendMsg(`#VIDEO-WALL-SETUP ${this.selectedId},${this.videoRotation}`)
       this.$socket.sendMsg(`#WND-STRETCH ${this.selectedId},${this.stretchType}`)
-      this.$socket.sendMsg(`#WND-BEZEL 0,1,${this.bezel},${this.bezel},${this.bezel},${this.bezel}`)
+      this.$socket.sendMsg(`#WND-BEZEL 0,${this.selectedId},${this.bezel},${this.bezel},${this.bezel},${this.bezel}`)
     }
   }
 }
 </script>
 <style lang="less" scoped>
-.main-setting{
+.main-setting {
   display: flex;
   flex-direction: column;
 }
-.setting-model{
+.setting-model {
   flex: 1;
 }
 .main-setting footer {
@@ -139,61 +168,62 @@ export default {
   margin-top: 15px;
   margin-bottom: 15px;
 }
-.setting-title{
+.setting-title {
   width: 180px;
 }
-table{
+table {
   border: 0;
   padding: 0;
   margin: 0;
-  th,td{
+  th,
+  td {
     border: 0;
     text-align: left;
     padding: 0;
     margin: 0;
   }
-  .title{
-    font-family: 'open sans bold';
-    color: #4D4D4F;
+  .title {
+    font-family: "open sans bold";
+    color: #4d4d4f;
     font-size: 15px;
   }
 }
-.video-wall-setting{
+.video-wall-setting {
   display: flex;
   flex-direction: column;
-  .video-wall-child{
+  .video-wall-child {
     height: 33px;
     margin-bottom: 24px;
     //vertical-align: middle;
   }
-  .setting-title{
+  .setting-title {
     line-height: 33px;
   }
 }
-.video-wall{
+.video-wall {
   margin: 15px 0;
   display: inline-block;
   max-width: 968px;
   max-height: 480px;
   overflow: auto;
-  border: 1px solid #4D4D4F;
-
+  border: 1px solid #4d4d4f;
 }
-.video-wall-row{
+.video-wall-row {
   display: flex;
-  .video-wall-col{
-    font-family: 'open sans semiblold', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  .video-wall-col {
+    font-family: "open sans semiblold", -apple-system, BlinkMacSystemFont,
+      "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     width: 160px;
     height: 90px;
     padding-top: 5px;
     padding-left: 5px;
     flex-shrink: 0;
-    border: 1px solid #4D4D4F;
+    border: 1px solid #4d4d4f;
     box-sizing: border-box;
     background: #fff;
     cursor: pointer;
     user-select: none;
-    &.active{
+    &.active {
       background: rgba(53, 172, 248, 0.7);
       //color: #fff;
     }

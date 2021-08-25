@@ -19,7 +19,7 @@
         <el-slider
           @change="setVolume"
           style="width: 200px"
-          :min="-60" :max="30"
+          :min="0" :max="100"
           :show-tooltip="false"
           v-model="volume"
           :marks="marks">
@@ -28,7 +28,7 @@
       </div>
       <div class="setting" style="margin-top: 36px;">
         <span class="setting-title">Mute</span>
-        <v-switch v-model="muteVal" active-value="1" inactive-value="0" @change="setAudioMute"></v-switch>
+        <v-switch v-model="muteVal" active-value="on" inactive-value="off" @change="setAudioMute"></v-switch>
       </div>
       <div class="setting">
         <span class="setting-title">Play/Stop</span>
@@ -65,8 +65,8 @@ export default {
   data () {
     return {
       marks: {
-        '-60': '-60',
-        30: '30'
+        0: '0',
+        100: '100'
       },
       volume: 0,
       inputSelect: {
@@ -101,7 +101,7 @@ export default {
     this.$socket.sendMsg('#KDS-DEFINE-CHANNEL-NAME? ')
     this.$socket.sendMsg('#X-AUD-LVL? out.analog_audio.1.audio.1')
     this.$socket.sendMsg('#KDS-ACTION? ')
-    this.$socket.sendMsg('#KDS-AUDIO-MUTE? ')
+    this.$socket.sendMsg('#X-MUTE? out.stream.1.audio.1')
     this.$socket.sendMsg('#HDCP-STAT? 1,1')
     this.$socket.sendMsg('#KDS-RESOL? 1,1,1')
     this.$socket.sendMsg('#KDS-RATIO? 1,1,1')
@@ -122,7 +122,7 @@ export default {
         this.handleChannelName(msg)
         return
       }
-      if (msg.search(/@KDS-AUDIO-MUTE /i) !== -1) {
+      if (msg.search(/@X-MUTE /i) !== -1) {
         this.handleAudioMute(msg)
         return
       }
@@ -167,10 +167,10 @@ export default {
       this.$socket.sendMsg(`#KDS-DEFINE-CHANNEL-NAME ${this.channelName}`)
     },
     handleAudioMute (msg) {
-      this.muteVal = msg.split(' ')[1]
+      this.muteVal = msg.split(',').pop()
     },
     setAudioMute (msg) {
-      this.$socket.sendMsg(`#KDS-AUDIO-MUTE ${msg}`)
+      this.$socket.sendMsg(`#X-MUTE out.stream.1.audio.1,${msg}`)
     },
     handleVolume (msg) {
       const data = msg.split(',')

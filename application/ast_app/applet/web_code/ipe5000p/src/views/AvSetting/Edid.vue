@@ -26,7 +26,7 @@
     </div>
     <div class="setting" v-if="edid.val === 'passthru'">
       <span class="setting-title">Read EDID from Specific Decoder</span>
-      <input type="text" class="setting-text" v-model="mac" placeholder="MAC/IP Address" :disabled="edidLock=='1'">
+      <input type="text" class="setting-text" v-model="mac" placeholder="0.0.0.0" :disabled="edidLock=='1'">
       <button class="btn btn-plain-primary" :disabled="edidLock=='1'" style="margin-left: 24px" @click="readEDID">READ</button>
     </div>
   </div>
@@ -106,11 +106,10 @@ export default {
       }
     },
     setEDIDMode (msg) {
-      // const index = this.edidList.length > 0 ? this.edidList[0][0] : 1
       this.$socket.sendMsg(`#EDID-MODE 1,${msg},${this.isSelectListIndex === -1 ? 1 : this.edidListIndex}`)
     },
     handelEDIDRead (msg) {
-      this.mac = msg.split(',')[1]
+      this.mac = msg.split(',')[1] || '0.0.0.0'
     },
     readEDID () {
       this.$socket.sendMsg(`#EDID-NET-SRC 1,${this.mac}`)

@@ -3,16 +3,23 @@
     <div class="setting-model">
       <div class="setting">
         <span class="setting-title">Device Status</span>
-        <div class="device-icon device-active" v-if="deviceStatus === '0'"></div>
-        <span v-if="deviceStatus === '0'" style="margin-left: 12px;">Active</span>
-        <div class="device-icon device-default" v-if="deviceStatus === '1'"></div>
-        <span v-if="deviceStatus === '1'" style="margin-left: 12px;">Standby</span>
+        <div class="device-icon device-active"
+             v-if="deviceStatus === '0'"></div>
+        <span v-if="deviceStatus === '0'"
+              style="margin-left: 12px;">Active</span>
+        <div class="device-icon device-default"
+             v-if="deviceStatus === '1'"></div>
+        <span v-if="deviceStatus === '1'"
+              style="margin-left: 12px;">Standby</span>
       </div>
       <div class="setting">
         <span class="setting-title">Heat level</span>
-        <div class="device-icon device-active" v-if="temperature < 60"></div>
-        <div class="device-icon device-active" v-if="temperature >= 60 && temperature <= 70"></div>
-        <div class="device-icon device-active" v-if="temperature > 70"></div>
+        <div class="device-icon device-active"
+             v-if="temperature < 60"></div>
+        <div class="device-icon device-active"
+             v-if="temperature >= 60 && temperature <= 70"></div>
+        <div class="device-icon device-active"
+             v-if="temperature > 70"></div>
         <span style="margin-left: 12px;">{{temperature}}&#8451; </span>
         <span style="padding: 0 5px">|</span>
         <span v-if="temperature < 60">Normal</span>
@@ -22,32 +29,25 @@
       <div class="setting-model">
         <h3 class="setting-model-title">Input status</h3>
         <div class="setting">
-          <span class="setting-title">HDMI IN1</span>
-          <div class="device-icon" :class="[hdmiin1 ? 'device-active' : 'device-default']"></div>
+          <span class="setting-title">HDMI IN</span>
+          <div class="device-icon"
+               :class="[hdmiin1 ? 'device-active' : 'device-default']"></div>
           <span style="margin-left: 12px;">{{ hdmiin1 ? 'On' : 'Off'}}</span>
         </div>
         <div class="setting">
-          <span class="setting-title">HDMI IN2</span>
-          <div class="device-icon" :class="[hdmiin2 ? 'device-active' : 'device-default']"></div>
+          <span class="setting-title">LAN</span>
+          <div class="device-icon"
+               :class="[hdmiin2 ? 'device-active' : 'device-default']"></div>
           <span style="margin-left: 12px;">{{ hdmiin2 ? 'On' : 'Off'}}</span>
-        </div>
-        <div class="setting">
-          <span class="setting-title">USB IN3</span>
-          <div class="device-icon" :class="[usbin3 ? 'device-active' : 'device-default']"></div>
-          <span style="margin-left: 12px;">{{ usbin3 ? 'On' : 'Off'}}</span>
         </div>
       </div>
       <div class="setting-model">
         <h3 class="setting-model-title">Output status</h3>
         <div class="setting">
-          <span class="setting-title">HDMI Out</span>
-          <div class="device-icon" :class="[hdmiout ? 'device-active' : 'device-default']"></div>
+          <span class="setting-title">HDMI OUT</span>
+          <div class="device-icon"
+               :class="[hdmiout ? 'device-active' : 'device-default']"></div>
           <span style="margin-left: 12px;">{{ hdmiout ? 'On' : 'Off'}}</span>
-        </div>
-        <div class="setting">
-          <span class="setting-title">LAN</span>
-          <div class="device-icon" :class="[lan ? 'device-active' : 'device-default']"></div>
-          <span style="margin-left: 12px;">{{ lan ? 'On' : 'Off'}}</span>
         </div>
       </div>
       <div class="setting-model">
@@ -57,7 +57,9 @@
           <span>Trigger</span>
         </div>
         <div class="res-info">
-          <div class="res-info-item" v-for="(item, index) in log" :key="index">
+          <div class="res-info-item"
+               v-for="(item, index) in log"
+               :key="index">
             <span>{{item.date}} &nbsp;&nbsp; {{item.time}}</span>
             <span>{{item.type === '1' ? 'Auto' : 'Manual'}}</span>
           </div>
@@ -100,7 +102,7 @@ export default {
         this.handleDevStatus(msg)
         return
       }
-      if (msg.search(/@HW‑TEMP /i) !== -1) {
+      if (msg.search(/@HW-TEMP /i) !== -1) {
         this.handleTemp(msg)
         return
       }
@@ -128,73 +130,71 @@ export default {
     },
     handleSignal (msg) {
       this.hdmiin1 = msg.search(/in.hdmi.1/i) !== -1
-      this.hdmiin2 = msg.search(/in.hdmi.2/i) !== -1
-      this.usbin3 = msg.search(/in.usb.3/i) !== -1
-      this.hdmiout = msg.search(/out.hdmi.3/i) !== -1
-      this.lan = msg.search(/out.stream.3/i) !== -1
+      this.hdmiin2 = msg.search(/in.stream.1/i) !== -1
+      this.hdmiout = msg.search(/out.hdmi/i) !== -1
     }
   }
 }
 </script>
 <style lang="less" scoped>
-.setting-title{
+.setting-title {
   width: 150px;
 }
-.device-icon{
+.device-icon {
   width: 28px;
   height: 28px;
 }
-.device-active{
-  background: #41BD64;
+.device-active {
+  background: #41bd64;
   width: 16px;
   height: 16px;
   border-radius: 100%;
 }
-.device-warn{
-  background: #FFCA28;
+.device-warn {
+  background: #ffca28;
   width: 16px;
   height: 16px;
   border-radius: 100%;
 }
-.device-error{
-  background: #D50000;
+.device-error {
+  background: #d50000;
   width: 16px;
   height: 16px;
   border-radius: 100%;
 }
-.device-default{
-  background: #D0D0D0;
+.device-default {
+  background: #d0d0d0;
   width: 16px;
   height: 16px;
   border-radius: 100%;
 }
-.res-title{
+.res-title {
   display: flex;
-  span{
+  span {
     padding: 5px;
-    font-family: 'open sans semiblold';
+    font-family: "open sans semiblold";
   }
-  span:first-child{
+  span:first-child {
     width: 280px;
     background: #f3f3f3;
     margin-right: 24px;
   }
-  span:last-child{
+  span:last-child {
     width: 220px;
     background: #f3f3f3;
   }
 }
-.res-info{
+.res-info {
   max-height: 280px;
   overflow-y: auto;
   .res-info-item {
     display: flex;
-    span{
-      width: 220px;
+    span {
+      width: 280px;
       word-wrap: break-word;
       padding: 5px;
     }
-    span:first-child{
+    span:first-child {
       margin-right: 24px;
     }
   }

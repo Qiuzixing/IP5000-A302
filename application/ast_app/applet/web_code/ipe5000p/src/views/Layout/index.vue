@@ -7,7 +7,7 @@
         <setting-header-bar></setting-header-bar>
         <setting-nav></setting-nav>
         <transition name="fade" mode="out-in">
-          <router-view />
+          <router-view/>
         </transition>
       </div>
     </section>

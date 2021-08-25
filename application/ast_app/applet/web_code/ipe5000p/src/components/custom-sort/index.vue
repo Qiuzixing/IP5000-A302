@@ -57,24 +57,18 @@ export default {
     },
     drop (e, index) {
       this.allowDrop(e)
+      const startIndex = this.dragIndex
       this.dragIndex = -1
       this.dragEnterIndex = -1
       if (index === this.dragIndex) return
       // 使用一个新数组重新排序后赋给原变量
-      const arr = this.value.concat([])
-      const temp = arr.splice(this.dragIndex, 1)
-      arr.splice(index, 0, temp[0])
+      const arr = this.value
+      arr.splice(startIndex, 1, ...arr.splice(index, 1, arr[startIndex]))
       this.$emit('input', arr)
       // this.lists = arr
     },
     dragStart (e, index) {
       this.dragIndex = index
-      // let tar = e.target
-      // e.dataTransfer.setData('Text', index)
-      // if (tar.tagName.toLowerCase() == 'li') {
-      //   // console.log('drag start')
-      //   // console.log('drag Index: ' + index)
-      // }
     }
   }
 }

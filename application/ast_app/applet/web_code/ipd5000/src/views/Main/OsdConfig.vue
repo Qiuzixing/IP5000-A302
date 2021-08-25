@@ -3,30 +3,42 @@
     <div class="setting-model">
       <div class="setting">
         <span class="setting-title">Menu Timeout (sec)</span>
-        <el-input-number v-model="osdConfig['Channel menu'].timeout_sec" controls-position="right" :max="3600" :precision="0" @blur="checkBlur"
+        <el-input-number v-model="osdConfig.timeout_sec"
+                         controls-position="right"
+                         :max="3600"
+                         :precision="0"
+                         @blur="checkBlur"
                          :min="0"></el-input-number>
       </div>
       <div class="setting">
         <span class="setting-title">Channels per Page</span>
-        <el-input-number v-model="osdConfig['Channel menu']['max channels_per page']" controls-position="right" @blur="checkBlur"
-                         :max="10" :min="5"></el-input-number>
+        <el-input-number v-model="osdConfig.max_channels_per_page"
+                         controls-position="right"
+                         @blur="checkBlur"
+                         :max="10"
+                         :min="5"></el-input-number>
       </div>
       <div class="setting">
         <span class="setting-title">Maximum Channels</span>
-        <el-input-number v-model="osdConfig['Channel menu']['max channels']" controls-position="right" :max="999" @blur="checkBlur"
+        <el-input-number v-model="osdConfig.max_channels"
+                         controls-position="right"
+                         :max="999"
+                         @blur="checkBlur"
                          :min="0"></el-input-number>
       </div>
       <div>
         <span class="setting-title">Channel List</span>
         <ul class="edid-list">
           <li>
-            <button class="btn btn-primary" @click="dialogType = 1" :disabled="this.channelList['channels list'].length >= osdConfig['Channel menu']['max channels']">ADD</button>
-            <button class="btn btn-plain-primary" style="margin-left: 24px" type="button">IMPORT</button>
-            <button
-              class="btn btn-plain-primary"
-              type="button"
-              style="margin-left: 24px"
-            >
+            <button class="btn btn-primary"
+                    @click="dialogType = 1"
+                    :disabled="this.channelList.length >= osdConfig.max_channels">ADD</button>
+            <button class="btn btn-plain-primary"
+                    style="margin-left: 24px"
+                    type="button">IMPORT</button>
+            <button class="btn btn-plain-primary"
+                    type="button"
+                    style="margin-left: 24px">
               EXPORT
             </button>
           </li>
@@ -34,43 +46,47 @@
             <span class="channel-title">#ID</span>
             <span>Name</span>
           </li>
-          <li
-            :class="{ active: edidListIndex === index }"
-            v-for="(item, index) in currentData"
-            :key="item.id"
-          >
-            <span @click="edidListIndex = index" class="channel-title">{{ item.id }}</span>
-            <span @click="edidListIndex = index" class="channel-name">{{ item.name }}</span>
+          <li :class="{ active: edidListIndex === index }"
+              v-for="(item, index) in currentData"
+              :key="item.id">
+            <span @click="edidListIndex = index"
+                  class="channel-title">{{ item.id }}</span>
+            <span @click="edidListIndex = index"
+                  class="channel-name">{{ item.name }}</span>
             <span class="channel-icon">
               <span @click="editChannel(index)">
-                <icon-svg style="margin-right: 5px" icon-class="edit" />
+                <icon-svg style="margin-right: 5px"
+                          icon-class="edit" />
               </span>
-              <el-popconfirm :title="'Are you sure you want to delete '+ item.name + '?'" @confirm="deleteChannel(index)">
-                <icon-svg slot="reference" icon-class="rubbish"/>
+              <el-popconfirm :title="'Are you sure you want to delete '+ item.name + '?'"
+                             @confirm="deleteChannel(index)">
+                <icon-svg slot="reference"
+                          icon-class="rubbish" />
               </el-popconfirm>
             </span>
           </li>
         </ul>
-        <div class="channel-list-pagination" style="margin-bottom: 24px">
+        <div class="channel-list-pagination"
+             style="margin-bottom: 24px">
           <span>Page {{ currentPage }} of
             {{countPages()}}</span>
           <div>
-            <span class="channel-list-icon" @click="next(currentPage - 1)"
-            ><img src="../../assets/img/arrow.svg"
-            /></span>
-            <span class="channel-list-icon" @click="next(currentPage + 1)"
-            ><img src="../../assets/img/arrow.svg"
-            /></span>
+            <span class="channel-list-icon"
+                  @click="next(currentPage - 1)"><img src="../../assets/img/arrow.svg" /></span>
+            <span class="channel-list-icon"
+                  @click="next(currentPage + 1)"><img src="../../assets/img/arrow.svg" /></span>
           </div>
         </div>
       </div>
       <div class="setting">
         <span class="setting-title">Menu Font Size</span>
-        <multiselect v-model="osdConfig['Channel menu']['font size']" :options="osdSize.param"></multiselect>
+        <multiselect v-model="osdConfig.font_size"
+                     :options="osdSize.param"></multiselect>
       </div>
       <div class="setting">
         <span class="setting-title">Menu Position</span>
-        <multiselect v-model="osdConfig['Channel menu'].position" :options="osdPosition.param"></multiselect>
+        <multiselect v-model="osdConfig.position"
+                     :options="osdPosition.param"></multiselect>
       </div>
       <!--      <div class="setting">-->
       <!--        <span class="setting-title">Channel Lineup</span>-->
@@ -78,79 +94,86 @@
       <!--      </div>-->
       <div class="setting">
         <span class="setting-title">Display Device Information</span>
-        <v-switch v-model="osdConfig['Device Info'].Enabled" active-value="ON" inactive-value="OFF" @change="setDisplayInfo"></v-switch>
-        <button
-          @click="setDisplayInfo('2')"
-          class="btn"
-          :disabled="osdConfig['Device Info'].Enabled === 'ON'"
-          :class="[osdConfig['Device Info'].Enabled ==='OFF' ? 'btn-plain-primary' : 'btn-default']"
-          type="button"
-          style="margin-left: 24px">DISPLAY NOW</button>
+        <v-switch v-model="osdInfo"
+                  active-value="1"
+                  inactive-value="0"
+                  @change="setDisplayInfo"></v-switch>
+        <button @click="setDisplayInfo('2')"
+                class="btn"
+                :disabled="osdInfo === '0'"
+                :class="[osdInfo ==='1' ? 'btn-plain-primary' : 'btn-default']"
+                type="button"
+                style="margin-left: 24px">DISPLAY NOW</button>
       </div>
     </div>
-    <footer><button class="btn btn-primary" @click="save">SAVE</button></footer>
-    <el-dialog
-      title="Channel"
-      :visible="dialogType == 1"
-      width="400px"
-      :before-close="closeDialog"
-    >
+    <footer><button class="btn btn-primary"
+              @click="save">SAVE</button></footer>
+    <el-dialog title="Channel"
+               :visible="dialogType == 1"
+               width="400px"
+               :before-close="closeDialog">
       <div class="setting">
-        <span class="setting-title" style="width: 80px">ID</span>
-        <div style="position: relative;flex: 1" :class="{'error-input': idError}">
-          <input
-            type="text"
-            maxlength="3"
-            v-model="addChannel.id"
-            class="setting-text"
-          />
+        <span class="setting-title"
+              style="width: 80px">ID</span>
+        <div style="position: relative;flex: 1"
+             :class="{'error-input': idError}">
+          <input type="text"
+                 maxlength="3"
+                 v-model="addChannel.id"
+                 class="setting-text" />
           <span class="alert-error">Numbers only</span>
         </div>
       </div>
       <div class="setting">
-        <span class="setting-title" style="width: 80px">Name</span>
-        <div style="position: relative;flex: 1" :class="{'error-input': idError}">
-          <input
-            type="text"
-            maxlength="24"
-            v-model="addChannel.name"
-            class="setting-text"
-          />
+        <span class="setting-title"
+              style="width: 80px">Name</span>
+        <div style="position: relative;flex: 1"
+             :class="{'error-input': idError}">
+          <input type="text"
+                 maxlength="24"
+                 v-model="addChannel.name"
+                 class="setting-text" />
           <span class="alert-error">Name must be 1 to 24 characters in length, <br>alphanumeric only and space</span>
         </div>
       </div>
-      <span v-if="idRulerError" style="color: #d50000;font-size: 14px;font-family: open sans bold;">This id already exists</span>
-      <span slot="footer" class="dialog-footer" style="padding: 0">
-         <button class="btn btn-primary" @click="handleAddChannel">APPLY</button>
-        </span>
+      <span v-if="idRulerError"
+            style="color: #d50000;font-size: 14px;font-family: open sans bold;">This id already exists</span>
+      <span slot="footer"
+            class="dialog-footer"
+            style="padding: 0">
+        <button class="btn btn-primary"
+                @click="handleAddChannel">APPLY</button>
+      </span>
     </el-dialog>
-    <el-dialog
-      title="Channel Edit"
-      :visible="dialogType == 2"
-      width="400px"
-      :before-close="closeDialog"
-    >
+    <el-dialog title="Channel Edit"
+               :visible="dialogType == 2"
+               width="400px"
+               :before-close="closeDialog">
       <div class="setting">
-        <span class="setting-title" style="width: 80px">ID</span>
+        <span class="setting-title"
+              style="width: 80px">ID</span>
         <div style="position: relative;flex: 1">
           {{editObj.id}}
         </div>
       </div>
       <div class="setting">
-        <span class="setting-title" style="width: 80px">Name</span>
-        <div style="position: relative;flex: 1" :class="{'error-input': editError}">
-          <input
-            type="text"
-            maxlength="24"
-            v-model="editObj.name"
-            class="setting-text"
-          />
+        <span class="setting-title"
+              style="width: 80px">Name</span>
+        <div style="position: relative;flex: 1"
+             :class="{'error-input': editError}">
+          <input type="text"
+                 maxlength="24"
+                 v-model="editObj.name"
+                 class="setting-text" />
           <span class="alert-error">Name must be 1 to 24 characters in length, <br>alphanumeric only and space.</span>
         </div>
       </div>
-      <span slot="footer" class="dialog-footer" style="padding: 0">
-         <button class="btn btn-primary" @click="handleEditChannel">APPLY</button>
-        </span>
+      <span slot="footer"
+            class="dialog-footer"
+            style="padding: 0">
+        <button class="btn btn-primary"
+                @click="handleEditChannel">APPLY</button>
+      </span>
     </el-dialog>
   </div>
 </template>
@@ -160,18 +183,13 @@ export default {
   name: 'osd',
   data () {
     return {
+      osdInfo: '0',
       osdConfig: {
-        'Channel menu': {
-          timeout_sec: 0,
-          position: 'TopCenter',
-          'font size': 'Small',
-          'max channels_per page': 5,
-          'max channels': 999
-        },
-        'Device Info': {
-          Enabled: 'OFF',
-          Timeout: 2
-        }
+        timeout_sec: 100,
+        position: 'top_center',
+        font_size: 'small',
+        max_channels_per_page: 10,
+        max_channels: 999
       },
       dialogType: 0,
       edidListIndex: 0,
@@ -197,50 +215,48 @@ export default {
         ]
       },
       osdPosition: {
-        val: 'topleft',
+        val: 'top_left',
         param: [
           {
-            value: 'topleft',
+            value: 'top_left',
             label: 'Top Left'
           },
           {
-            value: 'top',
-            label: 'Top'
+            value: 'top_right',
+            label: 'Top Right'
           },
           {
-            value: 'topright',
-            label: 'Top Right'
+            value: 'top_center',
+            label: 'Top Center'
+          },
+          {
+            value: 'bottom_left',
+            label: 'Bottom Left'
+          },
+          {
+            value: 'bottom_right',
+            label: 'Bottom Right'
+          },
+          {
+            value: 'bottom_center',
+            label: 'Bottom Center'
           },
           {
             value: 'left',
             label: 'Left'
           },
           {
-            value: 'center',
-            label: 'Center'
-          },
-          {
             value: 'right',
             label: 'Right'
           },
           {
-            value: 'bottomleft',
-            label: 'Bottom Left'
-          },
-          {
-            value: 'bottom',
-            label: 'Bottom'
-          },
-          {
-            value: 'bottomright',
-            label: 'Bottom Right'
+            value: 'center',
+            label: 'Center'
           }
         ]
       },
       displayDevice: false,
-      channelList: {
-        'channels list': []
-      },
+      channelList: [],
       addChannel: {
         id: '',
         name: ''
@@ -258,32 +274,48 @@ export default {
   },
   computed: {
     currentData () {
-      if (this.channelList['channels list']) {
-        const start = (this.currentPage - 1) * this.osdConfig['Channel menu']['max channels_per page']
-        const end = this.currentPage * this.osdConfig['Channel menu']['max channels_per page']
-        return this.channelList['channels list'].slice(start, end)
+      if (this.channelList.length > 0) {
+        const start = (this.currentPage - 1) * this.osdConfig.max_channels_per_page
+        const end = this.currentPage * this.osdConfig.max_channels_per_page
+        return this.channelList.slice(start, end)
       }
       return []
     }
   },
+  beforeCreate () {
+    this.$socket.ws.onmessage = msg => {
+      this.handleMsg(msg.data.trim())
+    }
+  },
   created () {
+    this.$socket.sendMsg('#KDS-OSD-DISPLAY? ')
     this.getOsdJson()
     this.getAvChannelMap()
   },
   methods: {
+    handleMsg (msg) {
+      console.log(msg)
+      if (msg.search(/@KDS-OSD-DISPLAY /i) !== -1) {
+        this.handleOsdInfo(msg)
+      }
+    },
     getOsdJson () {
-      this.$http.post('/osd/overlay').then(msg => {
-        if (msg.data) {
-          this.osdConfig = msg.data
+      this.$http.post('/device/json?path=/osd/osd.json&t=' + Math.random()).then(msg => {
+        if (msg.data.channel_menu) {
+          this.osdConfig = msg.data.channel_menu
         }
       })
     },
     getAvChannelMap () {
-      this.$http.post('/channel/channel_map').then(msg => {
-        if (msg.data) {
-          this.channelList = msg.data
-        }
-      })
+      this.$http
+        .get(
+          '/device/json?path=/channel/channel_map.json&t=' + Math.random()
+        )
+        .then(msg => {
+          if (msg.data.channels_list) {
+            this.channelList = msg.data.channels_list
+          }
+        })
     },
     next (num) {
       const pageCount = this.countPages()
@@ -300,34 +332,34 @@ export default {
       if (this.idError || this.nameError) return
       // this id already exists
       let isExists = false
-      for (const i in this.channelList['channels list']) {
-        if (this.channelList['channels list'][i].id === this.addChannel.id) {
+      for (const i in this.channelList) {
+        if (this.channelList[i].id === this.addChannel.id) {
           isExists = true
         }
       }
       this.idRulerError = isExists
       if (isExists) return
-      this.channelList['channels list'].push({
+      this.channelList.push({
         id: parseInt(this.addChannel.id),
         name: this.addChannel.name
       })
-      this.channelList['channels list'] = this.sortChannel(this.channelList['channels list'])
+      this.channelList = this.sortChannel(this.channelList)
       this.dialogType = 0
     },
     sortChannel (channelList) {
       return channelList.sort((a, b) => a.id - b.id)
     },
     deleteChannel (index) {
-      const num = this.osdConfig['Channel menu']['max channels_per page'] * (this.currentPage - 1) + index
-      this.channelList['channels list'].splice(num, 1)
+      const num = this.osdConfig.max_channels_per_page * (this.currentPage - 1) + index
+      this.channelList.splice(num, 1)
       if (this.currentPage > this.countPages()) {
         this.currentPage = this.countPages()
         this.edidListIndex = 0
       }
     },
     editChannel (index) {
-      const currentIndex = this.osdConfig['Channel menu']['max channels_per page'] * (this.currentPage - 1) + index
-      const obj = this.channelList['channels list'].slice(currentIndex, currentIndex + 1)[0]
+      const currentIndex = this.osdConfig.max_channels_per_page * (this.currentPage - 1) + index
+      const obj = this.channelList.slice(currentIndex, currentIndex + 1)[0]
       this.editObj = {
         index: currentIndex,
         name: obj.name,
@@ -338,12 +370,12 @@ export default {
     handleEditChannel () {
       this.editError = !this.isName(this.editObj.name)
       if (this.editError) return
-      this.channelList['channels list'][this.editObj.index].name = this.editObj.name
+      this.channelList[this.editObj.index].name = this.editObj.name
       this.dialogType = 0
     },
     // 统计显示的总页数
     countPages () {
-      return Math.ceil((this.channelList['channels list'] ? this.channelList['channels list'].length : 0) / this.osdConfig['Channel menu']['max channels_per page'])
+      return Math.ceil(this.channelList.length / this.osdConfig.max_channels_per_page)
     },
     isID (id) {
       return id.match(/^[1-9]?[1-9]?[1-9]$/)
@@ -352,26 +384,39 @@ export default {
       return name.match(/^[A-Za-z0-9 ]{1,15}$/)
     },
     setDisplayInfo (val) {
-      this.$socket.sendMsg('KDS-OSD-DISPLAY ' + (val === '2' ? val : (val === 'on' ? 1 : 0)))
+      this.$socket.sendMsg('#KDS-OSD-DISPLAY ' + val)
+    },
+    handleOsdInfo (msg) {
+      this.osdInfo = msg.split(' ')[1] !== '0' ? '1' : '0'
     },
     save () {
-      this.$http.post('/osd/set_overlay', this.osdConfig)
-      this.$http.post('/channel/set_channel_map', this.channelList)
+      this.$http.post('/device/json', {
+        path: '/osd/osd.json',
+        info: {
+          channel_menu: this.osdConfig
+        }
+      })
+      this.$http.post('/device/json', {
+        path: '/channel/channel_map.json',
+        info: {
+          channels_list: this.channelList
+        }
+      })
     },
     checkBlur () {
-      this.osdConfig['Channel menu'].timeout_sec = this.osdConfig['Channel menu'].timeout_sec || 0
-      this.osdConfig['Channel menu']['max channels_per page'] = this.osdConfig['Channel menu']['max channels_per page'] || 0
-      this.osdConfig['Channel menu']['max channels'] = this.osdConfig['Channel menu']['max channels'] || 0
+      this.osdConfig.timeout_sec = this.osdConfig.timeout_sec || 0
+      this.osdConfig.max_channels_per_page = this.osdConfig.max_channels_per_page || 0
+      this.osdConfig.max_channels = this.osdConfig.max_channels || 0
     }
   }
 }
 </script>
 <style lang="less" scoped>
-.main-setting{
+.main-setting {
   display: flex;
   flex-direction: column;
 }
-.setting-model{
+.setting-model {
   flex: 1;
 }
 .main-setting footer {

@@ -73,12 +73,11 @@ export default {
     },
     login () {
       if (this.username && this.password) {
-        this.$socket.sendMsg(`#LOGIN ${this.username} ${this.password}`)
+        this.$socket.sendMsg(`#LOGIN ${this.username},${this.password}`)
       }
     },
     handleLogin (msg) {
-      console.log(msg)
-      if (msg.split(' ').pop().trim().toLowerCase() === 'ok') {
+      if (msg.split(',').pop().trim().toLowerCase() === 'ok') {
         this.$global.isLogin = true
         this.$router.push('/main')
       } else {

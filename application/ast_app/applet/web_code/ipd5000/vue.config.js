@@ -1,4 +1,4 @@
-const version = 'V1.0.2'
+const version = 'V1.0.4'
 const path = require('path')
 function resolve (dir) {
   return path.join(__dirname, dir)
@@ -44,7 +44,7 @@ if (process.env.NODE_ENV !== 'production') {
   wss.on('connection', function connection (ws) {
     ws.on('message', function incoming (message) {
       if (message.startsWith('#X-ROUTE?')) {
-        ws.send(`~nn@X-ROUTE out.hdmi.1.video.1,in.stream.${parseInt(Math.random() * 2 + 1)}.video.1`)
+        ws.send(`~nn@X-ROUTE out.hdmi.1.video.1,in.stream.${parseInt(Math.random() * 3 + 1)}.video.1`)
       } else if (message.startsWith('#KDS-DEFINE-CHANNEL?')) {
         ws.send('~nn@KDS-DEFINE-CHANNEL 1')
       } else if (message.startsWith('#KDS-DEFINE-CHANNEL-NAME?')) {
@@ -53,8 +53,8 @@ if (process.env.NODE_ENV !== 'production') {
         ws.send('~nn@X-AUD-LVL out.analog_audio.1.audio.1,10')
       } else if (message.startsWith('#KDS-ACTION? ')) {
         ws.send(`~nn@KDS-ACTION ${Math.round(Math.random())}`)
-      } else if (message.startsWith('#KDS-AUDIO-MUTE? ')) {
-        ws.send(`~nn@KDS-AUDIO-MUTE ${Math.round(Math.random())}`)
+      } else if (message.startsWith('#X-MUTE? ')) {
+        ws.send('~nn@#X-MUTE audio.1,on')
       } else if (message.startsWith('#HDCP-STAT? ')) {
         ws.send(`~nn@HDCP-STAT 1,1,${Math.round(Math.random())}`)
       } else if (message.startsWith('#KDS-RESOL? ')) {
@@ -68,11 +68,11 @@ if (process.env.NODE_ENV !== 'production') {
         ws.send(`~nn@X-AV-SW-MODE out.hdmi.1.audio.1,${parseInt(Math.random() * 3)}`)
       } else if (message.startsWith('#X-PRIORITY?')) {
         ws.send('~nn@X-PRIORITY out.stream.1.video, [in.usb_c.3.video,in.hdmi.1.video,in.hdmi.2.video]')
-        ws.send('~nn@X-PRIORITY out.stream.1.audio, [in.dante.1.audio,in.hdmi.3.audio,in.analog.2.audio]')
+        ws.send('~nn@X-PRIORITY out.stream.1.audio, [in.dante.1.audio,in.hdmi.1.audio,in.analog_audio.1.audio]')
       } else if (message.startsWith('#HDCP-MOD? ')) {
         ws.send(`~nn@HDCP-MOD 1,${Math.round(Math.random())}`)
         ws.send(`~nn@HDCP-MOD 2,${Math.round(Math.random())}`)
-        ws.send(`~nn@HDCP-MOD 3,${Math.round(Math.random())}`)
+        ws.send(`~nn@HDCP-MOD 3,${Math.round(Math.random() * 4)}`)
       } else if (message.startsWith('#CS-CONVERT? ')) {
         ws.send(`~nn@CS-CONVERT 1,${Math.round(Math.random())}`)
       } else if (message.startsWith('#PORT-DIRECTION? ')) {
@@ -91,7 +91,7 @@ if (process.env.NODE_ENV !== 'production') {
       } else if (message.startsWith('#NAME? ')) {
         ws.send('~nn@NAME room-442')
       } else if (message.startsWith('#MODEL? ')) {
-        ws.send('~nn@MODEL dip-20')
+        ws.send(`~nn@MODEL ${['KDS-EN7', 'KDS-SW3-EN7'][Math.floor(Math.random() * 2)]}`)
       } else if (message.startsWith('#HW-VERSION? ')) {
         ws.send('~nn@HW-VERSION 1.12.123')
       } else if (message.startsWith('#NET-MAC? ')) {
@@ -105,7 +105,7 @@ if (process.env.NODE_ENV !== 'production') {
       } else if (message.startsWith('#VERSION? ')) {
         ws.send('~nn@VERSION 1.12.123')
       } else if (message.startsWith('#UPG-TIME? ')) {
-        ws.send('~nn@UPG-TIME 05-12-2018,14:30:00')
+        ws.send('~nn@UPG-TIME wen,05-12-2018,14:30:00')
       } else if (message.startsWith('#NET-DHCP? ')) {
         ws.send('~nn@NET-DHCP 0,0')
         ws.send('~nn@NET-DHCP 1,1')
@@ -120,8 +120,8 @@ if (process.env.NODE_ENV !== 'production') {
         ws.send('~nn@KDS-GW-ETH 2,0')
       } else if (message.startsWith('#CEC-GW-PORT-ACTIVE? ')) {
         ws.send('~nn@CEC-GW-PORT-ACTIVE 0')
-      } else if (message.startsWith('#KDS-CHANNEL-SELECT? ')) {
-        ws.send('~nn@KDS-CHANNEL-SELECT video,2')
+      } else if (message.startsWith('#LOGIN ')) {
+        ws.send('~nn@login ,ok')
       } else {
         ws.send(message.replace(/#/i, '@'))
       }

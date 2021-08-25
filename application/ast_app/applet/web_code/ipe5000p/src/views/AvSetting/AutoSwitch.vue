@@ -3,46 +3,76 @@
     <div class="setting-model">
       <div class="setting">
         <span class="setting-title">Switching Mode</span>
-        <multiselect v-model="switchMode.val" :options="switchMode.param" @input="setSwitchMode"></multiselect>
+        <multiselect v-model="switchMode.val"
+                     :options="switchMode.param"
+                     @input="setSwitchMode"></multiselect>
       </div>
-        <custom-sort :listMap="listMap" v-model="lists" :disabled="switchMode.val !== '1'"></custom-sort>
-      <div class="setting" style="margin-top: 25px;">
+      <custom-sort :listMap="listMap"
+                   v-model="lists"
+                   :disabled="switchMode.val !== '1'"></custom-sort>
+      <div class="setting"
+           style="margin-top: 25px">
         <span class="setting-title">Signal Loss Switching Delay (sec)</span>
-        <el-input-number :disabled="switchMode.val === '2'" v-model="delay['signal loss switching']" controls-position="right" :max="90" :min="0"></el-input-number>
+        <el-input-number :disabled="switchMode.val === '2'"
+                         v-model="delay.signal_loss_switching"
+                         controls-position="right"
+                         :max="90"
+                         :min="0"></el-input-number>
       </div>
       <div class="setting">
         <span class="setting-title">Signal Detection Delay (sec)</span>
-        <el-input-number :disabled="switchMode.val === '2'" v-model="delay['signal detection']" controls-position="right" :max="90" :min="0"></el-input-number>
+        <el-input-number :disabled="switchMode.val === '2'"
+                         v-model="delay.signal_detection"
+                         controls-position="right"
+                         :max="90"
+                         :min="0"></el-input-number>
       </div>
       <div class="setting">
         <span class="setting-title">Cable Plug Delay (sec)</span>
-        <el-input-number :disabled="switchMode.val === '2'" v-model="delay['cable plugin']" controls-position="right" :max="90" :min="0"></el-input-number>
+        <el-input-number :disabled="switchMode.val === '2'"
+                         v-model="delay.cable_plugin"
+                         controls-position="right"
+                         :max="90"
+                         :min="0"></el-input-number>
       </div>
       <div class="setting">
         <span class="setting-title">Cable Unplug Delay (sec)</span>
-        <el-input-number :disabled="switchMode.val === '2'" v-model="delay['cable unplug']" controls-position="right" :max="90" :min="0"></el-input-number>
+        <el-input-number :disabled="switchMode.val === '2'"
+                         v-model="delay.cable_unplug"
+                         controls-position="right"
+                         :max="90"
+                         :min="0"></el-input-number>
       </div>
       <div class="setting">
         <span class="setting-title">Signal Loss Switching Power Off Delay (sec)</span>
-        <el-input-number :disabled="switchMode.val === '2'" v-model="delay['power off upon signal loss']" controls-position="right" :max="90" :min="0"></el-input-number>
+        <el-input-number :disabled="switchMode.val === '2'"
+                         v-model="delay.power_off_upon_signal_loss"
+                         controls-position="right"
+                         :max="90"
+                         :min="0"></el-input-number>
       </div>
       <div class="setting">
         <span class="setting-title">Signal Loss Switching Manual Override Delay (sec)</span>
-        <el-input-number :disabled="switchMode.val === '2'" v-model="delay['manual-override inactive-signal']" controls-position="right" :max="90" :min="0"></el-input-number>
+        <el-input-number :disabled="switchMode.val === '2'"
+                         v-model="delay.manual_override_inactive_signal"
+                         controls-position="right"
+                         :max="90"
+                         :min="0"></el-input-number>
       </div>
     </div>
-    <footer><button class="btn btn-primary" @click="saveAutoSwitch">SAVE</button></footer>
+    <footer>
+      <button class="btn btn-primary"
+              @click="saveAutoSwitch">SAVE</button>
+    </footer>
   </div>
 </template>
 
 <script>
-// import draggable from 'vuedraggable'
 import customSort from '@/components/custom-sort'
 export default {
   name: 'videoPage',
   components: {
     customSort
-    // draggable
   },
   data () {
     return {
@@ -62,12 +92,12 @@ export default {
       },
       playStop: 'play',
       delay: {
-        'signal loss switching': 0,
-        'signal detection': 0,
-        'cable unplug': 0,
-        'cable plugin': 0,
-        'power off upon signal loss': 0,
-        'manual override upon signal loss': 0
+        cable_plugin: 0,
+        cable_unplug: 0,
+        manual_override_inactive_signal: 10,
+        power_off_upon_signal_loss: 10,
+        signal_detection: 0,
+        signal_loss_switching: 10
       }
     }
   },
@@ -81,8 +111,7 @@ export default {
     this.$socket.sendMsg('#X-PRIORITY? out.stream.1.video')
     this.getAutoSwitchDelay()
   },
-  mounted () {
-  },
+  mounted () { },
   methods: {
     handleMsg (msg) {
       console.log(msg)
@@ -104,38 +133,52 @@ export default {
       this.$socket.sendMsg(`#X-AV-SW-MODE out.hdmi.1.video.1,${mode}`)
     },
     getAutoSwitchDelay () {
-      this.$http.post('/switch/auto_switch_delays').then(msg => {
-        if (msg.data['Auto Switch Delays']) {
-          this.delay = msg.data['Auto Switch Delays']
+      this.$http
+        .get(
+          '/device/json?path=/switch/auto_switch_delays.json&t=' + Math.random()
+        )
+        .then(msg => {
+          if (msg.data.auto_switch_delays) {
+            this.delay = msg.data.auto_switch_delays
+          }
+        })
+    },
+    setAutoSwitchDelay () {
+      this.$http.post('/device/json', {
+        path: '/switch/auto_switch_delays.json',
+        info: {
+          auto_switch_delays: this.delay
         }
       })
     },
     handleSwitchPriority (msg) {
       if (msg.search(/video/g) !== -1) {
-        this.lists = msg.match(/[^([]+(?=\])/g)[0].replace(/\s/g, '').split(',')
+        this.lists = msg
+          .match(/[^([]+(?=\])/g)[0]
+          .replace(/\s/g, '')
+          .split(',')
       }
     },
     saveAutoSwitch () {
-      this.$socket.sendMsg(`#X-AV-SW-MODE out.hdmi.1.video.1,${this.switchMode.val}`)
+      this.$socket.sendMsg(
+        `#X-AV-SW-MODE out.hdmi.1.video.1,${this.switchMode.val}`
+      )
       if (this.switchMode.val !== '2') {
-        this.$socket.sendMsg(`#X-PRIORITY out.stream.1.video,  [${this.lists.join(',')}]`)
+        this.$socket.sendMsg(
+          `#X-PRIORITY out.stream.1.video,[${this.lists.join(',')}]`
+        )
         this.setAutoSwitchDelay()
       }
-    },
-    setAutoSwitchDelay () {
-      this.$http.post('/switch/set_auto_switch_delays', {
-        'Auto Switch Delays': this.delay
-      })
     }
   }
 }
 </script>
 <style lang="less" scoped>
-.main-setting{
+.main-setting {
   display: flex;
   flex-direction: column;
 }
-.setting-model{
+.setting-model {
   flex: 1;
 }
 .main-setting footer {
@@ -146,9 +189,7 @@ export default {
 .main-setting .setting-title {
   width: 400px;
 }
-.list-group-item{
-
+.list-group-item {
   display: inline-block;
 }
-
 </style>

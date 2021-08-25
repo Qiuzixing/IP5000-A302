@@ -5,8 +5,7 @@ const socket = {
   // 收集发送和返回数据
   data: [],
   stopSend: false,
-  host: window.location.protocol === 'http:'
-    ? 'ws://' + window.location.host + '/websocket' : 'wss://' + window.location.host + '/websocket',
+  host: window.location.protocol === 'http:' ? 'ws://' + window.location.host + '/websocket' : 'wss://' + window.location.host + '/websocket',
   // host: 'ws://' + window.location.hostname + ':19999',
   isCreateWs: false,
   supportWs: true,
@@ -22,26 +21,6 @@ const socket = {
       //   this.setData('Send : ' + command)
       // }
     }
-  },
-  setData (msg) {
-    const _msg = msg.toLowerCase()
-    if (_msg.startsWith('user') ||
-      _msg.startsWith('login') ||
-      _msg.startsWith('account')) {
-      return
-    }
-    if (this.data.length >= 80) {
-      this.data.pop()
-    }
-    this.data.unshift(this.getTime() + '   ' + msg)
-  },
-  getTime () {
-    var thisDate = new Date()
-    var thisTimeString = this.p0(thisDate.getHours()) + ':' + this.p0(thisDate.getMinutes()) + ':' + this.p0(thisDate.getSeconds())
-    return thisTimeString
-  },
-  p0 (s) {
-    return s < 10 ? '0' + s : s + ''
   },
   initWebsocket () {
     if ('WebSocket' in window) {

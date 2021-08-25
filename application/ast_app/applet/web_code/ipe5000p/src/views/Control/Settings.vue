@@ -4,7 +4,7 @@
       <h3 class="setting-model-title">CEC Settings</h3>
       <div class="setting">
         <span class="setting-title">Gateway</span>
-        <v-switch open-text="Enable" v-model="cecGateWay" close-text="Disable" active-value="0" inactive-value="1" @input="setCECGateway"></v-switch>
+        <v-switch open-text="Enable" v-model="cecGateWay" close-text="Disable" active-value="1" inactive-value="0" @input="setCECGateway"></v-switch>
       </div>
       <div class="setting">
         <span class="setting-title">Gateway HDMI Port</span>
@@ -41,28 +41,28 @@
       </div>
       <div class="setting">
         <span class="setting-title">Gateway Port</span>
-        <el-input-number :disabled="!rs232GW" v-model="rs232Port" controls-position="right" :max="65535" :min="5000"></el-input-number>
+        <el-input-number :disabled="!rs232GW" v-model="rs232Port" controls-position="right" :max="65535" :min="5000" @change="setRs232GW"></el-input-number>
       </div>
       <div class="setting">
         <span class="setting-title">Baud Rate </span>
-        <multiselect :options="baudRateParam" v-model="baudRate"></multiselect>
-        <button class="btn btn-plain-primary"  style="margin-left: 25px" @click="saveBaudRate">SAVE</button>
+        <multiselect :disabled="!rs232GW" :options="baudRateParam" v-model="baudRate"></multiselect>
+        <button :disabled="!rs232GW" class="btn btn-plain-primary"  style="margin-left: 25px" @click="saveBaudRate">SAVE</button>
       </div>
       <div class="setting">
         <span class="setting-title">Data Bits </span>
-        <multiselect :options="dataBitsParam" v-model="dataBits"></multiselect>
+        <multiselect :disabled="!rs232GW" :options="dataBitsParam" v-model="dataBits"></multiselect>
       </div>
       <div class="setting">
         <span class="setting-title">Parity </span>
-        <multiselect :options="parityParam" v-model="parity"></multiselect>
+        <multiselect :disabled="!rs232GW" :options="parityParam" v-model="parity"></multiselect>
       </div>
       <div class="setting">
         <span class="setting-title">Stop Bits </span>
-        <multiselect :options="stopBitsParam" v-model="stopBits"></multiselect>
+        <multiselect :disabled="!rs232GW" :options="stopBitsParam" v-model="stopBits"></multiselect>
       </div>
       <div class="radio-setting">
         <span class="setting-title">Connection</span>
-        <button class="btn btn-plain-primary">CHECK</button>
+        <button :disabled="!rs232GW" class="btn btn-plain-primary">CHECK</button>
       </div>
     </div>
     <div class="setting-model">
@@ -74,8 +74,8 @@
       <div class="radio-setting">
         <span class="setting-title">IR Direction IN/OUT</span>
         <div>
-          <radio-component v-model="irDirection" :disabled="irGW=='1'" label="in" @change="setIrDirection">IN</radio-component>
-          <radio-component v-model="irDirection" :disabled="irGW=='1'" label="out" @change="setIrDirection">OUT</radio-component>
+          <radio-component v-model="irDirection" :disabled="irGW=='0'" label="in" @change="setIrDirection">IN</radio-component>
+          <radio-component v-model="irDirection" :disabled="irGW=='0'" label="out" @change="setIrDirection">OUT</radio-component>
         </div>
       </div>
     </div>
@@ -205,6 +205,7 @@ export default {
     this.$socket.sendMsg('#UART? 1')
     this.$socket.sendMsg('#PORT-DIRECTION? both.ir.1.ir')
     this.$socket.sendMsg('#COM-ROUTE? *')
+    this.$socket.sendMsg('#KDS-IR-GW? ')
   },
   methods: {
     handleMsg (msg) {
@@ -223,6 +224,10 @@ export default {
       }
       if (msg.search(/@PORT-DIRECTION /i) !== -1) {
         this.handleIRDirection(msg)
+        return
+      }
+      if (msg.search(/@KDS-IR-GW /i) !== -1) {
+        this.handleIRGateway(msg)
         return
       }
       if (msg.search(/@COM-ROUTE /i) !== -1) {
@@ -283,17 +288,20 @@ export default {
       if (data[1].length > 0) {
         const arr = data[1].split(',')
         this.rs232Port = parseInt(arr[2])
-        this.rs232GW = false
-      } else {
         this.rs232GW = true
+      } else {
+        this.rs232GW = false
       }
     },
     setRs232GW (isOpen) {
       if (isOpen) {
         this.$socket.sendMsg(`#COM-ROUTE-ADD 1,1,${this.rs232Port},1,1`)
       } else {
-        this.$socket.sendMsg('#COM ROUTE REMOVE 1')
+        this.$socket.sendMsg('#COM-ROUTE-REMOVE 1')
       }
+    },
+    handleIRGateway (msg) {
+      this.irGW = msg.split(' ').pop()
     },
     setIrDirection () {
       this.$socket.sendMsg(`#PORT-DIRECTION both.ir.1.ir,${this.irDirection}`)

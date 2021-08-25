@@ -12,9 +12,9 @@ import Axios from 'axios'
 import {
   Dialog,
   InputNumber,
-  DatePicker,
-  TimeSelect,
-  TimePicker,
+  // DatePicker,
+  // TimeSelect,
+  // TimePicker,
   Slider
 } from 'element-ui'
 import lang from 'element-ui/lib/locale/lang/en'
@@ -28,9 +28,9 @@ Vue.component('colorPicker', colorPicker)
 // Vue.use(Pagination);
 Vue.use(Dialog)
 Vue.use(InputNumber)
-Vue.use(DatePicker)
-Vue.use(TimeSelect)
-Vue.use(TimePicker)
+// Vue.use(DatePicker)
+// Vue.use(TimeSelect)
+// Vue.use(TimePicker)
 Vue.use(Slider)
 Vue.component('multiselect', Multiselect)
 Vue.use(vSwitch)

@@ -2,43 +2,77 @@
   <div class="main-setting">
     <div class="setting">
       <span class="setting-title">Input Selection</span>
-      <multiselect  style="width: 150px" v-model="inputSelect.val" :options="inputSelect.param" @input="setInputSelect"></multiselect>
+      <multiselect style="width: 150px"
+                   v-model="inputSelect.val"
+                   :options="inputSelect.param"
+                   @input="setInputSelect"></multiselect>
     </div>
-    <div class="setting" style="margin-bottom: 0" v-if="inputSelect.val === '2'">
+    <div class="setting"
+         style="margin-bottom: 0"
+         v-if="inputSelect.val === '2'">
       <span class="setting-title">Preview</span>
-      <span class="setting-title" style="width: 180px;">Channel</span>
-      <span class="setting-title" style="width: 180px;">Name</span>
-      <span class="setting-title" style="width: 180px;">IP Address</span>
+      <span class="setting-title"
+            style="width: 180px;">Channel</span>
+      <span class="setting-title"
+            style="width: 180px;">Name</span>
+      <span class="setting-title"
+            style="width: 180px;">IP Address</span>
     </div>
-    <div class="radio-setting" style="margin-top: 15px;margin-bottom: 24px;" v-if="inputSelect.val === '2'">
-      <span class="setting-title"><img src="/stream" style="width: 180px;"></span>
-      <span class="setting-title" style="width: 180px;">
-        <multiselect :searchable="true"  style="width: 150px" :preserveSearch="true" v-model="channel" :options="channelList" @input="setChannel"></multiselect>
+    <div class="radio-setting"
+         style="margin-top: 15px;margin-bottom: 24px;"
+         v-if="inputSelect.val === '2'">
+      <span class="setting-title"><img src="/stream"
+             style="width: 180px;"></span>
+      <span class="setting-title"
+            style="width: 180px;">
+        <multiselect :searchable="true"
+                     style="width: 150px"
+                     :preserveSearch="true"
+                     v-model="channel"
+                     :options="channelList"
+                     @input="setChannel"></multiselect>
       </span>
-      <span class="setting-title" style="width: 180px;">
-        <multiselect :searchable="true" style="width: 150px" :preserveSearch="true" v-model="channel" :options="channelNameList" @input="setChannel"></multiselect>
+      <span class="setting-title"
+            style="width: 180px;">
+        <multiselect :searchable="true"
+                     style="width: 150px"
+                     :preserveSearch="true"
+                     v-model="channel"
+                     :options="channelNameList"
+                     @input="setChannel"></multiselect>
       </span>
-      <span class="setting-title" style="width: 180px;">192.168.1.1</span>
+      <span class="setting-title"
+            style="width: 180px;">192.168.1.1</span>
     </div>
-    <div class="setting" style="margin-bottom: 36px">
+    <div class="setting"
+         style="margin-bottom: 36px">
       <span class="setting-title">Volume (dB)</span>
-      <el-slider
-        @change="setVolume"
-        style="width: 200px"
-        :min="-60" :max="30"
-        :show-tooltip="false"
-        v-model="volume"
-        :marks="marks">
+      <el-slider @change="setVolume"
+                 style="width: 200px"
+                 :min="0"
+                 :max="100"
+                 :show-tooltip="false"
+                 v-model="volume"
+                 :marks="marks">
       </el-slider>
       <span style="margin-left: 15px">{{volume}}</span>
     </div>
-    <div class="setting" style="margin-top: 36px;">
+    <div class="setting"
+         style="margin-top: 36px;">
       <span class="setting-title">Mute</span>
-      <v-switch v-model="muteVal" active-value="1" inactive-value="0" @change="setAudioMute"></v-switch>
+      <v-switch v-model="muteVal"
+                active-value="on"
+                inactive-value="off"
+                @change="setAudioMute"></v-switch>
     </div>
     <div class="setting">
       <span class="setting-title">Play/Stop</span>
-      <v-switch v-model="action" open-text="Play" close-text="Stop" active-value="1" inactive-value="0" @change="setAction"></v-switch>
+      <v-switch v-model="action"
+                open-text="Play"
+                close-text="Stop"
+                active-value="1"
+                inactive-value="0"
+                @change="setAction"></v-switch>
     </div>
     <div class="setting">
       <span class="setting-title">HDCP Encryption</span>
@@ -70,18 +104,18 @@ export default {
   data () {
     return {
       inputSelect: {
-        val: '1',
+        val: 'hdmi',
         param: [
-          { value: '1', label: 'HDMI' },
-          { value: '2', label: 'STREAM' }
+          { value: 'hdmi', label: 'HDMI' },
+          { value: 'stream', label: 'STREAM' }
         ]
       },
       channel: '',
       channelList: [],
       channelNameList: [],
       marks: {
-        '-60': '-60',
-        30: '30'
+        0: '0',
+        100: '100'
       },
       volume: 0,
       playStop: 'play',
@@ -103,7 +137,7 @@ export default {
     this.$socket.sendMsg('#X-ROUTE? out.hdmi.1.video.1')
     this.$socket.sendMsg('#X-AUD-LVL? out.analog_audio.1.audio.1')
     this.$socket.sendMsg('#KDS-ACTION? ')
-    this.$socket.sendMsg('#KDS-AUDIO-MUTE? ')
+    this.$socket.sendMsg('#X-MUTE? out.analog.1.audio.1')
     this.$socket.sendMsg('#HDCP-STAT? 1,1')
     this.$socket.sendMsg('#KDS-RESOL? 1,1,1')
     this.$socket.sendMsg('#KDS-RATIO? 1,1,1')
@@ -120,7 +154,7 @@ export default {
         this.handleVolume(msg)
         return
       }
-      if (msg.search(/@KDS-AUDIO-MUTE /i) !== -1) {
+      if (msg.search(/@X-MUTE /i) !== -1) {
         this.handleAudioMute(msg)
         return
       }
@@ -148,11 +182,11 @@ export default {
       }
     },
     handleInputSelect (msg) {
-      // ~nn@X-ROUTE out.hdmi.1.video.1,in.stream.{1}.video.1<CR><LF>
-      this.inputSelect.val = msg.split(',')[1].split('.')[2]
+      // ~nn@X-ROUTE out.hdmi.1.video.1,in.{stream|hdmi}.1.video.1<CR><LF>
+      this.inputSelect.val = msg.split(',')[1].split('.')[1]
     },
     setInputSelect (val) {
-      this.$socket.sendMsg(`#X-ROUTE out.hdmi.1.video.1,in.stream.${val}.video.1`)
+      this.$socket.sendMsg(`#X-ROUTE out.hdmi.1.video.1,in.${val}.1.video.1`)
     },
     handleVolume (msg) {
       const data = msg.split(',')
@@ -162,10 +196,10 @@ export default {
       this.$socket.sendMsg(`#X-AUD-LVL out.analog_audio.1.audio.1,${this.volume}`)
     },
     setAudioMute (msg) {
-      this.$socket.sendMsg(`#KDS-AUDIO-MUTE ${msg}`)
+      this.$socket.sendMsg(`#X-MUTE out.analog.1.audio.1,${msg}`)
     },
     handleAudioMute (msg) {
-      this.muteVal = msg.split(' ')[1]
+      this.muteVal = msg.split(',').pop()
     },
     handleAction (msg) {
       this.action = msg.split(' ')[1]

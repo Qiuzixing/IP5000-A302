@@ -10,8 +10,8 @@
       <div class="setting">
         <span class="setting-title">Device Model</span>
         <span>{{deviceModel}}</span>
-        <!--        <input type="text" class="setting-text" v-model="">-->
-        <!--        <button type="button" class="btn btn-plain-primary" style="margin-left: 15px;" @click="setDeviceModel">APPLY</button>-->
+<!--        <input type="text" class="setting-text" v-model="">-->
+<!--        <button type="button" class="btn btn-plain-primary" style="margin-left: 15px;" @click="setDeviceModel">APPLY</button>-->
       </div>
       <div class="setting">
         <span class="setting-title">Device H/W Release</span>
@@ -27,7 +27,7 @@
       </div>
       <div class="setting">
         <span class="setting-title">Front Panel Lock </span>
-        <v-switch v-model="frontLock" active-value="1" inactive-value="0"></v-switch>
+        <v-switch v-model="frontLock" active-value="1" inactive-value="0" @change="setFrontLock"></v-switch>
       </div>
       <div class="setting">
         <span class="setting-title">Import/Export Device Setting</span>
@@ -41,7 +41,7 @@
       </div>
       <div class="setting">
         <span class="setting-title">Power Save</span>
-        <v-switch v-model="powerSave" active-value="1" inactive-value="0"></v-switch>
+        <v-switch v-model="powerSave" active-value="1" inactive-value="0" @change="setPowerSave"></v-switch>
       </div>
       <div class="setting">
         <span class="setting-title">Inactivity Auto-standby Delay Duration</span>
@@ -74,12 +74,12 @@
       </div>
     </div>
     <el-dialog
-      title="RESET"
-      :visible.sync="dialogVisibleReset"
-      width="500px"
-    >
-      <p class="dialog-second-title">Do you want to restart the device? </p>
-      <span slot="footer" class="dialog-footer">
+        title="RESET"
+        :visible.sync="dialogVisibleReset"
+        width="500px"
+        >
+        <p class="dialog-second-title">Do you want to restart the device? </p>
+        <span slot="footer" class="dialog-footer">
           <button class="btn btn-primary" @click="dialogVisibleReset = false, restart()">PROCEED</button>
           <button class="btn btn-primary" @click="dialogVisibleReset = false">CANCEL</button>
         </span>
@@ -141,7 +141,7 @@ export default {
     }
   },
   created () {
-    this.$socket.sendMsg('#NAME? 1')
+    this.$socket.sendMsg('#NAME? 0')
     this.$socket.sendMsg('#MODEL? ')
     this.$socket.sendMsg('#HW-VERSION? ')
     this.$socket.sendMsg('#NET-MAC? 0')
@@ -200,7 +200,7 @@ export default {
       }
     },
     handleHostname (msg) {
-      this.hostname = msg.split(' ')[1]
+      this.hostname = msg.split(',').slice(1).join(',')
     },
     handleDeviceModel (msg) {
       this.deviceModel = msg.split(' ')[1]
@@ -209,7 +209,7 @@ export default {
       this.HWVer = msg.split(' ')[1]
     },
     handleMACAddr (msg) {
-      this.macAddr = msg.split(' ')[1]
+      this.macAddr = msg.split(' ')[1].split(',').pop()
     },
     handleSerialNum (msg) {
       this.serialNum = msg.split(' ')[1]
@@ -236,7 +236,7 @@ export default {
       this.$socket.sendMsg('#FACTORY')
     },
     setHostName () {
-      this.$socket.sendMsg(`#NAME 1,${this.hostname}`)
+      this.$socket.sendMsg(`#NAME 0,${this.hostname}`)
     },
     setDeviceModel () {
       this.$socket.sendMsg(`#MODEL ${this.deviceModel}`)
@@ -252,6 +252,12 @@ export default {
     },
     rollBack () {
       this.$socket.sendMsg('#ROLLBACK')
+    },
+    setFrontLock (val) {
+      this.$socket.sendMsg(`#LOCK-FP ${val}`)
+    },
+    setPowerSave (val) {
+      this.$socket.sendMsg(`#STANDBY ${val}`)
     }
   }
 }

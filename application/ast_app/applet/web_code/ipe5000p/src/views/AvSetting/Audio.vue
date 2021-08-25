@@ -8,26 +8,30 @@
           <radio-component v-model="direction" label="out">OUT</radio-component>
         </div>
       </div>
-      <div class="setting">
+      <div class="setting" v-if="this.$global.deviceType">
         <span class="setting-title">Audio Source Mode</span>
         <multiselect v-model="audioMode.val" :options="audioMode.param"></multiselect>
       </div>
-      <custom-sort v-model="lists" :listMap="listMap" :disabled="audioMode.val !== '1'"></custom-sort>
-      <div class="setting" style="margin-top: 25px;">
+      <custom-sort v-if="this.$global.deviceType" v-model="lists" :listMap="listMap" :disabled="audioMode.val !== '1'"></custom-sort>
+      <div class="setting" style="margin-top: 25px;" v-if="this.$global.deviceType">
         <span class="setting-title">Audio Source Selection</span>
         <multiselect :disabled="audioMode.val != '0'" v-model="audioSource.val" :options="audioSource.param"></multiselect>
       </div>
-      <div class="setting">
+      <div v-else class="setting" style="margin-top: 25px;">
+        <span class="setting-title">Audio Source Selection</span>
+        <multiselect v-model="audioSource.val" :options="audioSource.encoderParam"></multiselect>
+      </div>
+      <div class="setting" v-if="this.$global.deviceType">
         <span class="setting-title">Audio Connection Guard Time (sec)</span>
         <el-input-number v-model="avSignal['audio connection guard time sec']" controls-position="right" :max="90" :min="0"></el-input-number>
       </div>
-      <div class="setting-model">
+      <div class="setting-model" v-if="this.$global.deviceType">
         <h3 class="setting-title">Audio Destination</h3>
         <div :key="item.name" v-for="(item, index) in audioDestinationDesc" style="margin-bottom: 15px;">
           <checkbox-component :label="item" v-model="audioDestination[index]" :active-value="1" :inactive-value="0"/>
         </div>
       </div>
-      <div class="setting">
+      <div class="setting" v-if="this.$global.deviceType">
         <span class="setting-title">Dante/AES-67 Name</span>
         <input type="text" class="setting-text" maxlength="32" v-model="danteName">
       </div>
@@ -64,23 +68,28 @@ export default {
           { value: '0', label: 'HDMI' },
           { value: '1', label: 'Analog' },
           { value: '2', label: 'None' },
-          { value: '3', label: 'Dante' }
+          { value: '4', label: 'Dante' }
+        ],
+        encoderParam: [
+          { value: '0', label: 'HDMI' },
+          { value: '1', label: 'Analog' },
+          { value: '2', label: 'None' }
         ]
       },
       playStop: 'play',
-      lists: ['in.dante.1.audio', 'in.analog.2.audio', 'in.hdmi.3.audio'],
+      lists: ['in.dante.1.audio', 'in.analog_audio.1.audio', 'in.hdmi.1.audio'],
       listMap: {
         'in.dante.1.audio': 'Dante',
-        'in.analog.2.audio': 'Analog',
-        'in.hdmi.3.audio': 'HDMI'
+        'in.analog_audio.1.audio': 'Analog',
+        'in.hdmi.1.audio': 'HDMI'
       },
       guardTime: '5',
       audioDestination: [0, 0, 0, 0],
       audioDestinationDesc: [
-        'LAN',
         'HDMI',
-        'Dante',
-        'Analog'
+        'Analog',
+        'LAN',
+        'Dante'
       ],
       avSignal: {
         'input maximum resolution': 'Pass Through',
@@ -99,13 +108,15 @@ export default {
     }
   },
   created () {
+    if (this.$global.deviceType) {
+      this.$socket.sendMsg('#X-AV-SW-MODE? out.hdmi.1.audio.1')
+      this.$socket.sendMsg('#X-PRIORITY? out.hdmi.1.audio')
+      this.$socket.sendMsg('#KDS-AUD-OUTPUT? ')
+      this.$socket.sendMsg('#NAME? 1')
+      this.getAVSignal()
+    }
     this.$socket.sendMsg('#PORT-DIRECTION? both.analog.1.audio')
-    this.$socket.sendMsg('#X-AV-SW-MODE? out.hdmi.1.audio.1')
-    this.$socket.sendMsg('#X-PRIORITY? out.hdmi.1.audio')
-    this.$socket.sendMsg('#X-ROUTE? ')
-    this.$socket.sendMsg('#NAME? ')
     this.$socket.sendMsg('#KDS-AUD? ')
-    this.getAVSignal()
   },
   methods: {
     handleMsg (msg) {
@@ -121,7 +132,7 @@ export default {
         this.handleSwitchPriority(msg)
         return
       }
-      if (msg.search(/@X-ROUTE /i) !== -1) {
+      if (msg.search(/@KDS-AUD-OUTPUT /i) !== -1) {
         this.handleAudioDestination(msg)
         return
       }
@@ -157,7 +168,6 @@ export default {
       }
     },
     handleAudioDestination (msg) {
-      console.log(msg)
       const arr = [0, 0, 0, 0]
       const isSelectSource = msg.match(/[^([]+(?=\])/g)[0].replace(/\s/g, '').split(',')
       isSelectSource.forEach(item => {
@@ -168,9 +178,9 @@ export default {
     setAudioDestination () {
       const data = []
       this.audioDestination.forEach((item, index) => {
-        if (item === 1) data.push(index + 1)
+        if (item === 1) data.push(index)
       })
-      this.$socket.sendMsg(`#X-ROUTE [${data.join(',')}]`)
+      this.$socket.sendMsg(`#KDS-AUD-OUTPUT [${data.join(',')}]`)
     },
     setAVSingle () {
       this.$http.post('/set_av_signal', {
@@ -178,20 +188,24 @@ export default {
       })
     },
     handleDanteName (msg) {
-      this.danteName = msg.split(' ').slice(1).join(' ')
+      this.danteName = msg.split(',').slice(1).join(',')
     },
     save () {
       this.$socket.sendMsg(`#PORT-DIRECTION both.analog.1.audio,${this.direction}`)
-      this.$socket.sendMsg(`#X-AV-SW-MODE out.hdmi.1.audio.1,${this.audioMode.val}`)
-      if (this.audioMode.val === '1') {
-        this.$socket.sendMsg(`#X-PRIORITY out.hdmi.1.audio,[${this.lists.join(',')}]`)
-      }
-      if (this.audioMode.val === '0') {
+      if (this.$global.deviceType) {
+        this.$socket.sendMsg(`#X-AV-SW-MODE out.hdmi.1.audio.1,${this.audioMode.val}`)
+        if (this.audioMode.val === '1') {
+          this.$socket.sendMsg(`#X-PRIORITY out.hdmi.1.audio,[${this.lists.join(',')}]`)
+        }
+        if (this.audioMode.val === '0') {
+          this.$socket.sendMsg(`#KDS-AUD ${this.audioSource.val}`)
+        }
+        this.$socket.sendMsg(`#NAME 1,${this.danteName}`)
+        this.setAVSingle()
+        this.setAudioDestination()
+      } else {
         this.$socket.sendMsg(`#KDS-AUD ${this.audioSource.val}`)
       }
-      this.$socket.sendMsg(`#NAME ${this.danteName}`)
-      this.setAVSingle()
-      this.setAudioDestination()
     }
   }
 }

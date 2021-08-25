@@ -3,49 +3,62 @@
     <div class="setting-model">
       <div class="setting">
         <span class="setting-title">Date</span>
-        <el-date-picker
+        <span>{{date}}</span>
+        <!-- <el-date-picker
           style="width: 180px;"
           v-model="date"
           type="date"
           format="MM-dd-yyyy"
-        >
-        </el-date-picker>
+          >
+        </el-date-picker> -->
         <!--        <VueCtkDateTimePicker id="sys-date" color="#35ACF8" v-model="dateTime" format="MM/DD/YYYY" formatted="MM/DD/YYYY" :no-clear-button="true" :no-label="true" style="width: 160px;margin: 0" :only-date="true" />-->
       </div>
       <div class="setting">
         <span class="setting-title">Time</span>
-        <el-time-picker
+        <span>{{time}}</span>
+        <!-- <el-time-picker
           style="width: 180px;"
           v-model="time"
           :picker-options="{
             selectableRange: '00:00:00 - 23:59:59'
           }">
-        </el-time-picker>
+        </el-time-picker> -->
         <!--        <VueCtkDateTimePicker id="sys-time" color="#35ACF8" v-model="time" format="hh:mm a" formatted="hh:mm a" :no-clear-button="true" :no-label="true" style="width: 160px;margin: 0" :only-time="true" />-->
       </div>
-      <div class="setting">
+      <!-- <div class="setting">
         <span class="setting-title">Time Zone</span>
         <multiselect class="time-select" :options="timeZone" v-model="timeVal"></multiselect>
-      </div>
-      <div class="setting">
+      </div> -->
+      <!-- <div class="setting">
         <span class="setting-title">Daylight Savings Time</span>
         <v-switch v-model="daylight" open-text="Yes" close-text="No" active-value="1" inactive-value="0"></v-switch>
-      </div>
+      </div> -->
       <div class="setting">
         <span class="setting-title">NTP Time Server Usage</span>
-        <v-switch v-model="ntpMode" open-text="Yes" close-text="No" active-value="1" inactive-value="0"></v-switch>
+        <v-switch v-model="ntpMode"
+                  open-text="Yes"
+                  close-text="No"
+                  active-value="1"
+                  inactive-value="0"></v-switch>
       </div>
       <div class="setting">
         <span class="setting-title">NTP Time Server Address</span>
-        <input type="text" class="setting-text" v-model="ntpServer">
+        <input type="text"
+               class="setting-text"
+               v-model="ntpServer">
       </div>
       <div class="setting">
         <span class="setting-title">NTP Daily Sync Hour</span>
-        <v-switch v-model="ntpDailySync" open-text="Yes" close-text="No" active-value="1" inactive-value="0"></v-switch>
+        <v-switch v-model="ntpDailySync"
+                  open-text="Yes"
+                  close-text="No"
+                  active-value="1"
+                  inactive-value="0"></v-switch>
       </div>
     </div>
     <footer>
-      <button class="btn btn-primary" @click="save">SAVE</button>
+      <button class="btn btn-primary"
+              @click="save">SAVE</button>
     </footer>
   </div>
 </template>
@@ -187,7 +200,7 @@ export default {
   },
   created () {
     this.$socket.sendMsg('#TIME? ')
-    this.$socket.sendMsg('#TIME-LOC? ')
+    // this.$socket.sendMsg('#TIME-LOC? ')
     this.$socket.sendMsg('#TIME-SRV? ')
   },
   methods: {
@@ -207,9 +220,9 @@ export default {
     },
     handleTime (msg) {
       const data = msg.split(',')
-      const dateArr = data[1].split('-')
-      this.date = new Date(`${dateArr[0]} ${dateArr[1]},${dateArr[2]}`)
-      this.time = new Date(`${dateArr[0]} ${dateArr[1]},${dateArr[2]} ${data[2]}`)
+      // const dateArr = data[1].split('-')
+      this.date = data[1]
+      this.time = data[2]
     },
     handleTimeZone (msg) {
       const data = msg.split(' ')[1].split(',')
@@ -237,14 +250,14 @@ export default {
       return time < 9 ? '0' + time : time.toString()
     },
     setDaylight () {
-      this.$socket.sendMsg(`#TIME-LOC? ${this.daylight},${this.timeVal}`)
+      this.$socket.sendMsg(`#TIME-LOC ${this.daylight},${this.timeVal}`)
     },
     setNTP () {
-      this.$socket.sendMsg(`#TIME-SRV? ${this.ntpMode},${this.ntpServer},${this.ntpDailySync}`)
+      this.$socket.sendMsg(`#TIME-SRV ${this.ntpMode},${this.ntpServer},${this.ntpDailySync}`)
     },
     save () {
-      this.setDateTime()
-      this.setDaylight()
+      // this.setDateTime()
+      // this.setDaylight()
       this.setNTP()
     }
   }
@@ -252,14 +265,14 @@ export default {
 </script>
 
 <style scoped>
-.setting-title{
+.setting-title {
   width: 220px;
 }
-.main-setting{
+.main-setting {
   display: flex;
   flex-direction: column;
 }
-.setting-model{
+.setting-model {
   flex: 1;
 }
 .main-setting footer {
@@ -269,13 +282,13 @@ export default {
 }
 </style>
 <style lang="less">
-.el-date-editor .el-input__icon{
+.el-date-editor .el-input__icon {
   line-height: 30px;
   color: #828283;
   font-weight: 600;
 }
 
-.time-select .multiselect__content-wrapper{
-  width: 475px!important;
+.time-select .multiselect__content-wrapper {
+  width: 475px !important;
 }
 </style>

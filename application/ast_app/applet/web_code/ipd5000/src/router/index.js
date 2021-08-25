@@ -1,13 +1,13 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Layout from '../views/Layout/index.vue'
-
+import Login from '../views/Login'
 Vue.use(VueRouter)
 
 const routes = [
   {
     path: '/',
-    redirect: '/main/av_routing'
+    component: Login
   },
   {
     path: '/main',
@@ -56,13 +56,13 @@ const routes = [
         component: () => import('../views/AvSetting/Video.vue'),
         name: 'videoPage',
         meta: { title: 'Video', desc: 'AV Setting > Video', icon: 'video' }
-      },
-      {
-        path: 'audioPage',
-        component: () => import('../views/AvSetting/Audio.vue'),
-        name: 'audioPage',
-        meta: { title: 'Audio', desc: 'AV Setting > Audio', icon: 'audio' }
       }
+      // {
+      //   path: 'audioPage',
+      //   component: () => import('../views/AvSetting/Audio.vue'),
+      //   name: 'audioPage',
+      //   meta: { title: 'Audio', desc: 'AV Setting > Audio', icon: 'audio' }
+      // }
       // {
       //   path: 'edid',
       //   component: () => import('../views/AvSetting/Edid.vue'),

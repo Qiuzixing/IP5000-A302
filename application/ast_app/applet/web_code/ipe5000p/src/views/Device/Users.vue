@@ -5,44 +5,59 @@
         <h3 class="setting-model-title">Password</h3>
         <div class="setting">
           <span class="setting-title">Security Status</span>
-          <v-switch v-model="showPwdStatus" @change="switchPwdStatus"></v-switch>
+          <v-switch v-model="showPwdStatus"
+                    @change="switchPwdStatus"></v-switch>
         </div>
-        <div class="setting">
+        <!-- <div class="setting">
           <span class="setting-title">Current Password</span>
-          <input :type="showPassword ? 'text' : 'password'" class="setting-text">
-          <button class="btn btn-plain-primary" style="margin-left: 25px;" @change="setPassword">CHANGE</button>
-        </div>
+          <input :type="showPassword ? 'text' : 'password'"
+                 v-model="pwd"
+                 class="setting-text">
+        </div> -->
         <div class="setting">
           <span class="setting-title">New Password</span>
-          <input :type="showPassword ? 'text' : 'password'" class="setting-text">
+          <input :type="showPassword ? 'text' : 'password'"
+                 v-model="newPwd"
+                 class="setting-text">
+          <button class="btn btn-plain-primary"
+                  style="margin-left: 25px;"
+                  @click="setPassword">CHANGE</button>
         </div>
         <div class="setting">
           <span class="setting-title">Confirm Password</span>
-          <input :type="showPassword ? 'text' : 'password'" class="setting-text">
+          <input :type="showPassword ? 'text' : 'password'"
+                 v-model="confirmPwd"
+                 class="setting-text">
         </div>
       </div>
       <div class="setting-model">
         <div class="setting">
           <span class="setting-model-title">Inactivity auto-logout time</span>
-          <el-input-number v-model="logoutTime" controls-position="right" :max="30" :min="0"></el-input-number>
-          <button class="btn btn-plain-primary" style="margin-left: 25px;" @click="setLogout">APPLY</button>
+          <el-input-number v-model="logoutTime"
+                           controls-position="right"
+                           :max="30"
+                           :min="0"></el-input-number>
+          <button class="btn btn-plain-primary"
+                  style="margin-left: 25px;"
+                  @click="setLogout">APPLY</button>
         </div>
       </div>
     </div>
-    <el-dialog
-      title="Security Status"
-      :visible.sync="verifyShowPwdDialog"
-      width="550px"
-      :show-close="false"
-      :close-on-click-modal="false"
-    >
+    <el-dialog title="Security Status"
+               :visible.sync="verifyShowPwdDialog"
+               width="550px"
+               :show-close="false"
+               :close-on-click-modal="false">
       <p class="dialog-second-title">Would you like to enable security?</p>
       <p>This action will enable the authentication.</p>
       <p>Do you want to proceed?</p>
-      <span slot="footer" class="dialog-footer">
-          <button class="btn btn-primary" @click="verifyShowPwdDialog = false, showPassword = true">PROCEED</button>
-          <button class="btn btn-primary" @click="verifyShowPwdDialog = false, showPwdStatus = false">CANCEL</button>
-        </span>
+      <span slot="footer"
+            class="dialog-footer">
+        <button class="btn btn-primary"
+                @click="verifyShowPwdDialog = false, showPassword = true">PROCEED</button>
+        <button class="btn btn-primary"
+                @click="verifyShowPwdDialog = false, showPwdStatus = false">CANCEL</button>
+      </span>
     </el-dialog>
   </div>
 </template>
@@ -96,7 +111,7 @@ export default {
     },
     setPassword () {
       if (this.confirmPwd.length === 0 || this.confirmPwd !== this.newPwd) return
-      this.$socket.sendMsg(`#PASS ${this.pwd},${this.newPwd}`)
+      this.$socket.sendMsg(`#PASS admin,${this.newPwd}`)
     },
     handlePwd (msg) {
       if (msg.toLowerCase().endsWith('ok')) {
