@@ -1653,13 +1653,12 @@ static ssize_t store_io_value(struct device *dev, struct device_attribute *attr,
 	if (c == 2) {
 		if (SetI2CReg(BusNum, DevAddr, offset, value)) {
 			printk("Wr Offset:0x%x FAILED!\n", offset);
-			goto out;
+			return -1;
 		}
 		//printk("Wr Offset:0x%x, Value:0x%02x\n", offset, value);
 	} else {
 		printk("Usage:\nOffset Value\n");
 	}
-out:
 	return count;
 }
 DEVICE_ATTR(io_value, (S_IRUGO | S_IWUSR), show_io_value, store_io_value);
