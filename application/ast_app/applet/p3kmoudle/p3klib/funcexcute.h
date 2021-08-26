@@ -29,11 +29,24 @@ extern "C"{
 #define PORT 5588
 typedef enum _AudioInputMode_E
 {
-	AUDIO_IN_HDMI = 0,   
+	AUDIO_IN_HDMI = 0,
 	AUDIO_IN_ANALOG = 1,
 	AUDIO_IN_NONE = 2,
-	ADUIO_IN_DANTE = 4
+	AUDIO_IN_UNKNOWN = 3,
+	AUDIO_IN_DANTE = 4,
+	AUDIO_IN_ERROR = 255,
 }AudioInputMode_E;
+
+typedef enum _AudioOutputMode_E
+{
+	AUDIO_OUT_HDMI = 0,
+	AUDIO_OUT_ANALOG = 1,
+	AUDIO_OUT_STREAM = 2,
+	AUDIO_OUT_DANTE = 3,
+	AUDIO_OUT_ERROR = 255,
+}AudioOutputMode_E;
+
+
 typedef enum _EDIDMode_E
 {
 	EDID_MODE_INPUT = 0,
@@ -66,6 +79,7 @@ typedef enum _PortSignalType_E
 	PORT_SPDIF,
 	PORT_MIC,
 	PORT_STREAM,
+	PORT_NONE
 }PortSignalType_E;
 typedef enum _SignalType_E
 {
@@ -142,7 +156,7 @@ typedef enum _VideoStatusType_E
 	VIDEO_ENABLED,
 	VIDEO_DISABLED,
 	VIDEO_BY_BLANK_PICTURE,
-	
+
 }VideoStatusType_E;
 
 typedef enum _CodecActionType_E
@@ -215,7 +229,7 @@ typedef struct _AudioSignalInfo_S
 {
 	int chn ;
 	AudioSampleRate_E sampleRate;
-	AudioFormat_E format;
+	char format[16];
 }AudioSignalInfo_S;
 
 typedef struct _ViewModeInfo_S
@@ -310,6 +324,7 @@ typedef struct _TunnelParam_S
 }TunnelParam_S;
 typedef struct _NetWorkInfo_S
 {
+	int  dhcp_enable;
 	char ipAddr[MAX_IP_ADDR_LEN+1];
 	char mask[MAX_IP_ADDR_LEN+1];
 	char gateway[MAX_IP_ADDR_LEN+1];
@@ -339,6 +354,26 @@ typedef struct _EDIDPortInfo_S
 	int type;
 }EDIDPortInfo_S;
 
+typedef enum _NetMethodType_E
+{
+	Net_UNICAST = 1,
+	Net_MULTICAST = 2,
+}NetMethodType_E;
+
+
+typedef enum _NetPortType_E
+{
+	Net_UDP = 0,
+	Net_TCP = 1,
+}NetPortType_E;
+
+typedef enum _NetGWType_E
+{
+	Net_P3K = 0,
+	Net_RS232 = 1,
+	Net_DANTE = 2,
+}NetGWType_E;
+
 typedef enum _BoardInfoType_E
 {
 	BOARD_HOSTNAME,
@@ -350,7 +385,7 @@ typedef enum _BoardInfoType_E
 	BOARD_BUILD_DATE
 }BoardInfoType_E;
 
-int GetBoardInfo(BoardInfoType_E type, char* info, int size);
+int GetBoardInfo(BoardInfoType_E type, char* info, unsigned int size);
 
 int  EX_SetAudSrcMode(int mode);
 int  EX_GetAudSrcMode(int *mode);
@@ -372,7 +407,7 @@ int EX_GetEDIDLockStatus(int index,int *lock);
 int EX_SetHDCPMode(int index,HDCPMode_E mode);
 int EX_GetHDCPMode(int index,HDCPMode_E *mode);
 
-int EX_GetHDCPStatus(int io,int index);	
+int EX_GetHDCPStatus(int io,int index);
 
 int EX_SetViewMode(ViewMode_E mode,ViewModeInfo_S*info);
 int EX_GetViewMode(ViewMode_E *mode,ViewModeInfo_S*info);

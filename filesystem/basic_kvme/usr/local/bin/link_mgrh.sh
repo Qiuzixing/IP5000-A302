@@ -332,7 +332,6 @@ handle_e_sys_ip_chg()
 	avahi-daemon -D
 	name_service -thost
 	#httpd -h /www &
-	web &
 	start_telnetd
 
 	update_node_info
@@ -340,7 +339,9 @@ handle_e_sys_ip_chg()
 	node_responser --mac $MY_MAC &
 	heartbeat &
 	p3ktcp &
-
+	usleep 10000
+	web &
+	
 	ulmparam s RELOAD_KMOIP 1
 	ast_send_event -1 e_reconnect
 
@@ -686,10 +687,12 @@ handle_e_ip_got()
 		avahi-daemon -D
 		name_service -thost
 		#httpd -h /www &
-		web &
 		# Start telnetd
 		start_telnetd
 		p3ktcp &
+		usleep 10000
+		web &
+		
 		case $MODEL_NUMBER in
 			KDS-SW3-EN-6X)
 				lcd_display IPE5000P &
@@ -1309,7 +1312,7 @@ handle_e_p3k_switch_mode()
 
 	shift 2
 	_switch_mode="$1"
-	
+
 	echo "set p3k switch mode!!! $_switch_mode"
 	sconfig --mode "$_switch_mode"
 }
@@ -1332,7 +1335,7 @@ handle_e_p3k_switch_pri()
 
 	shift 2
 	_pri_3="$1"
-	
+
 	echo "set p3k switch pri!!! $_pri_1 $_pri_2 $_pri_3"
 	sconfig --priority "$_pri_1" "$_pri_2" "$_pri_3"
 }
@@ -1347,7 +1350,7 @@ handle_e_p3k_switch_in()
 
 	shift 2
 	_switch_input="$1"
-	
+
 	echo "set p3k switch input!!! $_switch_input"
 	sconfig --input "$_switch_input"
 }
@@ -1370,27 +1373,47 @@ handle_e_p3k_switch()
 	esac
 }
 
+handle_edid()
+{
+	echo "handle_edid. ($*)"
+}
+
 handle_e_p3k_edid()
 {
 	echo "handle_e_p3k_edid."
-	case "$*" in
-		e_p3k_video_edid_lock::?*)
-			echo "e_p3k_video_edid_lock ($event) received"
-		;;
-		e_p3k_video_edid_mode::?*)
-			echo "e_p3k_video_edid_mode ($event) received"
-		;;
+	local _para1
+	local _para2
+
+	#e_p3k_switch_in::switch_input
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	case "$event" in
 		e_p3k_video_edid_add::?*)
 			echo "e_p3k_video_edid_add ($event) received"
+			shift 2
+			_para1="$1"
+			_para2="$3"
+			handle_edid -a $_para2 -i $_para1
 		;;
 		e_p3k_video_edid_remove::?*)
-			echo "e_p3k_video_edid_remove ($event) received"
+			shift 2
+			_para1="$1"
+			handle_edid -d -i $_para1
 		;;
-		e_p3k_video_edid_active::?*)
-			echo "e_p3k_video_edid_active ($event) received"
+		e_p3k_video_edid_default)
+			handle_edid -s default
 		;;
-		e_p3k_video_edid_src::?*)		
-			echo "e_p3k_video_edid_src ($event) received"
+		e_p3k_video_edid_passthru::?*)
+			echo "e_p3k_video_edid_passthru ($event) received"
+			shift 2
+			_para1="$1"
+			handle_edid -c $_para1
+		;;
+		e_p3k_video_edid_custom::?*)
+			echo "e_p3k_video_edid_custom ($event) received"
+			shift 2
+			_para1="$1"
+			handle_edid -s custom -i $_para1
 		;;
 		*)
 		;;
@@ -1412,9 +1435,11 @@ handle_e_p3k_video()
 	case "$event" in
 		e_p3k_video_edid?*)
 			handle_e_p3k_edid "$event"
-		;;	
+		;;
 		e_p3k_video_hdcp_mode::?*)
 			echo "e_p3k_video_hdcp_mode ($event) received"
+			_para2="$3"
+			ipc @m_lm_set s set_hdcp_cap:0-2:$_para2
 		;;
 		*)
 		echo "ERROR!!!! Invalid event ($event) received"
@@ -1432,7 +1457,7 @@ handle_e_p3k_audio_src()
 
 	shift 2
 	_switch_input="$1"
-	
+
 	echo "set p3k switch input!!! $_switch_input"
 	sconfig --audio-input "$_switch_input"
 }
@@ -1445,7 +1470,7 @@ handle_e_p3k_audio_dst()
 	local _dst_2
 	local _dst_3
 	local _dst_4
-	
+
 	#e_p3k_switch_in::switch_input
 	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
 
@@ -1459,29 +1484,29 @@ handle_e_p3k_audio_dst()
 	case "$_dst_num" in
 		0)
 			sconfig --audio-output no
-			echo "sconfig --audio-output no"		
-		;;	
+			echo "sconfig --audio-output no"
+		;;
 		1)
 			sconfig --audio-output "$_dst_1"
-			echo "sconfig --audio-output $_dst_1"		
+			echo "sconfig --audio-output $_dst_1"
 		;;
 		2)
 			sconfig --audio-output "$_dst_1" "$_dst_2"
-			echo "sconfig --audio-output $_dst_1 $_dst_2"		
-		;;	
+			echo "sconfig --audio-output $_dst_1 $_dst_2"
+		;;
 		3)
 			sconfig --audio-output "$_dst_1" "$_dst_2" "$_dst_3"
-			echo "sconfig --audio-output $_dst_1 $_dst_2 $_dst_3"		
+			echo "sconfig --audio-output $_dst_1 $_dst_2 $_dst_3"
 		;;
 		4)
 			sconfig --audio-output "$_dst_1" "$_dst_2" "$_dst_3" "$_dst_4"
-			echo "sconfig --audio-output $_dst_1 $_dst_2 $_dst_3 $_dst_4"		
-		;;	
+			echo "sconfig --audio-output $_dst_1 $_dst_2 $_dst_3 $_dst_4"
+		;;
 		*)
 		echo "ERROR!!!! Invalid dst_num ($_dst_num) received"
 		;;
 	esac
-	
+
 }
 
 handle_e_p3k_audio_pri()
@@ -1502,7 +1527,7 @@ handle_e_p3k_audio_pri()
 
 	shift 2
 	_pri_3="$1"
-	
+
 	echo "set p3k switch pri!!! $_pri_1 $_pri_2 $_pri_3"
 	sconfig --audio-priority "$_pri_1" "$_pri_2" "$_pri_3"
 }
@@ -1517,7 +1542,7 @@ handle_e_p3k_audio_mode()
 
 	shift 2
 	_switch_mode="$1"
-	
+
 	echo "set p3k switch mode!!! $_switch_mode"
 	sconfig --audio-mode "$_switch_mode"
 }
@@ -1537,19 +1562,20 @@ handle_e_p3k_audio_switch()
 	case "$event" in
 		e_p3k_audio_src?*)
 			handle_e_p3k_audio_src "$event"
-		;;	
+		;;
 		e_p3k_audio_dante_name::?*)
 			echo "e_p3k_audio_dante_name ($event) received"
+			ipc @m_lm_set s set_dante:0:$_para1
 		;;
 		e_p3k_audio_dst?*)
 			handle_e_p3k_audio_dst "$event"
-		;;	
+		;;
 		e_p3k_audio_pri::?*)
 			handle_e_p3k_audio_pri "$event"
 		;;
 		e_p3k_audio_mode?*)
 			handle_e_p3k_audio_mode "$event"
-		;;	
+		;;
 		*)
 		echo "ERROR!!!! Invalid event ($event) received"
 		;;
@@ -1577,8 +1603,11 @@ handle_e_p3k_audio()
 		e_p3k_audio_mute::?*)
 			ipc @a_lm_set s ae_mute:$_para1
 		;;
+		e_p3k_audio_dante_name::?*)
+			ipc @m_lm_set s set_dante:0:$_para1
+		;;
 		e_p3k_audio_?*)
-			handle_e_p3k_audio_switch "$event"	
+			handle_e_p3k_audio_switch "$event"
 		;;
 		*)
 		echo "ERROR!!!! Invalid event ($event) received"
@@ -1646,6 +1675,103 @@ handle_e_p3k_upgrade()
 	reboot
 }
 
+handle_e_p3k_net_dhcp()
+{
+	echo "handle_e_p3k_net_dhcp."
+	local _para1
+
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	_para1="$3"
+
+	astparam s ip_mode $_para1
+	astparam save
+}
+
+handle_e_p3k_net_conf()
+{
+	echo "handle_e_p3k_net_conf."
+	local _para_ip
+	local _para_mask
+	local _para_gw
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	_para_ip="$3"
+	_para_mask="$5"
+	_para_gw="$7"
+
+	astparam s ipaddr $_para_ip
+	astparam s netmask $_para_mask
+	astparam s gatewayip $_para_gw
+	astparam save
+}
+
+handle_e_p3k_net_daisychain()
+{
+	echo "handle_e_p3k_net_daisychain."
+}
+
+handle_e_p3k_net_method()
+{
+	echo "handle_e_p3k_net_method."
+}
+
+handle_e_p3k_net_multicast()
+{
+	echo "handle_e_p3k_net_multicast."
+}
+
+handle_e_p3k_net_vlan()
+{
+	echo "handle_e_p3k_net_vlan."
+}
+
+handle_e_p3k_net_gw_port()
+{
+	echo "handle_e_p3k_net_gw_port."
+}
+
+handle_e_p3k_net_hostname()
+{
+	echo "handle_e_p3k_net_hostname."
+}
+
+handle_e_p3k_net()
+{
+	echo "handle_e_p3k_net."
+
+	case "$event" in
+		e_p3k_net_dhcp::?*)
+			handle_e_p3k_net_dhcp "$event"
+		;;
+		e_p3k_net_conf::?*)
+			handle_e_p3k_net_conf "$event"
+		;;
+		e_p3k_net_daisychain::?*)
+			handle_e_p3k_net_daisychain "$event"
+		;;
+		e_p3k_net_method::?*)
+			handle_e_p3k_net_method "$event"
+		;;
+		e_p3k_net_multicast::?*)
+			handle_e_p3k_net_multicast "$event"
+		;;
+		e_p3k_net_vlan::?*)
+			handle_e_p3k_net_vlan "$event"
+		;;
+		e_p3k_net_gw_port::?*)
+			handle_e_p3k_net_gw_port "$event"
+		;;
+		e_p3k_net_hostname::?*)
+			handle_e_p3k_net_hostname "$event"
+		;;
+		*)
+		;;
+	esac
+}
+
 handle_e_p3k()
 {
 	echo "handle_e_p3k."
@@ -1665,9 +1791,12 @@ handle_e_p3k()
 		e_p3k_cec_?*)
 			handle_e_p3k_cec "$event"
 		;;
+		e_p3k_net_?*)
+			handle_e_p3k_net "$event"
+		;;
 		e_p3k_upgrade_fw*)
 			handle_e_p3k_upgrade
-		;;	
+		;;
 		*)
 		;;
 	esac

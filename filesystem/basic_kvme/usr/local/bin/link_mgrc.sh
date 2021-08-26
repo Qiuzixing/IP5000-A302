@@ -548,7 +548,6 @@ handle_e_sys_ip_chg()
 	name_service -tclient
 	inetd &
 	#httpd -h /www &
-	web &
 	start_telnetd
 	# it is harmless to send igmp leave in background because the switch will query immediately after a leave received.
 	inform_gui_ui_feature_action "GUI_refresh_node"
@@ -558,6 +557,8 @@ handle_e_sys_ip_chg()
 	node_responser --mac $MY_MAC &
 	heartbeat &
 	p3ktcp &
+	usleep 10000
+	web &
 
 	ulmparam s MY_IP $MY_IP
 	ast_send_event -1 e_reconnect
@@ -1390,10 +1391,11 @@ handle_e_ip_got()
 		# Start inetd
 		inetd &
 		#httpd -h /www &
-		web &
 		# Start telnetd
 		start_telnetd
 		p3ktcp &
+		usleep 10000
+		web &
 		case $MODEL_NUMBER in
 			KDS-DEC-6X)
 				lcd_display IPD5000 &

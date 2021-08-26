@@ -1,8 +1,14 @@
 #ifndef __DEBUGTOOL_H__
 #define __DEBUGTOOL_H__
 
+#ifdef __cplusplus
+extern "C"{
+#endif
+
 #include <stdio.h>
 #include <stdarg.h>
+
+
 
 #define _DBG_ON
 #define _DBG_LEVEL_INFO_
@@ -68,6 +74,10 @@ void px_dpg_file_clean();
     #endif
 #else 
     #define DBG_ErrMsg(format, args...)
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 

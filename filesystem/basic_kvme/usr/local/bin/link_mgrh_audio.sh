@@ -242,6 +242,7 @@ handle_ae_level()
 	#Parse ae_level:$LEVEL
 	local _level="$1"
 
+	echo $_level > /sys/devices/platform/1500_i2s/analog_out_vol
 	echo "ae_level!!! $_level"
 }
 
@@ -250,14 +251,25 @@ handle_ae_dir()
 	#Parse ae_dir:$DIR
 	local _dir="$1"
 
-	#sconfig --audio-analog "$_dir"
+	sconfig --audio-analog "$_dir"
 	echo "ae_dir!!! $_dir"
 }
 
 handle_ae_mute()
 {
-	local _para1=$1
-	echo "handle_ae_mute.($_para1)" 
+	local _para1="$1"
+	echo "handle_ae_mute.($_para1)"
+
+	if [ _para1 != '1' ]; then
+		echo 0 > /sys/class/leds/linein_mute/brightness
+	    echo 0 > /sys/class/leds/lineout_mute/brightness
+	    echo 0 > /sys/class/leds/dante_mute/brightness
+	else
+		echo 1 > /sys/class/leds/linein_mute/brightness
+	    echo 1 > /sys/class/leds/lineout_mute/brightness
+	    echo 1 > /sys/class/leds/dante_mute/brightness
+	fi
+
 }
 
 handle_ae_test()

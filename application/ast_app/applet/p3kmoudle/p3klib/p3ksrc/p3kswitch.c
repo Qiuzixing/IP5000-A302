@@ -34,8 +34,8 @@ static int P3K_PhraserWithSeparator(char separator,char * param, int len, char s
 	int i = 0;
 	char *tmpdata = param;
 	char *tmpdata1 = param;
-	
-	
+
+
 	if(param == NULL ||len <=0)
 	{
 		return -1;
@@ -45,7 +45,7 @@ static int P3K_PhraserWithSeparator(char separator,char * param, int len, char s
 		tmpdata = strchr(tmpdata,separator);
 		if(tmpdata != NULL)
 		{
-		
+
 			tmpLen = tmpdata-tmpdata1;
 			//memset(str[i],0,MAX_PARAM_LEN);
 			memcpy(str[i],tmpdata1,tmpLen);
@@ -75,12 +75,12 @@ static int P3K_CheckEdidMode(char*data)
 	int tmpDirec = PASSTHRU;
 	//char *tmp = data;
 
-	
-	if(!strcmp(data,"PASSTHRU"))
+
+	if((!strcmp(data,"PASSTHRU"))||(!strcmp(data,"passthru")))
 		{tmpDirec = PASSTHRU;}
-	else	if(!strcmp(data,"CUSTOM"))
+	else if((!strcmp(data,"CUSTOM"))||(!strcmp(data,"custom")))
 		{tmpDirec = CUSTOM;}
-	else	if(!strcmp(data,"DEFAULT"))
+	else if((!strcmp(data,"DEFAULT"))||(!strcmp(data,"default")))
 		{tmpDirec = DEFAULT;}
 	return tmpDirec;
 }
@@ -114,7 +114,7 @@ static int P3K_CheckPortDirection(char*data)
 	int tmpDirec = DIRECTION_IN;
 	//char *tmp = data;
 
-	
+
 	if(!strcmp(data,"in") || !strcmp(data,"[in"))
 		{tmpDirec = DIRECTION_IN;}
 	else	if(!strcmp(data,"out") || !strcmp(data,"[out"))
@@ -125,7 +125,7 @@ static int P3K_CheckPortDirection(char*data)
 }
 static int P3K_PortDirectionToStr(int direc,char*data)
 {
-	
+
 	char tmpbuf[32]={0};
 	memset(tmpbuf,0,sizeof(tmpbuf));
 	switch(direc)
@@ -152,7 +152,7 @@ static int P3K_CheckPortFormat(char*data)
 {
 	int tmpFormat = PORT_HDMI;
 	//char *tmp = data;
-	
+
 	if(!strcmp(data,"hdmi"))
 		{tmpFormat = PORT_HDMI;}
 
@@ -164,16 +164,16 @@ static int P3K_CheckPortFormat(char*data)
 
 	else if(!strcmp(data,"rs232"))
 		{tmpFormat = PORT_RS232;}
-	
+
 	else if(!strcmp(data,"ir"))
 		{tmpFormat = PORT_IR;}
-	
+
 	else if(!strcmp(data,"usb_a"))
 		{tmpFormat = PORT_USB_A;}
-	
+
 	else if(!strcmp(data,"usb_b"))
 		{tmpFormat = PORT_USB_B;}
-	
+
 	else if(!strcmp(data,"usb_c"))
 		{tmpFormat = PORT_USB_C;}
 	else if(!strcmp(data,"dante"))
@@ -251,7 +251,7 @@ static int P3K_PortFormatToStr(int format,char*data)
 
 static int P3K_StateToStr(int direc,char*data)
 {
-	
+
 	char tmpbuf[32]={0};
 	memset(tmpbuf,0,sizeof(tmpbuf));
 	switch(direc)
@@ -300,14 +300,14 @@ static int P3K_CheckStateType(char*data)
 	else if(!strcmp(data,"on"))
 	{	tmpFormat = ON;}
 
-	
+
 	return tmpFormat;
 }
 
 
 static int P3K_SignaleTypeToStr(int signaltype,char*data)
 {
-	
+
 	char tmpbuf[32]={0};
 	memset(tmpbuf,0,sizeof(tmpbuf));
 	switch(signaltype)
@@ -350,7 +350,7 @@ static int P3K_CheckAudioSampleRate(char*data)
 			{tmpRate = SAMPLE_RATE_32000;}
 		else if(!strcmp(tmp,"22.5K"))
 			{tmpRate = SAMPLE_RATE_22500;}
-		else if(!strcmp(tmp,"16K"))	
+		else if(!strcmp(tmp,"16K"))
 			{tmpRate = SAMPLE_RATE_16000;}
 		else if(!strcmp(tmp,"8K"))
 			{tmpRate = SAMPLE_RATE_8000;}
@@ -395,9 +395,9 @@ static int P3K_CheckAudioType(char*data)
 	//char *tmp = data;
 	if(!strcmp(data,"PCM"))
 	{tmpType = AUDIO_FORMAT_PCM;}
-		
+
 	return tmpType;
-	
+
 }
 static int P3K_AudioTypeToStr(int type,char*data)
 {
@@ -431,7 +431,7 @@ static int P3K_CheckUartParity(char*data)
 	{tmpType = PARITY_MARK;}
 	else if(!strcmp(data,"space"))
 	{tmpType = PARITY_SPACE;}
-		
+
 	return tmpType;
 
 }
@@ -470,8 +470,8 @@ static int  P3K_PhraserParam(char *param,int len,	char str[][MAX_PARAM_LEN] )
 	int i = 0;
 	char *tmpdata = param;
 	char *tmpdata1 = param;
-	
-	
+
+
 	if(param == NULL ||len <=0)
 	{
 		return -1;
@@ -481,11 +481,11 @@ static int  P3K_PhraserParam(char *param,int len,	char str[][MAX_PARAM_LEN] )
 		tmpdata = strchr(tmpdata,PARAM_SEPARATOR);
 		if(tmpdata != NULL)
 		{
-		
+
 			tmpLen = tmpdata-tmpdata1;
 			//memset(str[i],0,MAX_PARAM_LEN);
 			memcpy(str[i],tmpdata1,tmpLen);
-		
+
 			i++;
 			if(len > tmpdata-param+1)
 			{
@@ -514,11 +514,11 @@ static int P3K_GetPortInfo(char*param,PortInfo_S*info)
 
 	//char tmpparam[MAX_PARAM_LEN] = {0};
 	int count = 0;
-	
+
 	count = P3K_PhraserWithSeparator('.',param, strlen(param), str);
-	
-	
-	info->direction  = P3K_CheckPortDirection(str[0]);	
+
+
+	info->direction  = P3K_CheckPortDirection(str[0]);
 	info->portFormat = P3K_CheckPortFormat(str[1]);
 	info->portIndex = atoi(str[2]);
 	if(count > 3)
@@ -534,11 +534,11 @@ static int P3K_GetPortSInfo(char*param,PortInfo_S*info,int num)
 
 	//char tmpparam[MAX_PARAM_LEN] = {0};
 	int count = 0;
-	
+
 	count = P3K_PhraserWithSeparator('.',param, strlen(param), str);
-	
-	
-	info[num].direction  = P3K_CheckPortDirection(str[0]);	
+
+
+	info[num].direction  = P3K_CheckPortDirection(str[0]);
 	info[num].portFormat = P3K_CheckPortFormat(str[1]);
 	info[num].portIndex = atoi(str[2]);
 	if(count > 3)
@@ -567,7 +567,7 @@ static int P3K_SetAudioInputMode(char*reqparam,char*respParam,char*userdata)
 	{
 		DBG_ErrMsg("EX_SetAudSrcMode err\n");
 	}
-	
+
 	//回复组包的cmd 和cmd参数包
 	sprintf(tmpparam,"%d",mode);
 	memcpy(respParam,tmpparam,MAX_PARAM_LEN);
@@ -586,7 +586,7 @@ static int P3K_GetAudioInputMode(char*reqparam,char*respParam,char*userdata)
 		DBG_ErrMsg("EX_GetAudSrcMode err\n");
 	}
 	sprintf(tmpparam,"%d",mode);
-	memcpy(respParam,tmpparam,MAX_PARAM_LEN);    
+	memcpy(respParam,tmpparam,MAX_PARAM_LEN);
     return  0;
 }
 static int P3K_SetAudLevel(char*reqparam,char*respParam,char*userdata)
@@ -655,22 +655,22 @@ static int P3K_GetAudParam(char*reqparam,char*respParam,char*userdata)
 	tmpInfo.signal = SIGNAL_AUDIO;
 	tmpInfo.index = 1;
 	P3K_GetPortInfo(reqparam,&tmpInfo);
-	
+
 	s32Ret = EX_GetAudParam(&tmpInfo,&audioInfo);
 	 if(s32Ret)
 	{
 		DBG_ErrMsg("EX_GetAudParam err\n");
 	}
 	 P3K_AudioSampleRateToStr(audioInfo.sampleRate,sampleRate);
-	 
+
 	 P3K_PortDirectionToStr(tmpInfo.direction, direc);
 	 P3K_PortFormatToStr(tmpInfo.portFormat,format);
-	 P3K_AudioTypeToStr(audioInfo.format,audioType);
-	 
+	 //P3K_AudioTypeToStr(audioInfo.format,audioType);
+
 	 P3K_SignaleTypeToStr(tmpInfo.signal, signal);
 	 sprintf(tmpparam,"%s.%s.%d.%s.%d,%d,%s,%s",direc,format,
-		   tmpInfo.index,signal,tmpInfo.index,audioInfo.chn,sampleRate,audioType);
-	
+		   tmpInfo.index,signal,tmpInfo.index,audioInfo.chn,sampleRate,audioInfo.format);
+
 	memcpy(respParam,tmpparam,strlen(tmpparam));
 
 	return 0;
@@ -686,7 +686,7 @@ static int P3K_SetAutoSwitchMode(char*reqparam,char*respParam,char*userdata)
 	int count = 0;
 	int s32Ret = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	PortInfo_S tmpInfo = {0};
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	//char tmpparam[MAX_PARAM_LEN] = {0};
@@ -700,7 +700,7 @@ static int P3K_SetAutoSwitchMode(char*reqparam,char*respParam,char*userdata)
 		DBG_ErrMsg("EX_SetAutoSwitchMode err\n");
 	}
 	memcpy(respParam,reqparam,strlen(reqparam));
-	
+
 	return 0;
 }
 static int P3K_GetAutoSwitchMode(char*reqparam,char*respParam,char*userdata)
@@ -724,7 +724,7 @@ static int P3K_GetAutoSwitchMode(char*reqparam,char*respParam,char*userdata)
 	}
 	sprintf(tmpparam,"%s,%d",reqparam,mode);
 	memcpy(respParam,tmpparam,strlen(tmpparam));
-	
+
 	return 0;
 }
 static int P3K_GetEdid(char*reqparam,char*respParam,char*userdata)
@@ -805,7 +805,7 @@ static int P3K_SetEdidCsMode(char*reqparam,char*respParam,char*userdata)
 	//sscanf(param,"%1d",mode);
 	mode = atoi(str[1]);
 	P3K_GetPortInfo(str[0],&tmpInfo);
-	
+
 	s32Ret = EX_SetEDIDColorSpaceMode(&tmpInfo, mode);
 	if(s32Ret)
 	{
@@ -848,7 +848,7 @@ static int P3K_SetEdidLockMode(char*reqparam,char*respParam,char*userdata)
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	in_index = atoi(str[0]);
 	lockFlag = atoi(str[1]);
-	
+
 	s32Ret = EX_SetEDIDLockStatus(in_index, lockFlag);
 	if(s32Ret)
 	{
@@ -890,7 +890,7 @@ static int P3K_SetHDCPMode(char*reqparam,char*respParam,char*userdata)
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	in_index = atoi(str[0]);
 	mode = atoi(str[1]);
-	
+
 	///#HDCP-MOD in_index,mode<CR>
 	///~nn@HDCP-MOD in_index,mode<CR><LF>
 	s32Ret = EX_SetHDCPMode(in_index, mode);
@@ -913,7 +913,7 @@ static int P3K_GetHDCPMode(char*reqparam,char*respParam,char*userdata)
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
 	int count = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	in_index = atoi(str[0]);
 	s32Ret = EX_GetHDCPMode(in_index, &mode);
@@ -936,27 +936,27 @@ static int P3K_GetHDCPStatus(char*reqparam,char*respParam,char*userdata)
 	int index = 0;
 	int status = 0;
 	int mode = 0;
-	
+
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
 	int count = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	mode = atoi(str[0]);
 	index = atoi(str[1]);
-	
+
 	status = EX_GetHDCPStatus(mode, index);
-	
+
 	sprintf(tmpparam,"%s,%d",reqparam,status);
 	memcpy(respParam,tmpparam,strlen(tmpparam));
-	
+
 	return 0;
 }
 static int P3K_SetVideoWallMode(char*reqparam,char*respParam,char*userdata)
 {
 	//#VIEW-MOD mode,horizontal, vertical<CR>
 	//~nn@VIEW-MOD mode, horizontal, vertical<CR><LF>
-	
+
 	DBG_InfoMsg("P3K_SetVideoWallMode\n");
 
 	int s32Ret = 0;
@@ -972,7 +972,7 @@ static int P3K_SetVideoWallMode(char*reqparam,char*respParam,char*userdata)
 		info.hStyle = atoi(str[1]);
 		info.vStyle = atoi(str[2]);
 	}
-	
+
 	s32Ret =  EX_SetViewMode(mode, &info);
 	if(s32Ret)
 	{
@@ -1017,13 +1017,13 @@ static int P3K_SetWndBezel(char*reqparam,char*respParam,char*userdata)
 	info.vValue = atoi(str[3]);
 	info.hOffset = atoi(str[4]);
 	info.vOffset = atoi(str[5]);
-	
+
 	s32Ret = EX_SetWndBezelInfo(mode, out_index, &info);
 	if(s32Ret)
 	{
 		DBG_ErrMsg("EX_SetWndBezelInfo err\n");
 	}
-	
+
 	memcpy(respParam,reqparam,strlen(reqparam));
 	return  0;
 }
@@ -1066,7 +1066,7 @@ static int P3K_SetVideoWallRotaion(char*reqparam,char*respParam,char*userdata)
 		DBG_ErrMsg("EX_SetVideoWallSetupInfo err\n");
 	}
 	memcpy(respParam,reqparam,strlen(reqparam));
-	
+
 	return  0;
 }
 static int P3K_GetVideoWallRotaion(char*reqparam,char*respParam,char*userdata)
@@ -1078,7 +1078,7 @@ static int P3K_GetVideoWallRotaion(char*reqparam,char*respParam,char*userdata)
 	int s32Ret = 0;
 	VideoWallSetupInfo_S info;
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	s32Ret = EX_GetVideoWallSetupInfo(&wallId, &info);
 	if(s32Ret)
 	{
@@ -1129,7 +1129,7 @@ static int P3K_SetChannelId(char*reqparam,char*respParam,char*userdata)
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	chn = atoi(str[0]);
-	
+
 	s32Ret = EX_SetEncoderAVChannelId(chn);
 	if(s32Ret)
 	{
@@ -1189,7 +1189,7 @@ static int P3K_GetChannleSelection(char*reqparam,char*respParam,char*userdata)
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	sSelect.signal = P3K_CheckSignalType(str[0]);
-	
+
 	s32Ret =  EX_GetDecoderAVChannelId(&sSelect);
 	if(s32Ret)
 	{
@@ -1213,7 +1213,7 @@ static int P3K_SetVideoOutMode(char*reqparam,char*respParam,char*userdata)
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	scalerId = atoi(str[0]);
 	videoMode = atoi(str[1]);
-	
+
 	s32Ret = EX_SetVideoImageStatus(scalerId, videoMode);
 	if(s32Ret)
 	{
@@ -1233,10 +1233,10 @@ static int P3K_GetVideoOutMode(char*reqparam,char*respParam,char*userdata)
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	int count = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	scalerId = atoi(str[0]);
-	
+
 	s32Ret = EX_GetVideoImageStatus(scalerId, &videoMode);
 	if(s32Ret)
 	{
@@ -1256,10 +1256,10 @@ static int P3K_SetVideoAction(char*reqparam,char*respParam,char*userdata)
 	int count = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
 
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	type = atoi(str[0]);
-	
+
 	s32Ret = EX_SetVideoCodecAction(type);
 	if(s32Ret)
 	{
@@ -1276,7 +1276,7 @@ static int P3K_GetVideoAction(char*reqparam,char*respParam,char*userdata)
 	int type = 0;
 	int s32Ret = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	s32Ret = EX_GetVideoCodecAction(&type);
 	if(s32Ret)
 	{
@@ -1297,7 +1297,7 @@ static int P3K_SetVideoOutCS(char*reqparam,char*respParam,char*userdata)
 	int csMode = 0;
 	int count = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	outId = atoi(str[0]);
 	csMode = atoi(str[1]);
@@ -1320,7 +1320,7 @@ static int P3K_GetVideoOutCS(char*reqparam,char*respParam,char*userdata)
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	int count = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	outId = atoi(str[0]);
 
@@ -1344,11 +1344,11 @@ static int P3K_SetVideoOutScaler(char*reqparam,char*respParam,char*userdata)
 	int count = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	mode =atoi(str[0]);
 	res = atoi(str[1]);
-	
+
 	s32Ret = EX_SetVideoImageScaleMode(mode, res);
 	if(s32Ret)
 	{
@@ -1367,7 +1367,7 @@ static int P3K_GetVideoOutScaler(char*reqparam,char*respParam,char*userdata)
 	int s32Ret = 0;
 	char res[64]={0};
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	s32Ret = EX_GetVideoImageScaleMode(&mode, res);
 	if(s32Ret)
 	{
@@ -1390,7 +1390,7 @@ static int P3K_GetVideoReslotion(char*reqparam,char*respParam,char*userdata)
 	int count = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	ioMode = atoi(str[0]);
 	ioIndex = atoi(str[1]);
@@ -1413,7 +1413,7 @@ static int P3K_GetVideoFrameRate(char*reqparam,char*respParam,char*userdata)
 	int fps = 0;
 	int s32Ret = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	s32Ret = EX_GetVideoFrameRate(&fps);
 	if(s32Ret)
 	{
@@ -1431,7 +1431,7 @@ static int P3K_GetVideoBitRate(char*reqparam,char*respParam,char*userdata)
 	int bitRate = 0;
 	int s32Ret = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	s32Ret = EX_GetVideoBitRate(&bitRate);
 	if(s32Ret)
 	{
@@ -1451,16 +1451,16 @@ static int P3K_SendCECMsg(char*reqparam,char*respParam,char*userdata)
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	int count = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	cecMsg.portId = atoi(str[0]);
 	cecMsg.serialNumb = atoi(str[1]);
 	memcpy(cecMsg.cmdName,str[2],strlen(str[2]));
 	cecMsg.hexByte = atoi(str[3]);
 	memcpy(cecMsg.cmdComent,str[4],strlen(str[4]));
-	
+
 	ret = EX_SendCECMsg(&cecMsg);
-	
+
 	sprintf(tmpparam,"%d,%d,%s,%d",cecMsg.portId,cecMsg.serialNumb,cecMsg.cmdName,ret);
 	memcpy(respParam,tmpparam,strlen(tmpparam));
 	return 0;
@@ -1475,7 +1475,7 @@ static int P3K_RecvCECNtfy(char*reqparam,char*respParam,char*userdata)
 	int hexByte;
 	char cmdComment[CEC_MAX_CMD_COMENT_LEN+1] = {0};
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	s32Ret = EX_RecvCECNtfy(&portId, &hexByte, cmdComment);
 	if(s32Ret)
 	{
@@ -1494,10 +1494,10 @@ static int P3K_SetCECGWMode(char*reqparam,char*respParam,char*userdata)
 	int count = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
 	int mode = 0;
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	mode = atoi(str[0]);
-	
+
 	s32Ret =  EX_SetCECGateWayMode(mode);
 	if(s32Ret)
 	{
@@ -1517,7 +1517,7 @@ static int P3K_GetCECGWMode(char*reqparam,char*respParam,char*userdata)
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
 	int mode = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	mode =  EX_GetCECGateWayMode();
 	sprintf(tmpparam,"%d",mode);
 	memcpy(respParam,tmpparam,strlen(tmpparam));
@@ -1534,7 +1534,7 @@ static int P3K_SendIRMsg(char*reqparam,char*respParam,char*userdata)
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	int count = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 
 	irMsg.irId =atoi(str[0]);
@@ -1544,7 +1544,7 @@ static int P3K_SendIRMsg(char*reqparam,char*respParam,char*userdata)
 	irMsg.totalPacket = atoi(str[4]);
 	irMsg.packId = atoi(str[5]);
 	memcpy(irMsg.cmdComent,str[6],strlen(str[6]));
-	
+
 	ret = EX_SendIRmessage(&irMsg);
 
 	sprintf(tmpparam,"%d,%d,%s,%d",irMsg.irId,irMsg.serialNumb,irMsg.cmdName,ret);
@@ -1563,12 +1563,12 @@ static int P3K_StopIRMsg(char*reqparam,char*respParam,char*userdata)
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	int count = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	irId =atoi(str[0]);
 	serialId = atoi(str[1]);
 	memcpy(command,str[2],strlen(str[2]));
-	
+
 	ret = EX_SendIRStop(irId, serialId, command);
 
 	sprintf(tmpparam,"%d,%d,%s,%d",irId,serialId,command,ret);
@@ -1606,7 +1606,7 @@ static int P3K_SetXROUTEMatch(char*reqparam,char*respParam,char*userdata)
 		{
 			P3K_GetPortSInfo(str[i], &outInfo,i);
 		}
-		P3K_GetPortInfo(str[count-1], &inInfo);	
+		P3K_GetPortInfo(str[count-1], &inInfo);
 	}
 	 //printf(",,,.,.,%s\n",str[count-1]);
 	s32Ret = EX_SetRouteMatch(&outInfo,&inInfo,count-1);
@@ -1630,7 +1630,7 @@ static int P3K_GetXROUTEMatch(char*reqparam,char*respParam,char*userdata)
 	char portFormat[32] = {0};
 	char signal[32] = {0};
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	int count = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
 	char str1[][MAX_PARAM_LEN] = {0};
@@ -1638,7 +1638,7 @@ static int P3K_GetXROUTEMatch(char*reqparam,char*respParam,char*userdata)
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 
 	P3K_GetPortInfo(str[0], &outInfo);
-		
+
 
 	s32Ret =  EX_GetRouteMatch(&outInfo, &inInfo);
 	if(s32Ret)
@@ -1652,11 +1652,11 @@ static int P3K_GetXROUTEMatch(char*reqparam,char*respParam,char*userdata)
 	memset(direc,0,sizeof(direc));
 	memset(portFormat,0,sizeof(portFormat));
 	memset(signal,0,sizeof(signal));
-	
+
 	P3K_PortDirectionToStr(inInfo.direction, direc);
 	P3K_PortFormatToStr(inInfo.portFormat, portFormat);
 	P3K_SignaleTypeToStr(inInfo.signal,signal);
-	
+
 	sprintf(tmpparam+strlen(tmpparam),",%s.%s.%d.%s.%d",direc,portFormat,inInfo.portIndex,signal,inInfo.index);
 	memcpy(respParam,tmpparam,strlen(tmpparam));
 	return 0;
@@ -1683,7 +1683,7 @@ static int P3K_SetUartConf(char*reqparam,char*respParam,char*userdata)
 		uartConf.serialType = atoi(str[5]);
 		uartConf.term_485 = atoi(str[5]);
 	}
-		
+
 	s32Ret = EX_SetUartConf(&uartConf);
 	if(s32Ret)
 	{
@@ -1738,7 +1738,7 @@ static int P3K_GetUartConf(char*reqparam,char*respParam,char*userdata)
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	comId = atoi(str[0]);
 
-	
+
 	s32Ret = EX_GetUartConf(comId, &uartConf);
 	if(s32Ret)
 	{
@@ -1747,7 +1747,7 @@ static int P3K_GetUartConf(char*reqparam,char*respParam,char*userdata)
 	P3K_ParityToStr(uartConf.parity, parity);
 	floatTostr( uartConf.stopBitsMode,floatStr);
 	if(uartConf.serialType == 0)
-	{ 
+	{
 		sprintf(tmpparam+strlen(tmpparam),"%d,%d,%d,%s,%s",
 		   	   uartConf.comNumber,uartConf.rate,uartConf.bitWidth,parity,
 		          floatStr);
@@ -1779,7 +1779,7 @@ static int P3K_AddComRoute(char*reqparam,char*respParam,char*userdata)
 	routeInfo.portNumber = atoi(str[2]);
 	routeInfo.rePlay = atoi(str[3]);
 	routeInfo.HeartTimeout = atoi(str[4]);
-	
+
 	s32Ret = EX_AddComRoute(&routeInfo, comId);
 	if(s32Ret)
 	{
@@ -1800,7 +1800,7 @@ static int P3K_RemoveComRoute(char*reqparam,char*respParam,char*userdata)
 
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	comId = atoi(str[0]);
-	
+
 	s32Ret = EX_RemoveComRoute(comId);
 	if(s32Ret)
 	{
@@ -1817,7 +1817,17 @@ static int P3K_GetComRouteInfo(char*reqparam,char*respParam,char*userdata)
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
 
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
-	
+
+	int comId = 0;;
+	int ret = 0;
+	ComRouteInfo_S info;
+	ret = EX_GetComRoute(comId,&info);
+
+	if(ret == 0) //enable
+	{
+		sprintf(respParam,"1,%d,%d,%d,%d",info.portType,info.portNumber,info.rePlay,info.HeartTimeout);
+	}
+
 	return 0;
 }
 static int P3K_GetEthTunnel(char*reqparam,char*respParam,char*userdata)
@@ -1831,7 +1841,7 @@ static int P3K_SetUSBMode(char*reqparam,char*respParam,char*userdata)
 	//#KVM-USB-CTRL usb_type<CR>
       //~nn@KVM-USB-CTRL usb_type<CR><LF>
    //   EX_GetUSBCtrl(int * type)
-   	int type = 0; 
+   	int type = 0;
 	int s32Ret = 0;
 	int count = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
@@ -1854,7 +1864,7 @@ static int P3K_GetMulticastStatus(char*reqparam,char*respParam,char*userdata)
 	char gIp[MAX_IP_ADDR_LEN]={0};
 	int ttl = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	s32Ret = EX_GetMulticastInfo(gIp, &ttl);
 	if(s32Ret)
 	{
@@ -1895,14 +1905,15 @@ static int P3K_GetMacAddr(char*reqparam,char*respParam,char*userdata)
 	//#NET-MAC? id<CR>
 	//~nn@NET MAC id,mac_address<CR><LF>
 	DBG_InfoMsg("P3K_GetMacAddr\n");
-	int netId;
+	int netId = 0;
 	int s32Ret =0;
 	char mac[MAC_ADDR_LEN] ={0};
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	int count = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
+	netId = atoi(str[0]);
 
 	s32Ret = EX_GetMacAddr(netId,mac);
 	if(s32Ret)
@@ -1922,10 +1933,10 @@ static int P3K_SetDNSName(char*reqparam,char*respParam,char*userdata)
 	int count = 0;
 	int id = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	id = atoi(str[0]);
-	
+
 	s32Ret = EX_SetDNSName(id,str[1]);
 	if(s32Ret)
 	{
@@ -1944,7 +1955,7 @@ static int P3K_GetDNSName(char*reqparam,char*respParam,char*userdata)
 	char name[MAX_DEV_NAME_LEN+1] ={0};
 	int id = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	int count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	id = atoi(str[0]);
 	s32Ret = EX_GetDNSName(id,name);
@@ -1952,7 +1963,7 @@ static int P3K_GetDNSName(char*reqparam,char*respParam,char*userdata)
 	{
 		DBG_ErrMsg("EX_GetDNSName err\n");
 	}
-	sprintf(tmpparam,"%s",name);
+	sprintf(tmpparam,"%d,%s",id,name);
 	memcpy(respParam,tmpparam,strlen(tmpparam));
 	return 0;
 }
@@ -1964,7 +1975,7 @@ static int P3K_ResetDNSName(char*reqparam,char*respParam,char*userdata)
 	int s32Ret = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	char name[MAX_DEV_NAME_LEN+1] ={0};
-	
+
 	s32Ret = EX_ResetDNSName(name);
 	if(s32Ret)
 	{
@@ -1976,7 +1987,7 @@ static int P3K_ResetDNSName(char*reqparam,char*respParam,char*userdata)
 }
 static int P3K_SetDHCPMode(char*reqparam,char*respParam,char*userdata)
 {
-	
+
 	//#NET-DHCP netw_id,dhcp_state<CR>
 	//~nn@NET-DHCP netw_id,dhcp_state<CR><LF>
 	DBG_InfoMsg("P3K_SetDHCPMode\n");
@@ -1985,26 +1996,26 @@ static int P3K_SetDHCPMode(char*reqparam,char*respParam,char*userdata)
 	int dhcpMode  = 0;
 	int count = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	if(count == 1)
 	{
 		dhcpMode = atoi(str[0]);
-	
+
 	}
 	else
 	{
 		nedId = atoi(str[0]);
 		dhcpMode = atoi(str[1]);
 	}
-	
+
 	s32Ret = EX_SetDHCPMode(nedId, dhcpMode);
 	if(s32Ret)
 	{
 		DBG_ErrMsg("EX_SetDHCPMode err\n");
 	}
 	memcpy(respParam,reqparam,strlen(reqparam));
-	
+
 	return 0;
 }
 static int P3K_GetDHCPMode(char*reqparam,char*respParam,char*userdata)
@@ -2018,7 +2029,7 @@ static int P3K_GetDHCPMode(char*reqparam,char*respParam,char*userdata)
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	int count = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	if(count > 0)
 	{
@@ -2044,10 +2055,10 @@ static int P3K_SetNetConf(char*reqparam,char*respParam,char*userdata)
 	NetWorkInfo_S netInfo = {0};
 	int count = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 
-	
+
 	if(strlen(str[0])<7)
 	{
 		//printf("----------------------------\n");
@@ -2063,7 +2074,7 @@ static int P3K_SetNetConf(char*reqparam,char*respParam,char*userdata)
 		{
 			memcpy(netInfo.dns1,str[5],strlen(str[5]));
 		}
-		
+
 	}
 	else
 	{
@@ -2080,7 +2091,7 @@ static int P3K_SetNetConf(char*reqparam,char*respParam,char*userdata)
 			memcpy(netInfo.dns1,str[4],strlen(str[4]));
 		}
 	}
-	
+
 
 	s32Ret = EX_SetNetWorkConf(netId, &netInfo);
 	if(s32Ret)
@@ -2101,11 +2112,11 @@ static int P3K_GetNetConf(char*reqparam,char*respParam,char*userdata)
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	int count = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	netId =atoi(str[0]);
 
-	
+
 	s32Ret = EX_GetNetWorkConf(netId, &netInfo);
 	if(s32Ret)
 	{
@@ -2135,11 +2146,11 @@ static int P3K_SetEthPort(char*reqparam,char*respParam,char*userdata)
 	int ethPort;
 	int count = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	memcpy(ethType,str[0],sizeof(ethType));
 	ethPort = atoi(str[1]);
-	
+
 	s32Ret = EX_SetNetPort(ethType,ethPort);
 	if(s32Ret)
 	{
@@ -2159,7 +2170,7 @@ static int P3K_GetEthPort(char*reqparam,char*respParam,char*userdata)
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	int count = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	memcpy(ethType,str[0],sizeof(ethType));
 
@@ -2181,7 +2192,7 @@ static int P3K_SetSecurity(char*reqparam,char*respParam,char*userdata)
 	int status = 0;
 	int count = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	status = atoi(str[0]);
 
@@ -2200,14 +2211,14 @@ static int P3K_SetLogin(char*reqparam,char*respParam,char*userdata)
 	//or
 	//~nn@LOGIN err_004<CR><LF>
 	DBG_InfoMsg("P3K_SetLogin\n");
-	
+
 	int ret = 0;
 	char userName[32]={0};
 	char usrerPasswd[32] = {0};
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	int count = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	memcpy(userName,str[0],strlen(str[0]));
 	memcpy(usrerPasswd,str[1],strlen(str[1]));
@@ -2230,7 +2241,7 @@ static int P3K_GetLogin(char*reqparam,char*respParam,char*userdata)
 	char userName[32]={0};
 	char usrerPasswd[32] = {0};
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	s32Ret = EX_GetLoginInfo(userName, usrerPasswd);
 	if(s32Ret)
 	{
@@ -2248,7 +2259,7 @@ static int P3K_LogOut(char*reqparam,char*respParam,char*userdata)
 	//#LOGOUT<CR>
 	//~nn@LOGOUT ok<CR><LF>
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	s32Ret = EX_Logout();
 	if(s32Ret)
 	{
@@ -2267,7 +2278,7 @@ static int P3K_GetVersion(char*reqparam,char*respParam,char*userdata)
 	int s32Ret = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	char ver[32] = {0};
-	
+
 	s32Ret = EX_GetDevVersion(ver);
 	if(s32Ret)
 	{
@@ -2285,10 +2296,10 @@ static int P3K_SetFCTMODEL(char*reqparam,char*respParam,char*userdata)
 	int s32Ret = 0;
 	int count = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 
-	
+
 	s32Ret = EX_SetDeviceNameModel(str[0]);
 	if(s32Ret)
 	{
@@ -2305,7 +2316,7 @@ static int P3K_GetFCTMODEL(char*reqparam,char*respParam,char*userdata)
 	int s32Ret = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	char mod[MAX_DEV_MOD_NAME_LEN+1];
-	
+
 	s32Ret = EX_GetDeviceNameModel(mod);
 	if(s32Ret)
 	{
@@ -2323,7 +2334,7 @@ static int P3K_Upgrade(char*reqparam,char*respParam,char*userdata)
 	DBG_InfoMsg("P3K_Upgrade\n");
 	int s32Ret = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	s32Ret = EX_Upgrade();
 	if(s32Ret)
 	{
@@ -2342,9 +2353,9 @@ static int P3K_SetSerailNum(char*reqparam,char*respParam,char*userdata)
 	int s32Ret = 0;
 	int count = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
-	
+
 	s32Ret = EX_SetSerialNumber(str[0]);
 	if(s32Ret)
 	{
@@ -2361,7 +2372,7 @@ static int P3K_GetSerailNum(char*reqparam,char*respParam,char*userdata)
 	int s32Ret = 0;
 	char num[SERIAL_NUMBER_LEN] = {0};
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	s32Ret = EX_GetSerialNumber(num);
 	if(s32Ret)
 	{
@@ -2369,7 +2380,7 @@ static int P3K_GetSerailNum(char*reqparam,char*respParam,char*userdata)
 	}
 	sprintf(tmpparam,"%s",num);
 	memcpy(respParam,tmpparam,strlen(tmpparam));
-	
+
 	return 0;
 }
 static int P3K_SetLockFP(char*reqparam,char*respParam,char*userdata)
@@ -2378,19 +2389,19 @@ static int P3K_SetLockFP(char*reqparam,char*respParam,char*userdata)
 	//~nn@LOCK-FP lock/unlock<CR><LF>
 	DBG_InfoMsg("P3K_SetLockFP\n");
 	int s32Ret = 0;
-	
+
 	int flag = 0;
 	int count = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	flag = atoi(str[0]);
-	
+
 	s32Ret = EX_SetLockFP(flag);
 	if(s32Ret)
 	{
 		DBG_ErrMsg("EX_GetSerialNumber err\n");
 	}
-	
+
 	memcpy(respParam,reqparam,strlen(reqparam));
 	return 0;
 }
@@ -2402,7 +2413,7 @@ static int P3K_GetLockFP(char*reqparam,char*respParam,char*userdata)
 	int s32Ret = 0;
 	int flag = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	s32Ret = EX_GetLockFP(&flag);
 	if(s32Ret)
 	{
@@ -2410,7 +2421,7 @@ static int P3K_GetLockFP(char*reqparam,char*respParam,char*userdata)
 	}
 	sprintf(tmpparam,"%d",flag);
 	memcpy(respParam,tmpparam,strlen(tmpparam));
-	
+
 	return 0;
 }
 static int P3K_SetIDV(char*reqparam,char*respParam,char*userdata)
@@ -2419,9 +2430,9 @@ static int P3K_SetIDV(char*reqparam,char*respParam,char*userdata)
 	//~nn@IDV ok<CR><LF>
 	DBG_InfoMsg("P3K_SetIDV\n");
 	int s32Ret = 0;
-	
+
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	s32Ret = EX_SetIDV();
 	if(s32Ret)
 	{
@@ -2429,7 +2440,7 @@ static int P3K_SetIDV(char*reqparam,char*respParam,char*userdata)
 	}
 	sprintf(tmpparam,"%s","ok");
 	memcpy(respParam,tmpparam,strlen(tmpparam));
-	
+
 	return 0;
 }
 static int P3K_SetStandByMode(char*reqparam,char*respParam,char*userdata)
@@ -2438,7 +2449,7 @@ static int P3K_SetStandByMode(char*reqparam,char*respParam,char*userdata)
 	//~nn@STANDBY value<CR><LF>
 	DBG_InfoMsg("P3K_SetStandByMode\n");
 	int s32Ret = 0;
-	
+
 	int mode = 0;
 	int count = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
@@ -2459,10 +2470,10 @@ static int P3K_GetStandByMode(char*reqparam,char*respParam,char*userdata)
 	//~nn@STANDBY value<CR><LF>
 	DBG_InfoMsg("P3K_GetStandByMode\n");
 	int s32Ret = 0;
-	
+
 	int iValue = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	s32Ret = EX_GetStandbyMode(&iValue);
 	if(s32Ret)
 	{
@@ -2481,7 +2492,7 @@ static int P3K_DoReset(char*reqparam,char*respParam,char*userdata)
 	DBG_InfoMsg("P3K_DoReset\n");
 	int s32Ret = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	s32Ret = EX_DeviceReset();
 	if(s32Ret)
 	{
@@ -2496,14 +2507,14 @@ static int P3K_DoFactory(char*reqparam,char*respParam,char*userdata)
 	DBG_InfoMsg("P3K_DoFactory\n");
 	int s32Ret = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	s32Ret = EX_FactoryRecovery();
 	if(s32Ret)
 	{
 		DBG_ErrMsg("EX_FactoryRecovery err\n");
 	}
 	sprintf(tmpparam,"%s","ok");
-	
+
 	memcpy(respParam,tmpparam,strlen(tmpparam));
 	return 0;
 }
@@ -2543,7 +2554,7 @@ static int P3K_GetBeaconInfo(char*reqparam,char*respParam,char*userdata)
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	portNumber = atoi(str[0]);
-	
+
 	s32Ret = EX_GetBeaconInfo(portNumber, &beaconInfo);
 	if(s32Ret)
 	{
@@ -2551,7 +2562,7 @@ static int P3K_GetBeaconInfo(char*reqparam,char*respParam,char*userdata)
 	}
 	sprintf(tmpparam,"%d,%s,%d,%d,%s,%s,%s",portNumber,beaconInfo.ipAddr,beaconInfo.udpPort,
 		   beaconInfo.tcpPort,beaconInfo.macAddr,beaconInfo.deviceMod,beaconInfo.deviceName);
-	
+
 	memcpy(respParam,tmpparam,strlen(tmpparam));
 	return 0;
 }
@@ -2561,11 +2572,11 @@ static int P3K_GetBuildTime(char*reqparam,char*respParam,char*userdata)
 	//~nn@BUILD-DATE? date,time<CR><LF>
 	DBG_InfoMsg("P3K_GetBuildTime\n");
 	int s32Ret = 0;
-	
+
 	char date[32] ={0};
 	char time[32] ={0};
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	s32Ret = EX_GetDevBuildDate(date, time);
 	if(s32Ret)
 	{
@@ -2595,10 +2606,10 @@ static int P3K_SetTime(char*reqparam,char*respParam,char*userdata)
 	sprintf(pweekDay,"%s",str[0]);
 	sprintf(ptime,"%s",str[2]);
 	//memcpy(weekDay,str[0],strlen(str[0]));
-	
+
 	//memcpy(date,str[1],strlen(str[1]));
 	//memcpy(time,str[2],strlen(str[2]));
-	
+
 	s32Ret = EX_SetTimeAndDate(pweekDay,pdate,ptime);
 	if(s32Ret)
 	{
@@ -2620,7 +2631,7 @@ static int P3K_GetTime(char*reqparam,char*respParam,char*userdata)
 	char date[32]= {0};
 	char time[32] = {0};
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	s32Ret = EX_GetTimeAndDate(weekDay, date,time);
 	if(s32Ret)
 	{
@@ -2660,7 +2671,7 @@ static int P3K_GetTimeZero(char*reqparam,char*respParam,char*userdata)
 	int tz = 0;
 	int timingMethod = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	s32Ret = EX_GetTimeZero(&tz,&timingMethod);
 	if(s32Ret)
 	{
@@ -2675,7 +2686,7 @@ static int P3K_SetTimeServer(char*reqparam,char*respParam,char*userdata)
 	//#TIME-SRV mode,time_server_ip,sync_hour<CR>
 	//~nn@TIME SRV mode,time_server_ip,sync_hour,server_status<CR><LF>
 	DBG_InfoMsg("P3K_SetTimeServer\n");
-	
+
 	TimeSyncConf_S syncInfo = {0};
 	int status = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
@@ -2685,9 +2696,9 @@ static int P3K_SetTimeServer(char*reqparam,char*respParam,char*userdata)
 	syncInfo.enable = atoi(str[0]);
 	memcpy(syncInfo.serverIp,str[1],sizeof(syncInfo.serverIp));
 	syncInfo.syncInerval = atoi(str[2]);
-	
+
 	status = EX_SetTimeSyncInfo(&syncInfo);
-	
+
 	sprintf(tmpparam,"%s,%d",reqparam,status);
 	memcpy(respParam,tmpparam,strlen(tmpparam));
 	return 0;
@@ -2697,11 +2708,11 @@ static int P3K_GetTimeServer(char*reqparam,char*respParam,char*userdata)
 	//#TIME-SRV? <CR>
 	//~nn@TIME-SRV mode,time_server_ip,sync_hour,server_status<CR><LF>
 	DBG_InfoMsg("P3K_GetTimeServer\n");
-	
+
 	TimeSyncConf_S syncInfo = {0};
 	int status = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	status = EX_GetTimeSyncInfo(&syncInfo);
 
 	sprintf(tmpparam,"%d,%s,%d,%d",syncInfo.enable,syncInfo.serverIp,syncInfo.syncInerval,status);
@@ -2745,7 +2756,7 @@ static int P3K_GetPortList(char*reqparam,char*respParam,char*userdata)
 	char portlist[10][MAX_PORT_LEN] = {0};
 	int i = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	ret = EX_GetPortList(portlist,10);
 	if(ret > 10)
 	{
@@ -2768,7 +2779,7 @@ static int P3K_GetActiveCli(char*reqparam,char*respParam,char*userdata)
 	//#KDS-ACTIVE-CLNT? <CR>
 	//~nn@KDS-ACTIVE-CLNT value<CR><LF>
 	DBG_InfoMsg("P3K_GetActiveCli\n");
-	
+
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	int ret = 0;
 	ret = EX_GetActiveCliNUm();
@@ -2782,23 +2793,23 @@ static int P3K_SetLogAction(char*reqparam,char*respParam,char*userdata)
 	//~nn@LOG-ACTION action,period<CR><LF>
 	DBG_InfoMsg("P3K_SetLogAction\n");
 	int s32Ret = 0;
-	
+
 	int action =0;
 	int period =0;
-	
+
 	int count = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	action = atoi(str[0]);
 	period = atoi(str[1]);
-	
+
 	s32Ret = EX_SetLogEvent(action, period);
 	if(s32Ret)
 	{
 		DBG_ErrMsg("EX_SetLogEvent err\n");
 	}
 	memcpy(respParam,reqparam,strlen(reqparam));
-	
+
 	return 0;
 }
 
@@ -2811,7 +2822,7 @@ static int P3K_GetLogAction(char*reqparam,char*respParam,char*userdata)
 	int action =0;
 	int period =0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	ret = EX_GetLogEvent(&action,&period);
 	if(ret)
 	{
@@ -2833,7 +2844,7 @@ static int P3K_GetLogTail(char*reqparam,char*respParam,char*userdata)
 	int ret = 0;
 	int number = 10;
 	char log[MAX_USR_STR_LEN+1] ={0};
-	
+
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	int count = 0;
 	int i =0;
@@ -2842,10 +2853,10 @@ static int P3K_GetLogTail(char*reqparam,char*respParam,char*userdata)
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	if(count > 0)
 	{
-		number = atoi(str[0]);	
+		number = atoi(str[0]);
 	}
 	char tmplog[20][MAX_ONELOG_LEN] ={0};
-	
+
 	ret = EX_GetLogTail(number, tmplog);
 	for(i = 0;i<ret;i++)
 	{
@@ -2867,11 +2878,11 @@ static int P3K_GetAudioInfo(char*param,AudioInfo_S*info)
 
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	int count = 0;
-	
+
 	count = P3K_PhraserWithSeparator('.',param, strlen(param), str);
-	
-	
-	info->direction  = P3K_CheckPortDirection(str[0]);	
+
+
+	info->direction  = P3K_CheckPortDirection(str[0]);
 	info->portFormat = P3K_CheckPortFormat(str[1]);
 	info->portIndex = atoi(str[2]);
 	if(count > 3)
@@ -2934,11 +2945,11 @@ static int P3K_GetAudioSInfo(char*param,AudioInfo_S*info,int num)
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	int i = 0;
-	
+
 	int count = P3K_PhraserWithSeparator('.',param, strlen(param), str);
-	
-	
-		info[num].direction  = P3K_CheckPortDirection(str[0]);	
+
+
+		info[num].direction  = P3K_CheckPortDirection(str[0]);
 		info[num].portFormat = P3K_CheckPortFormat(str[1]);
 		info[num].portIndex = atoi(str[2]);
 		if(count > 3)
@@ -2946,7 +2957,7 @@ static int P3K_GetAudioSInfo(char*param,AudioInfo_S*info,int num)
 			info[num].signal = P3K_CheckSignalType(str[3]);
 			//info->index = atoi(str[4]);
 		}
-	
+
 	return 0;
 }
 
@@ -2989,9 +3000,6 @@ static int P3K_GetAutoSwitchPriority(char*reqparam,char*respParam,char*userdata)
 	int s32Ret = 0;
 	char aStr[4] = ",[";
 	char aStr1[3] = "]";
-	char dir[16] = {0};
-	char port[16] = {0};
-	char signal[16] = {0};
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
 	char aStr2[MAX_PARAM_LEN] = {0};
@@ -3000,28 +3008,42 @@ static int P3K_GetAutoSwitchPriority(char*reqparam,char*respParam,char*userdata)
 
 	memset(&tmpInfo,0,sizeof(AudioInfo_S));
 	count = P3K_PhraserParam(reqparam, strlen(reqparam),str);
-	//P3K_GetAudioSInfo(str,&tmpparam,count);
+	P3K_GetAudioSInfo(str,&tmp,0);
+
 	ret =  EX_GetAutoSwitchPriority(&tmp,count);
 	strncat(tmpparam,str[0],strlen(str[0]));
 	strncat(tmpparam,aStr,strlen(aStr));
-	for(num = 0;num<ret-1;num++)
+	for(num = 1;num<ret;num++)
 	{
+		char dir[16] = {0};
+		char port[16] = {0};
+		char signal[16] = {0};
+
 		P3K_PortDirectionToStr(tmp[num].direction,dir);
 		P3K_PortFormatToStr(tmp[num].portFormat,port);
 		P3K_SignaleTypeToStr(tmp[num].signal,signal);
 		sprintf(aStr2,"%s.%s.%d.%s,",dir,port,tmp[num].portIndex,signal);
 		strncat(tmpparam,aStr2,strlen(aStr2));
+
+		printf("num:%d aStr2:%s tmpparam:%s \n",num,aStr2,tmpparam);
 		memset(aStr2,0,sizeof(aStr2));
 		//memset(tmp,0,sizeof(tmp));
 	}
-	if(num == ret - 1)
-	{	
+
+	if(num == ret)
+	{
+		char dir[16] = {0};
+		char port[16] = {0};
+		char signal[16] = {0};
+
 		P3K_PortDirectionToStr(tmp[num].direction,dir);
 		P3K_PortFormatToStr(tmp[num].portFormat,port);
 		P3K_SignaleTypeToStr(tmp[num].signal,signal);
 		sprintf(aStr2,"%s.%s.%d.%s]",dir,port,tmp[num].portIndex,signal);
 		strncat(tmpparam,aStr2,strlen(aStr2));
+		printf("num:%d aStr2:%s tmpparam:%s \n",num,aStr2,tmpparam);
 		memset(aStr2,0,sizeof(aStr2));
+
 	}
 	memcpy(respParam,tmpparam,strlen(tmpparam));
 	return  0;
@@ -3072,7 +3094,10 @@ static int P3K_GetEDIDMode(char*reqparam,char*respParam,char*userdata)
 		DBG_ErrMsg("EX_GetEDIDMode err\n");
 	}
 	P3K_ModeToStr(tmpInfo.mode,parity);
-	sprintf(tmpparam+strlen(tmpparam),"%d,%s,%d",tmpInfo.input_id,parity,tmpInfo.index);
+	if(tmpInfo.mode == CUSTOM)
+		sprintf(tmpparam+strlen(tmpparam),"%d,%s,%d",tmpInfo.input_id,parity,tmpInfo.index);
+	else
+		sprintf(tmpparam+strlen(tmpparam),"%d,%s",tmpInfo.input_id,parity);
 	memcpy(respParam,tmpparam,strlen(tmpparam));
 	return 0;
 }
@@ -3197,7 +3222,7 @@ static int P3K_GetActiveEDID(char*reqparam,char*respParam,char*userdata)
 	return 0;
 }
 
-//Set MAC on Net device to be EDID source 
+//Set MAC on Net device to be EDID source
 static int P3K_SetEDIDNetSrc(char*reqparam,char*respParam,char*userdata)
 {
 	//#EDID-NET-SRC input_id, src_mac<CR>
@@ -3220,7 +3245,7 @@ static int P3K_SetEDIDNetSrc(char*reqparam,char*respParam,char*userdata)
 	return 0;
 }
 
-//Get MAC on Net device to be EDID source 
+//Get MAC on Net device to be EDID source
 static int P3K_GetEDIDNetSrc(char*reqparam,char*respParam,char*userdata)//X
 {
 	//#EDID-NET-SRC input_id, src_mac<CR>
@@ -3257,11 +3282,11 @@ static int P3K_GetRecvMsgNum(char*reqparam,char*respParam,char*userdata)
 	char pdate[32]= {0};
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	msg_type = atoi(str[0]);
 	memcpy(pdate,str[1],strlen(str[1]));
-	
+
 	ret =  EX_GetRecvMsgNum(msg_type,pdate);
 	sprintf(tmpparam,"%d,%s,%d",msg_type,pdate,ret);
 	memcpy(respParam,tmpparam,strlen(tmpparam));
@@ -3280,11 +3305,11 @@ static int P3K_GetSendMsgNum(char*reqparam,char*respParam,char*userdata)
 	char pdate[32]= {0};
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	msg_type = atoi(str[0]);
 	memcpy(pdate,str[1],strlen(str[1]));
-	
+
 	ret =  EX_GetSendMsgNum(msg_type,pdate);
 	sprintf(tmpparam,"%d,%s,%d",msg_type,pdate,ret);
 	memcpy(respParam,tmpparam,strlen(tmpparam));
@@ -3299,8 +3324,8 @@ static int P3K_GetVidOutRatio(char*reqparam,char*respParam,char*userdata)
 	DBG_InfoMsg("P3K_GetVidOutRatio\n");
 	int s32Ret = 0;
 	char value[32]= {0};
-	char tmpparam[MAX_PARAM_LEN] = {0};	
-	
+	char tmpparam[MAX_PARAM_LEN] = {0};
+
 	s32Ret =  EX_GetVidOutRatio(value);
 	if(s32Ret)
 	{
@@ -3322,10 +3347,10 @@ static int P3K_SetChannelName(char*reqparam,char*respParam,char*userdata)//P3K_S
 	char aName[32]= {0};
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	memcpy(aName,str[0],strlen(str[0]));
-	
+
 	s32Ret =  EX_SetChannelName(aName);
 	if(s32Ret)
 	{
@@ -3346,10 +3371,10 @@ static int P3K_SetDanteName(char*reqparam,char*respParam,char*userdata)
 	char aName[32]= {0};
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	memcpy(aName,str[0],strlen(str[0]));
-	
+
 	s32Ret =  EX_SetDanteName(aName);
 	if(s32Ret)
 	{
@@ -3402,14 +3427,14 @@ static int P3K_SetMuteInfo(char*param,MuteInfo_S * info)
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	int i = 0;
-	
+
 	int count = P3K_PhraserWithSeparator('.',param, strlen(param), str);
-		info->direction  = P3K_CheckPortDirection(str[0]);	
+		info->direction  = P3K_CheckPortDirection(str[0]);
 		info->portFormat = P3K_CheckPortFormat(str[1]);
 		info->portIndex = atoi(str[2]);
 		info->signal = P3K_CheckSignalType(str[3]);
 		info->index = atoi(str[4]);
-	
+
 	return 0;
 }
 
@@ -3424,7 +3449,7 @@ static int P3K_SetAudMute(char*reqparam,char*respParam,char*userdata)
 	MuteInfo_S sMute = {0};
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	P3K_SetMuteInfo(str[0],&sMute);
 	sMute.state = P3K_CheckStateType(str[1]);
@@ -3448,7 +3473,7 @@ static int P3K_GetAudMute(char*reqparam,char*respParam,char*userdata)
 	MuteInfo_S sMute = {0};
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	P3K_SetMuteInfo(str,&sMute);
 	ret =  EX_GetVidMute(&sMute);
@@ -3552,7 +3577,7 @@ static int P3K_GetHWTemp(char*reqparam,char*respParam,char*userdata)
 	int iMode = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	region_id = atoi(str[0]);
 	iMode = atoi(str[1]);
@@ -3572,7 +3597,7 @@ static int P3K_GetUPGTime(char*reqparam,char*respParam,char*userdata)
 	char aDay[16] = {0};
 	char aTime[16] = {0};
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	s32Ret = EX_GetUPGTime(aDay,aTime);
 	if(s32Ret)
 	{
@@ -3619,7 +3644,7 @@ static int P3K_GetAudOutput(char*reqparam,char*respParam,char*userdata)
 	char tmp[32] = {0};
 	char aOutput[32] = {0};
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	s32Ret = EX_GetVidOutput(tmp);
 	sprintf(aOutput,"[%s]",tmp);
 	if(s32Ret)
@@ -3642,10 +3667,10 @@ static int P3K_SetOsdDisplay(char*reqparam,char*respParam,char*userdata)
 	int iOsdmode = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	iOsdmode = atoi(str[0]);
-	
+
 	s32Ret =  EX_SetOsdDisplay(iOsdmode);
 	if(s32Ret)
 	{
@@ -3663,7 +3688,7 @@ static int P3K_GetOsdDisplay(char*reqparam,char*respParam,char*userdata)
 	int s32Ret = 0;
 	int osdmode = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	osdmode = EX_GetOsdDisplay();
 	sprintf(tmpparam,"%d",osdmode);
 	memcpy(respParam,tmpparam,strlen(tmpparam));
@@ -3680,10 +3705,10 @@ static int P3K_SetDaisyChain(char*reqparam,char*respParam,char*userdata)
 	int daisy_state = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	daisy_state = atoi(str[0]);
-	
+
 	s32Ret =  EX_SetDaisyChain(daisy_state);
 	if(s32Ret)
 	{
@@ -3700,7 +3725,7 @@ static int P3K_GetDaisyChain(char*reqparam,char*respParam,char*userdata)
 	int s32Ret = 0;
 	int osdmode = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	osdmode = EX_GetDaisyChain();
 	sprintf(tmpparam,"%d",osdmode);
 	memcpy(respParam,tmpparam,strlen(tmpparam));
@@ -3718,10 +3743,10 @@ static int P3K_SetMethod(char*reqparam,char*respParam,char*userdata)
 	int method = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	method = atoi(str[0]);
-	
+
 	s32Ret =  EX_SetMethod(method);
 	if(s32Ret)
 	{
@@ -3738,14 +3763,14 @@ static int P3K_GetMethod(char*reqparam,char*respParam,char*userdata)
 	int s32Ret = 0;
 	int method = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	method = EX_GetMethod();
 	sprintf(tmpparam,"%d",method);
 	memcpy(respParam,tmpparam,strlen(tmpparam));
 	return 0;
 }
 
-//Set Inactivity auto-logout time 
+//Set Inactivity auto-logout time
 static int P3K_SetTimeOut(char*reqparam,char*respParam,char*userdata)
 {
 	//#KDS-LOGOUT-TIMEOUT time<CR>
@@ -3756,10 +3781,10 @@ static int P3K_SetTimeOut(char*reqparam,char*respParam,char*userdata)
 	int iTime = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	iTime = atoi(str[0]);
-	
+
 	s32Ret =  EX_SetTimeOut(iTime);
 	if(s32Ret)
 	{
@@ -3776,14 +3801,14 @@ static int P3K_GetTimeOut(char*reqparam,char*respParam,char*userdata)
 	int s32Ret = 0;
 	int iTime = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	iTime = EX_GetTimeOut();
 	sprintf(tmpparam,"%d",iTime);
 	memcpy(respParam,tmpparam,strlen(tmpparam));
 	return 0;
 }
 
-//Set Inactivity auto-logout time 
+//Set Inactivity auto-logout time
 static int P3K_SetStandbyTimeOut(char*reqparam,char*respParam,char*userdata)
 {
 	//#KDS-LOGOUT-TIMEOUT time<CR>
@@ -3794,10 +3819,10 @@ static int P3K_SetStandbyTimeOut(char*reqparam,char*respParam,char*userdata)
 	int iTime = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	iTime = atoi(str[0]);
-	
+
 	s32Ret =  EX_SetStandbyTimeOut(iTime);
 	if(s32Ret)
 	{
@@ -3814,7 +3839,7 @@ static int P3K_GetStandbyTimeOut(char*reqparam,char*respParam,char*userdata)
 	int s32Ret = 0;
 	int iTime = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	iTime = EX_GetStandbyTimeOut();
 	sprintf(tmpparam,"%d",iTime);
 	memcpy(respParam,tmpparam,strlen(tmpparam));
@@ -3835,11 +3860,11 @@ static int P3K_SetMulticastStatus(char*reqparam,char*respParam,char*userdata)
 	char ip[16] = {0};
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	memcpy(ip,str[0],strlen(str[0]));
 	iTtl = atoi(str[1]);
-	
+
 	s32Ret =  EX_SetMulticastStatus(ip,iTtl);
 	if(s32Ret)
 	{
@@ -3861,11 +3886,11 @@ static int P3K_SetGatewayPort(char*reqparam,char*respParam,char*userdata)
 	int iNetw_Id = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	iGw_Type = atoi(str[0]);
 	iNetw_Id = atoi(str[1]);
-	
+
 	s32Ret =  EX_SetGatewayPort(iGw_Type,iNetw_Id);
 	if(s32Ret)
 	{
@@ -3907,15 +3932,15 @@ static int P3K_SetVlanTag(char*reqparam,char*respParam,char*userdata)
 	int iTag = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	iGw_Type = atoi(str[0]);
 	iTag = atoi(str[1]);
-	
-	s32Ret =  EX_SetGatewayPort(iGw_Type,iTag);
+
+	s32Ret =  EX_SetVlanTag(iGw_Type,iTag);
 	if(s32Ret)
 	{
-		DBG_ErrMsg("EX_SetGatewayPort err\n");
+		DBG_ErrMsg("EX_SetVlanTag err\n");
 	}
 	memcpy(respParam,reqparam,strlen(reqparam));
 	return 0;
@@ -3956,13 +3981,13 @@ static int P3K_SetPassword(char*reqparam,char*respParam,char*userdata)
 	char iNew_Pass[12] = {0};
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	//iOld_Pass = atoi(str[0]);
 	//iNew_Pass = atoi(str[1]);
 	memcpy(login_level,str[0],strlen(str[0]));
 	memcpy(iNew_Pass,str[1],strlen(str[1]));
-	
+
 	ret =  EX_SetPassword(login_level,iNew_Pass);
 	sprintf(tmpparam,"%s,%s",login_level,iNew_Pass);
 	if(ret != 0)
@@ -4028,7 +4053,7 @@ static int P3K_GetLogResetEvent(char*reqparam,char*respParam,char*userdata)
 	char date[32]= {0};
 	char time[32] = {0};
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	s32Ret = EX_GetLogResetEvent(&iLog_Type, date,time);
 	if(s32Ret)
 	{
@@ -4044,7 +4069,7 @@ static int P3K_SetIRGateway(char*reqparam,char*respParam,char*userdata)
 {
 	//#KDS-IR-GW mode<CR>
 	//~nn@KDS-IR-GW mode<CR><LF>
-	DBG_InfoMsg("P3K_SetRollback\n");
+	DBG_InfoMsg("P3K_SetIRGateway\n");
 	int ret = 0;
 	int count = 0;
 	int iGW_mode = 0;
@@ -4068,11 +4093,11 @@ static int P3K_GetIRGateway(char*reqparam,char*respParam,char*userdata)
 {
 	//#KDS-IR-GW?<CR>
 	//~nn@KDS-IR-GW mode<CR><LF>
-	DBG_InfoMsg("P3K_GetLogResetEvent\n");
+	DBG_InfoMsg("P3K_GetIRGateway\n");
 	int s32Ret = 0;
 	int iIr_mode = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	
+
 	iIr_mode = EX_GetIRGateway();
 	sprintf(tmpparam,"%d",iIr_mode);
 	memcpy(respParam,tmpparam,strlen(tmpparam));
@@ -4091,7 +4116,7 @@ static int P3K_RmEDID(char*reqparam,char*respParam,char*userdata)
 	int iEDID = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	iEDID = atoi(str[0]);
 	sprintf(tmpparam,"%d",iEDID);
@@ -4101,7 +4126,7 @@ static int P3K_RmEDID(char*reqparam,char*respParam,char*userdata)
 		memset(tmpparam,0,sizeof(tmpparam));
 		sprintf(tmpparam,"%s","err");
 	}
-	
+
 	memcpy(respParam,tmpparam,strlen(tmpparam));
 	return 0;
 }
@@ -4117,7 +4142,7 @@ static int P3K_SetVideoWallStretch(char*reqparam,char*respParam,char*userdata)
 	int iMode = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	index = atoi(str[0]);
 	iMode = atoi(str[1]);
@@ -4140,7 +4165,7 @@ static int P3K_GetVideoWallStretch(char*reqparam,char*respParam,char*userdata)
 	int index = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-	
+
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	index = atoi(str[0]);
 	iMode = EX_GetVideoWallStretch(index);
@@ -4157,7 +4182,7 @@ int P3K_SilmpleSpecReqCmdProcess(P3K_SimpleSpecCmdInfo_S * cmdreq, P3K_SimpleSpe
 	static P3K_SpecPhraserToExecute_S cliSpecialFunc[] = {
 
 										      {"LDFW",NULL},
-											
+
 										      	{NULL,NULL}
 
 	};
@@ -4170,7 +4195,7 @@ int P3K_SilmpleSpecReqCmdProcess(P3K_SimpleSpecCmdInfo_S * cmdreq, P3K_SimpleSpe
 int P3K_SilmpleReqCmdProcess(P3K_SimpleCmdInfo_S *cmdreq,P3K_SimpleCmdInfo_S *cmdresp,char*userdata)
 {
 	static P3K_PhraserToExecute_S cliFunc[]={
-									
+
 									{"KDS-AUD",P3K_SetAudioInputMode},
 									{"KDS-AUD?",P3K_GetAudioInputMode},
 									{"X-AUD-LVL",P3K_SetAudLevel},
@@ -4322,6 +4347,7 @@ int P3K_SilmpleReqCmdProcess(P3K_SimpleCmdInfo_S *cmdreq,P3K_SimpleCmdInfo_S *cm
 									{"WND-STRETCH?",P3K_GetVideoWallStretch},
 									{NULL,NULL}
 	};
+
 	if(cmdreq == NULL || cmdresp == NULL)
 	{
 		DBG_WarnMsg("P3K cmdreq or cmd resp is NULL\n ");
@@ -4345,6 +4371,7 @@ int P3K_SilmpleReqCmdProcess(P3K_SimpleCmdInfo_S *cmdreq,P3K_SimpleCmdInfo_S *cm
 				memcpy(cmdresp->command,cmdreq->command,strlen(cmdreq->command));
 				memset(cmdresp->param,0,sizeof(cmdresp->param));
 				cliFunc[i].ParamPhraser(cmdreq->param,cmdresp->param,userdata);
+				printf(">>>> %s %s \n",cmdreq->command,cmdresp->param);
 			}
 			break;
 		}
@@ -4356,7 +4383,7 @@ int P3K_SilmpleReqCmdProcess(P3K_SimpleCmdInfo_S *cmdreq,P3K_SimpleCmdInfo_S *cm
 int P3K_CheckedSpeciCmd(char*cmd)
 {
 	static char *specCmd[] ={
-							
+
 							"LDFW",
 							NULL,
 	};
@@ -4381,6 +4408,6 @@ int P3K_CheckedSpeciCmd(char*cmd)
 
 /*
 								{"NAME",P3K_SetDanteName},
-									{"NAME?",P3K_GetDanteName},	
+									{"NAME?",P3K_GetDanteName},
 */
 

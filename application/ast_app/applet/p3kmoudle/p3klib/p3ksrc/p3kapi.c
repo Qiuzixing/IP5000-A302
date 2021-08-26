@@ -11,6 +11,8 @@
 #include "p3kmsgqueue.h"
 #include "debugtool.h"
 #include "ldfw.h"
+#include "cfgparser.h"
+
 //#include "funcexcute.h"
 #define MAX_HANDLE 10
 //static P3K_QeqCmdProcess gs_callHandle = NULL;
@@ -323,6 +325,8 @@ static void * P3K_DataExcuteProc(void*arg)
 	prctl(PR_SET_NAME, (unsigned long)"P3K_DataExcuteProc", 0,0,0);
 	//printf("child thread lwpid = %u\n", syscall(SYS_gettid));
         //printf("child thread tid = %u\n", pthread_self());
+
+	Cfg_Init();
 	while(1)//P3K_GetApiInitFlag())
 	{
 		memset(&pmsg,0,sizeof(P3KMsgQueueMember_S));
