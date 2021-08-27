@@ -14,7 +14,7 @@ using namespace std;
 #define WEB_CONFIG_FILE "./gbwebserver.json"
 
 // 文件传输文件默认路径
-#define DEFAULT_FILE_PATH       "/opt/configs/kds-n-6X/usr/etc"
+#define DEFAULT_FILE_PATH       "/data/configs/kds-7"
 #define CHANNEL_FILE_PATH       "/channel/channel_map.json"
 #define SLEEPIMAGE_FILE_PATH    "/display/sleep_image.png"
 #define EDID_FILE_PATH          "/edid/custom_edid.bin"
@@ -22,18 +22,6 @@ using namespace std;
 #define OVERLAY_FILE_PATH       "/osd/overlay_image.png"
 #define SECURE_FILE_PATH        "/secure/server.pem"
 #define VIDEO_WALL_FILE_PATH    "/vw/video_wall_test_pattern.png"
-
-// json文件路径
-#define JSON_SWITCH_DELAY_PATH  "/switch/auto_switch_delays"
-#define JSON_AV_SIGNAL_PATH     "/av_signal"
-#define JSON_DISPLAY_SLEEP_PATH "/display/display_sleep"
-#define JSON_EDID_PATH          "/edid/edid.json"
-#define JSON_GATEWAY_PATH       "/gateway"
-#define JSON_VERSION_PATH       "/version/version.json"
-#define JSON_OSD_PATH           "/osd/overlay.json"
-#define JSON_OVERLAY_PATH       "/overlay/overlay"
-#define JSON_SECURE_PATH        "/secure/security_setting.json"
-#define JSON_USB_PATH           "/usb/km_usb"
 
 class COperation
 {

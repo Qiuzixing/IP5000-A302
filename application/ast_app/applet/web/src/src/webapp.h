@@ -98,26 +98,7 @@ public:
     static int         DownVideoWallHandle(struct mg_connection *conn, void *cbdata);
 
     // json数据传输
-    static int         SetSwitchDelayHandle(struct mg_connection *conn, void *cbdata);
-    static int         GetSwitchDelayHandle(struct mg_connection *conn, void *cbdata);
-    static int         SetAVSignalHandle(struct mg_connection *conn, void *cbdata);
-    static int         GetAVSignalHandle(struct mg_connection *conn, void *cbdata);
-    static int         SetDisplaySleepHandle(struct mg_connection *conn, void *cbdata);
-    static int         GetDisplaySleepHandle(struct mg_connection *conn, void *cbdata);
-    static int         SetEdidHandle(struct mg_connection *conn, void *cbdata);
-    static int         GetEdidHandle(struct mg_connection *conn, void *cbdata);
-    static int         SetGatewayHandle(struct mg_connection *conn, void *cbdata);
-    static int         GetGatewayHandle(struct mg_connection *conn, void *cbdata);
-    static int         SetVersionHandle(struct mg_connection *conn, void *cbdata);
-    static int         GetVersionHandle(struct mg_connection *conn, void *cbdata);
-    static int         SetOsdHandle(struct mg_connection *conn, void *cbdata);
-    static int         GetOsdHandle(struct mg_connection *conn, void *cbdata);
-    static int         SetOverlayHandle(struct mg_connection *conn, void *cbdata);
-    static int         GetOverlayHandle(struct mg_connection *conn, void *cbdata);
-    static int         SetSecureHandle(struct mg_connection *conn, void *cbdata);
-    static int         GetSecureHandle(struct mg_connection *conn, void *cbdata);
-    static int         SetUsbHandle(struct mg_connection *conn, void *cbdata);
-    static int         GetUsbHandle(struct mg_connection *conn, void *cbdata);
+    static int         JsonDataHandle(struct mg_connection *conn, void *cbdata);
 
     // P3K
     static void        P3kStatusInit();

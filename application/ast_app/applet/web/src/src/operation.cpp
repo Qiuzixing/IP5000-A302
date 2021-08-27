@@ -120,7 +120,6 @@ bool COperation::SetWebSecurityMode(const char *i_pMode)
     char szCmdStr[1024] = {0};
 
     snprintf(szCmdStr, sizeof(szCmdStr)-1, "./restart.sh web");
-    printf("------------%s\n", szCmdStr);
     int ret = system(szCmdStr);
     if(ret < 0)
     {

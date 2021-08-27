@@ -29,26 +29,8 @@
 #define DOWN_TESTPATTERN_URL "/vw/video_wall_test_pattern"
 
 // json文件传输
-#define GET_SWITCH_DELAY    "/switch/auto_switch_delays"
-#define SET_SWITCH_DELAY    "/switch/set_auto_switch_delays"
-#define GET_AV_SIGNAL       "/av_signal"
-#define SET_AV_SIGNAL       "/set_av_signal"
-#define GET_DISPLAY_SLEEP   "/display/display_sleep"
-#define SET_DISPLAY_SLEEP   "/display/set_display_sleep"
-#define GET_EDID            "/edid/edid"
-#define SET_EDID            "/edid/set_edid"
-#define GET_GATEWAY         "/gateway"
-#define SET_GATEWAY         "/set_gateway"
-#define GET_VERSION         "/version/version"
-#define SET_VERSION         "/version/set_version"
-#define GET_OSD             "/overlay/overlay"
-#define SET_OSD             "/overlay/set_overlay"
-#define GET_OVERLAY         "/overlay/overlay"
-#define SET_OVERLAY         "/overlay/set_overlay"
-#define GET_SECURE          "/secure/security_setting"
-#define SET_SECURE          "/secure/set_security_setting"
-#define GET_USB             "/usb/km_usb"
-#define SET_USB             "/usb/set_km_usb"
+#define JSON_URL            "/device/json"
+#define JSON_PATH_PARAM     "path"
 
 // 原5000功能
 #define CMD_TYPE_STR            "cmdtype"
@@ -176,26 +158,7 @@ void CWeb::HttpRun()
         {DOWN_SECURE_URL, DownSecurHandle, NULL},
         {UP_TESTPATTERN_URL, UploadVideoWallHandle, NULL},
         {DOWN_TESTPATTERN_URL, DownVideoWallHandle, NULL},
-        {SET_SWITCH_DELAY, SetSwitchDelayHandle, NULL},
-        {GET_SWITCH_DELAY, GetSwitchDelayHandle, NULL},
-        {SET_AV_SIGNAL, SetAVSignalHandle, NULL},
-        {GET_AV_SIGNAL, GetAVSignalHandle, NULL},
-        {SET_DISPLAY_SLEEP, SetDisplaySleepHandle, NULL},
-        {GET_DISPLAY_SLEEP, GetDisplaySleepHandle, NULL},
-        {SET_EDID, SetEdidHandle, NULL},
-        {GET_EDID, GetEdidHandle, NULL},
-        {SET_GATEWAY, SetGatewayHandle, NULL},
-        {GET_GATEWAY, GetGatewayHandle, NULL},
-        {SET_VERSION, SetVersionHandle, NULL},
-        {GET_VERSION, GetVersionHandle, NULL},
-        {SET_OSD, SetOsdHandle, NULL},
-        {GET_OSD, GetOsdHandle, NULL},
-        {SET_OVERLAY, SetOverlayHandle, NULL},
-        {GET_OVERLAY, GetOverlayHandle, NULL},
-        {SET_SECURE, SetSecureHandle, NULL},
-        {GET_SECURE, GetSecureHandle, NULL},
-        {SET_USB, SetUsbHandle, NULL},
-        {GET_USB, GetUsbHandle, NULL},
+        {JSON_URL, JsonDataHandle, NULL},
         {"/action", ActionReqHandler, NULL},
         {"/stream", StreamReqHandler, NULL},
         {"/upload_logo", UploadLogoReqHandler, NULL},
@@ -538,477 +501,111 @@ int CWeb::DownVideoWallHandle(struct mg_connection *conn, void *cbdata)
     return 1;
 }
 
-int CWeb::SetSwitchDelayHandle(struct mg_connection *conn, void *cbdata)
+int CWeb::JsonDataHandle(struct mg_connection *conn, void *cbdata)
 {
-    // 获取前端来的数据
-    size_t sLen = 0;
-    char szContent[MG_READ_BUFSIZE] = {0};
-    string strFile = DEFAULT_FILE_PATH;
-    strFile += JSON_SWITCH_DELAY_PATH;
+    const struct mg_request_info *pRequest = mg_get_request_info(conn);
 
-    sLen = BC_GET_Request_Body(conn, szContent, MG_READ_BUFSIZE);
-    BC_INFO_LOG("SetSwitchDelayHand request body is <%s>", szContent);
-    if(sLen < 0)
+    if(strcmp(pRequest->request_method, "GET") == 0)
     {
-        BC_INFO_LOG("SetSwitchDelayHand get body is failed");
-    }
-    else
-    {
-        if(COperation::SetJsonFile(szContent, strFile.c_str()))
-        //if(COperation::SetJsonFile(szContent, "./auto_switch_delays"))
+        bool bHandleReq = false;
+        string strConfigInfo = "";
+        string strFile = DEFAULT_FILE_PATH;
+        char szPath[MAX_PARAM_LEN] = {0};
+        mg_get_var_from_querystring(conn, "path", szPath, MAX_PARAM_LEN);
+
+        strFile += szPath;
+        if(COperation::GetJsonFile(strFile.c_str(), strConfigInfo))
         {
-            send_http_ok_rsp(conn);
-            return 1;
+            bHandleReq = true;
+            BC_INFO_LOG("json ConfigInfo is <%s>", strConfigInfo.c_str());
+            BC_mg_send_header(conn, "Content-Type", "application/json");
+            mg_printf_data(conn, true, "%s", strConfigInfo.c_str());
+            mg_printf(conn, "%x\r\n\r\n", 0x00);
+        }
+
+        if(!bHandleReq)
+        {
+            send_http_error_rsp(conn);
         }
     }
-    send_http_error_rsp(conn);
 
-    return 1;
-}
-
-int CWeb::GetSwitchDelayHandle(struct mg_connection *conn, void *cbdata)
-{
-    string strConfigInfo = "";
-    string strFile = DEFAULT_FILE_PATH;
-    strFile += JSON_SWITCH_DELAY_PATH;
-
-    if(COperation::GetJsonFile(strFile.c_str(), strConfigInfo))
-    //if(COperation::GetJsonFile("./auto_switch_delays", strConfigInfo))
+    if(strcmp(pRequest->request_method, "POST") == 0)
     {
-        BC_INFO_LOG("GetSwitchDelayHand strConfigInfo is <%s>", strConfigInfo.c_str());
-        BC_mg_send_header(conn, "Content-Type", "application/json");
-        mg_printf_data(conn, true, "%s", strConfigInfo.c_str());
-        mg_printf(conn, "%x\r\n\r\n", 0x00);
-    }
-    else
-    {
-        send_http_error_rsp(conn);
-    }
+        size_t sLen = 0;
+        bool bHandleReq = false;
+        string strP3kConfCmd = "#KDS-CFG-MODIFY ";
+        char szContent[MG_READ_BUFSIZE] = {0};
+        string strFile = DEFAULT_FILE_PATH;
 
-    return 1;
-}
+        sLen = BC_GET_Request_Body(conn, szContent, MG_READ_BUFSIZE);
+        BC_INFO_LOG("get request body is <%s>", szContent);
 
-int CWeb::SetAVSignalHandle(struct mg_connection *conn, void *cbdata)
-{
-    size_t sLen = 0;
-    char szContent[MG_READ_BUFSIZE] = {0};
-    string strFile = DEFAULT_FILE_PATH;
-    strFile += JSON_AV_SIGNAL_PATH;
-
-    sLen = BC_GET_Request_Body(conn, szContent, MG_READ_BUFSIZE);
-    BC_INFO_LOG("SetAVSignalHandle request body is <%s>", szContent);
-    if(sLen < 0)
-    {
-        BC_INFO_LOG("SetAVSignalHandle get body is failed");
-    }
-    else
-    {
-        if(COperation::SetJsonFile(szContent, strFile.c_str()))
+        // 解析json数据
+        Json::Value json;
+        Json::Reader reader;
+        string strJsonInfo = szContent;
+        if(!reader.parse(strJsonInfo, json))
         {
+           BC_INFO_LOG("JsonDataHandle POST json parse failed");
+           send_http_error_rsp(conn);
+           return 1;
+        }
+
+        string strPath = json["path"].asString();
+        strFile += strPath;
+        strP3kConfCmd += strPath;
+        strP3kConfCmd += "\r";
+
+        Json::FastWriter fastwiter;
+        string strConfInfo = "";
+        strConfInfo = fastwiter.write(json["info"]);
+
+        if(COperation::SetJsonFile(strConfInfo.c_str(), strFile.c_str()))
+        {
+            bHandleReq = true;
             send_http_ok_rsp(conn);
-            return 1;
+        }
+
+        if(!bHandleReq)
+        {
+            send_http_error_rsp(conn);
+        }
+        else
+        {
+            int maxfd;
+        	fd_set Writefds;
+        	maxfd = s_p3kSocket + 1;
+        	FD_ZERO(&Writefds);
+        	FD_SET(s_p3kSocket, &Writefds);
+
+        	int nret = select(maxfd, NULL, &Writefds, NULL, NULL);
+        	if(nret < 0)
+        	{
+        		BC_INFO_LOG("json select failed");
+        	}
+
+            if(nret > 0)
+            {
+                if(FD_ISSET(s_p3kSocket,&Writefds))
+                {
+                    s_p3kmutex.Lock();
+                    int WriteSize = write(s_p3kSocket, strP3kConfCmd.c_str(), strP3kConfCmd.length());
+                    if(WriteSize < 0)
+                    {
+                        BC_INFO_LOG("json p3k write failed");
+                    }
+
+                    // 延时
+                    usleep(1000);
+                    s_p3kmutex.Unlock();
+                }
+            }
         }
     }
-    send_http_error_rsp(conn);
 
     return 1;
 }
 
-int CWeb::GetAVSignalHandle(struct mg_connection *conn, void *cbdata)
-{
-    string strConfigInfo = "";
-    string strFile = DEFAULT_FILE_PATH;
-    strFile += JSON_AV_SIGNAL_PATH;
-    if(COperation::GetJsonFile(strFile.c_str(), strConfigInfo))
-    {
-        BC_INFO_LOG("GetAVSignalHandle strConfigInfo is <%s>", strConfigInfo.c_str());
-        BC_mg_send_header(conn, "Content-Type", "application/json");
-        mg_printf_data(conn, true, "%s", strConfigInfo.c_str());
-        mg_printf(conn, "%x\r\n\r\n", 0x00);
-    }
-    else
-    {
-        send_http_error_rsp(conn);
-    }
-
-    return 1;
-}
-
-int CWeb::SetDisplaySleepHandle(struct mg_connection *conn, void *cbdata)
-{
-    size_t sLen = 0;
-    char szContent[MG_READ_BUFSIZE] = {0};
-    string strFile = DEFAULT_FILE_PATH;
-    strFile += JSON_DISPLAY_SLEEP_PATH;
-
-    sLen = BC_GET_Request_Body(conn, szContent, MG_READ_BUFSIZE);
-    BC_INFO_LOG("SetDisplaySleepHandle request body is <%s>", szContent);
-    if(sLen < 0)
-    {
-        BC_INFO_LOG("SetDisplaySleepHandle get body is failed");
-    }
-    else
-    {
-        if(COperation::SetJsonFile(szContent, strFile.c_str()))
-        {
-            send_http_ok_rsp(conn);
-            return 1;
-        }
-    }
-    send_http_error_rsp(conn);
-
-    return 1;
-}
-
-int CWeb::GetDisplaySleepHandle(struct mg_connection *conn, void *cbdata)
-{
-    string strConfigInfo = "";
-    string strFile = DEFAULT_FILE_PATH;
-    strFile += JSON_DISPLAY_SLEEP_PATH;
-
-    if(COperation::GetJsonFile(strFile.c_str(), strConfigInfo))
-    {
-        BC_INFO_LOG("GetDisplaySleepHandle strConfigInfo is <%s>", strConfigInfo.c_str());
-        BC_mg_send_header(conn, "Content-Type", "application/json");
-        mg_printf_data(conn, true, "%s", strConfigInfo.c_str());
-        mg_printf(conn, "%x\r\n\r\n", 0x00);
-    }
-    else
-    {
-        send_http_error_rsp(conn);
-    }
-
-    return 1;
-}
-
-int CWeb::SetEdidHandle(struct mg_connection *conn, void *cbdata)
-{
-    size_t sLen = 0;
-    char szContent[MG_READ_BUFSIZE] = {0};
-    string strFile = DEFAULT_FILE_PATH;
-    strFile += JSON_EDID_PATH;
-
-    sLen = BC_GET_Request_Body(conn, szContent, MG_READ_BUFSIZE);
-    BC_INFO_LOG("SetEdidHandle request body is <%s>", szContent);
-    if(sLen < 0)
-    {
-        BC_INFO_LOG("SetEdidHandle get body is failed");
-    }
-    else
-    {
-        if(COperation::SetJsonFile(szContent, strFile.c_str()))
-        {
-            send_http_ok_rsp(conn);
-            return 1;
-        }
-    }
-    send_http_error_rsp(conn);
-
-    return 1;
-}
-
-int CWeb::GetEdidHandle(struct mg_connection *conn, void *cbdata)
-{
-    string strConfigInfo = "";
-    string strFile = DEFAULT_FILE_PATH;
-    strFile += JSON_EDID_PATH;
-
-    if(COperation::GetJsonFile(strFile.c_str(), strConfigInfo))
-    {
-        BC_INFO_LOG("GetEdidHandle strConfigInfo is <%s>", strConfigInfo.c_str());
-        BC_mg_send_header(conn, "Content-Type", "application/json");
-        mg_printf_data(conn, true, "%s", strConfigInfo.c_str());
-        mg_printf(conn, "%x\r\n\r\n", 0x00);
-    }
-    else
-    {
-        send_http_error_rsp(conn);
-    }
-
-    return 1;
-}
-
-int CWeb::SetGatewayHandle(struct mg_connection *conn, void *cbdata)
-{
-    size_t sLen = 0;
-    char szContent[MG_READ_BUFSIZE] = {0};
-    string strFile = DEFAULT_FILE_PATH;
-    strFile += JSON_GATEWAY_PATH;
-
-    sLen = BC_GET_Request_Body(conn, szContent, MG_READ_BUFSIZE);
-    BC_INFO_LOG("SetGatewayHandle request body is <%s>", szContent);
-    if(sLen < 0)
-    {
-        BC_INFO_LOG("SetGatewayHandle get body is failed");
-    }
-    else
-    {
-        if(COperation::SetJsonFile(szContent, strFile.c_str()))
-        {
-            send_http_ok_rsp(conn);
-            return 1;
-        }
-    }
-    send_http_error_rsp(conn);
-
-    return 1;
-}
-
-int CWeb::GetGatewayHandle(struct mg_connection *conn, void *cbdata)
-{
-    string strConfigInfo = "";
-    string strFile = DEFAULT_FILE_PATH;
-    strFile += JSON_GATEWAY_PATH;
-
-    if(COperation::GetJsonFile(strFile.c_str(), strConfigInfo))
-    {
-        BC_INFO_LOG("GetGatewayHandle strConfigInfo is <%s>", strConfigInfo.c_str());
-        BC_mg_send_header(conn, "Content-Type", "application/json");
-        mg_printf_data(conn, true, "%s", strConfigInfo.c_str());
-        mg_printf(conn, "%x\r\n\r\n", 0x00);
-    }
-    else
-    {
-        send_http_error_rsp(conn);
-    }
-
-    return 1;
-}
-
-int CWeb::SetVersionHandle(struct mg_connection *conn, void *cbdata)
-{
-    size_t sLen = 0;
-    char szContent[MG_READ_BUFSIZE] = {0};
-    string strFile = DEFAULT_FILE_PATH;
-    strFile += JSON_VERSION_PATH;
-
-    sLen = BC_GET_Request_Body(conn, szContent, MG_READ_BUFSIZE);
-    BC_INFO_LOG("SetVersionHandle request body is <%s>", szContent);
-    if(sLen < 0)
-    {
-        BC_INFO_LOG("SetVersionHandle get body is failed");
-    }
-    else
-    {
-        if(COperation::SetJsonFile(szContent, strFile.c_str()))
-        {
-            send_http_ok_rsp(conn);
-            return 1;
-        }
-    }
-    send_http_error_rsp(conn);
-
-    return 1;
-}
-
-int CWeb::GetVersionHandle(struct mg_connection *conn, void *cbdata)
-{
-    string strConfigInfo = "";
-    string strFile = DEFAULT_FILE_PATH;
-    strFile += JSON_VERSION_PATH;
-
-    if(COperation::GetJsonFile(strFile.c_str(), strConfigInfo))
-    {
-        BC_INFO_LOG("GetVersionHandle strConfigInfo is <%s>", strConfigInfo.c_str());
-        BC_mg_send_header(conn, "Content-Type", "application/json");
-        mg_printf_data(conn, true, "%s", strConfigInfo.c_str());
-        mg_printf(conn, "%x\r\n\r\n", 0x00);
-    }
-    else
-    {
-        send_http_error_rsp(conn);
-    }
-
-    return 1;
-}
-
-int CWeb::SetOsdHandle(struct mg_connection *conn, void *cbdata)
-{
-    size_t sLen = 0;
-    char szContent[MG_READ_BUFSIZE] = {0};
-    string strFile = DEFAULT_FILE_PATH;
-    strFile += JSON_OSD_PATH;
-
-    sLen = BC_GET_Request_Body(conn, szContent, MG_READ_BUFSIZE);
-    BC_INFO_LOG("SetOsdHandle request body is <%s>", szContent);
-    if(sLen < 0)
-    {
-        BC_INFO_LOG("SetOsdHandle get body is failed");
-    }
-    else
-    {
-        if(COperation::SetJsonFile(szContent, strFile.c_str()))
-        {
-            send_http_ok_rsp(conn);
-            return 1;
-        }
-    }
-    send_http_error_rsp(conn);
-
-    return 1;
-}
-
-int CWeb::GetOsdHandle(struct mg_connection *conn, void *cbdata)
-{
-    string strConfigInfo = "";
-    string strFile = DEFAULT_FILE_PATH;
-    strFile += JSON_OSD_PATH;
-
-    if(COperation::GetJsonFile(strFile.c_str(), strConfigInfo))
-    {
-        BC_INFO_LOG("GetOsdHandle strConfigInfo is <%s>", strConfigInfo.c_str());
-        BC_mg_send_header(conn, "Content-Type", "application/json");
-        mg_printf_data(conn, true, "%s", strConfigInfo.c_str());
-        mg_printf(conn, "%x\r\n\r\n", 0x00);
-    }
-    else
-    {
-        send_http_error_rsp(conn);
-    }
-
-    return 1;
-}
-
-int CWeb::SetOverlayHandle(struct mg_connection *conn, void *cbdata)
-{
-    size_t sLen = 0;
-    char szContent[MG_READ_BUFSIZE] = {0};
-    string strFile = DEFAULT_FILE_PATH;
-    strFile += JSON_OVERLAY_PATH;
-
-    sLen = BC_GET_Request_Body(conn, szContent, MG_READ_BUFSIZE);
-    BC_INFO_LOG("SetOverlayHandle request body is <%s>", szContent);
-    if(sLen < 0)
-    {
-        BC_INFO_LOG("SetOverlayHandle get body is failed");
-    }
-    else
-    {
-        if(COperation::SetJsonFile(szContent, strFile.c_str()))
-        {
-            send_http_ok_rsp(conn);
-            return 1;
-        }
-    }
-    send_http_error_rsp(conn);
-
-    return 1;
-}
-
-int CWeb::GetOverlayHandle(struct mg_connection *conn, void *cbdata)
-{
-    string strConfigInfo = "";
-    string strFile = DEFAULT_FILE_PATH;
-    strFile += JSON_OVERLAY_PATH;
-
-    if(COperation::GetJsonFile(strFile.c_str(), strConfigInfo))
-    {
-        BC_INFO_LOG("GetOverlayHandle strConfigInfo is <%s>", strConfigInfo.c_str());
-        BC_mg_send_header(conn, "Content-Type", "application/json");
-        mg_printf_data(conn, true, "%s", strConfigInfo.c_str());
-        mg_printf(conn, "%x\r\n\r\n", 0x00);
-    }
-    else
-    {
-        send_http_error_rsp(conn);
-    }
-
-    return 1;
-}
-
-int CWeb::SetSecureHandle(struct mg_connection *conn, void *cbdata)
-{
-    size_t sLen = 0;
-    char szContent[MG_READ_BUFSIZE] = {0};
-    string strFile = DEFAULT_FILE_PATH;
-    strFile += JSON_SECURE_PATH;
-
-    sLen = BC_GET_Request_Body(conn, szContent, MG_READ_BUFSIZE);
-    BC_INFO_LOG("SetSecureHandle request body is <%s>", szContent);
-    if(sLen < 0)
-    {
-        BC_INFO_LOG("SetSecureHandle get body is failed");
-    }
-    else
-    {
-        if(COperation::SetJsonFile(szContent, strFile.c_str()))
-        {
-            send_http_ok_rsp(conn);
-            return 1;
-        }
-    }
-    send_http_error_rsp(conn);
-
-    return 1;
-}
-
-int CWeb::GetSecureHandle(struct mg_connection *conn, void *cbdata)
-{
-    string strConfigInfo = "";
-    string strFile = DEFAULT_FILE_PATH;
-    strFile += JSON_SECURE_PATH;
-
-    if(COperation::GetJsonFile(strFile.c_str(), strConfigInfo))
-    {
-        BC_INFO_LOG("GetSecureHandle strConfigInfo is <%s>", strConfigInfo.c_str());
-        BC_mg_send_header(conn, "Content-Type", "application/json");
-        mg_printf_data(conn, true, "%s", strConfigInfo.c_str());
-        mg_printf(conn, "%x\r\n\r\n", 0x00);
-    }
-    else
-    {
-        send_http_error_rsp(conn);
-    }
-
-    return 1;
-}
-
-int CWeb::SetUsbHandle(struct mg_connection *conn, void *cbdata)
-{
-    size_t sLen = 0;
-    char szContent[MG_READ_BUFSIZE] = {0};
-    string strFile = DEFAULT_FILE_PATH;
-    strFile += JSON_USB_PATH;
-
-    sLen = BC_GET_Request_Body(conn, szContent, MG_READ_BUFSIZE);
-    BC_INFO_LOG("SetUsbHandle request body is <%s>", szContent);
-    if(sLen < 0)
-    {
-        BC_INFO_LOG("SetUsbHandle get body is failed");
-    }
-    else
-    {
-        if(COperation::SetJsonFile(szContent, strFile.c_str()))
-        {
-            send_http_ok_rsp(conn);
-            return 1;
-        }
-    }
-    send_http_error_rsp(conn);
-
-    return 1;
-}
-
-int CWeb::GetUsbHandle(struct mg_connection *conn, void *cbdata)
-{
-    string strConfigInfo = "";
-    string strFile = DEFAULT_FILE_PATH;
-    strFile += JSON_USB_PATH;
-
-    if(COperation::GetJsonFile(strFile.c_str(), strConfigInfo))
-    {
-        BC_INFO_LOG("GetUsbHandle strConfigInfo is <%s>", strConfigInfo.c_str());
-        BC_mg_send_header(conn, "Content-Type", "application/json");
-        mg_printf_data(conn, true, "%s", strConfigInfo.c_str());
-        mg_printf(conn, "%x\r\n\r\n", 0x00);
-    }
-    else
-    {
-        send_http_error_rsp(conn);
-    }
-
-    return 1;
-}
 
 int CWeb::ActionReqHandler(struct mg_connection *conn, void *cbdata)
 {
@@ -1725,35 +1322,6 @@ void *CWeb::P3kCommunicationThread(void *arg)
 		}
 	}
 
-    memset(aFlag, 0, sizeof(aFlag));
-    memset(aRecv, 0, sizeof(aRecv));
-    strncpy(aFlag, "#LOGIN admin,33333\r", strlen("#LOGIN admin,33333\r"));
-	len = write(s_p3kSocket, aFlag, strlen(aFlag));
-    if(len < 0)
-    {
-    	BC_INFO_LOG("p3k init write faild");
-    	close(s_p3kSocket);
-        return NULL;
-    }
-
-    len = read(s_p3kSocket, aRecv, KEY_VALUE_SIZE);
-    if(len < 0)
-    {
-        BC_INFO_LOG("p3k init read faild");
-    	close(s_p3kSocket);
-        return NULL;
-    }
-	else
-	{
-	    BC_INFO_LOG("Login aRecv is <%s>", aRecv);
-		if(strncmp(aRecv, "~01@LOGIN admin,33333,ok\r", strlen("~01@LOGIN admin,33333,ok\r")) != 0)
-		{
-			BC_INFO_LOG("p3k init is check failed");
-	    	close(s_p3kSocket);
-	        return NULL;
-		}
-	}
-
     FD_ZERO(&Readfds);
 	FD_SET(s_p3kSocket, &Readfds);
 	while(1)
@@ -1772,6 +1340,7 @@ void *CWeb::P3kCommunicationThread(void *arg)
 	    if(FD_ISSET(s_p3kSocket,&Readfds))
         {
             int ret = read(s_p3kSocket, aBuff, MG_READ_BUFSIZE);
+            string strP3kReq = aBuff;
 			if(ret < 0)
 			{
 				BC_INFO_LOG("p3k read data failed");
@@ -1783,17 +1352,42 @@ void *CWeb::P3kCommunicationThread(void *arg)
                 close(s_p3kSocket);
                 return NULL;
             }
-			else
-			{
-			    s_p3kmutex.Lock();
-			    BC_INFO_LOG("p3k read data is <%s> ret is <%d>", aBuff, ret);
-                Send_Data_To_CurWebsocket(s_p3kStatus.p3k_conn, aBuff, ret);
-				//Send_Data_To_ALLWebsocket(aBuff, (size_t)ret);
+            else
+            {
+                if(strP3kReq.find("~01@KDS-CFG-MODIFY") != string::npos)
+                {
+                    continue;
+                }
+
+                s_p3kmutex.Lock();
+                int i = 0;
+                CStringSpliter split(strP3kReq);
+                split.Split("\n");
+                if(split.Size() < 2)
+                {
+                    Send_Data_To_CurWebsocket(s_p3kStatus.p3k_conn, aBuff, ret);
+                    s_p3kStatus.p3k_writeok = true;
+                    s_p3kcond.Signal();
+    				s_p3kmutex.Unlock();
+                    continue;
+                }
+
+                for(i; i < split.Size(); i++)
+                {
+                    string strTmp = "";
+                    if(split[i].find("~01@KDS-CFG-MODIFY") != string::npos)
+                    {
+                        continue;
+                    }
+                    strTmp = split[i];
+                    strTmp += "\n";
+                    Send_Data_To_CurWebsocket(s_p3kStatus.p3k_conn, strTmp.c_str(), strTmp.length());
+                }
 
                 s_p3kStatus.p3k_writeok = true;
                 s_p3kcond.Signal();
 				s_p3kmutex.Unlock();
-			}
+            }
         }
 	}
 }

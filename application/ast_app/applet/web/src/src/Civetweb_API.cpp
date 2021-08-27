@@ -529,7 +529,7 @@ int SetWebsocketLDAPAuthSucess(struct mg_connection *conn)
 }
 
 
-void Send_Data_To_CurWebsocket(struct mg_connection *conn,char *data,size_t len)
+void Send_Data_To_CurWebsocket(struct mg_connection *conn, const char *data, size_t len)
 {
 	mg_websocket_write(conn, MG_WEBSOCKET_OPCODE_TEXT, (const char *)data, len);
 }
