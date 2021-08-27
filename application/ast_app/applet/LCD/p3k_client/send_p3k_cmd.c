@@ -8,10 +8,8 @@
 #define SIZE2 255
 
 
-//#define FIRMWARE_INFO_FILE  	"/etc/board_info.json"
-//#define VIDEO_INFO_FILE			"/data/configs/kds-6x/channel/channel_map.json"
-#define FIRMWARE_INFO_FILE		"/version.txt"
-#define VIDEO_INFO_FILE			"/channel.txt"
+#define FIRMWARE_INFO_FILE  	"/etc/board_info.json"
+#define VIDEO_INFO_FILE			"/data/configs/kds-dec7/channel/channel_map.json"
 
 #define FIRMWARE_SYMBOL			"version\": "
 #define VIDEO_SYMBOL			"name\": "
@@ -36,15 +34,15 @@
 #define		EDID_RECV_HEAD_2    "@EDID-ACTIVE "
 
 
-#define 	HDCP_GET_CMD		"#HDCP-STAT? 0"
-#define		HDCP_RECV_HEAD		"@HDCP-STAT 0," 
+#define 	HDCP_GET_CMD		"#HDCP-STAT? 0,1"
+#define		HDCP_RECV_HEAD		"@HDCP-STAT 0,1," 
 
 #define 	DEVICE_STATUS_GET 	"#DEV-STATUS?"
 #define		DEVICE_RECV_HEAD	"@DEV-STATUS "
 
 #define		INPUT_SET_1_CMD		"#X-ROUTE out.hdmi.1.video.1,in.hdmi.1.video.1"
 #define		INPUT_SET_2_CMD		"#X-ROUTE out.hdmi.1.video.1,in.hdmi.2.video.1"
-#define		INPUT_SET_3_CMD		"#X-ROUTE out.hdmi.1.video.1,in.hdmi.3.video.1" //USB?
+#define		INPUT_SET_3_CMD		"#X-ROUTE out.hdmi.1.video.1,in.usb_c.3.video.1" 
 #define 	INPUT_GET_CMD  		"#X-ROUTE? out.hdmi.1.video.1"
 #define 	INPUT_RECV_HEAD		"@X-ROUTE out.hdmi.1.video.1,in."
 
@@ -67,18 +65,16 @@ int init_p3k_client(char *ip, int port)
 int get_specified_string_from_file(char *file, char *symbol, char info_buf[][SIZE2])
 {
 	int i = 0;
-	char cmd[SIZE1] = {0};
 	char space_char[2] = "\"";
 	char *str = NULL;
 	char *chr = NULL;
 	FILE *fd = NULL;
 	char recv_buf[SIZE1] = {0};
 
-	sprintf(cmd, "cat %s", file);
-	fd = popen(cmd, "r");
+	fd = fopen(file, "r");
 	if (fd == NULL)
 	{
-		printf("popen fail");
+		printf("fopen fail");
 		return -1;
 	}
 	i = 0;
@@ -97,6 +93,7 @@ int get_specified_string_from_file(char *file, char *symbol, char info_buf[][SIZ
 			strcpy(info_buf[i++], chr);	
 		}
 	}
+	fclose(fd);
 	int m, n;
 	int len = 0;
 
@@ -109,6 +106,7 @@ int get_specified_string_from_file(char *file, char *symbol, char info_buf[][SIZ
 		}
 	}
 
+	return 0;
 }
 
 int get_FIREMARE_VERSION(const char *file, const char *symbol, char info_buf[][SIZE2])
@@ -120,17 +118,15 @@ int get_FIREMARE_VERSION(const char *file, const char *symbol, char info_buf[][S
 	char *chr = NULL;
 	FILE *fd = NULL;
 	char recv_buf[SIZE1] = {0};
-	
-	sprintf(cmd, "cat %s", file);
-	fd = popen(cmd, "r");
+
+	fd = fopen(file, "r");
 	if (fd == NULL)
 	{
-		printf("popen fail");
+		perror("fopen fail");
 		return -1;
 	}
 
 	i = 0;
-	
 	while(!feof(fd))
 	{
 		memset(recv_buf, 0, SIZE1);
@@ -139,20 +135,25 @@ int get_FIREMARE_VERSION(const char *file, const char *symbol, char info_buf[][S
 		if (str = strstr(recv_buf, symbol))
 		{
 			str += strlen(symbol);
-			str = strstr(str, "v") + 1;
-			chr = strtok(str, space_char);
-			if (strstr(recv_buf, "board"))
-			{	
-				strcat(info_buf[i], "HW VER ");
-			}
-			if (strstr(recv_buf, "firmware"))
+			str = strstr(str, "v");
+			if (str != NULL)
 			{
-				strcat(info_buf[i], "FM VER ");
+				str++;
+				chr = strtok(str, space_char);
+				if (strstr(recv_buf, "board"))
+				{	
+					strcat(info_buf[i], "HW_VER:v");
+				}
+				if (strstr(recv_buf, "firmware"))
+				{
+					strcat(info_buf[i], "FM_VER:v");
+				}
+				strcat(info_buf[i++], chr);	
 			}
-			strcat(info_buf[i++], chr);			
 		}
 	}
-	
+	fclose(fd);
+	return 0;
 }
 
 
@@ -166,7 +167,7 @@ int send_cmd_common(char *cmd, char *head, char *param, char *content)
 	{
 		sprintf(mcmd, "%s%s", mcmd, param);
 	}
-	
+	printf("send p3k cmd: %s\n", mcmd);
 	if (send_p3k_cmd_wait_rsp(mcmd, recv_buf, sizeof(recv_buf)))
 	{
 		printf("send_p3k_cmd_wait_rsp fail\n");
@@ -178,8 +179,7 @@ int send_cmd_common(char *cmd, char *head, char *param, char *content)
 	
 	if (recv_buf[strlen(recv_buf) - 1] == '\r' || recv_buf[strlen(recv_buf) - 1] == '\n')
 		recv_buf[strlen(recv_buf) - 1] = '\0';
-
-	printf("recv_buf:[%s] --[%d]\n", recv_buf, __LINE__);
+	printf("response: %s\n", recv_buf);
 	char * str = NULL;
 	str = strstr(recv_buf, head);
 	if (str != NULL)
@@ -233,7 +233,6 @@ int  fill_ip_become_15_byte(char *str, char *dest)
 		strcat(buf1, ".");
 	}
 	strncpy(dest, buf1, 15);
-	printf("dest:[%s]\n", dest);
 }
 
 int get_ip(int NET_ID, char *IP, char *MASK, char *GATEWAY)
@@ -281,7 +280,7 @@ int set_ip(int NET_ID, char *IP, char *MASK, char *GATEWAY)
 	char buf[SIZE1] = {0};
 	char respon_head[SIZE1] = {0};
 	
-	sprintf(buf, "%d,%s,%s,%s", NET_ID, IP, MASK, GATEWAY);
+	sprintf(buf, " %d,%s,%s,%s", NET_ID, IP, MASK, GATEWAY);
 	sprintf(respon_head, "%s %d,", IP_RECV_HEAD, NET_ID);
 	
 	err = send_cmd_common(IP_SET_CMD, respon_head, buf, NULL);
@@ -323,102 +322,121 @@ int set_DHCP_status(int NET_ID)
 //[0,DEFAULT],[2,SONY],[2,SONY]
 int get_EDID_list(char EDID_buf[][SIZE2])
 {
-	int i = 0;
+	int i = 0, n = 0;
 	int err;
-	int num = 0;
-	char *EDID_info[10];
 	char recv_buf[SIZE1] = {0};
-	char *tmp = NULL;
+	char *substr1 = NULL;
+	char *substr2 = NULL;
+	
 	err = send_cmd_common(EDID_LIST_GET_CMD, EDID_LIST_HEAD, NULL, recv_buf);
 	if (err != 0)
 		return -1;
-	
-	split_string(recv_buf, "]", EDID_info, &num);
 
 	i = 0;
-	for (i = 0; i < num; i++)
+	substr1 = recv_buf;	
+	while(1)
 	{
-		tmp = strstr(EDID_info[i], "[") + 1;
-		if (tmp != NULL)
+		substr1 = strstr(substr1, "[");
+		if (substr1 != NULL)
 		{
-			strcpy(EDID_buf[i], tmp);
+			substr1++;
+			substr2 = strstr(substr1, "]");
+			if (substr2 != NULL)
+			{
+				substr2--;
+				for (n = 0; n <= (substr2 - substr1); n++)
+				{
+					EDID_buf[i][n] = toupper(substr1[n]);
+				}
+				i++;
+			}
+			else 
+			{
+				break;
+			}
+		}
+		else
+		{
+			break;
 		}
 	}
 
-	for (i = 0; i < num; i++)
-	{
-		if (EDID_info[i] != NULL)
-		{
-			free(EDID_info[i]);
-			EDID_info[i] = NULL;
-		}
-	}
-	
 	return 0;
-	
 }
 
-int set_EDID(int index)
+int set_EDID(char index)
 {
 	int err;
 	char param[SIZE1] = {0};
 	switch (index)
 	{
-		case -1:
+		case 'P':
 		{
 			sprintf(param, "%s", "PASSTHRU");		
 			break;
 		}
 		
-		//default
-		case 0:
+		case '0': //default
 		{
 			sprintf(param, "%s", "DEFAULT");	 
 			break;
 		}
 		
-		//custom
-		default:
+		default: //custom
 		{
-			sprintf(param, "%s,%d", "CUSTOM", index);			
+			sprintf(param, "%s,%c", "CUSTOM", index);			
 			break;
 		}
 
 	}
 
 	err = send_cmd_common(EDID_SET_CMD_1, EDID_RECV_HEAD_1, param, NULL);
-	if (index > 0)
+	if (err == -1)
+		return -1;
+	
+	if (index != 'P' && index != '0')
 	{
 		memset(param, 0, SIZE1);
-		sprintf(param, "%d", index);
+		sprintf(param, "%c", index);
 		err = send_cmd_common(EDID_SET_CMD_2, EDID_RECV_HEAD_2, param, NULL);
+		if (err == -1)
+			return -1;
 	}
 	
 	return err;
-
 }
 
 //@EDID-MODE 1,CUSTOM,1
-int get_EDID(int *EDID_TYPE)
+char get_EDID()
 {
 	int err;
+	char EDID_TYPE;
 	char recv_buf[SIZE1] = {0};
 	
 	err = send_cmd_common(EDID_GET_CMD, EDID_RECV_HEAD_1, NULL, recv_buf);
-	if (strstr(recv_buf, "PASSTHRU"))
-	{
-		*EDID_TYPE = -1;
-	}
-	if (strstr(recv_buf, "CUSTOM"))
-	{
-		*EDID_TYPE = recv_buf[7] - '0';
-	}
-	if (strstr(recv_buf, "DEFAULT"))
-	{
-		*EDID_TYPE = recv_buf[8] - '0';
-	}
+	if (err == -1)
+		return -1;
 	
-	return err;
+	do {
+	
+		if (strstr(recv_buf, "PASSTHRU"))
+		{
+			EDID_TYPE = 'P';
+			break;
+		}
+		if (strstr(recv_buf, "CUSTOM"))
+		{
+			EDID_TYPE = recv_buf[7];
+			break;
+		}
+		if (strstr(recv_buf, "DEFAULT"))
+		{
+			EDID_TYPE = recv_buf[8];
+			break;
+		}
+	} while(1);
+	
+	return EDID_TYPE;
   
 }
 
@@ -435,8 +453,8 @@ int get_HDCP_status(int *HDCP_STATUS)
 //HW VER 0.1  FW VER 0.1.0 
 int get_FIRMWARE_INFO(char info_buf[][SIZE2]) //数组指针
 {
-	int err;
-	get_FIREMARE_VERSION(FIRMWARE_INFO_FILE, FIRMWARE_SYMBOL, info_buf);
+	int err = 0;
+	err = get_FIREMARE_VERSION(FIRMWARE_INFO_FILE, FIRMWARE_SYMBOL, info_buf);
 	return err;
 }
 
@@ -460,11 +478,9 @@ int get_INPUT_INFO(char *recv_buf)
 	int err;
 	err = send_cmd_common(INPUT_GET_CMD, INPUT_RECV_HEAD, NULL, recv_buf);
 	if (err == -1)
-	{
 		printf("send_cmd_common fail\n");
-		return -1;
-	}
-	return 0;
+	
+	return err;
 }
 
 int set_INPUT_INFO(int num)

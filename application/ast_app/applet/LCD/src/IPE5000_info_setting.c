@@ -14,7 +14,7 @@
 
 #define BLANK " "
 #define SIZE_E 255
-#define MIN_SIZE_E 10
+#define MIN_SIZE_E 20
 
 #define LAN1_ID_E	0
 #define LAN2_ID_E	1
@@ -31,11 +31,10 @@ enum
 };
 
 char firmware_buf_E[MIN_SIZE_E][SIZE_E];
-char edid_buf_E[MIN_SIZE_E][SIZE_E];
 char All_EDID_buf_E[MIN_SIZE_E][SIZE_E];
 
 const char *device_status_E[5] = {
-	"DEVICE STATUS", "POWER_ON", "STANDY BY", "FW DOWNLOAD", "IP FALLBACK"
+	"DEVICE STATUS", "POWER ON", "STANDY BY", "FW DOWNLOAD", "IP FALLBACK"
 };
 
 
@@ -98,47 +97,41 @@ int save_LAN_info_E()
 	}
 	get_ip(LAN1_ID_E, net_info_E[0], net_info_E[1], net_info_E[2]);
 	get_ip(LAN2_ID_E, net_info_E[3], net_info_E[4], net_info_E[5]);
+	return 0;
 }
 
 int save_EDID_info_E()
 {
 	int i = 0; 
 	char *substr = NULL;
-	memset(All_EDID_buf_E, 0, MIN_SIZE_E*SIZE_E);
-	memset(edid_buf_E, 0, MIN_SIZE_E*SIZE_E);
-		
-	//get_EDID_list(All_EDID_buf_E);	
-	strcpy(All_EDID_buf_E[0], "PASSTHRU");
-	strcpy(All_EDID_buf_E[1], "0,DEFAULT");
-	strcpy(All_EDID_buf_E[2], "2,SONY");
-	strcpy(All_EDID_buf_E[3], "5,PANASONIC");
-
-	for(i = 0; strlen(All_EDID_buf_E[i]) > 0; i++)
+	memset(All_EDID_buf_E, 0, MIN_SIZE_E*SIZE_E);		
+	get_EDID_list(All_EDID_buf_E);
+	for (i = 0; strlen(All_EDID_buf_E[i]) != 0; i++)
 	{
-		substr = strstr(All_EDID_buf_E[i], ",");
-		if (substr != NULL)
-		{
-			strcpy(edid_buf_E[i], substr +1);
-		}
-		else
-		{
-			substr = strstr(All_EDID_buf_E[i], "PASSTHRU");
-			strcpy(edid_buf_E[i], substr);
-		}
-		SAVE_EDID_SHOWWING_E[i+1] = edid_buf_E[i];
+		SAVE_EDID_SHOWWING_E[i+1] = All_EDID_buf_E[i];
 	}
+	return 0;
 }
 
 int save_FIREWARE_info_E()
 {
-	int i = 0;
+	int i = 0, err = 0;
 	memset(firmware_buf_E, 0, MIN_SIZE_E*SIZE_E);
 
-	get_FIRMWARE_INFO(firmware_buf_E);
+	err = get_FIRMWARE_INFO(firmware_buf_E);
+	if (err == -1)
+	{
+		for (i = 0; i < MIN_SIZE_E; i++)
+		{
+			strcpy(firmware_buf_E[i], " ");
+		}
+	}
+	
 	for(i = 1; i < MIN_SIZE_E+1; i++)
 	{
 		FIRMWARE_strings_E[i] = firmware_buf_E[i-1];
 	}
+	return 0;
 }
 
 int save_DEVICE_STATUS_info_E()
@@ -147,16 +140,18 @@ int save_DEVICE_STATUS_info_E()
 	int status = -1;
 	get_DEVICE_STATUS(&status);
 	DEVICE_STATUS_strings_E[1] = device_status_E[status+1];
+	return 0;
 }
 
 int save_display_info_E()
 {
-	init_p3k_client("192.168.60.77", 5000);
+	init_p3k_client("127.0.0.1", 5000);
 	
 	save_LAN_info_E();
 	save_EDID_info_E();
 	save_FIREWARE_info_E();
 	save_DEVICE_STATUS_info_E();
+	return 0;
 }
 
 u8 get_elem_num_E(const char **buf, int num)
@@ -164,14 +159,13 @@ u8 get_elem_num_E(const char **buf, int num)
 	u8 i = 0;
 	while (i < num)
 	{
-		if (buf[i] == NULL|| strlen(buf[i]) == 0)
+		if (buf[i] == NULL|| strlen(buf[i]) <= 1)
 		{
 			break;
 		}
 		i++;
 	}
 
-	printf("count=%d\n", i);
 	return i;
 }
 
@@ -191,7 +185,10 @@ static void show_menu_info_E(int y, u8 begin_elem, const char *dest[], const cha
 	dest[0] = src[0];
 
 	if (count == 0)
+	{
+		move_limit_E = 2;
 		return;
+	}
 	for (i = 0; i < count; i++)
 	{
 		dest[1+i] = src[begin_elem+i];
@@ -579,13 +576,13 @@ static void LAN_MODE_MENU_SHOW_E(int lan_id) //DHCP OR STATIC
 				{				
 					show_a_star(x);	
 					set_DHCP_status(lan_id);
-					DHCP_IP_SHOW_E(lan_id);
+					LAN_OPTION_SHOW_E(lan_id, 1);
 				}
 				
 				if (x == 4) 			//选择static
 				{
 					//这里设置IP 
-					LAN_OPTION_SHOW_E(lan_id);					
+					LAN_OPTION_SHOW_E(lan_id, 0);					
 				}				
 
 				//从子目录出来，继续显示这一级目录
@@ -607,30 +604,8 @@ static void LAN_MODE_MENU_SHOW_E(int lan_id) //DHCP OR STATIC
  }
 }
 
-//四级目录
-static void DHCP_IP_SHOW_E(int lan_id)
-{
-	int key = 0;
-	get_ip(lan_id, net_info_E[lan_id*3+0], net_info_E[lan_id*3+1], net_info_E[lan_id*3+2]);
-	
-	clear_whole_screen();
-	show_strings(0, 16, "DHCP", 4);
-	show_strings(2, 0, net_info_E[lan_id*3+0], 15);
-	show_strings(4, 0, net_info_E[lan_id*3+1], 15);
-	show_strings(6, 0, net_info_E[lan_id*3+2], 15);
-	while (1)
-	{
-		key = recv_key_info_E();
-		if (key == LEFT_KEY)
-		{
-			break;
-		}
-	}
-}
-
-
 //四级目录 
-static void LAN_OPTION_SHOW_E(int lan_id) //ip mask gateway
+static void LAN_OPTION_SHOW_E(int lan_id, int enable) //ip mask gateway
 {	
 	int y = 16;
 	int x = 2; //方括号位置
@@ -679,7 +654,10 @@ static void LAN_OPTION_SHOW_E(int lan_id) //ip mask gateway
 				get_ip(lan_id, net_info_E[lan_id*3], net_info_E[lan_id*3 +1], net_info_E[lan_id*3 +2]);
 				
 				//x是坐标，x=2:ip, x=4:mask, x=6:gateway
-				LAN_INFO_SET_E(lan_id, (x/2-1), net_info_E[lan_id*3 + (x/2-1)], strlen(net_info_E[lan_id*3 + (x/2-1)]));
+				if (enable == 1)
+					DHCP_LAN_INFO_SHOW_E(lan_id, x/2, net_info_E[lan_id*3 + (x/2-1)], strlen(net_info_E[lan_id*3 + (x/2-1)]));
+				else
+					LAN_INFO_SET_E(lan_id, (x/2), net_info_E[lan_id*3 + (x/2-1)], strlen(net_info_E[lan_id*3 + (x/2-1)]));
 					
 				clear_whole_screen();
 				//继续显示这一级目录
@@ -703,6 +681,26 @@ static void LAN_OPTION_SHOW_E(int lan_id) //ip mask gateway
 	}
 	
 }
+
+//五级目录 DHCP IP SHOW
+static void DHCP_LAN_INFO_SHOW_E(int lan_id, int offset, char *string, u8 lenth)
+{
+	int x = 0, y = 16, y1 = 0;
+	int key = 0;
+	clear_whole_screen();
+	show_strings(x, y, LAN_OPTION_strings_E[offset], strlen(LAN_OPTION_strings_E[offset])); //显示标题
+	show_strings(x+2, y1, string, strlen(string));
+	
+	while (1)
+	{
+		key = recv_key_info_E();		
+		if (key == LEFT_KEY)
+		{
+			break;
+		}
+	}	
+}
+
 
 //五级目录 LAN INFO set
 static void LAN_INFO_SET_E(int lan_id, u8 offset, char *string, u8 lenth)  //注意ip显示的起始位置，
@@ -852,6 +850,22 @@ static void LAN_INFO_SET_E(int lan_id, u8 offset, char *string, u8 lenth)  //注
 	}
 }
 
+void show_current_edid_E()
+{
+	int i;
+	char edid_type;
+	edid_type = get_EDID();
+	
+	for (i = 1; i < 4; i++ )
+	{
+		if (EDID_SHOWWING_E[i][0] == edid_type);
+		{
+			show_a_star(i*2);
+			break;
+		}
+	}
+}
+
 //二级目录， 2.2EDID_SET
 static void EDID_SET_E(void)
 {
@@ -866,58 +880,14 @@ static void EDID_SET_E(void)
 	param.y = y;
 	param.p = p;
 	param.last_page = last_page;
-
+	
+	save_EDID_info_E();
 	clear_whole_screen();  //新一级的目录，清屏
 	show_strings(0, y, SAVE_EDID_SHOWWING_E[0], strlen(SAVE_EDID_SHOWWING_E[0]) ); 
 	show_menu_info_E(y, 1, EDID_SHOWWING_E, SAVE_EDID_SHOWWING_E, count>4? 3 : count-1);
 	show_square_breakets(x);
+	show_current_edid_E();
 
-	//获取当前EDID, 显示*	
-	int EDID_TYPE;
-	get_EDID(&EDID_TYPE);
-	int i, s = 0;
-	switch (EDID_TYPE)
-	{
-		case -1:
-		{
-			s = 1;
-			break;
-		}
-
-		case 0:
-		{
-			s = 2;
-			break;
-		}
-
-		case 2:
-		{
-			//SONY
-			s = 3;
-			break;
-		}
-
-		case 5:
-		{
-			s = 4;
-			break;
-		}
-
-		case 7:
-		{
-			s = 5;
-			break;
-		}
-		
-	}
-
-	for (i = 1; i < 4; i++ )
-	{
-		if (EDID_SHOWWING_E[i] == SAVE_EDID_SHOWWING_E[s]);
-			show_a_star(i);
-	}
-	
-	int num = 0;
 	int key = 0; 
 	while (1)
 	{
@@ -928,6 +898,7 @@ static void EDID_SET_E(void)
 			case UP_KEY:
 			{
 				param = down_up_respond_E(count, param, EDID_SHOWWING_E, SAVE_EDID_SHOWWING_E, key);
+				//show_current_edid_E();
 				break;
 			}
 			
@@ -935,15 +906,7 @@ static void EDID_SET_E(void)
 			case ENTER_KEY:
 			{
 				show_a_star(param.x); 
-				for (i = 0; count < i; i++)
-				{
-					if (strstr(All_EDID_buf_E[i], EDID_SHOWWING_E[param.x/2]))
-					{
-						num = All_EDID_buf_E[i][0] - '0';
-						set_EDID(num);
-					}
-				}
-				
+				set_EDID(EDID_SHOWWING_E[param.x/2][0]);
 				break;
 			}
 			
@@ -969,12 +932,12 @@ static void HDCP_SHOW_E() //仅展示
 		
 	show_strings(0, y, HDCP_strings_E[0], strlen(HDCP_strings_E[0]));
 	
-	if (status == 0)
+	if (status == 1)
 		show_a_star(2);
 	
 	show_strings(2, y, HDCP_strings_E[1], strlen(HDCP_strings_E[1]));
 	
-	if (status == 1)
+	if (status == 0)
 		show_a_star(4);
 	
 	show_strings(4, y, HDCP_strings_E[2], strlen(HDCP_strings_E[2]));
@@ -1006,6 +969,7 @@ static void FIRMWARE_INFO_SHOW_E() //仅展示
 	param.p = p;
 	param.last_page = last_page;
 
+	save_FIREWARE_info_E();	
 	clear_whole_screen();
 	show_strings(0, y, FIRMWARE_strings_E[0], strlen(FIRMWARE_strings_E[0]) ); 
 	show_menu_info_E(y, 1, FIRMWARE_SHOWWING_E, FIRMWARE_strings_E, count>4? 3 : count-1);
@@ -1048,10 +1012,11 @@ static void DEVICE_STATUS_SHOW_E() //仅展示
 	param.p = p;
 	param.last_page = last_page;
 
+	save_DEVICE_STATUS_info_E();
 	clear_whole_screen();
 	show_strings(0, y, DEVICE_STATUS_strings_E[0], strlen(DEVICE_STATUS_strings_E[0]) ); 
 	show_menu_info_E(y, 1, DEVICE_STATUS_SHOWWING_E, DEVICE_STATUS_strings_E, count>4? 3 : count-1);
-	show_square_breakets(x);
+	//show_square_breakets(x);
 
 	while (1)
 	{

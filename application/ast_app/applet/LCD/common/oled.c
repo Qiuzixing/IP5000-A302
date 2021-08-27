@@ -63,7 +63,6 @@ void OLED_DisPlay_Off(void)
 	OLED_WR_Byte(0xAE,OLED_CMD); //
 }
 
-
 // x；横坐标，只能显示4行，取值有 0,2,4,6.共四个
 // y；列坐标，取8的整数倍， 0,8,16......,119
 void clear_one_word(u8 x, u8 y)
@@ -123,34 +122,20 @@ void clear_three_line()
 	}
 }
 
-/*
-//竖着刷新三行
-void new_clear_three_line()
+void light_whole_screen()
 {
-	u8 i, n;
-	u8 m, p;
-	u8 data[64] = {0};
-	
-	for (n=0; n<128; n+=64)
+	int i = 0;
+	char data[128];
+	memset(data, 255, 128);
+	for (i = 0; i < 8; i++)
 	{
-		m = 0x0f;
-		p = 0x07;
-		m &= n; //y 纵坐标
-		p &= (n >> 4);
-		p |= 0x10;  //取起始列地址
+		OLED_WR_Byte(0xb0+i, OLED_CMD);
+		OLED_WR_Byte(0x00, OLED_CMD);   //设置起始列的低四位字节
+		OLED_WR_Byte(0x10, OLED_CMD);   //设置起始列的高四位字节 两个拼起来组成列的起始位置
 		
-		for (i=2; i<8; i++)
-		{
-			OLED_WR_Byte(0xb0+i, OLED_CMD);
-			OLED_WR_Byte(m,OLED_CMD);   //设置起始列的低四位字节
-			OLED_WR_Byte(p,OLED_CMD);   //设置起始列的高四位字节 两个拼起来组成列的起始位置.
-			
-			i2c_write_multi_byte(data, 64);
-		}
+		i2c_write_multi_byte(data, 128);
 	}
-
 }
-*/
 
 void clear_whole_screen()
 {
@@ -166,7 +151,6 @@ void clear_whole_screen()
 		
 		i2c_write_multi_byte(data, 128);
 	}
-	
 }
 
 /*
@@ -191,7 +175,6 @@ int get_offset(char chr)
 		if (chr > 'a' && chr <= 'z')
 		{
 			offset = (chr - 'a' + 36) * 2;
-			offset *= 2;
 			break;
 		}
 		
@@ -228,6 +211,16 @@ int get_offset(char chr)
 		if (chr == ' ')
 		{
 			offset = 67*2;
+			break;
+		}
+		if (chr == ',')
+		{
+			offset = 68*2;
+			break;
+		}
+		if (chr == ':')
+		{
+			offset = 69*2;
 			break;
 		}
 	} while(0);	
@@ -310,7 +303,6 @@ void show_strings(u8 x, u8 y, const char *str, u8 lenth)
 		//一次写多个字节,在这里写128
 		i2c_write_multi_byte(word, count);
 	}
-
 }
 
 void show_square_breakets(u8 x)
@@ -329,7 +321,6 @@ void show_square_breakets(u8 x)
 			show_a_char(i, y+14*8, ' ', 0);
 		}
 	}
-
 }
 
 void show_a_star(u8 x)

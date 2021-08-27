@@ -18,9 +18,8 @@ void OLED_DisPlay_Off(void);
 void OLED_WR_Byte(u8 dat,u8 mode);
 void clear_a_line(u8 x);
 void clear_three_line();
-//void new_clear_three_line();
+void light_whole_screen();
 void clear_whole_screen(void);
-
 
 void show_a_char(u8 x, u8 y, u8 chr, u8 cursor);
 void show_strings(u8 x, u8 y, const char *str, u8 lenth);

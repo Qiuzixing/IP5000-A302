@@ -12,8 +12,8 @@ static void HDCP_SHOW_E();
 static void FIRMWARE_INFO_SHOW_E();
 static void DEVICE_STATUS_SHOW_E();
 static void LAN_MODE_MENU_SHOW_E(int lan_id);
-static void DHCP_IP_SHOW_E(int lan_id);
-static void LAN_OPTION_SHOW_E(int lan_id);
+static void LAN_OPTION_SHOW_E(int lan_id, int enable);
+static void DHCP_LAN_INFO_SHOW_E(int lan_id, int offset, char *string, u8 lenth);
 static void LAN_INFO_SET_E(int lan_id, u8 offset, char *string, u8 lenth);
 
 

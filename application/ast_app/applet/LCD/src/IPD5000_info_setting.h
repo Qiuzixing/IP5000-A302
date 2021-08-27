@@ -18,8 +18,8 @@ static void HDCP_SHOW_D();
 static void FIRMWARE_INFO_SHOW_D();
 static void DEVICE_STATUS_SHOW_D();
 static void LAN_MODE_MENU_SHOW_D(int lan_id);
-static void DHCP_IP_SHOW_D(int lan_id);
-static void LAN_OPTION_SHOW_D(int lan_id);
+static void LAN_OPTION_SHOW_D(int lan_id, int enable);
+static void DHCP_LAN_INFO_SHOW_D(int lan_id, int offset, char *string, u8 lenth);
 static void LAN_INFO_SET_D(int lan_id, u8 offset, char *string, u8 lenth);
 
 #ifdef __cplusplus

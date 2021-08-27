@@ -28,13 +28,22 @@ int main(int argc, char *argv[])
 {
 	if (argc != 2)
 	{
-		printf("plasea input with a parameter\n");
+		printf("plasea input correct parameter\n");
 		return -1;
 	}
 
 	i2c_init(I2C_BUS_NUM, I2C_FREQ, I2C_ADDR, LCD_ON);
 	OLED_Init();
     OLED_DisplayTurn(1); //0正常显示，屏幕翻转显示 
+    /*
+	while (1)
+	{
+		light_whole_screen();
+		sleep(1);
+		clear_whole_screen();
+		sleep(1);
+	}
+	*/
 	do 
 	{
 		if (strcmp(argv[1], "IPD5000") == 0)
@@ -64,7 +73,7 @@ int main(int argc, char *argv[])
 			break;
 		}
 	}while (0);
-
+	
 	return 0;
 }
 
