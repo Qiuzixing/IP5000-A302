@@ -13,6 +13,9 @@ typedef struct JsonFileStruct
 	char buf_2[STRUCT_BUF_NORMAL_LEN];
 	char buf_3[STRUCT_BUF_NORMAL_LEN];
 	char buf_4[STRUCT_BUF_NORMAL_LEN];
+	char buf_5[STRUCT_BUF_NORMAL_LEN];
+	char buf_6[STRUCT_BUF_NORMAL_LEN];
+	char buf_7[STRUCT_BUF_NORMAL_LEN];
 }JsonFileStruct;
 
 enum E_Buf_Name
@@ -21,7 +24,10 @@ enum E_Buf_Name
 	e_buf_1,
 	e_buf_2,
 	e_buf_3,
-	e_buf_4
+	e_buf_4,
+	e_buf_5,
+	e_buf_6,
+	e_buf_7
 };
 
 

@@ -81,6 +81,33 @@ bool ParseJsonFile(const char * i_modejsonfile)
 			}
 			memcpy(g_jsonfilestruct.buf_4,buf4.c_str(),sizeof(g_jsonfilestruct.buf_4) - 1);
 		}
+		if(!root["5"].empty())
+		{
+			string buf5 = root["5"].asString();
+			if(buf5.length() > sizeof(g_jsonfilestruct.buf_5))
+			{
+				printf("Warning : buf_5 'size is too small\n");
+			}
+			memcpy(g_jsonfilestruct.buf_5,buf5.c_str(),sizeof(g_jsonfilestruct.buf_5) - 1);
+		}
+		if(!root["6"].empty())
+		{
+			string buf6 = root["6"].asString();
+			if(buf6.length() > sizeof(g_jsonfilestruct.buf_6))
+			{
+				printf("Warning : buf_6 'size is too small\n");
+			}
+			memcpy(g_jsonfilestruct.buf_6,buf6.c_str(),sizeof(g_jsonfilestruct.buf_6) - 1);
+		}
+		if(!root["7"].empty())
+		{
+			string buf7 = root["7"].asString();
+			if(buf7.length() > sizeof(g_jsonfilestruct.buf_7))
+			{
+				printf("Warning : buf_7 'size is too small\n");
+			}
+			memcpy(g_jsonfilestruct.buf_7,buf7.c_str(),sizeof(g_jsonfilestruct.buf_7) - 1);
+		}
         
 	}
 	else
@@ -94,7 +121,6 @@ bool ParseJsonFile(const char * i_modejsonfile)
 	//PrintJsonStruct();
 	return true; 
 }
-
 
 static void SetStructBuf0Value(const char * i_value)
 {
@@ -122,6 +148,22 @@ static void SetStructBuf4Value(const char * i_value)
 	strncpy(g_jsonfilestruct.buf_4,i_value,sizeof(g_jsonfilestruct.buf_4));
 }
 
+static void SetStructBuf5Value(const char * i_value)
+{
+	memset(g_jsonfilestruct.buf_5,0,sizeof(g_jsonfilestruct.buf_5));
+	strncpy(g_jsonfilestruct.buf_5,i_value,sizeof(g_jsonfilestruct.buf_5));
+}
+static void SetStructBuf6Value(const char * i_value)
+{
+	memset(g_jsonfilestruct.buf_6,0,sizeof(g_jsonfilestruct.buf_6));
+	strncpy(g_jsonfilestruct.buf_6,i_value,sizeof(g_jsonfilestruct.buf_6));
+}
+static void SetStructBuf7Value(const char * i_value)
+{
+	memset(g_jsonfilestruct.buf_7,0,sizeof(g_jsonfilestruct.buf_7));
+	strncpy(g_jsonfilestruct.buf_7,i_value,sizeof(g_jsonfilestruct.buf_7));
+}
+
 static char * GetStructBuf0Value()
 {
 	return g_jsonfilestruct.buf_0;
@@ -146,6 +188,21 @@ static char * GetStructBuf4Value()
 	return g_jsonfilestruct.buf_4;
 }
 
+static char * GetStructBuf5Value()
+{
+	return g_jsonfilestruct.buf_5;
+}
+
+static char * GetStructBuf6Value()
+{
+	return g_jsonfilestruct.buf_6;
+}
+
+static char * GetStructBuf7Value()
+{
+	return g_jsonfilestruct.buf_7;
+}
+
 void SetStructBufValue(E_Buf_Name i_name,const char * i_value)
 {
 	if(e_buf_0 == i_name)
@@ -167,6 +224,18 @@ void SetStructBufValue(E_Buf_Name i_name,const char * i_value)
 	else if(e_buf_4 == i_name)
 	{
 		SetStructBuf4Value(i_value);
+	}
+	else if(e_buf_5 == i_name)
+	{
+		SetStructBuf5Value(i_value);
+	}
+	else if(e_buf_6 == i_name)
+	{
+		SetStructBuf6Value(i_value);
+	}
+	else if(e_buf_7 == i_name)
+	{
+		SetStructBuf7Value(i_value);
 	}
 	else
 	{
@@ -195,6 +264,18 @@ char * GetStructBufValue(E_Buf_Name i_name)
 	else if(e_buf_4 == i_name)
 	{
 		return GetStructBuf4Value();
+	}
+	else if(e_buf_5 == i_name)
+	{
+		return GetStructBuf5Value();
+	}
+	else if(e_buf_6 == i_name)
+	{
+		return GetStructBuf6Value();
+	}
+	else if(e_buf_7 == i_name)
+	{
+		return GetStructBuf7Value();
 	}
 	else
 	{
@@ -230,6 +311,9 @@ bool SaveStruct2File(const char * i_jsonfilename)
 	root["2"] = g_jsonfilestruct.buf_2;
 	root["3"] = g_jsonfilestruct.buf_3;
 	root["4"] = g_jsonfilestruct.buf_4;
+	root["5"] = g_jsonfilestruct.buf_5;
+	root["6"] = g_jsonfilestruct.buf_6;
+	root["7"] = g_jsonfilestruct.buf_7;
 
 	Json::StyledWriter fw;
 	string m_strjson = fw.write(root);

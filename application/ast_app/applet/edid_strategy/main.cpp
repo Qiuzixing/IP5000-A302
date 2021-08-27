@@ -78,10 +78,10 @@ typedef struct
 
 const a30_board_name board_name_list[] =
 {
-    {IPE5000,   "/data/configs/kds-ex-6x/edid/"},
-    {IPE5000P,   "/data/configs/kds-sw3-en-6x/edid/"},
-    {IPD5000,   "/data/configs/kds-dec-6x/edid/"},
-    {IPD5000W,   "/data/configs/wp-dec-6x/edid/"}
+    {IPE5000,   "/data/configs/kds-7/edid/"},
+    {IPE5000P,   "/data/configs/kds-7/edid/"},
+    {IPD5000,   "/data/configs/kds-7/edid/"},
+    {IPD5000W,   "/data/configs/kds-7/edid/"}
 };
 
 static void HexToAscii(char *pHex, char *pAscii, int nLen)
