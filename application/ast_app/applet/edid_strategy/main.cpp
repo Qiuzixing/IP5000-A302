@@ -24,7 +24,7 @@ using namespace std;
 #define DEFAULT_EDID            "default"
 #define EDID_FILE_LENGTH        30
 #define EDID_MAXLEN             256
-#define EDID_FILE_MAXNUM        4
+#define EDID_FILE_MAXNUM        8
 #define EDID_PATH_LENGTH        120
 enum
 {
@@ -129,23 +129,6 @@ static void write_eeprom(char *edid_data)
     close(fd);
 }
 
-static void read_file_and_write_eeprom(char *path)
-{
-    FILE *fp = fopen(path, "r");
-    char edid_buf[EDID_MAXLEN] = {0};
-
-    if (fp == NULL)
-    {
-        printf( "\nCan not open the path: %s \n", path);
-        return;
-    }
-
-    fread(edid_buf, sizeof(unsigned char), EDID_MAXLEN, fp);
-    fclose(fp);
-
-    write_eeprom(edid_buf);
-}
-
 int App_EDID_IsValid(uint8_t *pEdid)
 {
     uint8_t u1CheckSum = 0;
@@ -185,6 +168,35 @@ int App_EDID_IsValid(uint8_t *pEdid)
     }
 
     return 1;
+}
+
+static void read_file_and_write_eeprom(char *path)
+{
+    FILE *fp = fopen(path, "rb");
+    int i = 0;
+    int ret = 0;
+    char edid_buf[EDID_MAXLEN] = {0};
+    if (fp == NULL)
+    {
+        printf( "\nCan not open the path: %s \n", path);
+        return;
+    }
+    
+    ret = fread(edid_buf, sizeof(unsigned char), EDID_MAXLEN, fp);
+    if(ret != EDID_MAXLEN)
+    {
+        printf("fread error\n");
+    }
+    fclose(fp);
+    if (1 == App_EDID_IsValid((uint8_t *)edid_buf))
+    {
+        write_eeprom(edid_buf);
+    }
+    else
+    {
+        printf("%s edid Validation failed\n",path);
+    }
+    
 }
 
 int connect_rx_get_edid(char *rx_ip_addr,int port_num,int index)
@@ -338,8 +350,26 @@ static void edid_mode_is_custom(unsigned char index,char *edid_list_path,unsigne
     }
 }
 
+static void remove_edid_file(char *file_name)
+{
+    if( remove(file_name) == 0 )
+    {
+        printf("Removed %s\n", file_name);
+    }
+    else
+    {
+        perror("remove\n");
+    }
+}
+
 static void do_handle_edid_file(char op_edid_file, char *edid_file, unsigned char index,char *edid_list_path)
 {
+    char *edid_file_name = NULL;
+    char edid_file_path[EDID_PATH_LENGTH] = {0};
+    if (false == ParseJsonFile(edid_list_path))
+    {
+        return;
+    }
     switch (op_edid_file)
     {
     case READ_EDID_FILE:
@@ -349,8 +379,21 @@ static void do_handle_edid_file(char op_edid_file, char *edid_file, unsigned cha
         SaveStruct2File(edid_list_path);
         break;
     case DELETE_EDID_FILE:
-        SetStructBufValue((E_Buf_Name)index, "");
-        SaveStruct2File(edid_list_path);
+        edid_file_name = GetStructBufValue((E_Buf_Name)index);
+        if(edid_file_name == NULL)
+        {
+            printf("The file corresponding to the index could not be found\n");
+            SetStructBufValue((E_Buf_Name)index, "");
+            SaveStruct2File(edid_list_path);
+        }
+        else
+        {
+            sprintf(edid_file_path,"%s%s",board_name_list[0].edid_path,edid_file_name);
+            remove_edid_file(edid_file_path);
+            SetStructBufValue((E_Buf_Name)index, "");
+            SaveStruct2File(edid_list_path);
+        }
+        
         break;
     default:
         break;
@@ -529,7 +572,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    if (edid_file_map_index > EDID_FILE_MAXNUM )
+    if (edid_file_map_index >= EDID_FILE_MAXNUM )
     {
         printf("index is too large\n");
         return 0;
@@ -545,10 +588,6 @@ int main(int argc, char *argv[])
 
     if (op_edid_file != UNKNOW)
     {
-        if (false == ParseJsonFile(edid_list_path))
-        {
-            return 0;
-        }
         do_handle_edid_file(op_edid_file, edid_file, edid_file_map_index,edid_list_path);
     }
 

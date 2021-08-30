@@ -8,14 +8,14 @@
 using namespace std;
 
 JsonFileStruct g_jsonfilestruct;
-
+#define EDID_FILE_MAX 8
 
 static void InitJsonFileStruct()
 {
 	memset(&g_jsonfilestruct,0,sizeof(JsonFileStruct));
 }
 
-static void PrintJsonStruct()
+void PrintJsonStruct()
 {
 	printf("[%s]\n[%s]\n[%s]\n[%s]\n[%s]\n",g_jsonfilestruct.buf_0,g_jsonfilestruct.buf_1,
 											g_jsonfilestruct.buf_2,g_jsonfilestruct.buf_3,g_jsonfilestruct.buf_4);
@@ -24,9 +24,9 @@ static void PrintJsonStruct()
 bool ParseJsonFile(const char * i_modejsonfile)
 {
 	InitJsonFileStruct();
-	
+	int i = 0;
 	Json::Reader reader;  
-	Json::Value root; 
+	Json::Value root1; 
 	std::ifstream is;  
 	is.open (i_modejsonfile, std::ios::binary);
 	if(!is.is_open())
@@ -34,81 +34,85 @@ bool ParseJsonFile(const char * i_modejsonfile)
 		printf("open %s fail !!!\n",i_modejsonfile);
 	    return false;
 	}
-	if(reader.parse(is, root))  
+	
+	if(reader.parse(is, root1))  
 	{   
-		if(!root["0"].empty())
+		if(!root1["edid_list"].empty())
 		{
-			string buf0 = root["0"].asString();
-			if(buf0.length() > sizeof(g_jsonfilestruct.buf_0))
+			Json::Value& root = root1["edid_list"];
+			if(!root["0"].empty())
 			{
-				printf("Warning : buf_0 'size is too small\n");
+				string buf0 = root["0"].asString();
+				if(buf0.length() > sizeof(g_jsonfilestruct.buf_0))
+				{
+					printf("Warning : buf_0 'size is too small\n");
+				}
+				memcpy(g_jsonfilestruct.buf_0,buf0.c_str(),sizeof(g_jsonfilestruct.buf_0) - 1);//because the string needs to end with '\0'
 			}
-			memcpy(g_jsonfilestruct.buf_0,buf0.c_str(),sizeof(g_jsonfilestruct.buf_0) - 1);//because the string needs to end with '\0'
-		}
-		if(!root["1"].empty())
-		{
-			string buf1 = root["1"].asString();
-			if(buf1.length() > sizeof(g_jsonfilestruct.buf_1))
+			if(!root["1"].empty())
 			{
-				printf("Warning : buf_1 'size is too small\n");
+				string buf1 = root["1"].asString();
+				if(buf1.length() > sizeof(g_jsonfilestruct.buf_1))
+				{
+					printf("Warning : buf_1 'size is too small\n");
+				}
+				memcpy(g_jsonfilestruct.buf_1,buf1.c_str(),sizeof(g_jsonfilestruct.buf_1) - 1);
 			}
-			memcpy(g_jsonfilestruct.buf_1,buf1.c_str(),sizeof(g_jsonfilestruct.buf_1) - 1);
-		}
-		if(!root["2"].empty())
-		{
-			string buf2 = root["2"].asString();
-			if(buf2.length() > sizeof(g_jsonfilestruct.buf_2))
+			if(!root["2"].empty())
 			{
-				printf("Warning : buf_2 'size is too small\n");
+				string buf2 = root["2"].asString();
+				if(buf2.length() > sizeof(g_jsonfilestruct.buf_2))
+				{
+					printf("Warning : buf_2 'size is too small\n");
+				}
+				memcpy(g_jsonfilestruct.buf_2,buf2.c_str(),sizeof(g_jsonfilestruct.buf_2) - 1);
 			}
-			memcpy(g_jsonfilestruct.buf_2,buf2.c_str(),sizeof(g_jsonfilestruct.buf_2) - 1);
-		}
-		if(!root["3"].empty())
-		{
-			string buf3 = root["3"].asString();
-			if(buf3.length() > sizeof(g_jsonfilestruct.buf_3))
+			if(!root["3"].empty())
 			{
-				printf("Warning : buf_3 'size is too small\n");
+				string buf3 = root["3"].asString();
+				if(buf3.length() > sizeof(g_jsonfilestruct.buf_3))
+				{
+					printf("Warning : buf_3 'size is too small\n");
+				}
+				memcpy(g_jsonfilestruct.buf_3,buf3.c_str(),sizeof(g_jsonfilestruct.buf_3) - 1);
 			}
-			memcpy(g_jsonfilestruct.buf_3,buf3.c_str(),sizeof(g_jsonfilestruct.buf_3) - 1);
-		}
-		if(!root["4"].empty())
-		{
-			string buf4 = root["4"].asString();
-			if(buf4.length() > sizeof(g_jsonfilestruct.buf_4))
+			if(!root["4"].empty())
 			{
-				printf("Warning : buf_4 'size is too small\n");
+				string buf4 = root["4"].asString();
+				if(buf4.length() > sizeof(g_jsonfilestruct.buf_4))
+				{
+					printf("Warning : buf_4 'size is too small\n");
+				}
+				memcpy(g_jsonfilestruct.buf_4,buf4.c_str(),sizeof(g_jsonfilestruct.buf_4) - 1);
 			}
-			memcpy(g_jsonfilestruct.buf_4,buf4.c_str(),sizeof(g_jsonfilestruct.buf_4) - 1);
-		}
-		if(!root["5"].empty())
-		{
-			string buf5 = root["5"].asString();
-			if(buf5.length() > sizeof(g_jsonfilestruct.buf_5))
+			if(!root["5"].empty())
 			{
-				printf("Warning : buf_5 'size is too small\n");
+				string buf5 = root["5"].asString();
+				if(buf5.length() > sizeof(g_jsonfilestruct.buf_5))
+				{
+					printf("Warning : buf_5 'size is too small\n");
+				}
+				memcpy(g_jsonfilestruct.buf_5,buf5.c_str(),sizeof(g_jsonfilestruct.buf_5) - 1);
 			}
-			memcpy(g_jsonfilestruct.buf_5,buf5.c_str(),sizeof(g_jsonfilestruct.buf_5) - 1);
-		}
-		if(!root["6"].empty())
-		{
-			string buf6 = root["6"].asString();
-			if(buf6.length() > sizeof(g_jsonfilestruct.buf_6))
+			if(!root["6"].empty())
 			{
-				printf("Warning : buf_6 'size is too small\n");
+				string buf6 = root["6"].asString();
+				if(buf6.length() > sizeof(g_jsonfilestruct.buf_6))
+				{
+					printf("Warning : buf_6 'size is too small\n");
+				}
+				memcpy(g_jsonfilestruct.buf_6,buf6.c_str(),sizeof(g_jsonfilestruct.buf_6) - 1);
 			}
-			memcpy(g_jsonfilestruct.buf_6,buf6.c_str(),sizeof(g_jsonfilestruct.buf_6) - 1);
-		}
-		if(!root["7"].empty())
-		{
-			string buf7 = root["7"].asString();
-			if(buf7.length() > sizeof(g_jsonfilestruct.buf_7))
+			if(!root["7"].empty())
 			{
-				printf("Warning : buf_7 'size is too small\n");
+				string buf7 = root["7"].asString();
+				if(buf7.length() > sizeof(g_jsonfilestruct.buf_7))
+				{
+					printf("Warning : buf_7 'size is too small\n");
+				}
+				memcpy(g_jsonfilestruct.buf_7,buf7.c_str(),sizeof(g_jsonfilestruct.buf_7) - 1);
 			}
-			memcpy(g_jsonfilestruct.buf_7,buf7.c_str(),sizeof(g_jsonfilestruct.buf_7) - 1);
-		}
-        
+		} 
 	}
 	else
 	{

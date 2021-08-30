@@ -30,7 +30,6 @@ enum E_Buf_Name
 	e_buf_7
 };
 
-
 bool ParseJsonFile(const char * i_modejsonfile);
 
 void SetStructBufValue(E_Buf_Name i_name,const char * i_value);
