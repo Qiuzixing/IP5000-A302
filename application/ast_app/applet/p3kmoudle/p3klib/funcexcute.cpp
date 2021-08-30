@@ -1145,13 +1145,15 @@ int EX_GetActiveEDID(int input_ID )
 
 int EX_GetEdidList(char info[][MAX_EDID_LEN],int num)
 {
- 	int tmpnum = 3;
-	char *str ="[0,DEFAULT]";
-	char *str1= "[2,SONY]";
-	char *str2= "[5,PANASONIC]";
-	memcpy(info[0],str,strlen(str));
-	memcpy(info[1],str1,strlen(str1));
-	memcpy(info[2],str1,strlen(str2));
+ 	int tmpnum = 0;
+	//char *str ="[0,DEFAULT]";
+	//char *str1= "[2,SONY]";
+	//char *str2= "[5,PANASONIC]";
+	//memcpy(info[0],str,strlen(str));
+	//memcpy(info[1],str1,strlen(str1));
+	//memcpy(info[2],str1,strlen(str2));
+
+	tmpnum = Cfg_Get_EDID_List(info,num);
 	return tmpnum;
 }
 
@@ -2771,3 +2773,10 @@ int Clear_Re(void)
 	memset(sUpInfo,0,sizeof(sUpInfo));
 	return 0;
 }
+
+int EX_SetCfgModify(char* cfgName)
+{
+	printf("EX_SetCfgModify : %s\n",cfgName);
+	return 0;
+}
+

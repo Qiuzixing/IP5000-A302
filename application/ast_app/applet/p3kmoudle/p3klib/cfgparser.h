@@ -179,6 +179,7 @@ extern "C" {
 
 #define JSON_EDID_LIST			"edid_list"
 #define JSON_EDID_SETTING		"edid_setting"
+#define JSON_EDID_DEFAULT		"default.bin"
 #define JSON_EDID_LOCK			"lock_mode"
 #define JSON_EDID_MODE			"edid_mode"
 #define JSON_EDID_DEFAULTE		"default"
@@ -297,7 +298,6 @@ extern "C" {
 
 #define MAX_EDID			8
 
-
 typedef struct   _Channel_Info
 {
 	int  channel_id;	// 0 ~ 999
@@ -342,7 +342,7 @@ typedef struct   _EDID_Info
 	EdidModeType_E 	edid_mode;
 	char	 		net_src[32];
 	int 			active_id;
-	char			EDID_List[MAX_EDID][32];
+	char			EDID_List[MAX_EDID][64];
 }EDID_Info;
 
 typedef struct   _Version_Info
@@ -492,7 +492,7 @@ int Cfg_Create_DisplaySleep(void);
 int Cfg_Create_OsdSetting(void);
 int Cfg_Create_SecuritySetting(void);
 int Cfg_Create_KVMSetting(void);
-
+int Cfg_Create_EDIDList(void);
 
 int Cfg_Update(SyncInfoType_E type);
 int Cfg_Update_Channel(void);
@@ -547,6 +547,7 @@ int Cfg_Set_EDID_Mode(EdidModeType_E mode, int idx);
 int Cfg_Get_EDID_Mode(EdidModeType_E* mode, int* idx);
 int Cfg_Set_EDID_Active(int idx);
 int Cfg_Get_EDID_Active(int* idx);
+int Cfg_Get_EDID_List(char info[][MAX_EDID_LEN],int num);
 
 
 

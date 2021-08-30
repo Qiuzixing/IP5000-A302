@@ -22,7 +22,7 @@ extern "C"{
 #define SERIAL_NUMBER_LEN 16
 #define MAX_SIGNALE_LEN  64
 #define MAX_PORT_LEN 32
-#define MAX_EDID_LEN 32
+#define MAX_EDID_LEN 64
 #define MAX_ONELOG_LEN 256
 #define MAX_PARAM_LEN 256
 #define BUFSIZE 128
@@ -567,6 +567,8 @@ int EX_SetVideoWallStretch(int  index,int mode );
 int EX_GetVideoWallStretch(int  index);
 int EX_AutomaticReporting(char * info);
 int EX_GetCECGateWayMode(void);
+int EX_SetCfgModify(char* cfgName);
+
 int Clear_Re(void);
 
 int classTest(int a,int b);

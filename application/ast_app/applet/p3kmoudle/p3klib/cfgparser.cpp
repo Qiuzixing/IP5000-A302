@@ -1546,6 +1546,7 @@ int Cfg_Create_DefaultFile(void)
 	Cfg_Create_OsdSetting();
 	Cfg_Create_SecuritySetting();
 	Cfg_Create_KVMSetting();
+	Cfg_Create_EDIDList();
 	return 0;
 }
 
@@ -1903,6 +1904,64 @@ int Cfg_Create_KVMSetting(void)
 
 	string strKvm = root1.toStyledString();
 	fwrite(strKvm.c_str(),1,strKvm.size(),fp);
+
+	fclose(fp);
+	fflush(fp);
+	return 0;
+}
+
+// /edid/edid_list.json
+int Cfg_Create_EDIDList(void)
+{
+	DBG_InfoMsg("Cfg_Create_EDIDList\n");
+
+	char path[128] = "";
+	sprintf(path,"%s%s%s",CONF_PATH,g_module,EDID_LIST_FILE);
+
+	//Check Video cfg
+	int nAccessRet = access(path,F_OK | R_OK | W_OK);
+	if(0 == nAccessRet)
+	{
+		printf("nAccessRet %s Suceess\n",path);
+		return 0;
+	}
+
+	Json::Value root;
+
+	root["0"] = JSON_EDID_DEFAULT;
+	root["1"] = "";
+	root["2"] = "";
+	root["3"] = "";
+	root["4"] = "";
+	root["5"] = "";
+	root["6"] = "";
+	root["7"] = "";
+
+	Json::Value root1;
+	root1[JSON_EDID_LIST] = root;
+
+	memset(path,0,128);
+	sprintf(path,"%s%s%s",CONF_PATH,g_module,EDID_PATH);
+	int s32AccessRet = access(path, F_OK);
+	if(s32AccessRet != 0)
+	{
+		char cmd[256] = "";
+		sprintf(cmd,"mkdir -p %s",path);
+
+		system(cmd);
+	}
+
+	memset(path,0,128);
+	sprintf(path,"%s%s%s",CONF_PATH,g_module,EDID_LIST_FILE);
+	FILE *fp;
+	fp = fopen(path, "w");
+	if (fp == NULL) {
+		printf("ERROR! can't open %s\n",path);
+		return -1;
+	}
+
+	string strEDIDList = root1.toStyledString();
+	fwrite(strEDIDList.c_str(),1,strEDIDList.size(),fp);
 
 	fclose(fp);
 	fflush(fp);
@@ -3963,5 +4022,66 @@ int Cfg_Get_OSD_Diaplay(State_E* mode)
 {
 	return 0;
 }
+
+int Cfg_Get_EDID_List(char info[][MAX_EDID_LEN],int num)
+{
+	DBG_InfoMsg("Cfg_Get_EDID_List\n");
+
+#ifdef CONFIG_P3K_CLIENT
+	DBG_InfoMsg("This is Decoder\n");
+	return 0;
+#endif
+
+	char path[128] = "";
+	sprintf(path,"%s%s%s",CONF_PATH,g_module,EDID_LIST_FILE);
+	sprintf(g_edid_info.EDID_List[0],"default.bin");
+	sprintf(info[0],"[0,\"default.bin\"]");
+
+	for(int i=1;i<MAX_EDID;i++)
+	{
+		memset(g_edid_info.EDID_List[i],0,32);
+	}
+
+	//Read	Log cfg
+	Json::Reader reader;
+	Json::Value root1;
+	char pBuf[1024] = "";
+	FILE *fp;
+	fp = fopen(path, "r");
+	if (fp == NULL) {
+		printf("ERROR! can't open %s\n",path);
+		return -1;
+	}
+
+	int ncount = 1;
+	fread(pBuf,1,sizeof(pBuf),fp);
+	if(reader.parse(pBuf, root1))
+	{
+		if(!root1[JSON_EDID_LIST].empty())
+		{
+			Json::Value& root = root1[JSON_EDID_LIST];
+			for(int i=1;i<MAX_EDID;i++)
+			{
+				char idx[4];
+				sprintf(idx,"%d",i);
+				if(!root[idx].empty())
+				{
+					string name = root[idx].asString();
+					if(name.size()> 0)
+					{
+						sprintf(g_edid_info.EDID_List[i],"%s",name.c_str());
+						sprintf(info[ncount],"[%d,\"%s\"]",i,name.c_str());
+						ncount++;
+					}
+				}
+			}
+		}
+	}
+
+	fclose(fp);
+	return ncount;
+}
+
+
 
 
