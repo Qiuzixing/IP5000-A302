@@ -40,7 +40,11 @@
 					#/sbin/avahi-autoipd -wD eth0
 					if ! /sbin/avahi-autoipd -c eth0; then
 						echo "Start avahi-autoipd"
-						/sbin/avahi-autoipd -D eth0 --script=/etc/avahi/avahi-autoipd.action
+						if [ "$AST_PLATFORM" = "ast1520-h-v1" ] then
+							/sbin/avahi-autoipd -D eth0 --start=192.168.1.39 --script=/etc/avahi/avahi-autoipd.action
+						else
+							/sbin/avahi-autoipd -D eth0 --start=192.168.1.40 --script=/etc/avahi/avahi-autoipd.action
+						fi
 					fi
 					;;
 		renew)
