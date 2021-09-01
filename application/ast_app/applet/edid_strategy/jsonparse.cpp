@@ -319,8 +319,11 @@ bool SaveStruct2File(const char * i_jsonfilename)
 	root["6"] = g_jsonfilestruct.buf_6;
 	root["7"] = g_jsonfilestruct.buf_7;
 
+	Json::Value root1;
+	root1["edid_list"] = root;
+
 	Json::StyledWriter fw;
-	string m_strjson = fw.write(root);
+	string m_strjson = fw.write(root1);
 
 	StringToFile(m_strjson.c_str(),i_jsonfilename);
 
