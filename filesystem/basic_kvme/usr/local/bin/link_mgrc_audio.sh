@@ -426,6 +426,7 @@ handle_ae_level()
 	#Parse ae_level:$LEVEL
 	local _level="$1"
 
+	echo $_level > /sys/devices/platform/1500_i2s/analog_out_vol
 	echo "ae_level!!! $_level"
 }
 

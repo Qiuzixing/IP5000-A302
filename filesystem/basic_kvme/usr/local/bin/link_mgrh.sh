@@ -1373,11 +1373,6 @@ handle_e_p3k_switch()
 	esac
 }
 
-handle_edid()
-{
-	echo "handle_edid. ($*)"
-}
-
 handle_e_p3k_edid()
 {
 	echo "handle_e_p3k_edid."
@@ -1400,7 +1395,7 @@ handle_e_p3k_edid()
 			_para1="$1"
 			handle_edid -d -i $_para1
 		;;
-		e_p3k_video_edid_default)
+		e_p3k_video_edid_default?*)
 			handle_edid -s default
 		;;
 		e_p3k_video_edid_passthru::?*)
