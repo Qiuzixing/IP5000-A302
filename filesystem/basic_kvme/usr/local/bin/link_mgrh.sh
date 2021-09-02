@@ -1733,6 +1733,42 @@ handle_e_p3k_net_hostname()
 	echo "handle_e_p3k_net_hostname."
 }
 
+handle_e_p3k_fp_lock()
+{
+	case "$event" in
+		e_p3k_fp_lock_on)
+			ipc @m_lm_set s set_gpio_val:1:65:0
+			usleep 500000
+			case $MODEL_NUMBER in
+				KDS-SW3-EN7)
+					lcd_display IPE5000P &
+				;;
+				KDS-EN7)
+					lcd_display IPE5000 &
+				;;
+				KDS-DEC7)
+					lcd_display IPD5000 &
+				;;
+				*)
+					echo "error param"
+				;;
+			esac
+		;;
+		e_p3k_fp_lock_off)
+			ipc @m_lm_set s set_gpio_val:1:65:1
+			pkill -9 lcd_display
+		;;
+		*)
+			echo "error param" 
+		;;
+	esac
+}
+
+handle_e_p3k_flagme()
+{
+	echo "test"
+}
+
 handle_e_p3k_net()
 {
 	echo "handle_e_p3k_net."
@@ -1791,6 +1827,12 @@ handle_e_p3k()
 		;;
 		e_p3k_upgrade_fw*)
 			handle_e_p3k_upgrade
+		;;
+		e_p3k_fp_lock_?*)
+			handle_e_p3k_fp_lock "$event"
+		;;
+		e_p3k_flag_me*)
+			handle_e_p3k_flagme
 		;;
 		*)
 		;;
