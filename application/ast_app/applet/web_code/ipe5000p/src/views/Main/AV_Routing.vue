@@ -1,9 +1,12 @@
 <template>
   <div class="main-setting">
     <div class="setting-model">
-      <div class="setting" v-if="this.$global.deviceType === 1">
+      <div class="setting"
+           v-if="this.$global.deviceType === 1">
         <span class="setting-title">Input Selection</span>
-        <multiselect v-model="inputSelect.val" :options="inputSelect.param" @input="setInputSelect"></multiselect>
+        <multiselect v-model="inputSelect.val"
+                     :options="inputSelect.param"
+                     @input="setInputSelect"></multiselect>
       </div>
       <div class="setting">
         <span class="setting-title">Stream ID</span>
@@ -11,28 +14,42 @@
       </div>
       <div class="setting">
         <span class="setting-title">Stream Name</span>
-        <input type="text" class="setting-text" v-model="channelName">
-        <button type="button" class="btn btn-plain-primary" style="margin-left: 24px;" @click="setChannelName">APPLY</button>
+        <input type="text"
+               class="setting-text"
+               v-model="channelName">
+        <button type="button"
+                class="btn btn-plain-primary"
+                style="margin-left: 24px;"
+                @click="setChannelName">APPLY</button>
       </div>
       <div class="setting">
         <span class="setting-title">Volume (dB)</span>
-        <el-slider
-          @change="setVolume"
-          style="width: 200px"
-          :min="0" :max="100"
-          :show-tooltip="false"
-          v-model="volume"
-          :marks="marks">
+        <el-slider @change="setVolume"
+                   style="width: 200px"
+                   :min="0"
+                   :max="100"
+                   :show-tooltip="false"
+                   v-model="volume"
+                   :marks="marks">
         </el-slider>
         <span style="margin-left: 15px">{{volume}}</span>
       </div>
-      <div class="setting" style="margin-top: 36px;">
+      <div class="setting"
+           style="margin-top: 36px;">
         <span class="setting-title">Mute</span>
-        <v-switch v-model="muteVal" active-value="on" inactive-value="off" @change="setAudioMute"></v-switch>
+        <v-switch v-model="muteVal"
+                  active-value="on"
+                  inactive-value="off"
+                  @change="setAudioMute"></v-switch>
       </div>
       <div class="setting">
         <span class="setting-title">Play/Stop</span>
-        <v-switch v-model="action" open-text="Play" close-text="Stop" active-value="1" inactive-value="0" @change="setAction"></v-switch>
+        <v-switch v-model="action"
+                  open-text="Play"
+                  close-text="Stop"
+                  active-value="1"
+                  inactive-value="0"
+                  @change="setAction"></v-switch>
       </div>
       <div class="setting">
         <span class="setting-title">HDCP Encryption</span>
@@ -49,6 +66,10 @@
       <div class="setting">
         <span class="setting-title"> Audio Channels</span>
         <span>{{audioChannel}}</span>
+      </div>
+      <div class="setting">
+        <span class="setting-title"> Audio Rate</span>
+        <span>{{audioRate}}</span>
       </div>
       <div class="setting">
         <span class="setting-title">Audio Format</span>
@@ -85,7 +106,8 @@ export default {
       resolution: '',
       hdcp: '0',
       audioChannel: '',
-      audioFormat: ''
+      audioFormat: '',
+      audioRate: ''
     }
   },
   beforeCreate () {
@@ -191,7 +213,7 @@ export default {
     },
     handleResolution (msg) {
       const data = msg.split(',')
-      this.resolution = resolutionMap[data[data.length - 1]]
+      this.resolution = resolutionMap[data[data.length - 1]] || 'unknown'
     },
     handleRatio (msg) {
       this.aspectRatio = msg.split(' ')[1]
@@ -199,13 +221,14 @@ export default {
     handleAudioChannelDesc (msg) {
       const data = msg.split(',')
       this.audioFormat = data[data.length - 1]
-      this.audioChannel = data[2].split('.')[0]
+      this.audioRate = data[data.length - 2]
+      this.audioChannel = data[data.length - 3]
     }
   }
 }
 </script>
 <style lang="less" scoped>
-.main-setting .setting-title{
+.main-setting .setting-title {
   width: 200px;
 }
 </style>

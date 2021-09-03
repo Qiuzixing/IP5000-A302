@@ -114,7 +114,7 @@
 </template>
 
 <script>
-
+import { debounce } from 'lodash'
 export default {
   name: 'audioPage',
   data () {
@@ -230,10 +230,13 @@ export default {
     handleForceRGB (msg) {
       this.forceRGB = msg.split(',')[1]
     },
-    save () {
+    save: debounce(function () {
       this.setDisplayDelay()
       this.setAVSingle()
-    }
+    }, 2000, {
+      leading: true,
+      trailing: true
+    })
   }
 }
 </script>

@@ -1,4 +1,4 @@
-const version = 'V1.0.5'
+const version = 'V1.0.6'
 const path = require('path')
 function resolve (dir) {
   return path.join(__dirname, dir)
@@ -62,7 +62,7 @@ if (process.env.NODE_ENV !== 'production') {
       } else if (message.startsWith('#KDS-RATIO?')) {
         ws.send('~nn@KDS-RATIO 16:9')
       } else if (message.startsWith('#X-AUD-DESC?')) {
-        ws.send('~nn@X-AUD-DESC out.hdmi.1.audio.1,2,44.1K,PCM')
+        ws.send('~nn@X-AUD-DESC out.hdmi.1.audio.1,2,44,1K,PCM')
       } else if (message.startsWith('#X-AV-SW-MODE?')) {
         ws.send(`~nn@X-AV-SW-MODE out.hdmi.1.video.1,${parseInt(Math.random() * 3)}`)
         ws.send(`~nn@X-AV-SW-MODE out.hdmi.1.audio.1,${parseInt(Math.random() * 3)}`)

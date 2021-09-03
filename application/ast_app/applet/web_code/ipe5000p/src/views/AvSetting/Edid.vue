@@ -2,32 +2,70 @@
   <div class="main-setting">
     <div class="setting">
       <span class="setting-title">EDID Lock</span>
-      <v-switch v-model="edidLock" active-value="1" inactive-value="0" @change="setEDIDLock"></v-switch>
+      <v-switch v-model="edidLock"
+                active-value="1"
+                inactive-value="0"
+                @change="setEDIDLock"></v-switch>
     </div>
     <div class="setting">
       <span class="setting-title">EDID Mode</span>
-      <multiselect :disabled="edidLock=='1'" :options="edid.param"  v-model="edid.val" @input="setEDIDMode"></multiselect>
-<!--      <v-model-select :is-disabled="edidLock" :options="edid.param"  v-model="edid.val"></v-model-select>-->
+      <multiselect :disabled="edidLock=='1'"
+                   :options="edid.param"
+                   v-model="edid.val"
+                   @input="setEDIDMode"></multiselect>
+      <!--      <v-model-select :is-disabled="edidLock" :options="edid.param"  v-model="edid.val"></v-model-select>-->
     </div>
-    <div class="radio-setting" v-if="edid.val === 'custom'">
+    <div class="radio-setting"
+         v-if="edid.val === 'custom'">
       <span class="setting-title">User EDID</span>
-      <ul class="edid-list" v-if="!(edidLock=='1')">
-        <li :class="{'active': isSelectListIndex === item[0]}" v-for="item in edidList" @click="isSelectListIndex = item[0]" :key="item[0]">{{item[1]}}</li>
+      <ul class="edid-list"
+          v-if="!(edidLock=='1')">
+        <li :class="{'active': isSelectListIndex === item[0]}"
+            v-for="item in edidList"
+            @click="isSelectListIndex = item[0]"
+            :key="item[0]">{{item[1]}}</li>
       </ul>
-      <ul class="edid-list disabled" v-else>
-        <li :class="{'active': isSelectListIndex === item[0]}" v-for="item in edidList" :key="item[0]">{{item[1]}}</li>
+      <ul class="edid-list disabled"
+          v-else>
+        <li :class="{'active': isSelectListIndex === item[0]}"
+            v-for="item in edidList"
+            :key="item[0]">{{item[1]}}</li>
       </ul>
-      <div>
-        <button class="btn btn-plain-primary" :disabled="edidLock==='1'" style="margin-left: 24px;margin-bottom: 24px;">UPLOAD</button><br>
-        <button class="btn btn-plain-primary" :disabled="edidLock==='1' || isSelectListIndex == '0'" style="margin-left: 24px;margin-bottom: 24px;" @click="deleteEDID">REMOVE</button><br>
-        <button class="btn btn-plain-primary" :disabled="edidLock==='1'" style="margin-left: 24px;width: 97px;" @click="setEDID">APPLY</button>
+      <div style="margin-left: 24px;">
+        <el-upload action="/upload/edid"
+                   :on-success="upgradeFile"
+                   :auto-upload="false"
+                   :file-list="fileList">
+          <button class="btn btn-plain-primary"
+                  :disabled="edidLock==='1'">UPLOAD</button>
+
+        </el-upload>
+        <br>
+        <button class="btn btn-plain-primary"
+                :disabled="edidLock==='1' || isSelectListIndex == '0'"
+                style="margin-bottom: 24px;"
+                @click="deleteEDID">REMOVE</button><br>
+        <button class="btn btn-plain-primary"
+                :disabled="edidLock==='1'"
+                style="width: 97px;"
+                @click="setEDID">APPLY</button>
+        <input type="file"
+               style="display:none;width:0;height:0;">
       </div>
 
     </div>
-    <div class="setting" v-if="edid.val === 'passthru'">
+    <div class="setting"
+         v-if="edid.val === 'passthru'">
       <span class="setting-title">Read EDID from Specific Decoder</span>
-      <input type="text" class="setting-text" v-model="mac" placeholder="0.0.0.0" :disabled="edidLock=='1'">
-      <button class="btn btn-plain-primary" :disabled="edidLock=='1'" style="margin-left: 24px" @click="readEDID">READ</button>
+      <input type="text"
+             class="setting-text"
+             v-model="mac"
+             placeholder="0.0.0.0"
+             :disabled="edidLock=='1'">
+      <button class="btn btn-plain-primary"
+              :disabled="edidLock=='1'"
+              style="margin-left: 24px"
+              @click="readEDID">READ</button>
     </div>
   </div>
 </template>
@@ -49,7 +87,8 @@ export default {
       edidLock: '0',
       edidList: [],
       edidListIndex: -1,
-      isSelectListIndex: -1
+      isSelectListIndex: -1,
+      fileList: []
     }
   },
   beforeCreate () {
@@ -150,38 +189,41 @@ export default {
       const result = msg.substr(startIndex).split(',')
       console.log(result.toString())
       this.edidList = JSON.parse('[' + result.toString() + ']')
+    },
+    upgradeFile () {
+      // this.$socket.sendMsg('#UPGRADE ')
     }
   }
 }
 </script>
 <style lang="less" scoped>
-.vs__dropdown-toggle{
+.vs__dropdown-toggle {
   width: 180px;
 }
-.edid-list{
-  &.disabled{
-    li{
+.edid-list {
+  &.disabled {
+    li {
       cursor: not-allowed;
-      opacity: .5;
+      opacity: 0.5;
     }
   }
   margin: 0;
   list-style: none;
   padding: 0;
-  border: 1px solid #4D4D4F;
+  border: 1px solid #4d4d4f;
   width: 250px;
   border-radius: 5px;
-  li{
-    &:first-child{
+  li {
+    &:first-child {
       border-top-left-radius: 5px;
       border-top-right-radius: 5px;
     }
-    &:last-child{
+    &:last-child {
       border-bottom-left-radius: 5px;
       border-bottom-right-radius: 5px;
     }
-    &.active{
-      background: #F3F3F3;
+    &.active {
+      background: #f3f3f3;
       color: #404040;
       font-family: "open sans semiblold";
     }

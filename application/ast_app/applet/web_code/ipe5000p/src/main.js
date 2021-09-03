@@ -12,6 +12,7 @@ import Axios from 'axios'
 import {
   Dialog,
   InputNumber,
+  Upload,
   // DatePicker,
   // TimeSelect,
   // TimePicker,
@@ -28,6 +29,7 @@ Vue.component('colorPicker', colorPicker)
 // Vue.use(Pagination);
 Vue.use(Dialog)
 Vue.use(InputNumber)
+Vue.use(Upload)
 // Vue.use(DatePicker)
 // Vue.use(TimeSelect)
 // Vue.use(TimePicker)

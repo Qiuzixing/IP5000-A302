@@ -11,7 +11,7 @@
           format="MM-dd-yyyy"
           >
         </el-date-picker> -->
-<!--        <VueCtkDateTimePicker id="sys-date" color="#35ACF8" v-model="dateTime" format="MM/DD/YYYY" formatted="MM/DD/YYYY" :no-clear-button="true" :no-label="true" style="width: 160px;margin: 0" :only-date="true" />-->
+        <!--        <VueCtkDateTimePicker id="sys-date" color="#35ACF8" v-model="dateTime" format="MM/DD/YYYY" formatted="MM/DD/YYYY" :no-clear-button="true" :no-label="true" style="width: 160px;margin: 0" :only-date="true" />-->
       </div>
       <div class="setting">
         <span class="setting-title">Time</span>
@@ -23,7 +23,7 @@
             selectableRange: '00:00:00 - 23:59:59'
           }">
         </el-time-picker> -->
-<!--        <VueCtkDateTimePicker id="sys-time" color="#35ACF8" v-model="time" format="hh:mm a" formatted="hh:mm a" :no-clear-button="true" :no-label="true" style="width: 160px;margin: 0" :only-time="true" />-->
+        <!--        <VueCtkDateTimePicker id="sys-time" color="#35ACF8" v-model="time" format="hh:mm a" formatted="hh:mm a" :no-clear-button="true" :no-label="true" style="width: 160px;margin: 0" :only-time="true" />-->
       </div>
       <!-- <div class="setting">
         <span class="setting-title">Time Zone</span>
@@ -35,24 +35,36 @@
       </div> -->
       <div class="setting">
         <span class="setting-title">NTP Time Server Usage</span>
-        <v-switch v-model="ntpMode" open-text="Yes" close-text="No" active-value="1" inactive-value="0"></v-switch>
+        <v-switch v-model="ntpMode"
+                  open-text="Yes"
+                  close-text="No"
+                  active-value="1"
+                  inactive-value="0"></v-switch>
       </div>
       <div class="setting">
         <span class="setting-title">NTP Time Server Address</span>
-        <input type="text" class="setting-text" v-model="ntpServer">
+        <input type="text"
+               class="setting-text"
+               v-model="ntpServer">
       </div>
       <div class="setting">
         <span class="setting-title">NTP Daily Sync Hour</span>
-        <v-switch v-model="ntpDailySync" open-text="Yes" close-text="No" active-value="1" inactive-value="0"></v-switch>
+        <v-switch v-model="ntpDailySync"
+                  open-text="Yes"
+                  close-text="No"
+                  active-value="1"
+                  inactive-value="0"></v-switch>
       </div>
     </div>
     <footer>
-      <button class="btn btn-primary" @click="save">SAVE</button>
+      <button class="btn btn-primary"
+              @click="save">SAVE</button>
     </footer>
   </div>
 </template>
 
 <script>
+import { debounce } from 'lodash'
 export default {
   name: 'timeDate',
   components: {
@@ -244,24 +256,27 @@ export default {
     setNTP () {
       this.$socket.sendMsg(`#TIME-SRV ${this.ntpMode},${this.ntpServer},${this.ntpDailySync}`)
     },
-    save () {
+    save: debounce(function () {
       // this.setDateTime()
       // this.setDaylight()
       this.setNTP()
-    }
+    }, 2000, {
+      leading: true,
+      trailing: true
+    })
   }
 }
 </script>
 
 <style scoped>
-.setting-title{
+.setting-title {
   width: 220px;
 }
-.main-setting{
+.main-setting {
   display: flex;
   flex-direction: column;
 }
-.setting-model{
+.setting-model {
   flex: 1;
 }
 .main-setting footer {
@@ -271,13 +286,13 @@ export default {
 }
 </style>
 <style lang="less">
-.el-date-editor .el-input__icon{
+.el-date-editor .el-input__icon {
   line-height: 30px;
   color: #828283;
   font-weight: 600;
 }
 
-.time-select .multiselect__content-wrapper{
-  width: 475px!important;
+.time-select .multiselect__content-wrapper {
+  width: 475px !important;
 }
 </style>

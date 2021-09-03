@@ -13,15 +13,15 @@
       <div class="setting"
            style="margin-top: 25px">
         <span class="setting-title">Signal Loss Switching Delay (sec)</span>
-        <el-input-number :disabled="switchMode.val === '2'"
+        <el-input-number :disabled="switchMode.val === '0'"
                          v-model="delay.signal_loss_switching"
                          controls-position="right"
                          :max="90"
-                         :min="0"></el-input-number>
+                         :min="5"></el-input-number>
       </div>
       <div class="setting">
         <span class="setting-title">Signal Detection Delay (sec)</span>
-        <el-input-number :disabled="switchMode.val === '2'"
+        <el-input-number :disabled="switchMode.val === '0'"
                          v-model="delay.signal_detection"
                          controls-position="right"
                          :max="90"
@@ -29,7 +29,7 @@
       </div>
       <div class="setting">
         <span class="setting-title">Cable Plug Delay (sec)</span>
-        <el-input-number :disabled="switchMode.val === '2'"
+        <el-input-number :disabled="switchMode.val === '0'"
                          v-model="delay.cable_plugin"
                          controls-position="right"
                          :max="90"
@@ -37,7 +37,7 @@
       </div>
       <div class="setting">
         <span class="setting-title">Cable Unplug Delay (sec)</span>
-        <el-input-number :disabled="switchMode.val === '2'"
+        <el-input-number :disabled="switchMode.val === '0'"
                          v-model="delay.cable_unplug"
                          controls-position="right"
                          :max="90"
@@ -45,19 +45,19 @@
       </div>
       <div class="setting">
         <span class="setting-title">Signal Loss Switching Power Off Delay (sec)</span>
-        <el-input-number :disabled="switchMode.val === '2'"
+        <el-input-number :disabled="switchMode.val === '0'"
                          v-model="delay.power_off_upon_signal_loss"
                          controls-position="right"
-                         :max="90"
-                         :min="0"></el-input-number>
+                         :max="60000"
+                         :min="5"></el-input-number>
       </div>
       <div class="setting">
         <span class="setting-title">Signal Loss Switching Manual Override Delay (sec)</span>
-        <el-input-number :disabled="switchMode.val === '2'"
+        <el-input-number :disabled="switchMode.val === '0'"
                          v-model="delay.manual_override_inactive_signal"
                          controls-position="right"
                          :max="90"
-                         :min="0"></el-input-number>
+                         :min="5"></el-input-number>
       </div>
     </div>
     <footer>
@@ -68,6 +68,7 @@
 </template>
 
 <script>
+import { debounce } from 'lodash'
 import customSort from '@/components/custom-sort'
 export default {
   name: 'videoPage',
@@ -85,9 +86,9 @@ export default {
       switchMode: {
         val: '0',
         param: [
-          { value: '0', label: 'Last Connected' },
+          { value: '2', label: 'Last Connected' },
           { value: '1', label: 'Priority' },
-          { value: '2', label: 'Manual' }
+          { value: '0', label: 'Manual' }
         ]
       },
       playStop: 'play',
@@ -159,17 +160,20 @@ export default {
           .split(',')
       }
     },
-    saveAutoSwitch () {
+    saveAutoSwitch: debounce(function () {
       this.$socket.sendMsg(
         `#X-AV-SW-MODE out.hdmi.1.video.1,${this.switchMode.val}`
       )
-      if (this.switchMode.val !== '2') {
+      if (this.switchMode.val !== '0') {
         this.$socket.sendMsg(
           `#X-PRIORITY out.stream.1.video,[${this.lists.join(',')}]`
         )
         this.setAutoSwitchDelay()
       }
-    }
+    }, 2000, {
+      leading: true,
+      trailing: true
+    })
   }
 }
 </script>

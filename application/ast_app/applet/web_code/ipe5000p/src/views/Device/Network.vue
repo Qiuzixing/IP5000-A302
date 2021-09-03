@@ -1,7 +1,8 @@
 <template>
   <div class="main-setting">
     <div class="setting-model">
-      <div class="setting" style="margin-bottom: 0">
+      <div class="setting"
+           style="margin-bottom: 0">
         <h3 class="setting-model-title">IP Settings</h3>
         <h3 class="setting-model-title">Eth 0</h3>
         <h3 class="setting-model-title">Eth 1</h3>
@@ -9,147 +10,237 @@
       <div class="setting">
         <span class="setting-title">DHCP</span>
         <div class="setting-title">
-          <v-switch v-model="ipMode0" style="width: 120px" active-value="1" inactive-value="0"></v-switch>
+          <v-switch v-model="ipMode0"
+                    style="width: 120px"
+                    active-value="1"
+                    inactive-value="0"></v-switch>
         </div>
         <div class="setting-title">
-          <v-switch v-model="ipMode1" style="width: 120px" active-value="1" inactive-value="0"></v-switch>
+          <v-switch v-model="ipMode1"
+                    style="width: 120px"
+                    active-value="1"
+                    inactive-value="0"></v-switch>
         </div>
       </div>
       <div class="setting">
         <span class="setting-title">IP Address</span>
         <div class="setting-title">
-          <input type="text" :disabled="ipMode0 === '1'" class="setting-text" v-model="ipInfo0[0]">
+          <input type="text"
+                 :disabled="ipMode0 === '1'"
+                 class="setting-text"
+                 v-model="ipInfo0[0]">
         </div>
         <div class="setting-title">
-          <input type="text" :disabled="ipMode1 === '1'" class="setting-text" v-model="ipInfo1[0]">
+          <input type="text"
+                 :disabled="ipMode1 === '1'"
+                 class="setting-text"
+                 v-model="ipInfo1[0]">
         </div>
       </div>
       <div class="setting">
         <span class="setting-title">Mask Address</span>
         <div class="setting-title">
-          <input type="text" :disabled="ipMode0 === '1'" class="setting-text" v-model="ipInfo0[1]">
+          <input type="text"
+                 :disabled="ipMode0 === '1'"
+                 class="setting-text"
+                 v-model="ipInfo0[1]">
         </div>
         <div class="setting-title">
-          <input type="text" :disabled="ipMode1 === '1'" class="setting-text" v-model="ipInfo1[1]">
+          <input type="text"
+                 :disabled="ipMode1 === '1'"
+                 class="setting-text"
+                 v-model="ipInfo1[1]">
         </div>
       </div>
       <div class="setting">
         <span class="setting-title">Gateway Address</span>
         <div class="setting-title">
-          <input type="text" :disabled="ipMode0 === '1'" class="setting-text" v-model="ipInfo0[2]">
+          <input type="text"
+                 :disabled="ipMode0 === '1'"
+                 class="setting-text"
+                 v-model="ipInfo0[2]">
         </div>
         <div class="setting-title">
-          <input type="text" :disabled="ipMode1 === '1'" class="setting-text" v-model="ipInfo1[2]">
+          <input type="text"
+                 :disabled="ipMode1 === '1'"
+                 class="setting-text"
+                 v-model="ipInfo1[2]">
         </div>
       </div>
       <div class="setting">
         <span class="setting-title">Primary DNS</span>
         <div class="setting-title">
-          <input type="text" :disabled="ipMode0 === '1'" class="setting-text" v-model="ipInfo0[3]">
+          <input type="text"
+                 :disabled="ipMode0 === '1'"
+                 class="setting-text"
+                 v-model="ipInfo0[3]">
         </div>
         <div class="setting-title">
-          <input type="text" :disabled="ipMode1 === '1'" class="setting-text" v-model="ipInfo1[3]">
+          <input type="text"
+                 :disabled="ipMode1 === '1'"
+                 class="setting-text"
+                 v-model="ipInfo1[3]">
         </div>
       </div>
       <div class="setting">
         <span class="setting-title">Secondary DNS</span>
         <div class="setting-title">
-          <input type="text" :disabled="ipMode0 === '1'" class="setting-text" v-model="ipInfo0[4]">
+          <input type="text"
+                 :disabled="ipMode0 === '1'"
+                 class="setting-text"
+                 v-model="ipInfo0[4]">
         </div>
         <div class="setting-title">
-          <input type="text" :disabled="ipMode1 === '1'" class="setting-text" v-model="ipInfo1[4]">
+          <input type="text"
+                 :disabled="ipMode1 === '1'"
+                 class="setting-text"
+                 v-model="ipInfo1[4]">
         </div>
       </div>
     </div>
     <div class="setting-model">
-      <div class="setting" style="margin-bottom: 0">
+      <div class="setting"
+           style="margin-bottom: 0">
         <h3 class="setting-model-title">Port Configuration</h3>
-        <h3 class="setting-model-title" style="width: 80px;">Eth 0</h3>
-        <h3 class="setting-model-title" style="width: 80px;">Eth 1</h3>
+        <h3 class="setting-model-title"
+            style="width: 80px;">Eth 0</h3>
+        <h3 class="setting-model-title"
+            style="width: 80px;">Eth 1</h3>
         <h3 class="setting-model-title">VLAN tag</h3>
       </div>
       <div class="setting">
         <span class="setting-title">P3K Port</span>
-        <div class="setting-title" style="width: 80px;">
-          <radio-component v-model="configPort0" label="0" :isEmpty="true" style="margin-bottom: 0;"></radio-component>
+        <div class="setting-title"
+             style="width: 80px;">
+          <radio-component v-model="configPort0"
+                           label="0"
+                           :isEmpty="true"
+                           style="margin-bottom: 0;"></radio-component>
         </div>
-        <div class="setting-title" style="width: 80px;">
-          <radio-component v-model="configPort0" label="1" :isEmpty="true" style="margin-bottom: 0;"></radio-component>
+        <div class="setting-title"
+             style="width: 80px;">
+          <radio-component v-model="configPort0"
+                           label="1"
+                           :isEmpty="true"
+                           style="margin-bottom: 0;"></radio-component>
         </div>
         <div>
-          <el-input-number v-model="danteTag1" controls-position="right" :max="4095" :min="1"></el-input-number>
+          <el-input-number v-model="danteTag1"
+                           controls-position="right"
+                           :max="4095"
+                           :min="1"></el-input-number>
         </div>
       </div>
       <div class="setting">
         <span class="setting-title">RS232 Gateway Port</span>
-        <div class="setting-title" style="width: 80px;">
-          <radio-component v-model="configPort1" label="0" :isEmpty="true" style="margin-bottom: 0;"></radio-component>
+        <div class="setting-title"
+             style="width: 80px;">
+          <radio-component v-model="configPort1"
+                           label="0"
+                           :isEmpty="true"
+                           style="margin-bottom: 0;"></radio-component>
         </div>
-        <div class="setting-title" style="width: 80px;">
-          <radio-component v-model="configPort1" label="1" :isEmpty="true" style="margin-bottom: 0;"></radio-component>
+        <div class="setting-title"
+             style="width: 80px;">
+          <radio-component v-model="configPort1"
+                           label="1"
+                           :isEmpty="true"
+                           style="margin-bottom: 0;"></radio-component>
         </div>
         <div>
-          <el-input-number v-model="danteTag2" controls-position="right" :max="4095" :min="1"></el-input-number>
+          <el-input-number v-model="danteTag2"
+                           controls-position="right"
+                           :max="4095"
+                           :min="1"></el-input-number>
         </div>
       </div>
-      <div class="setting" v-if="this.$global.deviceType">
+      <div class="setting"
+           v-if="this.$global.deviceType">
         <span class="setting-title">Dante Port</span>
-        <div class="setting-title" style="width: 80px;">
-          <radio-component v-model="configPort2" label="0" :isEmpty="true" style="margin-bottom: 0;"></radio-component>
+        <div class="setting-title"
+             style="width: 80px;">
+          <radio-component v-model="configPort2"
+                           label="0"
+                           :isEmpty="true"
+                           style="margin-bottom: 0;"></radio-component>
         </div>
-        <div class="setting-title" style="width: 80px;">
-          <radio-component v-model="configPort2" label="1" :isEmpty="true" style="margin-bottom: 0;"></radio-component>
+        <div class="setting-title"
+             style="width: 80px;">
+          <radio-component v-model="configPort2"
+                           label="1"
+                           :isEmpty="true"
+                           style="margin-bottom: 0;"></radio-component>
         </div>
         <div>
-          <el-input-number v-model="danteTag3" controls-position="right" :max="4095" :min="1"></el-input-number>
+          <el-input-number v-model="danteTag3"
+                           controls-position="right"
+                           :max="4095"
+                           :min="1"></el-input-number>
         </div>
       </div>
     </div>
     <div class="setting">
-      <div class="radio-setting" style="margin-bottom: 0">
+      <div class="radio-setting"
+           style="margin-bottom: 0">
         <span class="setting-model-title">IP Casting Mode</span>
         <div>
-          <radio-component v-model="castMode" label="1">Unicast</radio-component>
-          <radio-component v-model="castMode" label="2">Multicast</radio-component>
+          <radio-component v-model="castMode"
+                           label="1">Unicast</radio-component>
+          <radio-component v-model="castMode"
+                           label="2">Multicast</radio-component>
         </div>
       </div>
     </div>
     <div class="setting">
       <span class="setting-title">IP Multicast Address</span>
       <div class="setting-title">
-        <input type="text" v-model="multicastAddress" class="setting-text" :disabled="castMode == '1'">
+        <input type="text"
+               v-model="multicastAddress"
+               class="setting-text"
+               :disabled="castMode == '1'">
       </div>
     </div>
     <div class="setting">
       <span class="setting-title">TTL</span>
       <div class="setting-title">
-        <el-input-number v-model="ttl" controls-position="right" :max="255" :min="1" :disabled="castMode == '1'"></el-input-number>
+        <el-input-number v-model="ttl"
+                         controls-position="right"
+                         :max="255"
+                         :min="1"
+                         :disabled="castMode == '1'"></el-input-number>
       </div>
     </div>
     <div class="setting-model">
       <h3 class="setting-model-title">TCP/UDP Management</h3>
       <div class="setting">
         <span class="setting-title">TCP Port</span>
-        <el-input-number v-model="tcp" controls-position="right" :max="5099" :min="5000"></el-input-number>
+        <el-input-number v-model="tcp"
+                         controls-position="right"
+                         :max="5099"
+                         :min="5000"></el-input-number>
       </div>
-<!--      <div class="setting">-->
-<!--        <span class="setting-title">Service TCP Ports</span>-->
-<!--        <el-input-number v-model="serverTcpPort" controls-position="right" :max="5099" :min="5000"></el-input-number>-->
-<!--      </div>-->
+      <!--      <div class="setting">-->
+      <!--        <span class="setting-title">Service TCP Ports</span>-->
+      <!--        <el-input-number v-model="serverTcpPort" controls-position="right" :max="5099" :min="5000"></el-input-number>-->
+      <!--      </div>-->
       <div class="setting">
         <span class="setting-title">UDP Port</span>
-        <el-input-number v-model="udp" controls-position="right" :max="50000" :min="50999"></el-input-number>
+        <el-input-number v-model="udp"
+                         controls-position="right"
+                         :max="50000"
+                         :min="50999"></el-input-number>
       </div>
     </div>
     <footer>
-      <button class="btn btn-primary" @click="save">SAVE</button>
+      <button class="btn btn-primary"
+              @click="save">SAVE</button>
     </footer>
   </div>
 </template>
 
 <script>
 import radioComponent from '@/components/radio.vue'
-
+import { debounce } from 'lodash'
 export default {
   name: 'autoSwitch',
   components: {
@@ -277,12 +368,15 @@ export default {
       this.multicastAddress = data[0]
       this.ttl = parseInt(data[1])
     },
-    save () {
+    save: debounce(function () {
       this.setPortConfig()
       this.setIpCastingMode()
       this.setTcpUDP()
       this.setIp()
-    },
+    }, 2000, {
+      leading: true,
+      trailing: true
+    }),
     setPortConfig () {
       this.$socket.sendMsg('#KDS-GW-ETH 0,' + this.configPort0)
       this.$socket.sendMsg('#KDS-GW-ETH 1,' + this.configPort1)
@@ -343,5 +437,4 @@ export default {
 .setting-model-title {
   width: 200px;
 }
-
 </style>

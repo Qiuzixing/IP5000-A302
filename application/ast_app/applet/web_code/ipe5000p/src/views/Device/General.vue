@@ -4,14 +4,20 @@
       <h3 class="setting-model-title">General Preferences</h3>
       <div class="setting">
         <span class="setting-title">Host Name</span>
-        <input class="setting-text" type="text" maxlength="63" v-model="hostname">
-        <button type="button" class="btn btn-plain-primary" style="margin-left: 15px;" @click="setHostName">APPLY</button>
+        <input class="setting-text"
+               type="text"
+               maxlength="63"
+               v-model="hostname">
+        <button type="button"
+                class="btn btn-plain-primary"
+                style="margin-left: 15px;"
+                @click="setHostName">APPLY</button>
       </div>
       <div class="setting">
         <span class="setting-title">Device Model</span>
         <span>{{deviceModel}}</span>
-<!--        <input type="text" class="setting-text" v-model="">-->
-<!--        <button type="button" class="btn btn-plain-primary" style="margin-left: 15px;" @click="setDeviceModel">APPLY</button>-->
+        <!--        <input type="text" class="setting-text" v-model="">-->
+        <!--        <button type="button" class="btn btn-plain-primary" style="margin-left: 15px;" @click="setDeviceModel">APPLY</button>-->
       </div>
       <div class="setting">
         <span class="setting-title">Device H/W Release</span>
@@ -27,84 +33,121 @@
       </div>
       <div class="setting">
         <span class="setting-title">Front Panel Lock </span>
-        <v-switch v-model="frontLock" active-value="1" inactive-value="0" @change="setFrontLock"></v-switch>
+        <v-switch v-model="frontLock"
+                  active-value="1"
+                  inactive-value="0"
+                  @change="setFrontLock"></v-switch>
       </div>
       <div class="setting">
         <span class="setting-title">Import/Export Device Setting</span>
-        <multiselect v-model="exportAndImport.val" :options="exportAndImport.param"></multiselect>
-        <button type="button" class="btn btn-plain-primary" style="margin-left: 15px; margin-right: 15px;">IMPORT</button>
-        <button type="button" class="btn btn-plain-primary">EXPORT</button>
+        <multiselect v-model="exportAndImport.val"
+                     :options="exportAndImport.param"></multiselect>
+        <button type="button"
+                class="btn btn-plain-primary"
+                style="margin-left: 15px; margin-right: 15px;">IMPORT</button>
+        <button type="button"
+                class="btn btn-plain-primary">EXPORT</button>
       </div>
       <div class="setting">
         <span class="setting-title">Locate Device</span>
-        <button type="button" class="btn btn-plain-primary" @click="locateDev">APPLY</button>
+        <button type="button"
+                class="btn btn-plain-primary"
+                @click="locateDev">APPLY</button>
       </div>
       <div class="setting">
         <span class="setting-title">Power Save</span>
-        <v-switch v-model="powerSave" active-value="1" inactive-value="0" @change="setPowerSave"></v-switch>
+        <v-switch v-model="powerSave"
+                  active-value="1"
+                  inactive-value="0"
+                  @change="setPowerSave"></v-switch>
       </div>
       <div class="setting">
         <span class="setting-title">Inactivity Auto-standby Delay Duration</span>
-        <el-input-number v-model="autoStandbyTime" controls-position="right" :max="30" :min="0"></el-input-number>
-        <button class="btn btn-plain-primary" style="margin-left: 25px;" @click="setAutoStandbyTime">APPLY</button>
+        <el-input-number v-model="autoStandbyTime"
+                         controls-position="right"
+                         :max="30"
+                         :min="0"></el-input-number>
+        <button class="btn btn-plain-primary"
+                style="margin-left: 15px;"
+                @click="setAutoStandbyTime">APPLY</button>
       </div>
     </div>
     <div class="setting-model">
       <h3 class="setting-model-title">Version</h3>
-      <div class="setting">
-        <span class="setting-title">Firmware Version</span>
-        <span style="width: 180px;">{{version}}</span>
-        <upload-components :show="false">UPGRADE</upload-components>
+      <div class="radio-setting"
+           style="margin-bottom:24px;">
+        <span class="setting-title"
+              style="line-height: 36px;">Firmware Version</span>
+        <span style="width: 180px;line-height: 36px;">{{version}}</span>
+        <el-upload action="/upload/upgradesoftware"
+                   :on-success="upgradeFile"
+                   :file-list="fileList">
+          <button class="btn btn-plain-primary"
+                  style="margin-left: 15px;">UPGRADE</button>
+
+        </el-upload>
+        <!-- <upload-components :show="false">UPGRADE</upload-components> -->
       </div>
       <div class="setting">
         <span class="setting-title">Last Upgrade Date/Time</span>
         <span>{{upgradeTime}}</span>
       </div>
       <div class="setting">
-        <span class="setting-title">Firmware Standby Version  </span>
-        <span>{{standbyVer}}</span>
-        <button class="btn btn-plain-primary" @click="rollBack">ROLLBACK</button>
+        <span class="setting-title">Firmware Standby Version </span>
+        <span style="width: 180px;">{{standbyVer}}</span>
+        <button class="btn btn-plain-primary"
+                style="margin-left: 15px;"
+                @click="rollBack">ROLLBACK</button>
       </div>
     </div>
     <div class="setting-model">
       <div class="setting">
         <span class="setting-model-title">Device Reset</span>
-        <button type="button" class="btn btn-plain-primary" style="margin-right: 70px" @click="dialogVisibleReset = true">RESTART</button>
-        <button type="button" class="btn btn-plain-primary" @click="dialogVisibleFactory = true"><img src="../../assets/img/warning.svg" style="vertical-align: middle;margin-top: -5px" alt="">RESET</button>
+        <button type="button"
+                class="btn btn-plain-primary"
+                style="margin-right: 70px"
+                @click="dialogVisibleReset = true">RESTART</button>
+        <button type="button"
+                class="btn btn-plain-primary"
+                @click="dialogVisibleFactory = true"><img src="../../assets/img/warning.svg"
+               style="vertical-align: middle;margin-top: -5px"
+               alt="">RESET</button>
       </div>
     </div>
-    <el-dialog
-        title="RESET"
-        :visible.sync="dialogVisibleReset"
-        width="500px"
-        >
-        <p class="dialog-second-title">Do you want to restart the device? </p>
-        <span slot="footer" class="dialog-footer">
-          <button class="btn btn-primary" @click="dialogVisibleReset = false, restart()">PROCEED</button>
-          <button class="btn btn-primary" @click="dialogVisibleReset = false">CANCEL</button>
-        </span>
+    <el-dialog title="RESET"
+               :visible.sync="dialogVisibleReset"
+               width="500px">
+      <p class="dialog-second-title">Do you want to restart the device? </p>
+      <span slot="footer"
+            class="dialog-footer">
+        <button class="btn btn-primary"
+                @click="dialogVisibleReset = false, restart()">PROCEED</button>
+        <button class="btn btn-primary"
+                @click="dialogVisibleReset = false">CANCEL</button>
+      </span>
     </el-dialog>
-    <el-dialog
-      title="RESET"
-      :visible.sync="dialogVisibleFactory"
-      width="500px"
-    >
+    <el-dialog title="RESET"
+               :visible.sync="dialogVisibleFactory"
+               width="500px">
       <p class="dialog-second-title">Do you want to reset the device? </p>
-      <span slot="footer" class="dialog-footer">
-          <button class="btn btn-primary" @click="dialogVisibleFactory = false, reset()">PROCEED</button>
-          <button class="btn btn-primary" @click="dialogVisibleFactory = false">CANCEL</button>
-        </span>
+      <span slot="footer"
+            class="dialog-footer">
+        <button class="btn btn-primary"
+                @click="dialogVisibleFactory = false, reset()">PROCEED</button>
+        <button class="btn btn-primary"
+                @click="dialogVisibleFactory = false">CANCEL</button>
+      </span>
     </el-dialog>
   </div>
 </template>
 
 <script>
-import uploadComponents from '@/components/Upload.vue'
+// import uploadComponents from '@/components/Upload.vue'
 export default {
   name: 'autoSwitch',
-  components: {
-    uploadComponents
-  },
+  // components: {
+  //   uploadComponents
+  // },
   data () {
     return {
       show: false,
@@ -132,7 +175,8 @@ export default {
       version: '',
       dialogVisibleReset: false,
       dialogVisibleFactory: false,
-      autoStandbyTime: 30
+      autoStandbyTime: 30,
+      fileList: []
     }
   },
   beforeCreate () {
@@ -258,6 +302,9 @@ export default {
     },
     setPowerSave (val) {
       this.$socket.sendMsg(`#STANDBY ${val}`)
+    },
+    upgradeFile () {
+      this.$socket.sendMsg('#UPGRADE ')
     }
   }
 }
@@ -266,5 +313,4 @@ export default {
 //.upload-file{
 //  display: none;
 //}
-
 </style>
