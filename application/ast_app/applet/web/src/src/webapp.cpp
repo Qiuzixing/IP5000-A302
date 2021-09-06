@@ -22,6 +22,7 @@
 #define UP_OVERLAY_URL      "/upload/overlay_image"
 #define UP_SECURE_URL       "/upload/secure"
 #define UP_TESTPATTERN_URL  "/upload/testpattern"
+#define UP_UPGRADESOFTWARE  "/upload/upgradesoftware"
 
 #define DOWN_LOGFILE_URL    "/log"
 #define DOWN_CHANNEL_URL    "/channel/channel_map"
@@ -158,6 +159,7 @@ void CWeb::HttpRun()
         {DOWN_SECURE_URL, DownSecurHandle, NULL},
         {UP_TESTPATTERN_URL, UploadVideoWallHandle, NULL},
         {DOWN_TESTPATTERN_URL, DownVideoWallHandle, NULL},
+        {UP_UPGRADESOFTWARE, UploadUpgradeHandle, NULL},
         {JSON_URL, JsonDataHandle, NULL},
         {"/action", ActionReqHandler, NULL},
         {"/stream", StreamReqHandler, NULL},
@@ -265,23 +267,17 @@ int CWeb::SetCertificateHandle(struct mg_connection *conn, void *cbdata)
 // 文件传输
 int CWeb::UploadChannelMapHandle(struct mg_connection *conn, void *cbdata)
 {
-    const struct mg_request_info *pRequest = mg_get_request_info(conn);
-
-    if(strcmp(pRequest->request_method, "POST") == 0)
+    struct T_FromInfo tFrom;
+    if(!SaveUploadFile(conn, DEFAULT_FILE_PATH "/channel", "channel_map.json", &tFrom))
+    //if(!SaveUploadFile(conn, "/home", NULL, &tFrom))
     {
-
-        struct T_FromInfo tFrom;
-        if(!SaveUploadFile(conn, DEFAULT_FILE_PATH "/channel", "channel_map.json", &tFrom))
-        //if(!SaveUploadFile(conn, "/home", NULL, &tFrom))
-        {
-            BC_INFO_LOG("TransmitChannelMapHandle upload file error");
-        }
-        else
-        {
-            BC_INFO_LOG("TransmitChannelMapHandle upload file OK");
-            send_http_ok_rsp(conn);
-            return 1;
-        }
+        BC_INFO_LOG("TransmitChannelMapHandle upload file error");
+    }
+    else
+    {
+        BC_INFO_LOG("TransmitChannelMapHandle upload file OK");
+        send_http_ok_rsp(conn);
+        return 1;
     }
     send_http_error_rsp(conn);
 
@@ -320,20 +316,20 @@ int CWeb::UpdateSleepImageHandle(struct mg_connection *conn, void *cbdata)
     if(!SaveUploadFile(conn, DEFAULT_FILE_PATH "/display", "sleep_image.png", &tFrom))
     {
         BC_INFO_LOG("UpdateSleepImageHandle upload file error");
+        send_http_error_rsp(conn);
     }
     else
     {
         BC_INFO_LOG("UpdateSleepImageHandle upload file OK");
         send_http_ok_rsp(conn);
-        return 1;
     }
-    send_http_error_rsp(conn);
 
     return 1;
 }
 
 int CWeb::UpdateEdidHandle(struct mg_connection *conn, void *cbdata)
 {
+#if 0
     struct T_FromInfo tFrom;
     if(!SaveUploadFile(conn, "/tmp", NULL, &tFrom))
     {
@@ -351,6 +347,19 @@ int CWeb::UpdateEdidHandle(struct mg_connection *conn, void *cbdata)
         }
     }
     send_http_error_rsp(conn);
+#endif
+
+    struct T_FromInfo tFrom;
+    if(!SaveUploadFile(conn, DEFAULT_FILE_PATH, "/edid/custom_edid.bin", &tFrom))
+    {
+        BC_INFO_LOG("UpdateEdidHandle upload file error");
+        send_http_error_rsp(conn);
+    }
+    else
+    {
+        BC_INFO_LOG("UpdateEdidHandle upload file OK");
+        send_http_ok_rsp(conn);
+    }
 
     return 1;
 }
@@ -368,14 +377,13 @@ int CWeb::UpdateOverlayImageHandle(struct mg_connection *conn, void *cbdata)
     if(!SaveUploadFile(conn, DEFAULT_FILE_PATH "/osd", "overlay_image.png", &tFrom))
     {
         BC_INFO_LOG("UpdateOverlayImageHandle upload file error");
+        send_http_error_rsp(conn);
     }
     else
     {
         BC_INFO_LOG("UpdateOverlayImageHandle upload file OK");
         send_http_ok_rsp(conn);
-        return 1;
     }
-    send_http_error_rsp(conn);
 
     return 1;
 }
@@ -423,82 +431,67 @@ int CWeb::TransmitPresetsFileHandle(struct mg_connection *conn, void *cbdata)
 
 int CWeb::UploadSecurHandle(struct mg_connection *conn, void *cbdata)
 {
-    const struct mg_request_info *pRequest = mg_get_request_info(conn);
-
-    if(strcmp(pRequest->request_method, "POST") == 0)
+    struct T_FromInfo tFrom;
+    if(!SaveUploadFile(conn, "/secure", "server.pem", &tFrom))
     {
-
-        struct T_FromInfo tFrom;
-        if(!SaveUploadFile(conn, "/secure", "server.pem", &tFrom))
-        {
-            BC_INFO_LOG("TransmitSecurHandle upload file error");
-        }
-        else
-        {
-            BC_INFO_LOG("TransmitSecurHandle upload file OK");
-            send_http_ok_rsp(conn);
-            return 1;
-        }
+        BC_INFO_LOG("TransmitSecurHandle upload file error");
+        send_http_error_rsp(conn);
     }
-    send_http_error_rsp(conn);
+    else
+    {
+        BC_INFO_LOG("TransmitSecurHandle upload file OK");
+        send_http_ok_rsp(conn);
+    }
 
     return 1;
 }
 
 int CWeb::DownSecurHandle(struct mg_connection *conn, void *cbdata)
 {
-    const struct mg_request_info *pRequest = mg_get_request_info(conn);
-
-    if(strcmp(pRequest->request_method, "GET") == 0)
-    {
-        send_chunk_file(conn, "/secure/server.pem", "server.pem");
-    }
-    else
-    {
-        send_http_error_rsp(conn);
-    }
+    send_chunk_file(conn, "/secure/server.pem", "server.pem");
 
     return 1;
 }
 
 int CWeb::UploadVideoWallHandle(struct mg_connection *conn, void *cbdata)
 {
-    const struct mg_request_info *pRequest = mg_get_request_info(conn);
-
-    if(strcmp(pRequest->request_method, "POST") == 0)
+    struct T_FromInfo tFrom;
+    if(!SaveUploadFile(conn, DEFAULT_FILE_PATH "/vw", "video_wall_test_pattern.png", &tFrom))
     {
-
-        struct T_FromInfo tFrom;
-        if(!SaveUploadFile(conn, DEFAULT_FILE_PATH "/vw", "video_wall_test_pattern.png", &tFrom))
-        {
-            BC_INFO_LOG("TransmitVideoWallHandle upload file error");
-        }
-        else
-        {
-            BC_INFO_LOG("TransmitVideoWallHandle upload file OK");
-            send_http_ok_rsp(conn);
-            return 1;
-        }
+        BC_INFO_LOG("TransmitVideoWallHandle upload file error");
+        send_http_error_rsp(conn);
     }
-    send_http_error_rsp(conn);
+    else
+    {
+        BC_INFO_LOG("TransmitVideoWallHandle upload file OK");
+        send_http_ok_rsp(conn);
+    }
 
     return 1;
 }
 
 int CWeb::DownVideoWallHandle(struct mg_connection *conn, void *cbdata)
 {
-    const struct mg_request_info *pRequest = mg_get_request_info(conn);
+    send_chunk_file(conn, DEFAULT_FILE_PATH "/vw/video_wall_test_pattern.png", "video_wall_test_pattern.png");
 
-    if(strcmp(pRequest->request_method, "GET") == 0)
+    return 1;
+}
+
+int CWeb::UploadUpgradeHandle(struct mg_connection *conn, void *cbdata)
+{
+    struct T_FromInfo tFrom;
+    if(!SaveUploadFile(conn, UPGRADE_FILE_PATH, NULL, &tFrom))
     {
-        send_chunk_file(conn, DEFAULT_FILE_PATH "/vw/video_wall_test_pattern.png", "video_wall_test_pattern.png");
+        BC_INFO_LOG("UploadUpgradeHandle upload file error");
+        send_http_error_rsp(conn);
+        return 1;
     }
     else
     {
-        send_http_error_rsp(conn);
+        BC_INFO_LOG("UploadUpgradeHandle upload file OK");
+        send_http_ok_rsp(conn);
+        return 1;
     }
-
-    return 1;
 }
 
 int CWeb::JsonDataHandle(struct mg_connection *conn, void *cbdata)

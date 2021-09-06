@@ -163,6 +163,7 @@ int main(int argc, char *argv[])
     }
 
     pthread_join(tP3kThread, NULL);
+    pthread_join(mjpegThread, NULL);
     CWeb::CloseP3kSocket();
 	CWeb::Stop();
 

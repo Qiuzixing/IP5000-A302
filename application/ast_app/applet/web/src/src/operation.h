@@ -22,6 +22,7 @@ using namespace std;
 #define OVERLAY_FILE_PATH       "/osd/overlay_image.png"
 #define SECURE_FILE_PATH        "/secure/server.pem"
 #define VIDEO_WALL_FILE_PATH    "/vw/video_wall_test_pattern.png"
+#define UPGRADE_FILE_PATH       "/dev/shm"
 
 class COperation
 {

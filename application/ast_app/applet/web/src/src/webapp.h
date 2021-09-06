@@ -96,6 +96,7 @@ public:
     static int         DownSecurHandle(struct mg_connection *conn, void *cbdata);
     static int         UploadVideoWallHandle(struct mg_connection *conn, void *cbdata);
     static int         DownVideoWallHandle(struct mg_connection *conn, void *cbdata);
+    static int         UploadUpgradeHandle(struct mg_connection *conn, void *cbdata);
 
     // json数据传输
     static int         JsonDataHandle(struct mg_connection *conn, void *cbdata);

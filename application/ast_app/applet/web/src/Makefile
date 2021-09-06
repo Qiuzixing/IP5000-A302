@@ -5,9 +5,15 @@ ifeq ($(PARAM_FILE), )
 endif
 
 PROG = bin/web
+BMP2JPG = bin/bmp2jpg
 LOG_INC = $(PREFIX)/include/log4cpp
 INCPATH = $(PREFIX)/include
 PREFIX_LIB = $(PREFIX)/lib
+
+JPG_PREFIX=$(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/prefix
+JPG_INCLUDE=$(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/prefix/include
+
+#cc=$(CROSS_COMPILE)gcc
 
 TOP = civetweb
 LOG_PATH = log4cpp
@@ -33,24 +39,21 @@ CXXFILES = 	  src/Civetweb_API.cpp \
 			  src/thread.cpp \
 			  src/astparam.cpp 
 			  
-#CFILES = ../ldap/ldap_funcs.c
+CFILES = src/bmp2jpg.c
 
 
 
 CPPFLAGS = -I$(PREFIX)/include/civetweb -I./src -I$(LOG_INC) -I$(INCPATH) \
 		  $(COPT) -DUSE_WEBSOCKET
-CFLAGS = $(LDAP_INC)
+CFLAGS = -I$(JPG_INCLUDE)
 
 
 
 
-LDFLAGS = $(LDAP_LIB) $(CIVETWEB_LIB) $(LOG4CPP_LIB)  -L$(PREFIX_LIB) \
+LDFLAGS = $(CIVETWEB_LIB) $(LOG4CPP_LIB)  -L$(PREFIX_LIB) \
 			-L./ -lssl -lcrypt -lcrypto  -ljsoncpp $(LIBS)
 
 	
-
-
-
 
 
 include ./Makefile.in-os
@@ -60,8 +63,8 @@ include ./Makefile.in-os
 default:clean build install
 
 build: $(CFILES:.c=.o) $(CXXFILES:.cpp=.o) 
-	$(CXX) -o $(PROG) $(CFILES:.c=.o) $(CXXFILES:.cpp=.o) $(LDFLAGS)
-
+	$(CXX) -o $(PROG) $(CXXFILES:.cpp=.o) $(LDFLAGS)
+	$(CC) -o $(BMP2JPG) $(CFILES:.c=.o) -L ${JPG_PREFIX}/lib -ljpeg
 
 clean:
 #	rm -f $(PROG)
@@ -70,6 +73,7 @@ clean:
 install:
 	@echo "install"
 	mkdir -p $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
+	cp -f ./bin/bmp2jpg $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 	cp -f ./bin/web $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 	cp -f ./bin/gbwebserver.json $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 	mkdir -p $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/www/
