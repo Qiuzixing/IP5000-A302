@@ -609,6 +609,7 @@ handle_e_video_start_working()
 			echo "Video start capture"
 			# We change state to s_srv_on state, but stop blinking the LED_LINK
 			to_s_srv_on
+			a30_led_on $LINK_ON_G
 		;;
 		s_stop_srv)
 			# Firmware >= A6.2.0, VE will restart immediately after suspended.
@@ -656,6 +657,9 @@ handle_e_ip_got()
 		#MY_NETMASK and $MY_GATEWAYIP will be assigned in /usr/share/udhcpc/default.script
 		;;
 	static)
+		astparam s sec_priority_net_status $IP_VALID
+		astparam s third_priority_board_status
+		control_net_and_board_led_status
 		MY_NETMASK="$NETMASK"
 		MY_GATEWAYIP="$GATEWAYIP"
 	;;
@@ -1766,7 +1770,26 @@ handle_e_p3k_fp_lock()
 
 handle_e_p3k_flagme()
 {
-	echo "test"
+	if [ `ps | grep -c flag_me.sh` = '2' ];then
+		pkill -9 flag_me.sh
+	fi
+	astparam s fir_priority_net_status $FLAG_ME_STATUS
+	astparam s sec_priority_board_status $FLAG_ME_STATUS
+	control_net_and_board_led_status
+	./flag_me.sh &
+}
+
+handle_e_p3k_flagme_timeout()
+{
+	astparam s fir_priority_net_status
+	astparam s sec_priority_board_status
+	control_net_and_board_led_status
+}
+
+handle_e_p3k_download_fw_start()
+{
+	astparam s fir_priority_board_status $FIRMWARE_DOWNLOAD
+	control_board_led_status
 }
 
 handle_e_p3k_net()
@@ -1831,8 +1854,17 @@ handle_e_p3k()
 		e_p3k_fp_lock_?*)
 			handle_e_p3k_fp_lock "$event"
 		;;
-		e_p3k_flag_me*)
+		e_p3k_flag_me)
 			handle_e_p3k_flagme
+		;;
+		e_p3k_flag_me_timeout)
+			handle_e_p3k_flagme_timeout
+		;;
+		e_p3k_download_fw_start)
+			handle_e_p3k_download_fw_start
+		;;
+		e_p3k_download_fw_stop)
+			handle_e_p3k_download_fw_stop
 		;;
 		*)
 		;;
@@ -2086,6 +2118,10 @@ init_param_from_flash()
 		fi
 	fi
 
+	astparam s fourth_priority_board_status $POWER_ON
+	astparam s sec_priority_net_status $GET_IP_FAIL
+	astparam s repeat_net_lighting_flag 0
+	astparam s repeat_board_lighting_flag 0
 	# Print the final parameters
 	echo_parameters
 }
@@ -2142,7 +2178,6 @@ while [ -n "$1" ]; do
 	fi
 	shift 1
 done
-
 init_version_file
 init_info_file
 

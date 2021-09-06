@@ -13,6 +13,29 @@
 LED_LINK="led_link"
 LED_PWR="led_pwr"
 
+#######	A30 LED defines
+LINK_ON_G="led_link_g"
+NET_ON_G="led_status_g"
+NET_ON_R="led_status_r"
+BOARD_ON_R="led_on_r"
+BOARD_ON_G="led_on_g"
+NET_IP_FALLBACK_BLINK_ON='500'
+NET_IP_FALLBACK_BLINK_OFF='10000'
+NET_FLAG_ME_BLINK_ON='250'
+NET_FLAG_ME_BLINK_OFF='250'
+BOARD_DOWNLOAD_BLINK_ON='250'
+BOARD_DOWNLOAD_BLINK_OFF='1000'
+BOARD_STANDBY_BLINK_ON='500'
+BOARD_STANDBY_BLINK_OFF='4000'
+#######	A30 LED STATUS									net_led_status_index	board_led_status_index
+FLAG_ME_STATUS="flag_me"								#first_priority-1		#second_priority-2
+DHCP_FAIL="ip_fallback"									#second_priority-2		#third_priority-3
+IP_VALID="ip_valid"										#second_priority-3		#NULL
+SECURITY_PROHIBIT_IP="security_prohibit_ip"				#second_priority-4		#third_priority-4
+GET_IP_FAIL="get_ip_fial"								#second_priority-5		#NULL
+STANDBY="standby"										#NULL					#fourth_priority-6
+FIRMWARE_DOWNLOAD="firmware_background_download"		#NULL					#first_priority-1
+POWER_ON="power_on"										#NULL					#fourth_priority-5
 ######  VideoIP defines
 VIDEO_SYS_PATH="/sys/devices/platform/videoip"
 HDMIRX_SYS_PATH="/sys/devices/platform/$V_RX_DRV"
@@ -36,6 +59,226 @@ JUMBO_MTU='8000'
 #. ip_mapping.sh
 . bash/utilities.sh
 
+
+a30_led_on()
+{
+	echo none > ${GPIO_SYS_PATH}/$1/trigger
+	echo 0 > ${GPIO_SYS_PATH}/$1/brightness
+}
+
+a30_led_off()
+{
+	echo none > ${GPIO_SYS_PATH}/$1/trigger
+	echo 1 > ${GPIO_SYS_PATH}/$1/brightness
+}
+
+a30_led_blink()
+{
+	echo $2 > ${GPIO_SYS_PATH}/$1/delay_off
+	echo $3 > ${GPIO_SYS_PATH}/$1/delay_on
+	echo timer > ${GPIO_SYS_PATH}/$1/trigger
+}
+
+net_status_detect()
+{
+	FIR_PRIORITY_NET_STATUS=`astparam g fir_priority_net_status`
+	repeat_net_lighting_flag=`astparam g repeat_net_lighting_flag`
+	if [ "$FIR_PRIORITY_NET_STATUS" = "$FLAG_ME_STATUS" ];then
+		if [ $repeat_net_lighting_flag -eq 1 ];then
+			return 0
+		fi
+		astparam s repeat_net_lighting_flag 1
+		return 1
+	fi
+
+	SEC_PRIORITY_NET_STATUS=`astparam g sec_priority_net_status`
+	case $SEC_PRIORITY_NET_STATUS in
+		$DHCP_FAIL)
+			if [ $repeat_net_lighting_flag -eq 2 ];then
+				return	0
+			fi
+			astparam s repeat_net_lighting_flag 2
+			return 2
+		;;
+		$IP_VALID)
+			if [ $repeat_net_lighting_flag -eq 3 ];then
+				return 0
+			fi
+			astparam s repeat_net_lighting_flag 3
+			return 3
+		;;
+		$SECURITY_PROHIBIT_IP)
+			if [ $repeat_net_lighting_flag -eq 4 ];then
+				return 0
+			fi
+			astparam s repeat_net_lighting_flag 4
+			return 4
+		;;
+		$GET_IP_FAIL)
+			if [ $repeat_net_lighting_flag -eq 5 ];then
+				return 0
+			fi
+			astparam s repeat_net_lighting_flag 5
+			return 5
+		;;
+		*)
+		;;
+	esac
+}
+
+board_status_detect()
+{
+	FIR_PRIORITY_STATUS=`astparam g fir_priority_board_status`
+	repeat_board_lighting_flag=`astparam g repeat_board_lighting_flag`
+	if [ "$FIR_PRIORITY_STATUS" = "$FIRMWARE_DOWNLOAD" ];then
+		if [ $repeat_board_lighting_flag -eq 1 ];then
+			return 0
+		fi
+		astparam s repeat_board_lighting_flag 1
+		return 1
+	fi
+
+	SEC_PRIORITY_STATUS=`astparam g sec_priority_board_status`
+	if [ "$SEC_PRIORITY_STATUS" = "$FLAG_ME_STATUS" ];then
+		if [ $repeat_board_lighting_flag -eq 2 ];then
+			return 0
+		fi
+		astparam s repeat_board_lighting_flag 2
+		return 2
+	fi
+
+	THIRD_PRIORITY_STATUS=`astparam g third_priority_board_status`
+	case $THIRD_PRIORITY_STATUS in
+		$DHCP_FAIL)
+			if [ $repeat_board_lighting_flag -eq 3 ];then
+				return	0
+			fi
+			astparam s repeat_board_lighting_flag 3
+			return 3
+		;;
+		$SECURITY_PROHIBIT_IP)
+			if [ $repeat_board_lighting_flag -eq 4 ];then
+				return 0
+			fi
+			astparam s repeat_board_lighting_flag 4
+			return 4
+		;;
+		*)
+		;;
+	esac
+
+	FOURTH_PRIORITY_STATUS=`astparam g fourth_priority_board_status`
+	case $FOURTH_PRIORITY_STATUS in
+		$POWER_ON)
+			if [ $repeat_board_lighting_flag -eq 5 ];then
+				return 0
+			fi
+			astparam s repeat_board_lighting_flag 5
+			return 5
+		;;
+		$STANDBY)
+			if [ $repeat_board_lighting_flag -eq 6 ];then
+				return	0
+			fi
+			astparam s repeat_board_lighting_flag 6
+			return	6
+		;;
+		*)
+		;;
+	esac
+}
+
+status_light_up()
+{
+	case $1 in
+		0)
+		;;
+		1)
+			a30_led_off $NET_ON_R
+			a30_led_off $NET_ON_G
+			a30_led_blink $NET_ON_G $NET_FLAG_ME_BLINK_ON $NET_FLAG_ME_BLINK_OFF
+		;;
+		2)
+			a30_led_off $NET_ON_R
+			a30_led_off $NET_ON_G
+			a30_led_blink $NET_ON_G $NET_IP_FALLBACK_BLINK_ON $NET_IP_FALLBACK_BLINK_OFF
+			a30_led_blink $NET_ON_R $NET_IP_FALLBACK_BLINK_ON $NET_IP_FALLBACK_BLINK_OFF
+
+		;;
+		3)
+			a30_led_off $NET_ON_R
+			a30_led_on $NET_ON_G
+		;;
+		4)
+			a30_led_off $NET_ON_G
+			a30_led_blink $NET_ON_R $NET_IP_FALLBACK_BLINK_ON $NET_IP_FALLBACK_BLINK_OFF
+			a30_led_on $NET_ON_R
+		;;
+		5)
+			a30_led_off $NET_ON_G
+			a30_led_off $NET_ON_R
+		;;
+		*)
+		;;
+	esac
+
+	case $2 in
+		0)
+		;;
+		1)
+			a30_led_off $BOARD_ON_R
+			a30_led_off $BOARD_ON_G
+			a30_led_blink $BOARD_ON_G $BOARD_DOWNLOAD_BLINK_ON $BOARD_DOWNLOAD_BLINK_OFF
+		;;
+		2)
+			a30_led_off $BOARD_ON_R
+			a30_led_off $BOARD_ON_G
+			a30_led_blink $BOARD_ON_G $NET_FLAG_ME_BLINK_ON $NET_FLAG_ME_BLINK_OFF
+		;;
+		3)
+			a30_led_off $BOARD_ON_R
+			a30_led_off $BOARD_ON_G
+			a30_led_blink $BOARD_ON_G $NET_IP_FALLBACK_BLINK_ON $NET_IP_FALLBACK_BLINK_OFF
+			a30_led_blink $BOARD_ON_R $NET_IP_FALLBACK_BLINK_ON $NET_IP_FALLBACK_BLINK_OFF
+		;;
+		4)
+			a30_led_off $BOARD_ON_R
+			a30_led_off $BOARD_ON_G
+			a30_led_blink $BOARD_ON_R $NET_IP_FALLBACK_BLINK_ON $NET_IP_FALLBACK_BLINK_OFF
+		;;
+		5)
+			a30_led_on $BOARD_ON_R
+			a30_led_on $BOARD_ON_G
+		;;
+		6)
+			a30_led_off $BOARD_ON_R
+			a30_led_off $BOARD_ON_G
+			a30_led_blink $BOARD_ON_G $BOARD_STANDBY_BLINK_ON $BOARD_STANDBY_BLINK_OFF
+		;;
+		*)
+		;;
+	esac
+}
+
+control_net_led_status()
+{
+	net_status_detect
+	status_light_up $? 0
+}
+
+control_board_led_status()
+{
+	board_status_detect
+	status_light_up 0 $?
+}
+
+control_net_and_board_led_status()
+{
+	net_status_detect
+	tmp=$?
+	board_status_detect
+	status_light_up $tmp $?
+}
 
 init_watchdog()
 {

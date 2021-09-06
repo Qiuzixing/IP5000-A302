@@ -161,7 +161,7 @@ handle_e_link_off_time_up()
 			local _t='dummy'
 		;;
 		s_search | s_start_hb)
-			led_blink $LED_LINK
+			a30_led_blink  $LINK_ON_G 500 500
 			inform_gui_echo "Finding transmitter..."
 			switch_to_GUI_screen hide_dialog
 		;;
@@ -213,13 +213,13 @@ do_stop_srv_ex()
 				if [ $v_done -eq 1 ]; then
 					continue
 				fi
-				led_blink $LED_LINK
+				a30_led_blink  $LINK_ON_G 500 500
 				if [ "$NO_VIDEO" = 'n' ]; then
 					# unloading videoIP driver will switch back to console screen unexpectly. Turn osd off here.
 					osd_off 0
 					ipc @v_lm_set s ve_stop
 				fi
-				led_off $LED_LINK
+				a30_led_off $LINK_ON_G
 				# Switch to GUI(console) screen
 				switch_to_GUI_screen show_dialog
 				v_done=1
@@ -292,11 +292,11 @@ do_stop_srv_ex()
 do_stop_srv()
 {
 	if [ $NO_VIDEO = 'n' ]; then
-		led_blink $LED_LINK
+		a30_led_blink  $LINK_ON_G 500 500
 		# unloading videoIP driver will switch back to console screen unexpectly. Turn osd off here.
 		osd_off 0
 		ipc @v_lm_set s ve_stop
-		led_off $LED_LINK
+		a30_led_off $LINK_ON_G
 		# Bruce171226. To be eth off/on in a short time friendly,
 		# We don't switch back to GUI screen immediately.
 		# Instead, we start a eth_link_off_timer(). See handle_e_eth_link_off()
@@ -349,7 +349,7 @@ do_start_srv_ex()
 				fi
 				# Bruce170828. Try to reduce reconnect time. There is only about 50ms impact here.
 				{
-					led_blink $LED_LINK
+					a30_led_blink  $LINK_ON_G 500 500
 					inform_gui_echo "Services started..."
 					# Why hide again here?
 					inform_gui_ui_feature_action "GUI_hide_dialog"
@@ -666,7 +666,7 @@ handle_e_kill()
 	kill "$EM_PID"
 
 	stop_all_service
-	led_off $LED_LINK
+	a30_led_off $LINK_ON_G
 
 	disable_watchdog
 	to_mfg_mode
@@ -1229,7 +1229,7 @@ handle_e_video_start_working()
 			# Turn off "Wait for Video Input" msg. Should delay 2 sec so that the up coming OSD has chance to cancel it.
 			osd_set_to "VIDEO_START_DECODE" 8
 			# We stay in s_srv_on state, but stop blinking the LED_LINK
-			led_on $LED_LINK
+			a30_led_on $LINK_ON_G
 			post_config
 		;;
 		*)
@@ -1247,7 +1247,8 @@ handle_e_video_stop_working()
 	case "$LM_V_STATE" in
 		s_start_srv | s_srv_on)
 			# We stay in s_srv_on state, but start blinking the LED_LINK
-			led_blink $LED_LINK
+			a30_led_blink  $LINK_ON_G 500 500
+			a30_led_off $LINK_ON_G
 		;;
 		*)
 			warn "Wrong state?! LM_V_STATE=$LM_V_STATE"
@@ -1313,6 +1314,9 @@ handle_e_video_stat()
 			case "$LM_V_STATE" in
 				s_start_srv | s_srv_on)
 					inform_gui_echo "Waiting for video source - standby"
+					a30_led_blink $LINK_ON_G 500 500
+					astparam s fourth_priority_board_status $STANDBY
+					control_board_led_status			
 				;;
 				s_idle|s_search|s_start_hb)
 					# First time vLM loaded VE driver will trigger a e_video_stat_client_wait_host_info event.
@@ -1324,9 +1328,13 @@ handle_e_video_stat()
 		;;
 		e_video_stat_mode_1080p)
 			VIDEO_MODE='V_MODE_1080P'
+			astparam s fourth_priority_board_status $POWER_ON
+			control_board_led_status
 		;;
 		e_video_stat_mode_non_1080p)
 			VIDEO_MODE='V_MODE_NON_1080P'
+			astparam s fourth_priority_board_status $POWER_ON
+			control_board_led_status
 		;;
 		*)
 		;;
@@ -1350,6 +1358,9 @@ handle_e_ip_got()
 		#MY_NETMASK and $MY_GATEWAYIP will be assigned in /usr/share/udhcpc/default.script
 		;;
 	static)
+		astparam s sec_priority_net_status $IP_VALID
+		astparam s third_priority_board_status
+		control_net_and_board_led_status
 		MY_NETMASK="$NETMASK"
 		MY_GATEWAYIP="$GATEWAYIP"
 	;;
@@ -2692,7 +2703,26 @@ handle_e_p3k_fp_lock()
 
 handle_e_p3k_flagme()
 {
-	echo "test"
+	if [ `ps | grep -c flag_me.sh` = '2' ];then
+		pkill -9 flag_me.sh
+	fi
+	astparam s fir_priority_net_status $FLAG_ME_STATUS
+	astparam s sec_priority_board_status $FLAG_ME_STATUS
+	control_net_and_board_led_status
+	./flag_me.sh &
+}
+
+handle_e_p3k_flagme_timeout()
+{
+	astparam s fir_priority_net_status
+	astparam s sec_priority_board_status
+	control_net_and_board_led_status
+}
+
+handle_e_p3k_download_fw_start()
+{
+	astparam s fir_priority_board_status $FIRMWARE_DOWNLOAD
+	control_board_led_status
 }
 
 handle_e_p3k()
@@ -2717,8 +2747,17 @@ handle_e_p3k()
 		e_p3k_fp_lock_?*)
 			handle_e_p3k_fp_lock "$event"
 		;;
-		e_p3k_flag_me*)
+		e_p3k_flag_me)
 			handle_e_p3k_flagme
+		;;
+		e_p3k_flag_me_timeout)
+			handle_e_p3k_flagme_timeout
+		;;
+		e_p3k_download_fw_start)
+			handle_e_p3k_download_fw_start
+		;;
+		e_p3k_download_fw_stop)
+			handle_e_p3k_download_fw_stop
 		;;
 		*)
 		;;
@@ -3031,7 +3070,10 @@ init_param_from_flash()
 			USB_DISABLE_DEVICES=''
 		fi
 	fi
-
+	astparam s fourth_priority_board_status $POWER_ON
+	astparam s sec_priority_net_status $GET_IP_FAIL
+	astparam s repeat_net_lighting_flag 0
+	astparam s repeat_board_lighting_flag 0
 	# Print the final parameters
 	echo_parameters
 }

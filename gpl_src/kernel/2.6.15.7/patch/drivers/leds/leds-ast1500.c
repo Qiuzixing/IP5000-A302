@@ -9,6 +9,14 @@
 #include <asm/arch/leds-gpio.h>
 #include <asm/arch/gpio.h>
 #include <asm/arch/ast-scu.h>
+#include <linux/config.h>
+#include <linux/module.h>
+#include <linux/list.h>
+#include <linux/spinlock.h>
+#include <linux/device.h>
+#include <linux/sysdev.h>
+#include <linux/timer.h>
+#include <linux/ctype.h>
 
 /* This macro convert true/false to 1/0. */
 #define LOGIC_TO_01(l) (!!(l))
@@ -20,6 +28,9 @@ struct ast1500_gpio_led {
 	struct ast_led_platdata	*pdata;
 };
 
+unsigned long a30_delay_on;		/* milliseconds on */
+unsigned long a30_delay_off;	/* milliseconds off */
+
 static inline struct ast1500_gpio_led *pdev_to_gpio(struct platform_device *dev)
 {
 	return platform_get_drvdata(dev);
@@ -29,6 +40,62 @@ static inline struct ast1500_gpio_led *to_gpio(struct led_classdev *led_cdev)
 {
 	return container_of(led_cdev, struct ast1500_gpio_led, cdev);
 }
+
+static ssize_t led_delay_on_show(struct class_device *dev, char *buf)
+{
+
+	sprintf(buf, "%lu\n", a30_delay_on);
+
+	return strlen(buf) + 1;
+}
+
+static ssize_t led_delay_on_store(struct class_device *dev, const char *buf,
+				size_t size)
+{
+	int ret = -EINVAL;
+	char *after;
+	unsigned long state = simple_strtoul(buf, &after, 10);
+	size_t count = after - buf;
+
+	if (*after && isspace(*after))
+		count++;
+
+	if (count == size) {
+		a30_delay_on = state;
+		ret = count;
+	}
+
+	return ret;
+}
+
+static ssize_t led_delay_off_show(struct class_device *dev, char *buf)
+{
+	sprintf(buf, "%lu\n", a30_delay_off);
+
+	return strlen(buf) + 1;
+}
+
+static ssize_t led_delay_off_store(struct class_device *dev, const char *buf,
+				size_t size)
+{
+	int ret = -EINVAL;
+	char *after;
+	unsigned long state = simple_strtoul(buf, &after, 10);
+	size_t count = after - buf;
+	if (*after && isspace(*after))
+		count++;
+	if (count == size) {
+		a30_delay_off = state;
+		ret = count;
+	}
+
+	return ret;
+}
+
+static CLASS_DEVICE_ATTR(delay_on, 0644, led_delay_on_show,
+			led_delay_on_store);
+static CLASS_DEVICE_ATTR(delay_off, 0644, led_delay_off_show,
+			led_delay_off_store);
 
 static void ast1500_switch_set(struct led_classdev *led_cdev, enum led_brightness value)
 {
@@ -180,7 +247,10 @@ set_default:
 static int ast1500_led_remove(struct platform_device *dev)
 {
 	struct ast1500_gpio_led *led = pdev_to_gpio(dev);
-
+		class_device_remove_file(led->cdev.class_dev,
+					&class_device_attr_delay_on);
+		class_device_remove_file(led->cdev.class_dev,
+					&class_device_attr_delay_off);
 	led_classdev_unregister(&led->cdev);
 	kfree(led);
 
@@ -339,6 +409,12 @@ static int ast1500_led_probe(struct platform_device *dev)
 		mdelay(10);
 		gpio_direction_input(pdata->gpio);
 	}
+
+	 	class_device_create_file(led->cdev.class_dev,
+				&class_device_attr_delay_on);
+	class_device_create_file(led->cdev.class_dev,
+				&class_device_attr_delay_off); 
+
 	return 0;
 
  exit_err1:

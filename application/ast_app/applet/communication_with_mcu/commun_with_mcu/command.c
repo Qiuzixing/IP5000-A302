@@ -386,6 +386,28 @@ int APP_Comm_Recv(CmdProtocolParam * param)
             memset(&vdo_link, 0, sizeof(vdo_link));
             memcpy(&vdo_link, &param->Data, sizeof(vdo_link));
             printf("port[0x%x] connect [0x%x] isHpd [0x%x]\n", vdo_link.port, vdo_link.isConnect,vdo_link.isHpd);
+            if(board_type_flag == IPE5000 || board_type_flag == IPE5000P)
+            {
+                if(vdo_link.port == HDMIRX1 || vdo_link.port == HDMIRX2 || vdo_link.port == HDMIRX3)
+                {
+                    if(vdo_link.isHpd == 0)
+                    {
+                        if(vdo_link.isConnect == 1)
+                        {
+                            system("echo 500 > /sys/class/leds/led_link_g/delay_on");
+                            system("echo 500 > /sys/class/leds/led_link_g/delay_off");
+                            system("echo timer > /sys/class/leds/led_link_g/trigger");
+                        }
+                        else
+                        {
+                            system("echo none > /sys/class/leds/led_link_g/trigger");
+                            system("echo 1 > /sys/class/leds/led_link_g/brightness");
+                        }
+
+                    }
+                }
+            }
+
             if(0 == socket_msg_struct_conver(&send_socket_msg,vdo_link.port,vdo_link.isConnect,-1))
             {
                 sendEvent(sock_fd,send_socket_msg.type,send_socket_msg.source);

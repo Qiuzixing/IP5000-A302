@@ -1,4 +1,5 @@
 #! /bin/sh
+. ../../../usr/local/bin/include.sh
 	case "$1" in  
 		deconfig) 
 					echo "udhcpc deconfig"
@@ -18,6 +19,9 @@
 					[ -n "$broadcast" ] && BROADCAST="broadcast $broadcast"
 					[ -n "subnet" ] && NETMASK="netmask $subnet"
 					ifconfig $interface:dhcp $ip $BROADCAST $NETMASK up
+					astparam s sec_priority_net_status $IP_VALID
+					astparam s third_priority_board_status
+					control_net_and_board_led_status
 					if [ -n "$router" ]; then
 						while route del default gw 0.0.0.0 2>/dev/null; do
 							echo "deleting default gw..."
@@ -31,8 +35,11 @@
 					lmparam s MY_GATEWAYIP $i
 					#ifconfig eth1 $eth1
 					;;
-		leasefail)		
+		leasefail)
 					echo "udhcpc leasefail"
+					astparam s sec_priority_net_status $DHCP_FAIL
+					astparam s third_priority_board_status $DHCP_FAIL
+					control_net_and_board_led_status
 					echo "dhcp client leasefail" > /var/info_local 2>/dev/null
 					#ifconfig eth0 $eth0 
 					#ifconfig eth1 $eth1
