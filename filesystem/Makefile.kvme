@@ -175,6 +175,7 @@ rootfs:
 	@mkimage -A arm -O linux -T ramdisk -C gzip -a $(FS_ENTRY) -e $(FS_ENTRY) -d initrdm.gz $(INITRDM_IMAGE)
 	@rm initrdm.gz
 	@genext2fs -b $(DATA_SIZE) -i 1024 -d $(FS_TEMPLATE_2)/data/ -U -m 0 $(DATA_IMAGE)
+	-fsck.ext2 -pvf $(DATA_IMAGE)
 
 	#######################################################################
 	# Validate image size < $(FS_MAX_IMG_SIZE)
