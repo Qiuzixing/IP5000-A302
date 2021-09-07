@@ -35,12 +35,17 @@
                     :disabled="this.channelList.length >= osdConfig.max_channels">ADD</button>
             <button class="btn btn-plain-primary"
                     style="margin-left: 24px"
-                    type="button">IMPORT</button>
+                    type="button"
+                    @click="browseChannelList">IMPORT</button>
             <button class="btn btn-plain-primary"
                     type="button"
                     style="margin-left: 24px">
               EXPORT
             </button>
+            <input type="file"
+                   ref="channelList"
+                   @change="channelFileChange"
+                   style="display:none;width:0;height:0;">
           </li>
           <li>
             <span class="channel-title">#ID</span>
@@ -316,6 +321,30 @@ export default {
             this.channelList = msg.data.channels_list
           }
         })
+    },
+    browseChannelList () {
+      this.$refs.channelList.click()
+    },
+    channelFileChange (e) {
+      const file = e.target.files[0]
+      if (file) {
+        if (file.type === 'application/json' && file.size <= 1024 * 1024 * 10) {
+          const reader = new FileReader()
+          reader.readAsText(file, 'UTF-8')
+          reader.onload = (e) => {
+            const text = JSON.parse(e.target.result)
+            if (Array.isArray(text.channels_list)) {
+              this.channelList = text.channels_list
+            } else {
+              e.target.value = ''
+              throw new TypeError('file error!')
+            }
+          }
+        } else {
+          e.target.value = ''
+          throw new TypeError('file format error or size large!')
+        }
+      }
     },
     next (num) {
       const pageCount = this.countPages()

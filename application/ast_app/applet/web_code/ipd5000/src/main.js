@@ -15,6 +15,7 @@ import {
   // DatePicker,
   // TimeSelect,
   // TimePicker,
+  Upload,
   Popover,
   Popconfirm,
   Slider
@@ -29,6 +30,7 @@ locale.use(lang)
 Vue.component('colorPicker', colorPicker)
 Vue.use(Dialog)
 Vue.use(InputNumber)
+Vue.use(Upload)
 Vue.use(Popover)
 Vue.use(Popconfirm)
 // Vue.use(DatePicker)
@@ -41,7 +43,8 @@ Vue.prototype.$socket = webSocket
 Vue.prototype.$http = Axios
 Vue.prototype.$global = {
   isLogin: false,
-  deviceModel: ''
+  deviceModel: '',
+  deviceType: '' // 1 => DKS-SW3-EN-6X  0 =>KDS-EN-6X
 }
 Vue.config.productionTip = false
 

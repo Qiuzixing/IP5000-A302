@@ -1,4 +1,4 @@
-const version = 'V1.0.4'
+const version = 'V1.0.5'
 const path = require('path')
 function resolve (dir) {
   return path.join(__dirname, dir)
@@ -119,7 +119,7 @@ if (process.env.NODE_ENV !== 'production') {
         ws.send('~nn@KDS-GW-ETH 1,1')
         ws.send('~nn@KDS-GW-ETH 2,0')
       } else if (message.startsWith('#CEC-GW-PORT-ACTIVE? ')) {
-        ws.send('~nn@CEC-GW-PORT-ACTIVE 0')
+        ws.send('~nn@CEC-GW-PORT-ACTIVE 1')
       } else if (message.startsWith('#LOGIN ')) {
         ws.send('~nn@login ,ok')
       } else {

@@ -7,6 +7,7 @@ Vue.use(VueRouter)
 const routes = [
   {
     path: '/',
+    name: 'login',
     component: Login
   },
   {
@@ -175,6 +176,20 @@ const routes = [
 
 const router = new VueRouter({
   routes
+})
+router.beforeEach((to, from, next) => {
+  if (to.name && to.name === 'login') {
+    next()
+  } else {
+    // 拦截未登录 => main.js Vue.prototype.$global = {}
+    if (!Vue.prototype.$global.isLogin) {
+      next({
+        path: '/'
+      })
+    } else {
+      next()
+    }
+  }
 })
 export const constantRoutes = routes
 export default router

@@ -1,10 +1,18 @@
 <template>
-  <label class="radio-model" :class="{'is-disabled': disabled}">
-    <span class="radio_input" :class="{'is-checked': model === label}">
+  <label class="radio-model"
+         :class="{'is-disabled': disabled}">
+    <span class="radio_input"
+          :class="{'is-checked': model === label}">
       <span class="radio__inner"></span>
-      <input type="radio" v-model="model" :value="label" :disabled="disabled" @change="handleChange" :name="name">
+      <input type="radio"
+             v-model="model"
+             :value="label"
+             :disabled="disabled"
+             @change="handleChange"
+             :name="name">
     </span>
-    <span class="radio__label" @keydown.stop>
+    <span class="radio__label"
+          @keydown.stop>
       <slot></slot>
       <template v-if="!$slots.default">{{isEmpty ? '' : label}}</template>
     </span>
@@ -42,8 +50,6 @@ export default {
   },
   methods: {
     handleChange () {
-      // if()
-      console.log(this.disabled)
       this.$nextTick(() => {
         this.$emit('change', this.model)
       })
@@ -53,23 +59,23 @@ export default {
 </script>
 
 <style lang="less">
-.radio-model.is-disabled{
-  opacity: .5;
-  cursor: not-allowed!important;
-  .radio_input{
-    cursor: not-allowed!important;
+.radio-model.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+  .radio_input {
+    cursor: not-allowed !important;
   }
 }
-.radio-model{
-  font-family: 'open sans semiblold';
+.radio-model {
+  font-family: "open sans semiblold";
   font-size: 15px;
   margin-bottom: 24px;
-  color: #4D4D4F;
+  color: #4d4d4f;
   position: relative;
   cursor: pointer;
   display: block;
   white-space: nowrap;
-  .radio_input{
+  .radio_input {
     margin-right: 14px;
     white-space: nowrap;
     cursor: pointer;
@@ -79,18 +85,18 @@ export default {
     position: relative;
     vertical-align: middle;
     &.is-checked {
-      .radio__inner{
-        border: 2px solid #35ACF8;
-        transition: border .3s;
-        &:after{
-          background-color: #35ACF8;
-          transition: background-color .3s;
+      .radio__inner {
+        border: 2px solid #35acf8;
+        transition: border 0.3s;
+        &:after {
+          background-color: #35acf8;
+          transition: background-color 0.3s;
         }
       }
     }
   }
-  .radio__inner{
-    border: 2px solid #4D4D4F;
+  .radio__inner {
+    border: 2px solid #4d4d4f;
     border-radius: 100%;
     width: 16px;
     height: 16px;
@@ -108,10 +114,10 @@ export default {
       position: absolute;
       left: 50%;
       top: 50%;
-      transform: translate(-50%,-50%);
+      transform: translate(-50%, -50%);
     }
   }
-  input[type="radio"]{
+  input[type="radio"] {
     opacity: 0;
     outline: none;
     position: absolute;

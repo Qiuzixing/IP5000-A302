@@ -62,12 +62,12 @@
              alt=""
              style="max-width: 320px;">
       </div>
-      <div class="setting">
+      <!-- <div class="setting">
         <span class="setting-title">Force 8-bit Color Depth</span>
         <v-checkbox v-model="avSignal.color_depth"
                     active-value="8bit"
                     inactive-value="bypass"></v-checkbox>
-      </div>
+      </div> -->
       <div class="setting">
         <span class="setting-title">Force RGB</span>
         <v-checkbox v-model="forceRGB"
@@ -148,9 +148,9 @@ export default {
         sleep_delay_on_signal_loss_sec: 5,
         shutdown_delay_on_signal_loss_sec: 10,
         wake_up_delay_on_signal_detection_sec: 10
-      },
-      avSignal: {
       }
+      // avSignal: {
+      // }
     }
   },
   beforeCreate () {
@@ -161,7 +161,7 @@ export default {
   created () {
     this.$socket.sendMsg('#KDS-SCALE? ')
     this.$socket.sendMsg('#CS-CONVERT? 1')
-    this.getAVSignal()
+    // this.getAVSignal()
     this.getDisplayDelay()
   },
   methods: {
@@ -227,7 +227,7 @@ export default {
     save () {
       this.$socket.sendMsg(`#KDS-SCALE ${this.maxResolution.val === '0' ? 0 : 1},${this.maxResolution.val}`)
       this.setDisplayDelay()
-      this.setAVSingle()
+      // this.setAVSingle()
       this.$socket.sendMsg(`#CS-CONVERT 1,${this.forceRGB}`)
     }
   }

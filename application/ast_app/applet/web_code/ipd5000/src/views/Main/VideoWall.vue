@@ -35,14 +35,14 @@
           </div>
         </div>
       </div>
-      <div class="setting">
+      <!-- <div class="setting">
         <span class="setting-title">Bezel Compensation</span>
         <el-input-number v-model="bezel"
                          :max="100"
                          :min="0"
                          controls-position="right"
                          @blur="checkBlur"></el-input-number>
-      </div>
+      </div> -->
       <div class="radio-setting">
         <span class="setting-title">Stretch Type</span>
         <div>
@@ -101,7 +101,7 @@ export default {
   created () {
     this.$socket.sendMsg('#VIEW-MOD? ')
     this.$socket.sendMsg('#VIDEO-WALL-SETUP? ')
-    this.$socket.sendMsg('#WND-BEZEL? ')
+    // this.$socket.sendMsg('#WND-BEZEL? ')
   },
   methods: {
     handleMsg (msg) {
@@ -150,7 +150,7 @@ export default {
       this.$socket.sendMsg(`#VIEW-MOD 15,${this.col},${this.row}`)
       this.$socket.sendMsg(`#VIDEO-WALL-SETUP ${this.selectedId},${this.videoRotation}`)
       this.$socket.sendMsg(`#WND-STRETCH ${this.selectedId},${this.stretchType}`)
-      this.$socket.sendMsg(`#WND-BEZEL 0,${this.selectedId},${this.bezel},${this.bezel},${this.bezel},${this.bezel}`)
+      // this.$socket.sendMsg(`#WND-BEZEL 0,${this.selectedId},${this.bezel},${this.bezel},${this.bezel},${this.bezel}`)
     }
   }
 }

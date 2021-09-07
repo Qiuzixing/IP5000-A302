@@ -5,9 +5,11 @@
         <span class="setting-title">USB over IP</span>
         <div>
           <radio-component v-model="kvmMode"
-                           label="1">Optimized for KVM</radio-component>
+                           :disabled="castMode === '1'"
+                           label="km">Optimized for KVM</radio-component>
           <radio-component v-model="kvmMode"
-                           label="2">USB Emulation</radio-component>
+                           :disabled="castMode === '1'"
+                           label="usb">USB Emulation</radio-component>
         </div>
       </div>
       <!--      <div class="setting">-->
@@ -24,19 +26,23 @@
                          controls-position="right"
                          :min="5"
                          :max="10"
+                         :disabled="castMode === '1'"
                          @blur="checkBlur"></el-input-number>
       </div>
-      <div class="radio-setting">
+      <div class="radio-setting"
+           v-if="kvmMode === 'km'">
         <span class="setting-title">Roaming Master/Slaves</span>
         <div>
           <radio-component v-model="roaming"
-                           label="1">Master</radio-component>
+                           label="1"
+                           :disabled="castMode === '1'">Master</radio-component>
           <radio-component v-model="roaming"
-                           label="0">Slaves</radio-component>
+                           label="0"
+                           :disabled="castMode === '1'">Slaves</radio-component>
         </div>
       </div>
       <div class="kvm-view"
-           v-if="roaming === '1'">
+           v-if="roaming === '1' && kvmMode === 'km'">
         <div class="error-input">
           Row:
           <el-input-number style="width: 60px;margin-right: 24px;"
@@ -75,6 +81,7 @@
                                  style="margin-bottom: 5px;">Master</radio-component>
                 <span style="display: block; margin: 5px 0 0">MAC Address:</span>
                 <input type="text"
+                       :disabled="master===kvmMap[y][x].h+ ','+kvmMap[y][x].v"
                        v-model="kvmMap[y][x].mac"
                        class="setting-text"
                        style="width: 130px;font-size: 14px;text-align: center" />
@@ -85,6 +92,7 @@
       </div>
     </div>
     <footer><button class="btn btn-primary"
+              :disabled="castMode === '1'"
               @click="save">SAVE</button></footer>
   </div>
 </template>
@@ -100,7 +108,7 @@ export default {
   data () {
     return {
       timeout: 5,
-      kvmMode: '1',
+      kvmMode: 'km',
       col: 1,
       row: 1,
       usbOverIp: '1',
@@ -111,7 +119,9 @@ export default {
         mac: '',
         v: 0
       }]],
-      kvm: {}
+      mac: '',
+      kvm: {},
+      castMode: '0' // 2: Multicast才可以设置KVM
     }
   },
   beforeCreate () {
@@ -120,10 +130,25 @@ export default {
     }
   },
   created () {
-    this.getKVMJson()
+    this.$socket.sendMsg('#NET-MAC? 0')
+    this.$socket.sendMsg('#KDS-METHOD? ')
   },
   methods: {
     handleMsg (msg) {
+      if (msg.search(/@KDS-METHOD /i) !== -1) {
+        this.handleIpCastMode(msg)
+        return
+      }
+      if (msg.search(/@NET-MAC /i) !== -1) {
+        this.handleMACAddr(msg)
+      }
+    },
+    handleMACAddr (msg) {
+      this.mac = msg.split(' ')[1].split(',').pop().replace(/:|-/ig, '')
+      this.getKVMJson()
+    },
+    handleIpCastMode (msg) {
+      this.castMode = msg.split(' ')[1]
     },
     checkBlur () {
       this.timeout = this.timeout || 5
@@ -166,6 +191,9 @@ export default {
         const _2dArray = []
         const yMap = {} // 记录Y轴对应的二维数组下标
         data.forEach((item) => {
+          if (item.v === item.h && item.v === 0) {
+            item.mac = this.mac
+          }
           if (yMap[item.v]) {
             _2dArray[yMap[item.v] - 1].push(item)
             _2dArray[yMap[item.v] - 1].sort((a, b) => a.h - b.h)
@@ -236,7 +264,6 @@ export default {
     // 重新排序坐标
     resetCoord () {
       const { col, row } = this.masterCoord()
-      // 1 , 1
       for (const _row in this.kvmMap) {
         for (const _col in this.kvmMap[_row]) {
           // const pointY = _row <= row ? row - _row : ~(_row - row) + 1
@@ -244,6 +271,10 @@ export default {
           const pointX = _col - col
           this.kvmMap[_row][_col].h = pointX
           this.kvmMap[_row][_col].v = pointY
+          if (this.kvmMap[_row][_col].mac === this.mac) {
+            this.kvmMap[_row][_col].mac = ''
+          }
+          if (pointX === pointY && pointX === 0) { this.kvmMap[_row][_col].mac = this.mac }
         }
       }
       this.master = '0,0'

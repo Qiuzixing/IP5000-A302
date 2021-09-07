@@ -9,18 +9,18 @@
     </div>
     <div class="setting"
          style="margin-bottom: 0"
-         v-if="inputSelect.val === '2'">
+         v-if="inputSelect.val === 'stream'">
       <span class="setting-title">Preview</span>
       <span class="setting-title"
             style="width: 180px;">Channel</span>
       <span class="setting-title"
             style="width: 180px;">Name</span>
-      <span class="setting-title"
-            style="width: 180px;">IP Address</span>
+      <!-- <span class="setting-title"
+            style="width: 180px;">IP Address</span> -->
     </div>
     <div class="radio-setting"
          style="margin-top: 15px;margin-bottom: 24px;"
-         v-if="inputSelect.val === '2'">
+         v-if="inputSelect.val === 'stream'">
       <span class="setting-title"><img src="/stream"
              style="width: 180px;"></span>
       <span class="setting-title"
@@ -41,8 +41,8 @@
                      :options="channelNameList"
                      @input="setChannel"></multiselect>
       </span>
-      <span class="setting-title"
-            style="width: 180px;">192.168.1.1</span>
+      <!-- <span class="setting-title"
+            style="width: 180px;">192.168.1.1</span> -->
     </div>
     <div class="setting"
          style="margin-bottom: 36px">
@@ -91,6 +91,10 @@
       <span>{{audioChannel}}</span>
     </div>
     <div class="setting">
+      <span class="setting-title"> Audio Rate</span>
+      <span>{{audioRate}}</span>
+    </div>
+    <div class="setting">
       <span class="setting-title">Audio Format</span>
       <span>{{audioFormat}}</span>
     </div>
@@ -124,8 +128,9 @@ export default {
       aspectRatio: '',
       resolution: '',
       hdcp: '0',
-      audioChannel: '2',
-      audioFormat: 'LPCM'
+      audioChannel: '',
+      audioFormat: '',
+      audioRate: ''
     }
   },
   beforeCreate () {
@@ -221,22 +226,25 @@ export default {
     handleAudioChannelDesc (msg) {
       const data = msg.split(',')
       this.audioFormat = data[data.length - 1]
-      this.audioChannel = data[2].split('.')[0]
+      this.audioRate = data[data.length - 2]
+      this.audioChannel = data[data.length - 3]
     },
     async getAvChannelMap () {
-      await this.$http.post('/channel/channel_map').then(msg => {
+      await this.$http.get(
+        '/device/json?path=/channel/channel_map.json&t=' + Math.random()
+      ).then(msg => {
         if (msg.data) {
           const channelList = []
           const channelNameList = []
-          msg.data['channels list'].forEach(item => {
-            channelList.push({ value: item.id, label: '#' + item.id })
-            channelNameList.push({ value: item.id, label: item.name })
+          msg.data.channels_list.forEach(item => {
+            channelList.push({ value: item.id + '', label: '#' + item.id })
+            channelNameList.push({ value: item.id + '', label: item.name })
           })
           this.channelList = channelList
           this.channelNameList = channelNameList
         }
       })
-      this.$socket.sendMsg('#KDS-CHANNEL-SELECT? video ')
+      this.$socket.sendMsg('#KDS-CHANNEL-SELECT? video')
     },
     handleSelectChannel (msg) {
       this.channel = msg.split(',')[1]

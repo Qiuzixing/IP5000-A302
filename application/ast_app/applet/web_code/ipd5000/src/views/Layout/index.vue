@@ -1,12 +1,13 @@
 <template>
   <div class="view-container">
-    <header-bar></header-bar>
+    <header-bar :device-model="this.$global.deviceModel"></header-bar>
     <section class="main-container">
       <slider-model class="slider-nav"></slider-model>
       <div class="main-content">
         <setting-header-bar></setting-header-bar>
         <setting-nav></setting-nav>
-        <transition name="fade" mode="out-in">
+        <transition name="fade"
+                    mode="out-in">
           <router-view />
         </transition>
       </div>
@@ -31,20 +32,20 @@ export default {
 }
 </script>
 <style lang="less" scoped>
-.view-container{
+.view-container {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  .main-container{
+  .main-container {
     flex: 1;
     display: flex;
   }
 }
-.main-content{
+.main-content {
   height: calc(100vh - 70px);
   flex: 1;
   overflow: hidden;
-  .main-setting{
+  .main-setting {
     height: calc(100vh - 190px);
     overflow: hidden;
     overflow-y: auto;
