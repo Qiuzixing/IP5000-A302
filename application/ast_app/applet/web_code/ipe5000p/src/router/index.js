@@ -55,7 +55,7 @@ const routes = [
         path: 'auto_switch',
         component: () => import('../views/AvSetting/AutoSwitch.vue'),
         name: 'auto_switch',
-        meta: { title: 'Auto Switch', desc: 'AV Setting > Auto Switch', icon: 'auto_switch', hidden: true}
+        meta: { title: 'Auto Switch', desc: 'AV Setting > Auto Switch', icon: 'auto_switch', hidden: true }
       },
       {
         path: 'videoPage',
@@ -177,7 +177,7 @@ const routes = [
       }
     ]
   },
-  {path: '*',redirect:'/'}
+  { path: '*', redirect: '/' }
 ]
 
 const router = new VueRouter({

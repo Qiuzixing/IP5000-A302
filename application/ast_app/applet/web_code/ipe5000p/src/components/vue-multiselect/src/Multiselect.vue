@@ -490,7 +490,7 @@ fieldset[disabled] .multiselect {
   width: calc(100%);
   transition: border 0.1s ease;
   box-sizing: border-box;
-  margin-bottom: 8px;
+  /*margin-bottom: 8px;*/
   vertical-align: top;
 }
 
