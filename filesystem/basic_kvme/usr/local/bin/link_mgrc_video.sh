@@ -478,12 +478,41 @@ handle_ve_rgb()
 {
 	local _para1=$1
 	echo "handle_ve_rgb.($_para1)" 
+	
+	astparam s v_hdmi_force_rgb_output $_para1
+	astparam save
 }
 
 handle_ve_scale()
 {
 	local _para1=$1
 	echo "handle_ve_scale.($_para1)" 
+	
+	case "$_para1" in
+		pass)
+			astparam s v_output_timing_convert 0
+		;;
+		2160p30)
+			astparam s v_output_timing_convert 8000005F
+		;;
+		2160p25)
+			astparam s v_output_timing_convert 8000005E
+		;;
+		1080p60)
+			astparam s v_output_timing_convert 80000010
+		;;
+		1080p50)
+			astparam s v_output_timing_convert 8000001F
+		;;
+		720p60)
+			astparam s v_output_timing_convert 80000004
+		;;		
+		*)
+			echo "ERROR: Unknown param ($1)!?"
+		;;
+	esac
+	
+	astparam save
 }
 
 # TODO. Need an include.sh for sub-LMs.

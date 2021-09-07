@@ -367,7 +367,7 @@ handle_re_gw()
 	echo "handle_re_gw.($_para1)" 
 }
 
-handle_re_send
+handle_re_send()
 {
 	local _para1=$1
 

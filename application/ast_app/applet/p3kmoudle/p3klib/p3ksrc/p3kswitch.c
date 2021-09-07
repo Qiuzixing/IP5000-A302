@@ -288,6 +288,8 @@ static int P3K_CheckSignalType(char*data)
 	{	tmpFormat = SIGNAL_ARC;}
 	else if(!strcmp(data,"rs232"))
 	{	tmpFormat = SIGNAL_RS232;}
+	else if(!strcmp(data,"av_test_pattern"))
+	{   tmpFormat = SIGNAL_TEST;}
 	return tmpFormat;
 }
 
@@ -382,7 +384,7 @@ static int P3K_AudioSampleRateToStr(int samplerate,char*data)
 			strcpy(tmpbuf,"8K");
 			break;
 		default:
-			strcpy(tmpbuf,"44.1K");
+			strcpy(tmpbuf,"0K");
 			break;
 	}
 	memcpy(data,tmpbuf,strlen(tmpbuf));
@@ -3109,10 +3111,10 @@ static int P3K_GetEDIDList(char*reqparam,char*respParam,char*userdata)
 	DBG_InfoMsg("P3K_GetEDIDList\n");
 	int ret = 0;
 	int i = 0;
-	char edidlist[10][MAX_EDID_LEN] = {0};
+	char edidlist[8][MAX_EDID_LEN] = {0};
 	char tmpparam[MAX_PARAM_LEN] = {0};
 
-	ret = EX_GetEdidList(edidlist,10);
+	ret = EX_GetEdidList(edidlist,8);
 	if(ret > 10)
 	{
 		DBG_WarnMsg("P3K_GetEDIDList num=%d over 10\n",ret);
@@ -3159,7 +3161,7 @@ static int P3K_RemoveEDID(char*reqparam,char*respParam,char*userdata)
 {
 	//#EDID-ADD Index <CR>
 	//~nn@#EDID-RM Index<CR><LF>
-	DBG_InfoMsg("P3K_GetEDIDList\n");
+	DBG_InfoMsg("P3K_RemoveEDID\n");
 	int comID = 0;
 	int s32Ret = 0;
 	int count = 0;
@@ -3191,7 +3193,7 @@ static int P3K_SetActiveEDID(char*reqparam,char*respParam,char*userdata)
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	input_ID = atoi(str[0]);
-	index_ID = atoi(str[0]);
+	index_ID = atoi(str[1]);
 
 	s32Ret = EX_SetActiveEDID(input_ID,index_ID);
 	if(s32Ret)
@@ -4120,7 +4122,7 @@ static int P3K_RmEDID(char*reqparam,char*respParam,char*userdata)
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	iEDID = atoi(str[0]);
 	sprintf(tmpparam,"%d",iEDID);
-	ret =  EX_RmEDID(iEDID);
+	ret =  EX_RemoveEDID(iEDID);//EX_RmEDID(iEDID);
 	if(ret != 0)
 	{
 		memset(tmpparam,0,sizeof(tmpparam));
@@ -4171,6 +4173,15 @@ static int P3K_GetVideoWallStretch(char*reqparam,char*respParam,char*userdata)
 	iMode = EX_GetVideoWallStretch(index);
 	sprintf(tmpparam,"%d,%d",index,iMode);
 	memcpy(respParam,tmpparam,strlen(tmpparam));
+	return 0;
+}
+
+static int P3K_SetCfgModify(char*reqparam,char*respParam,char*userdata)
+{
+	DBG_InfoMsg("P3K_SetCfgModify\n");
+	int ret = 0;
+	ret =  EX_SetCfgModify(reqparam);
+	memcpy(respParam,reqparam,strlen(reqparam));
 	return 0;
 }
 
@@ -4345,6 +4356,7 @@ int P3K_SilmpleReqCmdProcess(P3K_SimpleCmdInfo_S *cmdreq,P3K_SimpleCmdInfo_S *cm
 									{"EDID-RM",P3K_RmEDID},
 									{"WND-STRETCH",P3K_SetVideoWallStretch},
 									{"WND-STRETCH?",P3K_GetVideoWallStretch},
+									{"KDS-CFG-MODIFY",P3K_SetCfgModify},
 									{NULL,NULL}
 	};
 

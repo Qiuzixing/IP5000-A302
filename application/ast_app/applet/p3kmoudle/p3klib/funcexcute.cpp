@@ -638,18 +638,20 @@ int EX_GetTimeOut(void)
 	return iTime;
 }
 
+// 0 - fit in
+// 1 - fit out
 int EX_SetVideoWallStretch(int  index,int mode )
 {
 	printf(">>EX_SetVideoWallStretch %d\n",index);
 #ifdef CONFIG_P3K_CLIENT
-	char sCmd[64] = "";
-
 	if((mode == 0)||(mode == 1))
 	{
-		sprintf(sCmd,"e_p3k_video_vw_stretch::%d",mode);
 		Cfg_Set_VM_Stretch(mode);
-		printf("ast_send_event %s\n",sCmd);
-		ast_send_event(0xFFFFFFFF,sCmd);
+
+		if(mode == 0)
+			ast_send_event(0xFFFFFFFF,"e_vw_stretch_type_2");
+		else
+			ast_send_event(0xFFFFFFFF,"e_vw_stretch_type_1");
 	}
 	else
 	{
@@ -707,7 +709,8 @@ int EX_SetIRGateway(int  iIr_mode)
 		return 0;
 	}
 	printf("ast_send_event %s\n",sCmd);
-	ast_send_event(0xFFFFFFFF,sCmd);		return 0;
+	ast_send_event(0xFFFFFFFF,sCmd);
+	return 0;
 }
 
 int EX_GetIRGateway(void)
@@ -724,7 +727,12 @@ int EX_SetMulticastStatus(char * ip,int ttl )
 	{
 		Cfg_Set_Net_Multicast(ip,ttl);
 		char sCmd[64] = "";
-		sprintf(sCmd,"e_p3k_net_multicast::%s::%d",ip,ttl);
+		sprintf(sCmd,"e_p3k_net_multicast::%s",ip);
+		printf("ast_send_event %s\n",sCmd);
+		ast_send_event(0xFFFFFFFF,sCmd);
+
+		memset(sCmd,0,64);
+		sprintf(sCmd,"e_p3k_net_ttl::%d",ttl);
 		printf("ast_send_event %s\n",sCmd);
 		ast_send_event(0xFFFFFFFF,sCmd);
 	}
@@ -957,46 +965,47 @@ int EX_SetVidOutput(char info[][MAX_PARAM_LEN],int count )
 	else
 	{
 		sprintf(sCmd,"%s::%d",sCmd,count);
-	}
-
-	for(int i = 0; i < count;i++)
-	{
-		int out_id = atoi(info[i]);
-		if(out_id == AUDIO_OUT_HDMI)
+		for(int i = 0; i < count;i++)
 		{
-			sprintf(sCmd,"%s::hdmi",sCmd);
-			port[nCount] = PORT_HDMI;
-			nCount++;
-		}
-		else if(out_id == AUDIO_OUT_ANALOG)
-		{
-			if(g_audio_info.direction == DIRECTION_OUT)
+			int out_id = atoi(info[i]);
+			if(out_id == AUDIO_OUT_HDMI)
 			{
-				sprintf(sCmd,"%s::analog",sCmd);
-				port[nCount] = PORT_ANALOG_AUDIO;
+				sprintf(sCmd,"%s::hdmi",sCmd);
+				port[nCount] = PORT_HDMI;
 				nCount++;
 			}
-			else
+			else if(out_id == AUDIO_OUT_ANALOG)
 			{
-				printf("ERROR g_audio_info.direction == DIRECTION_IN\n");
-				return 0;
+				if(g_audio_info.direction == DIRECTION_OUT)
+				{
+					sprintf(sCmd,"%s::analog",sCmd);
+					port[nCount] = PORT_ANALOG_AUDIO;
+					nCount++;
+				}
+				else
+				{
+					printf("ERROR g_audio_info.direction == DIRECTION_IN\n");
+					//return 0;
+				}
 			}
-		}
-		else if(out_id == AUDIO_OUT_STREAM)
-		{
-			sprintf(sCmd,"%s::dante",sCmd);
-			port[nCount] = PORT_DANTE;
-			nCount++;
-		}
-		else if(out_id == AUDIO_OUT_DANTE)
-		{
-			sprintf(sCmd,"%s::lan",sCmd);
-			port[nCount] = PORT_STREAM;
-			nCount++;
+			else if(out_id == AUDIO_OUT_DANTE)
+			{
+				sprintf(sCmd,"%s::dante",sCmd);
+				port[nCount] = PORT_DANTE;
+				nCount++;
+			}
+			else if(out_id == AUDIO_OUT_STREAM)
+			{
+				sprintf(sCmd,"%s::lan",sCmd);
+				port[nCount] = PORT_STREAM;
+				nCount++;
+			}
 		}
 	}
 
-	if(nCount > 0)
+
+
+//	if(nCount > 0)
 	{
 		Cfg_Set_Audio_Dest(nCount,port);
 		printf("ast_send_event %s\n",sCmd);
@@ -1170,12 +1179,17 @@ int EX_GetAudParam(PortInfo_S*info,AudioSignalInfo_S*param)
 {
 	param->chn = 2;
 	memset(param->format,0,16);
-	param->sampleRate= SAMPLE_RATE_44100;
+	param->sampleRate= SAMPLE_RATE_NONE;
 
+#ifdef CONFIG_P3K_HOST
 	char* cmd_ch = "cat /sys/devices/platform/1500_i2s/input_audio_info | sed -rn 's#^.*Valid Ch: (.*).*$#\\1#gp'";
 	char* cmd_type = "cat /sys/devices/platform/1500_i2s/input_audio_info | sed -rn 's#^.*Type: (.*).*$#\\1#gp'";
 	char* cmd_freq = "cat /sys/devices/platform/1500_i2s/input_audio_info | sed -rn 's#^.*Sample Freq: (.*)KHz.*$#\\1#gp'";
-
+#else
+	char* cmd_ch = "cat /sys/devices/platform/1500_i2s/output_audio_info | sed -rn 's#^.*Valid Ch: (.*).*$#\\1#gp'";
+	char* cmd_type = "cat /sys/devices/platform/1500_i2s/output_audio_info | sed -rn 's#^.*Type: (.*).*$#\\1#gp'";
+	char* cmd_freq = "cat /sys/devices/platform/1500_i2s/output_audio_info | sed -rn 's#^.*Sample Freq: (.*)KHz.*$#\\1#gp'";
+#endif
 	char buf_ch[16] = "";
 	char buf_type[16] = "";
 	char buf_freq[16] = "";
@@ -1292,16 +1306,16 @@ int EX_SetAutoSwitchPriority(AudioInfo_S * info,AudioInfo_S * gain,int count)
 			}
 			else if(gain[i].portFormat == PORT_ANALOG_AUDIO)
 			{
-				if(g_audio_info.direction == DIRECTION_IN)
+				//if(g_audio_info.direction == DIRECTION_IN)
 				{
 					sprintf(sCmd,"%s::analog",sCmd);
 					port[i] = AUDIO_IN_ANALOG;
 				}
-				else
-				{
-					printf(" !!! g_audio_info.direction == DIRECTION_OUT \n");
-					return 0;
-				}
+				//else
+				//{
+				//	printf(" !!! g_audio_info.direction == DIRECTION_OUT \n");
+				//	break;
+				//}
 			}
 			else if(gain[i].portFormat == PORT_DANTE)
 			{
@@ -1568,7 +1582,9 @@ int EX_SetViewMode(ViewMode_E mode,ViewModeInfo_S*info)
 		&&(info->vStyle >= 1)
 		&&(info->vStyle <= 16))
 	{
-		sprintf(sCmd,"e_p3k_video_vw_mode::%d::%d",info->hStyle,info->vStyle);
+		sprintf(sCmd,"e_vw_pos_layout_%d_%d",(info->vStyle-1),(info->hStyle-1));
+
+		//sprintf(sCmd,"e_p3k_video_vw_mode::%d::%d",info->hStyle,info->vStyle);
 		printf("ast_send_event %s\n",sCmd);
 		ast_send_event(0xFFFFFFFF,sCmd);
 
@@ -1594,14 +1610,22 @@ int EX_GetViewMode(ViewMode_E *mode,ViewModeInfo_S*info)
 int EX_SetWndBezelInfo( int mode ,int index, WndBezelinfo_S*info)
 {
 	printf("EX_SetWndBezelInfo =%d %d %d %d\n",info->hValue,info->vValue,info->hOffset,info->vOffset);
+	return 0;
+
 #ifdef CONFIG_P3K_CLIENT
 	char sCmd[64] = "";
 
 	if((index >= 1)&&(index <= 256))
 	{
-		sprintf(sCmd,"e_p3k_video_vw_bezel::%d::%d::%d::%d::%d",index,info->hValue,info->vValue,info->hOffset,info->vOffset);
+		sprintf(sCmd,"e_vw_h_shift_l_%d",info->hOffset);
 		printf("ast_send_event %s\n",sCmd);
 		ast_send_event(0xFFFFFFFF,sCmd);
+
+		memset(sCmd,0,64);
+		sprintf(sCmd,"e_vw_h_shift_u_%d",info->vOffset);
+		printf("ast_send_event %s\n",sCmd);
+		ast_send_event(0xFFFFFFFF,sCmd);
+
 		Cfg_Set_VM_Bezel(index,*info);
 	}
 	else
@@ -1629,10 +1653,37 @@ int EX_SetVideoWallSetupInfo(int id,VideoWallSetupInfo_S *info)
 
 	if((id >= 1) &&(id <= 256) &&(info->rotation <= 3))
 	{
-		sprintf(sCmd,"e_p3k_video_vw_id::%d::%d",id,info->rotation);
-		printf("ast_send_event %s\n",sCmd);
-		ast_send_event(0xFFFFFFFF,sCmd);
-		Cfg_Set_VM_Setup(id,info->rotation);
+		int max_id = g_videowall_info.horizontal_count * g_videowall_info.vertical_count;
+
+		if(id <= max_id)
+		{
+			int max_row = g_videowall_info.vertical_count;
+			int max_col = g_videowall_info.horizontal_count;
+			int row = (id-1) / max_col;
+			int col = (id-1) % max_col;
+			sprintf(sCmd,"e_vw_enable_%d_%d_%d_%d",(max_row-1),(max_col-1),row,col);
+			printf("ast_send_event %s\n",sCmd);
+			ast_send_event(0xFFFFFFFF,sCmd);
+
+			if(info->rotation == ROTATION_180)
+			{
+				ast_send_event(0xFFFFFFFF,"e_vw_rotate_3");
+			}
+			else if(info->rotation == ROTATION_270)
+			{
+				ast_send_event(0xFFFFFFFF,"e_vw_rotate_6");
+			}
+			else if(info->rotation == ROTATION_90)
+			{
+				ast_send_event(0xFFFFFFFF,"e_vw_rotate_5");
+			}
+			else
+			{
+				ast_send_event(0xFFFFFFFF,"e_vw_rotate_0");
+			}
+
+			Cfg_Set_VM_Setup(id,info->rotation);
+		}
 	}
 	else
 	{
@@ -1714,7 +1765,23 @@ int EX_SetDecoderAVChannelId(ChSelect_S * id)
 int EX_GetDecoderAVChannelId(ChSelect_S * id)
 {
 	printf(">>%d\n",id->signal);
-	id->ch_id = 1;
+
+	char* cmd1 = "astparam g ch_select_v";
+	char buf1[64] = "";
+
+	mysystem(cmd1,buf1,16);
+
+	if(strstr(buf1,"not defined") != 0)
+	{
+		id->ch_id = 1;
+		printf("EX_GetDecoderAVChannelId not defined\n");
+	}
+	else
+	{
+		id->ch_id = atoi(buf1);
+		printf("EX_GetDecoderAVChannelId id = %d\n",id->ch_id);
+	}
+
 	return 0;
 }
 int EX_SetVideoImageStatus(int scalerId,VideoStatusType_E status)
@@ -2078,7 +2145,7 @@ int EX_SetRouteMatch(PortInfo_S*inPortInfo,PortInfo_S*matchPortInfo,int num)
 				else
 				{
 					printf("ERROR g_audio_info.direction == DIRECTION_IN\n");
-					return 0;
+				//	return 0;
 				}
 			}
 			else if(inPortInfo[i].portFormat == PORT_DANTE)
@@ -2099,6 +2166,7 @@ int EX_SetRouteMatch(PortInfo_S*inPortInfo,PortInfo_S*matchPortInfo,int num)
 			Cfg_Set_Audio_Dest(nCount,port);
 
 	}
+
 	printf("ast_send_event %s\n",sCmd);
 	ast_send_event(0xFFFFFFFF,sCmd);
 #else
@@ -2115,16 +2183,23 @@ int EX_SetRouteMatch(PortInfo_S*inPortInfo,PortInfo_S*matchPortInfo,int num)
 			sprintf(sCmd,"e_p3k_switch_in::STREAM");
 			Cfg_Set_Autoswitch_Source(SIGNAL_VIDEO,2);
 		}
+		else if(matchPortInfo->signal == SIGNAL_TEST)
+		{
+		}
 		else
 		{
 			printf("!!! Error matchPortInfo->portFormat %d\n",matchPortInfo->portFormat);
 			return -1;
-
 		}
+
+		ast_send_event(0xFFFFFFFF,sCmd);
+	}
+	else if(matchPortInfo->signal == SIGNAL_TEST)
+	{
+		printf("!!! matchPortInfo->signal == SIGNAL_TEST\n");
+
 	}
 
-	printf("ast_send_event %s\n",sCmd);
-	ast_send_event(0xFFFFFFFF,sCmd);
 
 #endif
 	return 0;
@@ -2262,8 +2337,7 @@ int EX_GetOpenTunnelParam(int tunnelId,TunnelParam_S*param)
 }
 int EX_SetUSBCtrl(int type)
 {
-
-     	printf("EX_SetUSBCtrl =%d\n",type);
+    printf("EX_SetUSBCtrl =%d\n",type);
 	return 0;
 }
 int EX_GetMulticastInfo(char*ip,int *ttl)
@@ -2308,7 +2382,7 @@ int EX_SetDNSName(int id,char*name)
 		{	if(strlen(name)>0)
 			{
 				char sCmd[64] = "";
-				sprintf(sCmd,"e_p3k_audio_dante_name::%s",name);
+				sprintf(sCmd,"e_p3k_net_dante_name::%s",name);
 				printf("ast_send_event %s\n",sCmd);
 				ast_send_event(0xFFFFFFFF,sCmd);
 			}
@@ -2501,6 +2575,15 @@ int EX_Upgrade(void)
 {
 
 //	Cfg_Set_UPG_Info();
+
+	printf("EX_Upgrade \n");
+
+	ast_send_event(0xFFFFFFFF,"e_stop_link");
+
+	sleep(2);
+
+	ast_send_event(0xFFFFFFFF,"e_p3k_upgrade_fw");
+
 	return 0;
 }
 int EX_SetDeviceNameModel(char*mod)
@@ -2538,6 +2621,11 @@ int EX_SetLockFP(int lockFlag)
 	if((lockFlag == 0)||(lockFlag == 1))
 	{
 		Cfg_Set_Dev_FPLock((State_E)lockFlag);
+		if(lockFlag == 0)
+			ast_send_event(0xFFFFFFFF,"e_p3k_fp_lock_off");
+		else
+			ast_send_event(0xFFFFFFFF,"e_p3k_fp_lock_on");
+
 	}
 	return 0;
 }
@@ -2553,6 +2641,7 @@ int EX_GetLockFP(int *lockFlag)
 }
 int EX_SetIDV(void)
 {
+	ast_send_event(0xFFFFFFFF,"e_p3k_flag_me");
 	return 0;
 }
 int EX_SetStandbyMode(int Mode)
@@ -2777,6 +2866,16 @@ int Clear_Re(void)
 int EX_SetCfgModify(char* cfgName)
 {
 	printf("EX_SetCfgModify : %s\n",cfgName);
+
+	if(strstr(cfgName,"av_signal") != 0)
+	{
+		Cfg_Set_Enc_AVSignal_Info();
+	}
+	else if(strstr(cfgName,"km_usb") != 0)
+	{
+		Cfg_Set_Dec_Usb_KVM();
+	}
+
 	return 0;
 }
 

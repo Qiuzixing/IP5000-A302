@@ -89,6 +89,7 @@ typedef enum _SignalType_E
 	SIGNAL_IR,
 	SIGNAL_USB,
 	SIGNAL_ARC,
+	SIGNAL_TEST,
 }SignalType_E;
 typedef enum _HDCPMode_E
 {
@@ -117,6 +118,7 @@ typedef enum _VideoRotation_E
 
 typedef enum _AudioSampleRate_E
 {
+	SAMPLE_RATE_NONE = 0,
 	SAMPLE_RATE_8000 = 8000,
 	SAMPLE_RATE_16000 = 16000,
 	SAMPLE_RATE_22500= 22500,

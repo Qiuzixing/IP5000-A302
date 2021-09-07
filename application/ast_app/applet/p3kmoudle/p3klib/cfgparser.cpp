@@ -168,10 +168,10 @@ int Cfg_Init_Audio(void)
 	g_audio_info.input_pri[0] = AUDIO_IN_HDMI;
 	g_audio_info.input_pri[1] = AUDIO_IN_ANALOG;
 	g_audio_info.input_pri[2] = AUDIO_IN_DANTE;
-	g_audio_info.dst_port[0] = PORT_HDMI;
-	g_audio_info.dst_port[1] = PORT_ANALOG_AUDIO;
-	g_audio_info.dst_port[2] = PORT_DANTE;
-	g_audio_info.dst_port[3] = PORT_STREAM;
+	g_audio_info.dst_port[0] = PORT_NONE;
+	g_audio_info.dst_port[1] = PORT_NONE;
+	g_audio_info.dst_port[2] = PORT_NONE;
+	g_audio_info.dst_port[3] = PORT_NONE;
 	g_audio_info.source = AUDIO_IN_HDMI;
 	sprintf(g_audio_info.dante_name,"dante");
 
@@ -573,12 +573,6 @@ int Cfg_Init_AVSetting(void)
 
 			if(!root[JSON_AV_ACTION].empty())
 			{
-				string mode =  root[JSON_AV_ACTION].asString();
-
-				if(mode == JSON_AV_PLAY)
-					g_avsetting_info.action = CODEC_ACTION_PLAY;
-				else if(mode == JSON_AV_STOP)
-					g_avsetting_info.action = CODEC_ACTION_STOP;
 			}
 
 #ifdef CONFIG_P3K_HOST
@@ -3905,6 +3899,8 @@ int Cfg_Set_Net_Method(NetMethodType_E type) //1:uni;2 multi
 	g_network_info.method = type;
 	Cfg_Update(NETWORK_INFO);
 
+	//astparam multicast_on;
+
 	return 0;
 }
 int Cfg_Get_Net_Method(NetMethodType_E* type)
@@ -4071,6 +4067,8 @@ int Cfg_Get_EDID_List(char info[][MAX_EDID_LEN],int num)
 					{
 						sprintf(g_edid_info.EDID_List[i],"%s",name.c_str());
 						sprintf(info[ncount],"[%d,\"%s\"]",i,name.c_str());
+
+						printf("Cfg_Get_EDID_List info[%d]: %s\n",ncount,info[ncount]);
 						ncount++;
 					}
 				}
@@ -4082,6 +4080,195 @@ int Cfg_Get_EDID_List(char info[][MAX_EDID_LEN],int num)
 	return ncount;
 }
 
+int Cfg_Set_Enc_AVSignal_Info()
+{
+	DBG_InfoMsg("Cfg_Set_Enc_AVSignal_Info\n");
 
+	char path[128] = "";
+	sprintf(path,"%s%s%s",CONF_PATH,g_module,AV_SIGNAL_FILE);
+
+
+	//Read	avsignal cfg
+	Json::Reader reader;
+	Json::Value root1;
+	char pBuf[1024] = "";
+	FILE *fp;
+	fp = fopen(path, "r");
+	if (fp == NULL) {
+		printf("ERROR! can't open %s\n",path);
+		return -1;
+	}
+
+	fread(pBuf,1,sizeof(pBuf),fp);
+
+	if(reader.parse(pBuf, root1))
+	{
+		if(!root1[JSON_AV_SIGNAL].empty())
+		{
+			Json::Value& root = root1[JSON_AV_SIGNAL];
+
+#ifdef CONFIG_P3K_HOST
+			if(!root[JSON_AV_MAX_BITRATE].empty())
+			{
+				char cmd[256] = "";
+				string bitrate =  root[JSON_AV_MAX_BITRATE].asString();
+
+				if(bitrate == JSON_AV_BEST_EFFORT)
+				{
+					sprintf(cmd,"astparam s profile auto;astparam save");
+					system(cmd);
+				}
+				else if((bitrate == "10")||(bitrate == "50")||(bitrate == "100")||(bitrate == "150")||(bitrate == "200"))
+				{
+					sprintf(cmd,"astparam s profile %sM;astparam save",bitrate.c_str());
+					system(cmd);
+				}
+				else
+				{
+					printf("JSON_AV_MAX_BITRATE Param: %s  Error!!!",bitrate.c_str());
+				}
+
+				printf("%s\n",cmd);
+			}
+
+			if(!root[JSON_AV_FRAME_RATE].empty())
+			{
+				char cmd[256] = "";
+				int frame = root[JSON_AV_FRAME_RATE].asInt();
+
+				if((frame <= 100)&&(frame >= 0))
+				{
+					int param = frame * 60 / 100;
+					sprintf(cmd,"astparam s v_frame_rate %d;astparam save",param);
+					system(cmd);
+				}
+				else
+				{
+					printf("JSON_AV_FRAME_RATE Param: %d  Error!!!",frame);
+				}
+
+				printf("%s\n",cmd);
+			}
+#endif
+		}
+	}
+
+	fclose(fp);
+	return 0;
+}
+
+int Cfg_Set_Dec_Usb_KVM()
+{
+	DBG_InfoMsg("Cfg_Set_Dec_Usb_KVM\n");
+
+#ifdef CONFIG_P3K_HOST
+		DBG_InfoMsg("This is Encoder\n");
+		return 0;
+#endif
+
+	char path[128] = "";
+	sprintf(path,"%s%s%s",CONF_PATH,g_module,KVM_FILE);
+
+
+	//Read	kvm cfg
+	Json::Reader reader;
+	Json::Value root1;
+	char pBuf[1024] = "";
+	FILE *fp;
+	fp = fopen(path, "r");
+	if (fp == NULL) {
+		printf("ERROR! can't open %s\n",path);
+		return -1;
+	}
+
+	fread(pBuf,1,sizeof(pBuf),fp);
+
+	if(reader.parse(pBuf, root1))
+	{
+		if(!root1[JSON_USB_KVM_CONFIG].empty())
+		{
+			Json::Value& root = root1[JSON_USB_KVM_CONFIG];
+
+			if(!root[JSON_USB_KVM_MODE].empty())
+			{
+				char cmd[256] = "";
+				string mode =  root[JSON_USB_KVM_MODE].asString();
+
+				if(mode == JSON_USB_KVM_KM)
+				{
+					sprintf(cmd,"astparam s no_kmoip n;astparam save");
+					system(cmd);
+				}
+				else if(mode == JSON_USB_KVM_USB)
+				{
+					sprintf(cmd,"astparam s no_kmoip y;astparam save");
+					system(cmd);
+				}
+
+				printf("%s\n",cmd);
+			}
+
+			if(!root[JSON_USB_KVM_ROAMING].empty())
+			{
+				Json::Value& JsonKVMArray = root[JSON_USB_KVM_ROAMING];
+				printf("JsonKVMArray.size() = %d\n",JsonKVMArray.size());
+
+				char cmd[512] = "";
+				char param[512] = "";
+
+				for(unsigned int i = 0; i < JsonKVMArray.size(); i++)
+				{
+					Json::Value& JsonKVM = JsonKVMArray[i];
+
+					if((!JsonKVM[JSON_USB_KVM_MAC].empty())&&(!JsonKVM[JSON_USB_KVM_H].empty())&&(!JsonKVM[JSON_USB_KVM_V].empty()))
+					{
+						string mac = JsonKVM[JSON_USB_KVM_MAC].asString();
+						int    x   = JsonKVM[JSON_USB_KVM_H].asInt();
+						int    y   = JsonKVM[JSON_USB_KVM_V].asInt();
+
+						printf("JsonKVMArray[%d]:[mac: %s][x: %d][y: %d]\n",i,mac.c_str(),x,y);
+
+						if((x == 0)&&(y == 0))
+						{
+							printf("This is master [x: %d][y: %d]\n",x,y);
+						}
+						else if(mac.size()>1)
+						{
+							if(strlen(param) == 0)
+								sprintf(param,"%s,%d,%d",mac.c_str(),x,y);
+							else
+								sprintf(param,"%s:%s,%d,%d",param,mac.c_str(),x,y);
+						}
+					}
+
+				}
+
+				if(strlen(param) > 0)
+				{
+					sprintf(cmd,"astparam s kmoip_roaming_layout %s;astparam save",param);
+					system(cmd);
+				}
+
+				printf("%s\n",cmd);
+			}
+
+			if(!root[JSON_USB_KVM_ACTIVE].empty())
+			{
+				char cmd[256] = "";
+				int interval =  root[JSON_USB_KVM_ACTIVE].asInt();
+
+				{
+					sprintf(cmd,"astparam s kmoip_token_interval %d;astparam save",interval*60*1000);
+					system(cmd);
+				}
+
+				printf("%s\n",cmd);
+			}
+		}
+	}
+
+	fclose(fp);
+	return 0;
+}
 
 

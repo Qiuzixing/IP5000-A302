@@ -294,7 +294,7 @@ handle_ce_gw()
 	echo "handle_ce_gw.($_para1)" 
 }
 
-handle_ce_send
+handle_ce_send()
 {
 	local _para1=$1
 

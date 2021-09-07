@@ -81,6 +81,8 @@ extern "C" {
 #define TIME_FILE			"/time/time_setting.json"
 #define USER_FILE			"/user/user_setting.json"
 #define VIDEOWALL_FILE		"/vw/video_wall_setting.json"
+#define VIDEOWALL_TEST		"/vw/video_wall_test_pattern.png"
+
 
 #define JSON_PARAM_ON		"on"
 #define JSON_PARAM_OFF		"off"
@@ -616,6 +618,10 @@ int Cfg_Set_Net_GW_Port(NetGWType_E type, int port); //type:p3k,rs232,dante
 int Cfg_Get_Net_GW_Port(NetGWType_E type, int* port);
 int Cfg_Set_Net_GW_Vlan(NetGWType_E type, int vlan); //type:p3k,rs232,dante
 int Cfg_Get_Net_GW_Vlan(NetGWType_E type, int* vlan);
+
+int Cfg_Set_Enc_AVSignal_Info();
+int Cfg_Set_Dec_Usb_KVM();
+
 
 #ifdef __cplusplus
 }

@@ -2554,6 +2554,9 @@ handle_e_p3k_video()
 		e_p3k_video_scale::?*)
 			ipc @v_lm_set s ve_scale:$_para1
 		;;
+		e_p3k_video_vw_?*)
+			handel_e_p3k_vw "$event"
+		;;
 		*)
 		echo "ERROR!!!! Invalid event ($event) received"
 		;;
@@ -2670,6 +2673,173 @@ handle_e_p3k_upgrade()
 	reboot
 }
 
+handle_e_p3k_net_dhcp()
+{
+	echo "handle_e_p3k_net_dhcp."
+	local _para1
+
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	_para1="$3"
+
+	astparam s ip_mode $_para1
+	astparam save
+}
+
+handle_e_p3k_net_conf()
+{
+	echo "handle_e_p3k_net_conf."
+	local _para_ip
+	local _para_mask
+	local _para_gw
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	_para_ip="$3"
+	_para_mask="$5"
+	_para_gw="$7"
+
+	astparam s ipaddr $_para_ip
+	astparam s netmask $_para_mask
+	astparam s gatewayip $_para_gw
+	astparam save
+}
+
+handle_e_p3k_net_daisychain()
+{
+	echo "handle_e_p3k_net_daisychain."
+}
+
+handle_e_p3k_net_method()
+{
+	echo "handle_e_p3k_net_method."
+	
+	local _para1
+
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	_para1="$1"
+
+	case "$_para1" in
+		1)
+			astparam s multicast_on n
+		;;
+		2)
+			astparam s multicast_on y
+		;;
+		*)
+		;;
+	esac
+
+	astparam save
+}
+
+handle_e_p3k_net_multicast()
+{
+	echo "handle_e_p3k_net_multicast."
+	local _ip
+
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	_ip  = "$1"
+
+	astparam s multicast_ip $_ip
+	astparam save
+}
+
+handle_e_p3k_net_ttl()
+{
+	echo "handle_e_p3k_net_ttl."
+}
+
+handle_e_p3k_net_vlan()
+{
+	echo "handle_e_p3k_net_vlan."
+}
+
+handle_e_p3k_net_gw_port()
+{
+	echo "handle_e_p3k_net_gw_port."
+}
+
+handle_e_p3k_net_hostname()
+{
+	echo "handle_e_p3k_net_hostname."
+}
+
+handle_e_p3k_net_dante_hostname()
+{
+	echo "handle_e_p3k_net_dante_hostname."
+}
+
+handle_e_p3k_net()
+{
+	echo "handle_e_p3k_net."
+
+	case "$event" in
+		e_p3k_net_dhcp::?*)
+			handle_e_p3k_net_dhcp "$event"
+		;;
+		e_p3k_net_conf::?*)
+			handle_e_p3k_net_conf "$event"
+		;;
+		e_p3k_net_daisychain::?*)
+			handle_e_p3k_net_daisychain "$event"
+		;;
+		e_p3k_net_method::?*)
+			handle_e_p3k_net_method "$event"
+		;;
+		e_p3k_net_multicast::?*)
+			handle_e_p3k_net_multicast "$event"
+		;;
+		e_p3k_net_ttl::?*)
+			handle_e_p3k_net_ttl "$event"
+		;;
+		e_p3k_net_vlan::?*)
+			handle_e_p3k_net_vlan "$event"
+		;;
+		e_p3k_net_gw_port::?*)
+			handle_e_p3k_net_gw_port "$event"
+		;;
+		e_p3k_net_hostname::?*)
+			handle_e_p3k_net_hostname "$event"
+		;;
+		e_p3k_net_dante_hostname::?*)
+			handle_e_p3k_net_dante_hostname "$event"
+		;;
+		*)
+		;;
+	esac
+}
+
+handle_e_p3k_switch_in()
+{
+	echo "handle_e_p3k_switch_in."
+	
+	#e_p3k_switch_in::switch_input
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+
+	case "$1" in
+		HDMI)
+			ipc @m_lm_set s set_input_source:16:1
+		;;
+		STREAM)
+			ipc @m_lm_set s set_input_source:16:0
+		;;
+		*)
+			echo "ERROR: Unknown param ($1)!?"
+		;;
+	esac
+	
+	echo "set p3k switch input!!! $1"
+	
+}
+
 handle_e_p3k_fp_lock()
 {
 	case "$event" in
@@ -2729,6 +2899,9 @@ handle_e_p3k()
 {
 	echo "handle_e_p3k."
 	case "$*" in
+		e_p3k_switch_in?*)
+			handle_e_p3k_switch_in "$event"
+		;;
 		e_p3k_video_?*)
 			handle_e_p3k_video "$event"
 		;;
@@ -2740,6 +2913,9 @@ handle_e_p3k()
 		;;
 		e_p3k_cec_?*)
 			handle_e_p3k_cec "$event"
+		;;
+		e_p3k_net_?*)
+			handle_e_p3k_net "$event"
 		;;
 		e_p3k_upgrade_fw*)
 			handle_e_p3k_upgrade
