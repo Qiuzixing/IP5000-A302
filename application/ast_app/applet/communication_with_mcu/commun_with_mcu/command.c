@@ -29,6 +29,7 @@ extern int ipc_querycmd_index;
 extern const ipc_cmd_struct ipc_cmd_list[];
 int dante_state = UNKNOW_DANTE_STATUS;
 extern uint8_t board_type_flag;
+extern uint8_t last_hdmi_in_index;
 int Cmdfd;
 CommandInterfaceFun Cmdfun;
 U8 CmdinitFlag=0;//0->nomal  1->init   防止没有初始化就发送指令 
@@ -425,6 +426,10 @@ int APP_Comm_Recv(CmdProtocolParam * param)
             if(vdo_status.isStable == 1)
             {
                 audioSendEventMsg(sock_fd,"plugin","hdmi");
+                if(vdo_status.port == HDMIRX1 || vdo_status.port == HDMIRX2 || vdo_status.port == HDMIRX3)
+                {
+                    last_hdmi_in_index = vdo_status.port;
+                }   
             }
             else if(vdo_status.isStable == 0)
             {

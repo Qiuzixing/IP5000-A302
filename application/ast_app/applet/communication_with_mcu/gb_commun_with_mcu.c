@@ -59,7 +59,7 @@ int ipc_querycmd_index = 0;
 uint8_t up_or_commun_flag = UPGRADE;
 audio_inout_info_struct audio_inout_info;
 uint8_t board_type_flag = IPE5000P;
-
+uint8_t last_hdmi_in_index = 0;
 
 const ipc_cmd_struct ipc_cmd_list[] =
     {

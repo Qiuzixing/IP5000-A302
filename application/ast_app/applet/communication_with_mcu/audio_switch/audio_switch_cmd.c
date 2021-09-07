@@ -6,7 +6,7 @@
 #include "audio_switch_cmd.h"
 
 extern audio_inout_info_struct audio_inout_info;
-
+extern uint8_t last_hdmi_in_index;
 void mDelay(unsigned int msecond)
 {
     struct timeval time;
@@ -99,16 +99,29 @@ static void set_gsv_insert_audio(insert_value value)
 {
     uint16_t cmd = CMD_HDMI_SET_AUDIO_INSERT_EXTRACT;
     char insert_param[] = "33:16";
-    char no_insert_param[] = "0:16";
+    char no_insert_param[5] = "0:16";
     if(value == INSERT)
     {
         do_handle_set_audio_insert_extract(cmd,insert_param);
     }
     else
     {
+        switch(last_hdmi_in_index)
+        {
+            case HDMIRX1:
+                strncpy(no_insert_param,"0:16",sizeof(no_insert_param));
+                break;
+            case HDMIRX2:
+                strncpy(no_insert_param,"1:16",sizeof(no_insert_param));
+                break;
+            case HDMIRX3:
+                strncpy(no_insert_param,"2:16",sizeof(no_insert_param));
+                break;
+            default:
+                break;
+        }
         do_handle_set_audio_insert_extract(cmd,no_insert_param);
     }
-   
 }
 
 static void analog_in_xxx_out()

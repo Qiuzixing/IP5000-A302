@@ -458,6 +458,8 @@ start_alm()
 		ipc @m_lm_set s set_gpio_config:9:15:1:35:1:8:1:36:1:37:1:32:1:33:1:11:1:12:1
 		ipc @m_lm_set s set_gpio_val:9:15:1:35:1:8:1:36:1:37:1:32:1:33:1:11:1:12:1
 		ipc @m_lm_set s audio_out:0:1:2:3
+		ipc @m_lm_set s get_link_status:1
+		ipc @m_lm_set s get_link_status:2
 	fi
 
 	audio_detect &
