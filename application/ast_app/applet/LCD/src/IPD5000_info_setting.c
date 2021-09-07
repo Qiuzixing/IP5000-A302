@@ -1000,17 +1000,8 @@ void VIDEO_IN_SELECT_SHOW_D(void)
 			case ENTER_KEY:
 			{				
 				show_a_star(param.x);
-				for(i = 1; i < count; i++)
-				{
-					if(VIDEO_IN_SHOWWING_D[param.x/2] == SAVE_VIDEO_SELECT_D[i])
-					{
-						select_voide_channel(i);  //频道号是i
-						break;
-					}
-				}
-					
+				select_voide_channel(VIDEO_IN_SHOWWING_D[param.x/2] - '0');  //频道号是i					
 				//show_current_VIDEO_SELECT();
-				
 				break;
 			}
 			

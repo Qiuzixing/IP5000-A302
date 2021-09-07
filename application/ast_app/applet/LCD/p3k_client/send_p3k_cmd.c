@@ -9,10 +9,9 @@
 
 
 #define FIRMWARE_INFO_FILE  	"/etc/board_info.json"
-#define VIDEO_INFO_FILE			"/data/configs/kds-dec7/channel/channel_map.json"
+#define VIDEO_INFO_FILE			"/data/configs/kds-7/channel/channel_map.json"
 
 #define FIRMWARE_SYMBOL			"version\": "
-#define VIDEO_SYMBOL			"name\": "
 
 // p3k CMD
 #define		IP_SET_CMD			"#NET-CONFIG"
@@ -62,9 +61,9 @@ int init_p3k_client(char *ip, int port)
 	return err;
 }
 
-int get_specified_string_from_file(char *file, char *symbol, char info_buf[][SIZE2])
+int get_specified_string_from_file(char *file, char info_buf[][SIZE2])
 {
-	int i = 0;
+	int i = 0, n = 0;
 	char space_char[2] = "\"";
 	char *str = NULL;
 	char *chr = NULL;
@@ -77,35 +76,50 @@ int get_specified_string_from_file(char *file, char *symbol, char info_buf[][SIZ
 		printf("fopen fail");
 		return -1;
 	}
-	i = 0;
 	
 	while(!feof(fd))
 	{
+		n = 0;
 		memset(recv_buf, 0, SIZE1);
 		fgets(recv_buf, SIZE1, fd);
 
-		if (str = strstr(recv_buf, symbol))
+		if (str = strstr(recv_buf, "id\":"))
 		{
-			str += strlen(symbol);
-			str = strstr(str, "\"");
-			chr = strtok(str, space_char);
-			printf("%s\n", chr);
-			strcpy(info_buf[i++], chr);	
+			str += strlen("id\":");
+			while(str[0] == ' ')
+			{
+				str++;
+			}
+			info_buf[i][0] = str[0];
+			info_buf[i][1] = ':';
+			if (str = strstr(recv_buf, "name\":"))
+			{
+				str += strlen("name\":\"");
+				str = strstr(str, "\"") + 1;
+				while (str[n] != '"' )
+				{
+					info_buf[i][n+2] = str[n];
+					n++;
+				}
+			}
+			printf("%s\n", info_buf[i]);
+			i++;
 		}
 	}
 	fclose(fd);
-	int m, n;
+
+	int m, t;
 	int len = 0;
 
 	for (m = i-1; m >= 0 ; m--)
 	{
 		len = strlen(info_buf[m]);
-		for (n = 0; n < len; n++)
+		for (t = 0; t < len; t++)
 		{
-			info_buf[m][n] = toupper(info_buf[m][n]);
+			info_buf[m][t] = toupper(info_buf[m][t]);
 		}
 	}
-
+	
 	return 0;
 }
 
@@ -319,10 +333,10 @@ int set_DHCP_status(int NET_ID)
 	return err;
 }
 
-//[0,DEFAULT],[2,SONY],[2,SONY]
+//EDID-LIST? [0,"default.bin"],[1,"111.bin"],[4,"4444.bin"],[6,"666666.bin"] 
 int get_EDID_list(char EDID_buf[][SIZE2])
 {
-	int i = 0, n = 0;
+	int i = 0, n = 0, m = 0;
 	int err;
 	char recv_buf[SIZE1] = {0};
 	char *substr1 = NULL;
@@ -344,9 +358,14 @@ int get_EDID_list(char EDID_buf[][SIZE2])
 			if (substr2 != NULL)
 			{
 				substr2--;
+				m = 0;
 				for (n = 0; n <= (substr2 - substr1); n++)
 				{
-					EDID_buf[i][n] = toupper(substr1[n]);
+					if (substr1[n] != '"')
+					{
+						EDID_buf[i][m] = toupper(substr1[n]);
+						m++;
+					}
 				}
 				i++;
 			}
@@ -515,7 +534,7 @@ int set_INPUT_INFO(int num)
 int VIDEO_LIST(char info_buf[][SIZE2])
 {
 	int err;
-	err = get_specified_string_from_file(VIDEO_INFO_FILE, VIDEO_SYMBOL, info_buf);
+	err = get_specified_string_from_file(VIDEO_INFO_FILE, info_buf);
 	return err;
 }
 

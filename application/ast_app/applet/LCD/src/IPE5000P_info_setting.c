@@ -298,7 +298,7 @@ int save_FIREWARE_info_P()
 	memset(firmware_buf_P, 0, MIN_SIZE_P*SIZE_P);
 
 	err = get_FIRMWARE_INFO(firmware_buf_P);
-	if (err == 0)
+	if (err == -1)
 	{
 		for (i = 0; i < MIN_SIZE_P; i++)
 		{
