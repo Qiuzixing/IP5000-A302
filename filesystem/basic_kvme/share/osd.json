@@ -1,9 +1,0 @@
-{
-	"Channel menu":{
-	"timeout_sec": 100,
-	"position": "Left",
-	"font size": "Small",
-	"max channels_per page": 10,
-	"max channels": 999
-	}
-}
