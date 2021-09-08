@@ -40,8 +40,12 @@ int mysystem(char* cmdstring, char* buf, int len)
 		pclose(ptr);
 	}
 
-	//int size = strlen(buf);
-	//buf[size - 1] = 0;
+	if(strstr(cmdstring,"astparam")==0)
+	{
+		int size = strlen(buf);
+		buf[size - 1] = 0;
+	}
+
 	printf("mysystem cmdstring:%s,buf:%s\n",cmdstring,buf);
 	return 0;
 }
