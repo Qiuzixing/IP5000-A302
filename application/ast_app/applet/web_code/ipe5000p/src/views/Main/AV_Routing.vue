@@ -10,12 +10,14 @@
       </div>
       <div class="setting">
         <span class="setting-title">Stream ID</span>
-        <multiselect :searchable="true"
-                     style="width: 150px"
-                     :preserveSearch="true"
-                     v-model="channel"
-                     :options="channelList"
-                     @input="setChannel"></multiselect>
+        <el-input-number v-model="channel"
+                         controls-position="right"
+                         :max="999"
+                         :min="1"></el-input-number>
+        <button type="button"
+                class="btn btn-plain-primary"
+                style="margin-left: 24px;"
+                @click="setChannel">APPLY</button>
         <!-- <span>{{channel}}</span> -->
       </div>
       <div class="setting">
@@ -126,7 +128,7 @@ export default {
     if (this.$global.deviceType) {
       this.$socket.sendMsg('#X-ROUTE? out.hdmi.1.video.1')
     }
-    this.getAvChannelMap()
+    this.$socket.sendMsg('#KDS-DEFINE-CHANNEL? ')
     this.$socket.sendMsg('#KDS-DEFINE-CHANNEL-NAME? ')
     this.$socket.sendMsg('#X-AUD-LVL? out.analog_audio.1.audio.1')
     this.$socket.sendMsg('#KDS-ACTION? ')
@@ -231,22 +233,8 @@ export default {
       this.audioRate = data[data.length - 2]
       this.audioChannel = data[data.length - 3]
     },
-    async getAvChannelMap () {
-      await this.$http.get(
-        '/device/json?path=/channel/channel_map.json&t=' + Math.random()
-      ).then(msg => {
-        if (msg.data) {
-          const channelList = []
-          msg.data.channels_list.forEach(item => {
-            channelList.push({ value: item.id + '', label: '#' + item.id })
-          })
-          this.channelList = channelList
-        }
-      })
-      this.$socket.sendMsg('#KDS-DEFINE-CHANNEL? ')
-    },
-    setChannel (val) {
-      this.$socket.sendMsg('#KDS-DEFINE-CHANNEL ' + val)
+    setChannel () {
+      this.$socket.sendMsg('#KDS-DEFINE-CHANNEL ' + (this.channel || 1))
     }
   }
 }
