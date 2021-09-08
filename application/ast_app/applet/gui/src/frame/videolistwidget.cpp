@@ -20,8 +20,8 @@
 #include <QLabel>
 #include <QWidgetAction>
 
-#define MENUINFO_PATH      "osd/osd.json"
-#define CHANNELS_LIST_PATH "/channel/channel_map.json"
+#define MENUINFO_PATH      "/osd.json"
+#define CHANNELS_LIST_PATH "/test.json"
 
 using namespace std;
 
@@ -362,39 +362,39 @@ int OSDMeun::parseOSDPos(QString positon)
 
     int pos = -1;
     qDebug() << "parseOSDPos::positon:" << positon;
-    if(str.compare("top_center",Qt::CaseInsensitive) == 0)
+    if(str.compare("TopCenter",Qt::CaseInsensitive) == 0)
     {
         pos = TOP_MID;
     }
-    else if(str.compare("top_left",Qt::CaseInsensitive) == 0)
+    else if(str.compare("TopLeft",Qt::CaseInsensitive) == 0)
     {
         pos = TOP_LEFT;
     }
-    else if(str.compare("top_right",Qt::CaseInsensitive) == 0)
+    else if(str.compare("TopRight",Qt::CaseInsensitive) == 0)
     {
         pos = TOP_RIGTH;
     }
-    else if(str.compare("bottom_left",Qt::CaseInsensitive) == 0)
+    else if(str.compare("BottomLeft",Qt::CaseInsensitive) == 0)
     {
         pos = BOTTOM_LEFT;
     }
-    else if(str.compare("bottom_center",Qt::CaseInsensitive) == 0)
+    else if(str.compare("BottomCenter",Qt::CaseInsensitive) == 0)
     {
         pos = BOTTOM_MID;
     }
-    else if(str.compare("bottom_right",Qt::CaseInsensitive) == 0)
+    else if(str.compare("BottomRight",Qt::CaseInsensitive) == 0)
     {
         pos = BOTTOM_RIGHT;
     }
-    else if(str.compare("left",Qt::CaseInsensitive) == 0)
+    else if(str.compare("Left",Qt::CaseInsensitive) == 0)
     {
         pos = LEFT_MID;
     }
-    else if(str.compare("center",Qt::CaseInsensitive) == 0)
+    else if(str.compare("Center",Qt::CaseInsensitive) == 0)
     {
         pos = CENTER;
     }
-    else if(str.compare("right",Qt::CaseInsensitive) == 0)
+    else if(str.compare("Right",Qt::CaseInsensitive) == 0)
     {
         pos = RIGHT_MID;
     }
@@ -413,7 +413,7 @@ void OSDMeun::parseMeunJson(QString jsonpath)
 
     // 从文件中读取
    // string path = jsonpath.toStdString();
-    ifstream in(MENUINFO_PATH,ios::binary);
+    ifstream in("/share/osd.json",ios::binary);
 
     if(!in.is_open())
     {
@@ -425,26 +425,26 @@ void OSDMeun::parseMeunJson(QString jsonpath)
     if(reader.parse(in,root))
     {
         // 获取节点信息
-        int timeout = root["channel_menu"]["timeout_sec"].asInt();
-        string pos = root["channel_menu"]["position"].asString();
-        string size = root["channel_menu"]["font_size"].asString();
-        int channelnum = root["channel_menu"]["max_channels_per_page"].asInt();
-        int maxchannelnum = root["channel_menu"]["max_channels"].asInt();
+        int timeout = root["Channel menu"]["timeout_sec"].asInt();
+        string pos = root["Channel menu"]["position"].asString();
+        string size = root["Channel menu"]["font size"].asString();
+        int channelnum = root["Channel menu"]["max channels_per page"].asInt();
+        int maxchannelnum = root["Channel menu"]["max channels"].asInt();
 
         cout << "size:" << size << endl;
 
         QString str = size.c_str();
         qDebug() << "str:" << str;
         int fontsize;
-        if(str.compare("small") == 0)
+        if(str.compare("Small") == 0)
         {
             fontsize = Small;
         }
-        else if(str.compare("medium") == 0)
+        else if(str.compare("Mid") == 0)
         {
             fontsize = Mid;
         }
-        else if(str.compare("large") == 0)
+        else if(str.compare("Big") == 0)
         {
             fontsize = Big;
         }
@@ -532,7 +532,7 @@ void OSDMeun::parseChannelJson()
 
     // 从文件中读取
     //string path = jsonpath.toStdString();
-    ifstream in(CHANNELS_LIST_PATH,ios::binary);
+    ifstream in("/share/channel_map.json",ios::binary);
 
     if(!in.is_open())
     {
@@ -553,9 +553,10 @@ void OSDMeun::parseChannelJson()
 
         // 读取数组信息
          qDebug() << "list_2";
-        if(root["channels_list"].isArray())
+        if(root["channels list"].isArray())
         {
-            int arraySize = root["channels_list"].size();
+            int arraySize = root["channels list"].size();
+
             qDebug() << "list_3" << arraySize;
             //  最大频道数
             if(arraySize > m_maxChannels)
@@ -563,8 +564,8 @@ void OSDMeun::parseChannelJson()
 
             for (int i =0 ;i < arraySize; i++)
             {
-                channelId = root["channels_list"][i]["id"].asInt();
-                channelName = root["channels_list"][i]["name"].asString();
+                channelId = root["channels list"][i]["id"].asInt();
+                channelName = root["channels list"][i]["name"].asString();
 
 
                 qDebug() << "id is" << channelId;
