@@ -766,11 +766,13 @@ int CWeb::StreamReqHandler(struct mg_connection *conn, void *cbdata)
 
                 int n;
                 int result = 0;
-                FILE *fp;
+                FILE *fp = NULL;
                 char buf[640 * 1024];
                 struct stat st;
+                s_BmpMutex.Lock();
                 if (stat(MJPEG_TMP_JPG_FILE, &st) == 0 && (fp = fopen(MJPEG_TMP_JPG_FILE, "rb")) != NULL)
                 {
+                    s_MjpegMutex.Lock();
                     mg_printf(conn, "--w00t\r\nContent-Type: image/jpeg\r\n"
                             "Content-Length: %lu\r\n\r\n", (unsigned long) st.st_size);
                     while ((n = fread(buf, 1, sizeof(buf), fp)) > 0)
@@ -785,7 +787,9 @@ int CWeb::StreamReqHandler(struct mg_connection *conn, void *cbdata)
                     }
                     fclose(fp);
                     mg_write(conn, "\r\n", 2);
+                    s_MjpegMutex.Unlock();
                 }
+                s_BmpMutex.Unlock();
 
                 if(result != 0)
                 {
