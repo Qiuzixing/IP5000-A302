@@ -89,7 +89,7 @@ MainWidget::MainWidget(QWidget *parent) : QWidget(parent)
 
 
     // 设备连接
-     StartMsgDConnection();
+    // StartMsgDConnection();
 
 //    QString path = "/overlay.json";
 //    parseOverlayJson(path);
@@ -182,33 +182,33 @@ void MainWidget::focusOutEvent(QFocusEvent *e)
 
 void MainWidget::keyPressEvent(QKeyEvent *e)
 {
+    if (e->modifiers() == Qt::AltModifier && e->key() == Qt::Key_M)
+    {
+        showOsdMeun();
+    }
+    else if (e->modifiers() == Qt::AltModifier && e->key() == Qt::Key_F)
+    {
+        system("e e_start_kmoip");
+    }
     QWidget::keyPressEvent(e);
 }
 
 void MainWidget::getKMControl()
 {
     QString strCmd = "e e_stop_kmoip";
-    QProcess *p = new QProcess();
-    p->start("bash", QStringList() <<"-c" << strCmd);
-    if(p->waitForFinished())
-    {
-        m_bKvmMode = false;
-        delete p;
+    QProcess p;
+    p.start("bash", QStringList() <<"-c" << strCmd);
+    if(p.waitForFinished())
         qDebug() << "getKMControl finished";
-    }
 }
 
 void MainWidget::freeKMControl()
 {
     QString strCmd = "e e_start_kmoip";
-    QProcess *p = new QProcess();
-    p->start("bash", QStringList() <<"-c" << strCmd);
-    if(p->waitForFinished())
-    {
-        m_bKvmMode = true;
-        delete p;
+    QProcess p;
+    p.start("bash", QStringList() <<"-c" << strCmd);
+    if(p.waitForFinished())
         qDebug() << "freeKMControl finished";
-    }
 }
 
 void MainWidget::StartMsgDConnection()
@@ -234,7 +234,6 @@ void MainWidget::readMsgD()
     qDebug() << "Recv Device Msg";
     qint64 r = 0;
 
-    hdr.data_len = 0;
 
     if (hdr.data_len == 0) {
 
@@ -250,19 +249,30 @@ void MainWidget::readMsgD()
         qDebug() << "TYPE:" << hdr.type;
 
         if (hdr.type != INFOTYPE_RT
-            && hdr.type != INFOTYPE_ST
-            && hdr.type != INFOTYPE_OSD
-            && hdr.type != INFOTYPE_GUI_ACTION)
+         && hdr.type != INFOTYPE_ST
+         && hdr.type != INFOTYPE_OSD
+         && hdr.type != INFOTYPE_GUI_ACTION)
         {
             qDebug() << "Err Type";
+            //BruceToDo.
         }
     }
 
     if (m_tcpSocket->bytesAvailable() < hdr.data_len)
     {
-        qDebug() << "data too few:";
+        char buf[100] = {0};
+        //r = m_tcpSocket->read(buf,m_tcpSocket->bytesAvailable());
+        QByteArray datagram = m_tcpSocket->readAll();
+        if (r <= 0) {
+            qDebug() << "Msg format err2";
+            return;
+        }
+
+        qDebug() << "data too few:" << datagram;
         return;
     }
+
+
 
     QByteArray d(hdr.data_len, '\0');
     r = m_tcpSocket->read(d.data(), hdr.data_len);
@@ -273,22 +283,6 @@ void MainWidget::readMsgD()
     }
 
     qDebug() << "Recv Client Msg:" << d.constData();
-    QString str(d.constData());
-    qDebug() << "str:" << str;
-
-    if(str.isEmpty())
-        return;
-
-    if(str.compare("Hotkey3") == 0)
-    {
-        m_bKvmMode = false;
-        showOsdMeun();
-    }
-    else if(str.compare("Hotkey4") == 0)
-    {
-        m_bKvmMode = true;
-        hideOsdMeun();
-    }
 
     if (m_tcpSocket->bytesAvailable()) {
         readMsgD();
@@ -448,11 +442,6 @@ void MainWidget::hideOsdMeun()
     // 隐藏OSD菜单时，继续显示常显Overlay
     qDebug() << "main_0_4_1_2";
 
-    if(!m_bKvmMode)
-    {
-        freeKMControl();
-    }
-
     g_bOSDMeunDisplay = false;
     showLongDisplay();
 }
@@ -540,10 +529,16 @@ void MainWidget::moveOsdMeun(int position)
     qDebug() << "xpos:" << xpos;
     qDebug() << "ypos:" << ypos;
 
+//    xpos = (g_nframebufferWidth * xpos)/g_nScreenWidth;
+//    ypos = (g_nframebufferHeight * ypos)/g_nScreenHeight;
+
+//    qDebug() << "xpos:" << xpos;
+//    qDebug() << "ypos:" << ypos;
+
     m_osdMeun->move(xpos,ypos);
 
     moveFramebuffer(position);
-    setTransparency(80);
+    setTransparency(50);
     m_osdMeun->startTimer();
 }
 
@@ -654,6 +649,12 @@ void MainWidget::showOverlay(OSDLabel *overlay,int position)
              break;
          }
      }
+
+//     qDebug() << "xpos:" << xpos;
+//     qDebug() << "ypos:" << ypos;
+
+//     xpos = (1280 * xpos)/g_nScreenWidth;
+//     ypos = (720 * ypos)/g_nScreenHeight;
 
      qDebug() << "xpos:" << xpos;
      qDebug() << "ypos:" << ypos;

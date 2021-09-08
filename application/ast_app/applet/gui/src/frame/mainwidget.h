@@ -106,7 +106,6 @@ private:
 
     struct info_hdr hdr;
     QTcpSocket *m_tcpSocket;
-    bool m_bKvmMode;
 };
 
 #endif // MAINWIDGET_H
