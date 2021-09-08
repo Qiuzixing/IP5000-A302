@@ -934,8 +934,8 @@ void MainWidget::parseOverlayJson(QString jsonpath)
     Json::Reader reader;
     Json::Value root;
 
-    //jsonpath = "/share/" + jsonpath;
-    jsonpath = "/overlay/" + jsonpath;
+    jsonpath = "/share/" + jsonpath;
+    //jsonpath = "/overlay/" + jsonpath;
     QByteArray path = jsonpath.toLatin1();
     qDebug() << "path:" <<path;
 
