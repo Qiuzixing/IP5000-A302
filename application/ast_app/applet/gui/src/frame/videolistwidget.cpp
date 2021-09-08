@@ -1,7 +1,6 @@
 #include "videolistwidget.h"
 #include "common/global.h"
 #include "common/scale_global.h"
-#include "p3ktcp.h"
 
 #include "json/json.h"
 #include <string>
@@ -44,9 +43,6 @@ OSDMeun::OSDMeun(QWidget *parent)
 
     // 注册连接函数
     initConnect();
-
-    // P3K
-    m_p3ktcp = P3ktcp::getInstance();
 }
 
 void OSDMeun::focusOutEvent(QFocusEvent *e)
@@ -691,28 +687,21 @@ void OSDMeun::completeText(const QModelIndex &index)
     qDebug() << "itemtext:" << itemtext;
 
 
+    int channelid;
     QMap<int,QString>::iterator it = channelMap.begin();
     while(it != channelMap.end())
     {
         qDebug() << "it.value():" << it.value();
         if(it.value().compare(itemtext) == 0)
         {
-            m_channelID = it.key();
+            channelid = it.key();
             break;
         }
         it++;
     }
-    qDebug() << "channelid:" << m_channelID;
+    qDebug() << "channelid:" << channelid;
 
-    g_nChannelId = m_channelID;
     // 获取了点击的频道id, 设置频道切换或发送信号
-    QString strCmd = QString("#KDS-CHANNEL-SELECT %1\r").arg(m_channelID);
-    QByteArray byteCmd = strCmd.toLatin1();
-    if(m_p3ktcp->sendCmdToP3k(byteCmd))
-    {
-        qDebug("Set ChannelID YES");
-    }
-
     // ErrCode SetChannelId(int i_ch_id);
     // ErrCode SetChannelSelect(int i_ch_id);
 

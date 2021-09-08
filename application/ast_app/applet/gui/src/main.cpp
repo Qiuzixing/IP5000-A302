@@ -1,6 +1,4 @@
 #include <QtGui/QApplication>
-//#include "dialog.h"
-//#include "mainwindow.h"
 #include "frame/mainwidget.h"
 #include <QtPlugin>
 #include <QProcess>
@@ -17,7 +15,6 @@ float   g_fScaleScreen  = 1.0;
 
 bool g_bDeviceSleepMode = false;
 bool g_bOSDMeunDisplay = false;
-int g_nChannelId = -1;
 
 
 void CalcScreenScale(int nWidth, int nHeight, float &fScale)

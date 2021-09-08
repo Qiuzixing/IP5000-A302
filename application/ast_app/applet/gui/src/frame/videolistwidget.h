@@ -19,7 +19,6 @@ class QString;
 class QListView;
 class QStringListModel;
 class QModelIndex;
-class P3ktcp;
 
 class OSDMeun : public QWidget
 {
@@ -93,15 +92,12 @@ private:
     QStringList m_sreachList;
     QGridLayout *m_mainLayout;
 
-    P3ktcp* m_p3ktcp;
-
     static QMap<int,QString> channelMap;
     static QSet<int> channelId;
 
     int m_pageChannels; //  页面频道数
     int m_currentPage;
     int m_maxChannels;
-    int m_channelID;
 
     int m_showPosition;
     int m_FontSize;

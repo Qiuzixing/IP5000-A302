@@ -14,100 +14,138 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+//P3ktcp::P3ktcp(QObject *parent)
+//{
+//    m_TcpConn = new QTcpSocket();
 
-P3ktcp *P3ktcp::m_p3kMod=NULL;
+//    // 端口为5000
+//    m_Port = 5000;
+//    // 本地环回IP
+//    m_IP = QHostAddress::LocalHost;
 
-P3ktcp::P3ktcp(QObject *parent)
-    : QObject(parent)
-{
-    m_TcpConn = new QTcpSocket();
+//    connect(m_TcpConn, SIGNAL(readyRead()), this, SLOT(onReadPendingDatagrams()));
+//}
 
-    // 端口为5000
-    m_Port = 5000;
-    // 本地环回IP
-    m_IP = QHostAddress::LocalHost;
+//P3ktcp::~P3ktcp()
+//{
+//    if(m_TcpConn != nullptr)
+//    {
+//        m_TcpConn->close();
+//        m_TcpConn->deleteLater();
+//        m_TcpConn = 0;
+//    }
+//}
 
-    // 链接
-    p3kConnect(m_IP,m_Port);
+//QString P3ktcp::getIPAdress()
+//{
+//    QString strResult;
+//    QString strCmd = "e lmparam g MY_IP";
+//    QProcess *p = new QProcess();
+//    p->start("bash", QStringList() <<"-c" << strCmd);
+//    if(p->waitForFinished())
+//    {
+//        strResult = p->readAllStandardOutput();
+//        qDebug() << "getKMControl finished";
+//        p->deleteLater();
+//    }
+//    if(!strResult.isEmpty())
+//    {
+//        return strResult;
+//    }
+//}
 
-    connect(m_TcpConn, SIGNAL(readyRead()), this, SLOT(onReadPendingDatagrams()));
-}
+//void P3ktcp::p3kConnect(QHostAddress ip,int port)
+//{
+//    if(m_TcpConn == nullptr)
+//        return;
 
-P3ktcp::~P3ktcp()
-{
-    if(m_TcpConn != NULL)
-    {
-        m_TcpConn->close();
-        m_TcpConn->deleteLater();
-        m_TcpConn = 0;
-    }
-}
+//    qDebug() << "IP:" << ip;
+//    m_TcpConn->connectToHost(ip,port);
+//    if(m_TcpConn->waitForConnected(3000))
+//    {
+//        qDebug() << "P3K Connected";
 
-void P3ktcp::p3kConnect(QHostAddress ip,int port)
-{
-    if(m_TcpConn == NULL)
-        return;
+//        // 发送登录信息
+//        QString strCmd = "";
+//        QByteArray byteCmd = strCmd.toLatin1();
+//        sendCmdToP3k(byteCmd);
 
-    qDebug() << "IP:" << ip;
-    m_TcpConn->connectToHost(ip,port);
-    if(m_TcpConn->waitForConnected(3000))
-    {
-        qDebug() << "P3K Connected";
-
-        // 发送登录信息
-        QString strCmd = "#LOGIN admin,33333\r";
-        QByteArray byteCmd = strCmd.toLatin1();
-        sendCmdToP3k(byteCmd);
-    }
-    else
-    {
-        qDebug("P3K Connect failed");
-    }
-}
+//        // 等待返回信息
+//        m_TcpConn->waitForReadyRead();
+//    }
+//}
 
 
-bool P3ktcp::IsConnected()
-{
-    if(m_TcpConn != NULL && m_TcpConn->state() == QAbstractSocket::ConnectedState)
-        return true;
-    else
-        return false;
-}
+//bool P3ktcp::IsConnected()
+//{
+//    if(m_TcpConn != nullptr && m_TcpConn->state() == QAbstractSocket::ConnectedState)
+//        return true;
+//    else
+//        return false;
+//}
 
-void P3ktcp::closeP3kConnect()
-{
-    if(m_TcpConn != NULL)
-    m_TcpConn->close();
-}
+//void P3ktcp::closeP3kConnect()
+//{
+//    if(m_TcpConn != nullptr)
+//    m_TcpConn->close();
+//}
 
-bool P3ktcp::sendCmdToP3k(const char *lpBuf)
-{
-    qDebug() << "SendCmd："<< lpBuf;
-    if(lpBuf == NULL)
-        return false;
+//bool P3ktcp::sendCmdToP3k(const char *lpBuf)
+//{
+//    if(lpBuf != nullptr)
 
-    if(IsConnected() && m_TcpConn->isValid())
-    {
-        int ret = m_TcpConn->write(lpBuf,strlen(lpBuf));
-        if(ret == -1)
-        {
-            qDebug("Send P3kcmd failed-write;");
-            return false;
-        }
-        return true;
-    }
-    qDebug("Send P3kcmd failed-connect;");
-    return false;
-}
+//    if(IsConnected() && m_TcpConn->isValid())
+//        m_TcpConn->write(lpBuf,strlen(lpBuf));
 
-void P3ktcp::onReadPendingDatagrams()
-{
-    qDebug("-----P3ktcpRCV_MSG-----");
-    QByteArray datagrams;
-    datagrams = m_TcpConn->readAll();
+//}
 
-    emit tcpRcvMsg(datagrams);
-}
+//void P3ktcp::onReadPendingDatagrams()
+//{
+//    QByteArray dategrams;
+//    dategrams.resize(m_TcpConn->readAll().size());
+//    dategrams = m_TcpConn->readAll();
+//}
+
+//void P3ktcp::parseCmdResult(QByteArray datagram)
+//{
+//    if(datagram.isEmpty())
+//        return;
+
+//    qDebug()<<"datagram:" << datagram;
+//    // '#'号开头为接收的命令，'~nn@'开头为返回数据
+
+//    if(datagram.startsWith("#"))
+//    {
+//        datagram = datagram.mid(1);
+//    }
+//    else if(datagram.startsWith("~nn@"))
+//    {
+//        datagram = datagram.mid(4);
+//    }
+
+//    QStringList argList = QString(datagram).split(" ");
+
+//    if(argList.at(0) == "KDS_OSD_DISPLAY")
+//    {
+//        //发送信号到主界面，根据mode参数设置OSD显示状态
+//        emit setOsdDisplay(argList.at(1).toInt());
+//    }
+//    else if(argList.at(0) == "KDS_OSD_DISPLAY?")
+//    {
+//        // 返回命令？获取OSD显示状态，发送给P3K
+
+//    }
+//    else if(argList.at(0) == "KDS_START_DISPLAY")
+//    {
+//        // 开始overlay
+//        emit startOverlay(argList.at(1),argList.at(2).toInt());
+//    }
+//    else if(argList.at(0) == "KDS_STOP_OVERLAY")
+//    {
+//        // 停止overlay
+//        emit stopOverlay();
+//    }
+//}
 
 #define UDP_PORT 5588
 
@@ -179,7 +217,7 @@ void UdpRecvThread::run()
             }
             printf("recv is %s\n",buf);
             QByteArray data(buf);
-            if(data.contains("GET_OSD_DISPALY"))
+            if(data.startsWith("GET"))
             {
                 char replybuf[16] = {0};
                 if(g_bOSDMeunDisplay)
@@ -187,18 +225,6 @@ void UdpRecvThread::run()
                 else
                     strcpy(replybuf,"0");
 
-                int ret = sendto(UdpRecv_fd,replybuf,sizeof(replybuf),0,(struct sockaddr*)&client,sizeof(client));
-                if(recvNum > 0)
-                {
-                    printf("send finished: %d\n",ret);
-                }
-            }
-            else if(data.contains("GET_CHANNEL_ID"))
-            {
-                char replybuf[16] = {0};
-                QString str = QString("%1").arg(g_nChannelId);
-                QByteArray strResult = str.toLatin1();
-                strcpy(replybuf,strResult);
                 int ret = sendto(UdpRecv_fd,replybuf,sizeof(replybuf),0,(struct sockaddr*)&client,sizeof(client));
                 if(recvNum > 0)
                 {

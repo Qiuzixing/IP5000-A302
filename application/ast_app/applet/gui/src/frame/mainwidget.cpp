@@ -89,7 +89,7 @@ MainWidget::MainWidget(QWidget *parent) : QWidget(parent)
 
 
     // 设备连接
-    // StartMsgDConnection();
+     StartMsgDConnection();
 
 //    QString path = "/overlay.json";
 //    parseOverlayJson(path);
@@ -99,48 +99,11 @@ MainWidget::MainWidget(QWidget *parent) : QWidget(parent)
     UdpRecv->start();
 
     connect(UdpRecv,SIGNAL(RecvData(QByteArray)),this,SLOT(onRecvData(QByteArray)));
-
-    m_p3kTcp = P3ktcp::getInstance();
-    connect(m_p3kTcp,SIGNAL(tcpRcvMsg(QByteArray)),this,SLOT(parseCmdResult(QByteArray)));
 }
 
 MainWidget::~MainWidget()
 {
 
-}
-
-
-void MainWidget::parseCmdResult(QByteArray datagram)
-{
-    if(datagram.isEmpty())
-    {
-        qDebug()<<"Datagram Is Null";
-        return;
-    }
-
-    qDebug()<<"datagram:" << datagram;
-    // '#'号开头为接收的命令，'~nn@'开头为返回数据
-
-    if(datagram.startsWith("~01@"))
-    {
-        datagram = datagram.mid(4);
-    }
-
-    QStringList argList = QString(datagram).split(" ").at(1).split(",");
-
-    if(datagram.contains("VIEW-MOD") && argList.size() == 3)
-    {
-        if(argList.at(0).toInt() == 15)
-        {
-            m_nVideoWall_H = argList.at(1).toInt();
-            m_nVideoWall_V = argList.at(2).toInt();
-        }
-    }
-    else if(datagram.contains("VIDEO-WALL-SETUP") && argList.size() == 2)
-    {
-        m_nVideoWall_ID = argList.at(0).toInt();
-        m_nVideoWall_R = argList.at(1).toInt();
-    }
 }
 
 void MainWidget::onRecvData(QByteArray data)
@@ -219,33 +182,33 @@ void MainWidget::focusOutEvent(QFocusEvent *e)
 
 void MainWidget::keyPressEvent(QKeyEvent *e)
 {
-    if (e->modifiers() == Qt::AltModifier && e->key() == Qt::Key_M)
-    {
-        showOsdMeun();
-    }
-    else if (e->modifiers() == Qt::AltModifier && e->key() == Qt::Key_F)
-    {
-        system("e e_start_kmoip");
-    }
     QWidget::keyPressEvent(e);
 }
 
 void MainWidget::getKMControl()
 {
     QString strCmd = "e e_stop_kmoip";
-    QProcess p;
-    p.start("bash", QStringList() <<"-c" << strCmd);
-    if(p.waitForFinished())
+    QProcess *p = new QProcess();
+    p->start("bash", QStringList() <<"-c" << strCmd);
+    if(p->waitForFinished())
+    {
+        m_bKvmMode = false;
+        delete p;
         qDebug() << "getKMControl finished";
+    }
 }
 
 void MainWidget::freeKMControl()
 {
     QString strCmd = "e e_start_kmoip";
-    QProcess p;
-    p.start("bash", QStringList() <<"-c" << strCmd);
-    if(p.waitForFinished())
+    QProcess *p = new QProcess();
+    p->start("bash", QStringList() <<"-c" << strCmd);
+    if(p->waitForFinished())
+    {
+        m_bKvmMode = true;
+        delete p;
         qDebug() << "freeKMControl finished";
+    }
 }
 
 void MainWidget::StartMsgDConnection()
@@ -271,6 +234,7 @@ void MainWidget::readMsgD()
     qDebug() << "Recv Device Msg";
     qint64 r = 0;
 
+    hdr.data_len = 0;
 
     if (hdr.data_len == 0) {
 
@@ -286,30 +250,19 @@ void MainWidget::readMsgD()
         qDebug() << "TYPE:" << hdr.type;
 
         if (hdr.type != INFOTYPE_RT
-         && hdr.type != INFOTYPE_ST
-         && hdr.type != INFOTYPE_OSD
-         && hdr.type != INFOTYPE_GUI_ACTION)
+            && hdr.type != INFOTYPE_ST
+            && hdr.type != INFOTYPE_OSD
+            && hdr.type != INFOTYPE_GUI_ACTION)
         {
             qDebug() << "Err Type";
-            //BruceToDo.
         }
     }
 
     if (m_tcpSocket->bytesAvailable() < hdr.data_len)
     {
-        char buf[100] = {0};
-        //r = m_tcpSocket->read(buf,m_tcpSocket->bytesAvailable());
-        QByteArray datagram = m_tcpSocket->readAll();
-        if (r <= 0) {
-            qDebug() << "Msg format err2";
-            return;
-        }
-
-        qDebug() << "data too few:" << datagram;
+        qDebug() << "data too few:";
         return;
     }
-
-
 
     QByteArray d(hdr.data_len, '\0');
     r = m_tcpSocket->read(d.data(), hdr.data_len);
@@ -320,6 +273,22 @@ void MainWidget::readMsgD()
     }
 
     qDebug() << "Recv Client Msg:" << d.constData();
+    QString str(d.constData());
+    qDebug() << "str:" << str;
+
+    if(str.isEmpty())
+        return;
+
+    if(str.compare("Hotkey3") == 0)
+    {
+        m_bKvmMode = false;
+        showOsdMeun();
+    }
+    else if(str.compare("Hotkey4") == 0)
+    {
+        m_bKvmMode = true;
+        hideOsdMeun();
+    }
 
     if (m_tcpSocket->bytesAvailable()) {
         readMsgD();
@@ -479,6 +448,11 @@ void MainWidget::hideOsdMeun()
     // 隐藏OSD菜单时，继续显示常显Overlay
     qDebug() << "main_0_4_1_2";
 
+    if(!m_bKvmMode)
+    {
+        freeKMControl();
+    }
+
     g_bOSDMeunDisplay = false;
     showLongDisplay();
 }
@@ -490,6 +464,7 @@ void MainWidget::showOsdMeun()
 
     m_osdMeun->resize(m_osdMeun->width(),height());
     m_osdMeun->setVisible(true);
+
     moveOsdMeun(m_osdMeun->getShowPosition());
 }
 
@@ -565,11 +540,6 @@ void MainWidget::moveOsdMeun(int position)
     qDebug() << "xpos:" << xpos;
     qDebug() << "ypos:" << ypos;
 
-//    xpos = (g_nframebufferWidth * xpos)/g_nScreenWidth;
-//    ypos = (g_nframebufferHeight * ypos)/g_nScreenHeight;
-
-//    qDebug() << "xpos:" << xpos;
-//    qDebug() << "ypos:" << ypos;
     m_osdMeun->move(xpos,ypos);
 
     moveFramebuffer(position);
@@ -684,12 +654,6 @@ void MainWidget::showOverlay(OSDLabel *overlay,int position)
              break;
          }
      }
-
-//     qDebug() << "xpos:" << xpos;
-//     qDebug() << "ypos:" << ypos;
-
-//     xpos = (1280 * xpos)/g_nScreenWidth;
-//     ypos = (720 * ypos)/g_nScreenHeight;
 
      qDebug() << "xpos:" << xpos;
      qDebug() << "ypos:" << ypos;
@@ -976,46 +940,16 @@ void MainWidget::segmentationPic(QString picpath)
     reader.setScaledSize(imageSize); // 缩放图片适应屏幕
     image = reader.read();
 
-    m_nVideoWall_H = -1;
-    m_nVideoWall_ID = -1;
-    m_nVideoWall_R = -1;
-    m_nVideoWall_V = -1;
-
     //  获取电视墙mode，确定分割方式
     // GetVideoWallMode();
-    QString strCmd = QString("#VIEW-MOD?\r");
-    QByteArray byteCmd = strCmd.toLatin1();
-    if(m_p3kTcp->sendCmdToP3k(byteCmd))
-    {
-        qDebug("Get VIEW-MOD YES");
-    }
-
-    // 获取该设备在电视墙中的位置,旋转角
-    // GetVideoWallSetup()
-    strCmd = QString("#VIDEO-WALL-SETUP?\r");
-    byteCmd = strCmd.toLatin1();
-    if(m_p3kTcp->sendCmdToP3k(byteCmd))
-    {
-        qDebug("Get VIDEO-WALL-SETUP YES");
-    }
 
     int column = 4;
     int row = 4;
+
+    // 获取该设备在电视墙中的位置,旋转角
+    // GetVideoWallSetup()
     int out_id = 3;
     int rotation = 0;
-
-    usleep(2000);
-
-    if(m_nVideoWall_H != -1 && m_nVideoWall_V != -1 && m_nVideoWall_ID != -1 && m_nVideoWall_R != -1)
-    {
-        column = m_nVideoWall_V;
-        row = m_nVideoWall_H;
-
-        out_id = m_nVideoWall_ID;
-        rotation = m_nVideoWall_R;
-    }
-
-
 
     // 确定目标区域的宽高, 起始坐标
      int width = this->width()/column;
