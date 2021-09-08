@@ -58,7 +58,7 @@
       <div class="radio-setting"
            style="margin-bottom: 24px;">
         <span class="setting-title">Image Preview</span>
-        <img src="/preview"
+        <img src="/stream"
              alt=""
              style="max-width: 320px;">
       </div>
