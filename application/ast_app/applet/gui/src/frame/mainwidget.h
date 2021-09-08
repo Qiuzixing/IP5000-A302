@@ -5,10 +5,16 @@
 #include <QKeyEvent>
 #include <QStackedWidget>
 #include <QTcpSocket>
+#include <QHBoxLayout>
 #include "osdlabel.h"
 #include "p3ktcp.h"
 
 #include "modules/sleepmode/sleeppanel.h"
+
+#define STR_BUF_SIZE 64
+#define MAX_STR_LEN (STR_BUF_SIZE - 1)
+#define V_OVERSCANBORDER(height) ((int)((height)*5/100/2))
+#define H_OVERSCANBORDER(width)  ((int)((width)*17.5/100/2))
 
 class QFileSystemWatcher;
 class QTimer;
@@ -21,6 +27,37 @@ struct info_hdr {
     unsigned int data_len;
     char data[];
 };
+
+struct static_info {
+    char IP[STR_BUF_SIZE];
+    char FW[STR_BUF_SIZE];
+    char RemoteIP[STR_BUF_SIZE];
+    char ID[STR_BUF_SIZE];
+};
+
+struct rinfo_hidden {
+    int     hidden;  // 1:hide,0:not hide
+};
+
+struct runtime_info {
+    char str[STR_BUF_SIZE];
+};
+
+struct gui_show_info {
+    unsigned int show_text;		//1: show, 0: hide
+    char picture_name[STR_BUF_SIZE];
+};
+
+struct gui_action_info {
+  unsigned int action_type;
+  union {
+    char buf[STR_BUF_SIZE];
+    unsigned int show_dialog; //1: show, 0: hide
+    unsigned int refresh_node; //1: refresh, 0: no refresh
+    struct gui_show_info show_info;
+  } ub;
+};
+
 
 class MainWidget : public QWidget
 {
@@ -82,6 +119,11 @@ private:
     void initPanelStack();
     void initOverlayLabelConnect(OSDLabel *label);
     void StartMsgDConnection();
+    void initInfoLandIndoR();
+    void parseMsg(QByteArray &data, unsigned int type);
+    void updateInfoR();
+    void updateInfoL();
+    void updateGUI();
 
 private:
     QStackedWidget  *m_panelStack;
@@ -92,6 +134,9 @@ private:
 
     OSDLabel *m_imageOverlay;
     OSDLabel *m_textOverlay;
+
+    OSDLabel *infoL;
+    OSDLabel *infoR;
 
     static QMap<int, OSDLabel *> g_overlayMap;
     static QSet<int> osdIdSet;
@@ -107,8 +152,15 @@ private:
     UdpRecvThread* UdpRecv;
     P3ktcp *m_p3kTcp;
 
+    struct static_info sInfo;
     struct info_hdr hdr;
+    struct runtime_info rInfo;
+    struct rinfo_hidden rinfoHidden;
+    struct gui_action_info guiActionInfo;
+    bool bRinfoDlgHidden;
+
     QTcpSocket *m_tcpSocket;
+    bool m_bKvmMode;
 
     int m_nVideoWall_H;
     int m_nVideoWall_V;

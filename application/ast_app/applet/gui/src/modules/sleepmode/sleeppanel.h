@@ -6,6 +6,7 @@
 #include <QPixmap>
 #include <QImage>
 #include <QFileSystemWatcher>
+#include <QLabel>
 
 class SleepPanel : public ModulePanel
 {
