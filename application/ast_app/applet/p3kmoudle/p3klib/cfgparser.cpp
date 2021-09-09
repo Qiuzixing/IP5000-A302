@@ -4252,11 +4252,12 @@ int Cfg_Set_Dec_Usb_KVM()
 				printf("%s\n",cmd);
 			}
 
-			if(!root[JSON_USB_KVM_ACTIVE].empty())
+			if(!root[JSON_USB_KVM_TIMEOUT].empty())
 			{
 				char cmd[256] = "";
-				int interval =  root[JSON_USB_KVM_ACTIVE].asInt();
+				int interval =  root[JSON_USB_KVM_TIMEOUT].asInt();
 
+				if((interval <= 10)&&(interval >= 0))
 				{
 					sprintf(cmd,"astparam s kmoip_token_interval %d;astparam save",interval*60*1000);
 					system(cmd);

@@ -201,6 +201,10 @@ int classTest(int a,int b)
 
 int sendCmdtoGUI(const char *buf)
 {
+	printf("sendCmdtoGUI \n");
+	return 0;
+
+	//
 	char sendbuf[BUFSIZE] = {0};
 	memcpy(sendbuf,buf,strlen(buf)+1);
 	// ³õÊ¼»¯
