@@ -1408,7 +1408,7 @@ handle_e_ip_got()
 		usleep 10000
 		web &
 		case $MODEL_NUMBER in
-			KDS-DEC-6X)
+			KDS-DEC7)
 				lcd_display IPD5000 &
 			;;
 			*)
@@ -2847,12 +2847,6 @@ handle_e_p3k_fp_lock()
 			ipc @m_lm_set s set_gpio_val:1:65:0
 			usleep 500000
 			case $MODEL_NUMBER in
-				KDS-SW3-EN7)
-					lcd_display IPE5000P &
-				;;
-				KDS-EN7)
-					lcd_display IPE5000 &
-				;;
 				KDS-DEC7)
 					lcd_display IPD5000 &
 				;;
