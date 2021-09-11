@@ -801,8 +801,8 @@ int Cfg_Init_Version(void)
 
 	if(reader.parse(pBuf, root1))
 	{
-	sprintf(g_version_info.standby_version,"1.0.0");
-	sprintf(g_version_info.upg_time,"01-01-2020,00:00:00");
+//	sprintf(g_version_info.standby_version,"1.0.0");
+//	sprintf(g_version_info.upg_time,"01-01-2020,00:00:00");
 		if(!root1[JSON_VERSION].empty())
 		{
 			Json::Value& root = root1[JSON_VERSION];
@@ -2521,6 +2521,8 @@ int Cfg_Update_Version(void)
 	root[JSON_VER_FILE] = g_version_info.file_version;
 	root[JSON_VER_UPG_TIME] = g_version_info.upg_time;
 	root[JSON_VER_STB_VERSION] = g_version_info.standby_version;
+
+	DBG_InfoMsg("Cfg_Update_Device JSON_VER_STB_VERSION %s\n",g_version_info.standby_version);
 
 	Json::Value device;
 	device[JSON_VER_MODEL] = g_version_info.model;

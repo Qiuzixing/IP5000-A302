@@ -2843,7 +2843,7 @@ handle_e_p3k_switch_in()
 handle_e_p3k_fp_lock()
 {
 	case "$event" in
-		e_p3k_fp_lock_on)
+		e_p3k_fp_lock_off)
 			ipc @m_lm_set s set_gpio_val:1:65:0
 			usleep 500000
 			case $MODEL_NUMBER in
@@ -2855,7 +2855,7 @@ handle_e_p3k_fp_lock()
 				;;
 			esac
 		;;
-		e_p3k_fp_lock_off)
+		e_p3k_fp_lock_on)
 			ipc @m_lm_set s set_gpio_val:1:65:1
 			pkill -9 lcd_display
 		;;

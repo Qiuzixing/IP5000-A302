@@ -702,6 +702,37 @@ int EX_SetRollback(char * type)
 {
 	char * aOk = "ok";
 	memcpy(type,aOk,strlen(aOk));
+
+	char* cmd1 = "astparam misc g cursys";
+	char buf1[64] = "";
+
+	mysystem(cmd1,buf1,16);
+
+	if(strstr(buf1,"not defined") != 0)
+	{
+		printf("EX_SetRollback not defined\n");
+		return 0;
+	}
+	else if(strstr(buf1,"a") != 0)
+	{
+		strcpy(g_version_info.standby_version,g_version_info.fw_version);
+		Cfg_Update_Version();
+		system("astparam misc s cursys b");
+		system("reboot");
+	}
+	else if(strstr(buf1,"b") != 0)
+	{
+		strcpy(g_version_info.standby_version,g_version_info.fw_version);
+		Cfg_Update_Version();
+		system("astparam misc s cursys a");
+		system("reboot");
+	}
+	else
+	{
+		return 0;
+	}
+
+
 	return 0;
 }
 
@@ -1095,8 +1126,10 @@ int EX_GetHWVersion(char * date)
 
 int EX_GetStandbyVersion(char * date)
 {
-	char * version = "1.12.123";
-	memcpy(date,version,strlen(version));
+	//char * version = "1.12.123";
+	//memcpy(date,version,strlen(version));
+
+	strcpy(date,g_version_info.standby_version);
 	return 0;
 }
 
@@ -2586,6 +2619,8 @@ int EX_Upgrade(void)
 {
 
 //	Cfg_Set_UPG_Info();
+	strcpy(g_version_info.standby_version,g_version_info.fw_version);
+	Cfg_Update_Version();
 
 	printf("EX_Upgrade \n");
 
@@ -2688,6 +2723,8 @@ int EX_GetBeaconInfo(int portNumber,BeaconInfo_S*info)
 }
 int EX_DeviceReset(void)
 {
+	printf("EX_DeviceReset\n");
+	system("reboot");
 	return 0;
 }
 int EX_FactoryRecovery(void)
