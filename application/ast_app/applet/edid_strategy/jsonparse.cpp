@@ -21,7 +21,7 @@ void PrintJsonStruct()
 											g_jsonfilestruct.buf_2,g_jsonfilestruct.buf_3,g_jsonfilestruct.buf_4);
 }
 
-bool ParseJsonFile(const char * i_modejsonfile)
+bool ParseJsonFile(const char * i_modejsonfile,unsigned char *last_index)
 {
 	InitJsonFileStruct();
 	int i = 0;
@@ -47,8 +47,17 @@ bool ParseJsonFile(const char * i_modejsonfile)
 				{
 					printf("Warning : buf_0 'size is too small\n");
 				}
-				memcpy(g_jsonfilestruct.buf_0,buf0.c_str(),sizeof(g_jsonfilestruct.buf_0) - 1);//because the string needs to end with '\0'
+				if(buf0.length() == 0)
+				{
+					*last_index = 0;
+					return true;
+				}
+				else
+				{
+					memcpy(g_jsonfilestruct.buf_0,buf0.c_str(),sizeof(g_jsonfilestruct.buf_0) - 1);//because the string needs to end with '\0'
+				}
 			}
+			
 			if(!root["1"].empty())
 			{
 				string buf1 = root["1"].asString();
@@ -56,8 +65,17 @@ bool ParseJsonFile(const char * i_modejsonfile)
 				{
 					printf("Warning : buf_1 'size is too small\n");
 				}
-				memcpy(g_jsonfilestruct.buf_1,buf1.c_str(),sizeof(g_jsonfilestruct.buf_1) - 1);
+				if(buf1.length() == 0)
+				{
+					*last_index = 1;
+					return true;
+				}
+				else
+				{
+					memcpy(g_jsonfilestruct.buf_1,buf1.c_str(),sizeof(g_jsonfilestruct.buf_1) - 1);
+				}
 			}
+			
 			if(!root["2"].empty())
 			{
 				string buf2 = root["2"].asString();
@@ -65,8 +83,17 @@ bool ParseJsonFile(const char * i_modejsonfile)
 				{
 					printf("Warning : buf_2 'size is too small\n");
 				}
-				memcpy(g_jsonfilestruct.buf_2,buf2.c_str(),sizeof(g_jsonfilestruct.buf_2) - 1);
+				if(buf2.length() == 0)
+				{
+					*last_index = 2;
+					return true;
+				}
+				else
+				{
+					memcpy(g_jsonfilestruct.buf_2,buf2.c_str(),sizeof(g_jsonfilestruct.buf_2) - 1);
+				}
 			}
+
 			if(!root["3"].empty())
 			{
 				string buf3 = root["3"].asString();
@@ -74,8 +101,17 @@ bool ParseJsonFile(const char * i_modejsonfile)
 				{
 					printf("Warning : buf_3 'size is too small\n");
 				}
-				memcpy(g_jsonfilestruct.buf_3,buf3.c_str(),sizeof(g_jsonfilestruct.buf_3) - 1);
+				if(buf3.length() == 0)
+				{
+					*last_index = 3;
+					return true;
+				}
+				else
+				{
+					memcpy(g_jsonfilestruct.buf_3,buf3.c_str(),sizeof(g_jsonfilestruct.buf_3) - 1);
+				}
 			}
+
 			if(!root["4"].empty())
 			{
 				string buf4 = root["4"].asString();
@@ -83,8 +119,17 @@ bool ParseJsonFile(const char * i_modejsonfile)
 				{
 					printf("Warning : buf_4 'size is too small\n");
 				}
-				memcpy(g_jsonfilestruct.buf_4,buf4.c_str(),sizeof(g_jsonfilestruct.buf_4) - 1);
+				if(buf4.length() == 0)
+				{
+					*last_index = 4;
+					return true;
+				}
+				else
+				{
+					memcpy(g_jsonfilestruct.buf_4,buf4.c_str(),sizeof(g_jsonfilestruct.buf_4) - 1);
+				}
 			}
+
 			if(!root["5"].empty())
 			{
 				string buf5 = root["5"].asString();
@@ -92,8 +137,17 @@ bool ParseJsonFile(const char * i_modejsonfile)
 				{
 					printf("Warning : buf_5 'size is too small\n");
 				}
-				memcpy(g_jsonfilestruct.buf_5,buf5.c_str(),sizeof(g_jsonfilestruct.buf_5) - 1);
+				if(buf5.length() == 0)
+				{
+					*last_index = 5;
+					return true;
+				}
+				else
+				{
+					memcpy(g_jsonfilestruct.buf_5,buf5.c_str(),sizeof(g_jsonfilestruct.buf_5) - 1);
+				}
 			}
+
 			if(!root["6"].empty())
 			{
 				string buf6 = root["6"].asString();
@@ -101,8 +155,17 @@ bool ParseJsonFile(const char * i_modejsonfile)
 				{
 					printf("Warning : buf_6 'size is too small\n");
 				}
-				memcpy(g_jsonfilestruct.buf_6,buf6.c_str(),sizeof(g_jsonfilestruct.buf_6) - 1);
+				if(buf6.length() == 0)
+				{
+					*last_index = 6;
+					return true;
+				}
+				else
+				{
+					memcpy(g_jsonfilestruct.buf_6,buf6.c_str(),sizeof(g_jsonfilestruct.buf_6) - 1);
+				}
 			}
+
 			if(!root["7"].empty())
 			{
 				string buf7 = root["7"].asString();
@@ -110,7 +173,15 @@ bool ParseJsonFile(const char * i_modejsonfile)
 				{
 					printf("Warning : buf_7 'size is too small\n");
 				}
-				memcpy(g_jsonfilestruct.buf_7,buf7.c_str(),sizeof(g_jsonfilestruct.buf_7) - 1);
+				if(buf7.length() == 0)
+				{
+					*last_index = 7;
+					return true;
+				}
+				else
+				{
+					memcpy(g_jsonfilestruct.buf_7,buf7.c_str(),sizeof(g_jsonfilestruct.buf_7) - 1);
+				}
 			}
 		} 
 	}
@@ -330,4 +401,28 @@ bool SaveStruct2File(const char * i_jsonfilename)
 	return true;
 }
 
+void reorder_edidlist(E_Buf_Name index)
+{
+	switch(index)
+	{
+		case e_buf_0:
+		case e_buf_1:
+			SetStructBuf1Value(g_jsonfilestruct.buf_2);
+		case e_buf_2:
+			SetStructBuf2Value(g_jsonfilestruct.buf_3);
+		case e_buf_3:
+			SetStructBuf3Value(g_jsonfilestruct.buf_4);
+		case e_buf_4:
+			SetStructBuf4Value(g_jsonfilestruct.buf_5);
+		case e_buf_5:
+			SetStructBuf5Value(g_jsonfilestruct.buf_6);
+		case e_buf_6:
+			SetStructBuf6Value(g_jsonfilestruct.buf_7);
+		case e_buf_7:
+			SetStructBuf7Value("");
+			break;
+		default:
+			break;
 
+	}
+}

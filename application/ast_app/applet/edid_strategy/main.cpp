@@ -330,7 +330,8 @@ static void edid_mode_is_custom(unsigned char index,char *edid_list_path,unsigne
 {
     char *edid_file_name = NULL;
     char edid_file_path[EDID_PATH_LENGTH] = {0};
-    if (false == ParseJsonFile(edid_list_path))
+    unsigned char last_index = 0;
+    if (false == ParseJsonFile(edid_list_path,&last_index))
     {
         return;
     }
@@ -366,7 +367,12 @@ static void do_handle_edid_file(char op_edid_file, char *edid_file, unsigned cha
 {
     char *edid_file_name = NULL;
     char edid_file_path[EDID_PATH_LENGTH] = {0};
-    if (false == ParseJsonFile(edid_list_path))
+    unsigned char last_index = 0;
+    if (false == ParseJsonFile(edid_list_path,&last_index))
+    {
+        return;
+    }
+    if(last_index == 0)
     {
         return;
     }
@@ -375,7 +381,7 @@ static void do_handle_edid_file(char op_edid_file, char *edid_file, unsigned cha
     case READ_EDID_FILE:
         break;
     case ADD_EDID_FILE:
-        SetStructBufValue((E_Buf_Name)index, edid_file);
+        SetStructBufValue((E_Buf_Name)last_index, edid_file);
         SaveStruct2File(edid_list_path);
         break;
     case DELETE_EDID_FILE:
@@ -390,7 +396,7 @@ static void do_handle_edid_file(char op_edid_file, char *edid_file, unsigned cha
         {
             sprintf(edid_file_path,"%s%s",board_name_list[0].edid_path,edid_file_name);
             remove_edid_file(edid_file_path);
-            SetStructBufValue((E_Buf_Name)index, "");
+            reorder_edidlist((E_Buf_Name)index);
             SaveStruct2File(edid_list_path);
         }
         
@@ -578,7 +584,7 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    if(edid_file_map_index == 0 && 0 != strcmp(edid_mode, "custom"))
+    if(edid_file_map_index == 0 && edid_mode == NULL)
     {
         printf("Index 0 indicates that the increase cannot be deleted by default\n");
         return 0;

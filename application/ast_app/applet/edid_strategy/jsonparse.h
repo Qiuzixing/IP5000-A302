@@ -30,13 +30,13 @@ enum E_Buf_Name
 	e_buf_7
 };
 
-bool ParseJsonFile(const char * i_modejsonfile);
+bool ParseJsonFile(const char * i_modejsonfile,unsigned char *last_index);
 
 void SetStructBufValue(E_Buf_Name i_name,const char * i_value);
 
 char * GetStructBufValue(E_Buf_Name i_name);
 
-
+void reorder_edidlist(E_Buf_Name index);
 
 bool SaveStruct2File(const char * i_jsonfilename);
 
