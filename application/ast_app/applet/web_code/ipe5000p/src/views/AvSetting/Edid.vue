@@ -34,10 +34,11 @@
       <div style="margin-left: 24px;">
         <el-upload action="/upload/edid"
                    :on-success="upgradeFile"
-                   :auto-upload="false"
-                   :file-list="fileList">
+                   :before-upload="checkEDID"
+                   :show-file-list="false"
+                   :auto-upload="true">
           <button class="btn btn-plain-primary"
-                  :disabled="edidLock==='1'">UPLOAD</button>
+                  :disabled="edidLock==='1' || edidList.length > 7">UPLOAD</button>
 
         </el-upload>
         <br>
@@ -126,6 +127,10 @@ export default {
         this.handleEDIDCustomSelect(msg)
         return
       }
+      if (msg.search(/@EDID-ADD /i) !== -1) {
+        this.handleDeleteEDID(msg)
+        return
+      }
       if (msg.search(/@EDID-RM /i) !== -1) {
         this.handleDeleteEDID(msg)
       }
@@ -162,21 +167,22 @@ export default {
       this.$socket.sendMsg(`#EDID-RM ${this.isSelectListIndex}`)
     },
     handleDeleteEDID (msg) {
-      let index = msg.split(' ')[1]
-      if (index) {
-        index = parseInt(index)
-        let start = -1
-        for (let i = 0, len = this.edidList.length; i < len; i++) {
-          if (this.edidList[i][0] === index) {
-            start = i
-            break
-          }
-        }
-        if (start !== -1) {
-          this.edidList.splice(start, 1)
-          this.$socket.sendMsg('#EDID-ACTIVE? 1 ')
-        }
-      }
+      this.$socket.sendMsg('#EDID-LIST? ')
+      this.$socket.sendMsg('#EDID-ACTIVE? 1 ')
+      // let index = msg.split(' ')[1]
+      // if (index) {
+      //   index = parseInt(index)
+      //   let start = -1
+      //   for (let i = 0, len = this.edidList.length; i < len; i++) {
+      //     if (this.edidList[i][0] === index) {
+      //       start = i
+      //       break
+      //     }
+      //   }
+      //   if (start !== -1) {
+      //     this.edidList.splice(start, 1)
+      //     this.$socket.sendMsg('#EDID-ACTIVE? 1 ')
+      //   }
     },
     handleEDIDCustomSelect (msg) {
       if (msg.search(/error/i) !== -1) return
@@ -190,8 +196,18 @@ export default {
       console.log(result.toString())
       this.edidList = JSON.parse('[' + result.toString() + ']')
     },
-    upgradeFile () {
-      // this.$socket.sendMsg('#UPGRADE ')
+    upgradeFile (e, file) {
+      if (this.edidList.length < 8) {
+        this.$socket.sendMsg(`#EDID-ADD ${this.edidList.length},${file.name}`)
+      }
+    },
+    checkEDID (file) {
+      if (file.size === 256 && file.name.endsWith('.bin')) {
+        return this.edidList.every(item =>
+          item[1] !== file.name
+        )
+      }
+      return false
     }
   }
 }
