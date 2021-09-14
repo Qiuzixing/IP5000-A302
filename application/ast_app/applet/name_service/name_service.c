@@ -40,6 +40,25 @@ static void set_signal(void)
 }
 #endif
 
+extern char* astparam(int argc, char** argv);
+
+static int get_channel_number()
+{
+    int argc = 3;
+    char* argv[3] = {"astparam", "g", "ch_select"};
+    char* pVal = astparam(argc, argv);
+	if (NULL == pVal)
+	{
+		argv[1] = "r";
+		pVal = astparam(argc, argv);
+		if (NULL != pVal)
+		{
+			return atoi(pVal);
+		}
+	}
+	return 1;	// Default Channel Number is 1;
+}
+
 static void do_reply(AST_Device_Type device_type, AST_Device_Function device_function)
 {
 	int q_fd, r_fd;
@@ -112,12 +131,11 @@ static void do_reply(AST_Device_Type device_type, AST_Device_Function device_fun
 						addr.sin_port = htons(AST_NAME_SERVICE_REPLY_PORT);
 						reply.device_type = device_type;
 						reply.device_function = device_function;
-	//					reply.device_status = device_status;
 						strcpy (reply.device_status, device_status);
-	//					reply.device_name_length = strlen(device_name);
 						strcpy (reply.device_name, device_name);
 						strcpy (reply.model_name, model_name);
 						strcpy (reply.version, version);
+						snprintf(reply.channel_number, sizeof(reply.channel_number) - 1, "%04d", get_channel_number());
 						reply.reserved[0] = '\0';
 						sendto(r_fd, &reply, sizeof(reply), 0, (struct sockaddr *)&addr, addr_len);
 					}

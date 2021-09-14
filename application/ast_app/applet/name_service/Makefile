@@ -8,7 +8,7 @@ cc=$(CROSS_COMPILE)gcc
 cflags=-O3 -g
 ldflags=-g
 
-OBJ = name_service.o astnetwork.o
+OBJ = name_service.o astnetwork.o astparam.o
 
 default: build
 	@echo "Done"
