@@ -487,6 +487,9 @@ int EX_RemoveEDID(int comID)
 		return 0;
 	}
 
+	if(comID < g_edid_info.active_id)
+		g_edid_info.active_id = g_edid_info.active_id -1;
+
 #ifdef CONFIG_P3K_HOST
 	char sCmd[64] = "";
 	sprintf(sCmd,"e_p3k_video_edid_remove::%d",comID);

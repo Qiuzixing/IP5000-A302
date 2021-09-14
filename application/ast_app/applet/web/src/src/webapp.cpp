@@ -350,7 +350,7 @@ int CWeb::UpdateEdidHandle(struct mg_connection *conn, void *cbdata)
 #endif
 
     struct T_FromInfo tFrom;
-    if(!SaveUploadFile(conn, DEFAULT_FILE_PATH, "/edid/custom_edid.bin", &tFrom))
+    if(!SaveUploadFile(conn, DEFAULT_FILE_PATH "/edid", NULL, &tFrom))
     {
         BC_INFO_LOG("UpdateEdidHandle upload file error");
         send_http_error_rsp(conn);

@@ -4073,6 +4073,8 @@ int Cfg_Get_EDID_List(char info[][MAX_EDID_LEN],int num)
 						printf("Cfg_Get_EDID_List info[%d]: %s\n",ncount,info[ncount]);
 						ncount++;
 					}
+					else
+						break;
 				}
 			}
 		}
