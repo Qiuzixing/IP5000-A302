@@ -1018,13 +1018,21 @@ handle_e_reconnect()
 
 handle_e_chg_hostname()
 {
+	_IFS="$IFS";IFS=':';set -- $*;shift 2;IFS="$_IFS"
+	local _host_name=$1
+	astparam s hostname_customized $_host_name
+	astparam save
 	/sbin/avahi-daemon -k 2>/dev/null
 	#start avahi-daemon
 	# The $HOSTNAME_ID is now decided in refresh_hostname_params()
 	refresh_4bits_ch
 	refresh_ch_params
 	refresh_hostname_params
-	HOSTNAME="${MODEL_NUMBER}-${_HOSTNAME_ID}"
+	if [ -z "$HOSTNAME_CUSTOMIZED" ]; then
+		HOSTNAME="${MODEL_NUMBER}-${_HOSTNAME_ID}"
+	else
+		HOSTNAME="$HOSTNAME_CUSTOMIZED"
+	fi
 
 	echo "HOSTNAME=$HOSTNAME"
 	astsetname $HOSTNAME
@@ -1380,7 +1388,11 @@ handle_e_ip_got()
 		fi
 
 		# The $HOSTNAME_ID is now decided in init_share_param_from_flash()
-		HOSTNAME="${MODEL_NUMBER}-${HOSTNAME_ID}"
+		if [ -z "$HOSTNAME_CUSTOMIZED" ]; then
+			HOSTNAME="${MODEL_NUMBER}-${HOSTNAME_ID}"
+		else
+			HOSTNAME="$HOSTNAME_CUSTOMIZED"
+		fi
 		ast_send_event "$EM_PID" "e_name_id::$HOSTNAME_ID"
 
 		echo "HOSTNAME:$HOSTNAME"
@@ -3050,6 +3062,9 @@ state_machine()
 			;;
 			e_ir_decoded*)
 				handle_e_ir_decoded "$event"
+			;;
+			e_chg_hostname*)
+				handle_e_chg_hostname "$event"
 			;;
 			e_?*)
 				tickle_watchdog

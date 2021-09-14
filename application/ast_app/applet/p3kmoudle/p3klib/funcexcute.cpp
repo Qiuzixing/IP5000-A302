@@ -1179,7 +1179,7 @@ int EX_GetChannelName(char * date)
 int EX_GetDanteName(char * date)
 {
 
-	char name[32] = "KDS-6x-MAC";
+	char name[32] = "KDS-7-MAC";
 	memcpy(date,name,strlen(name));
 	return 0;
 }
@@ -2735,7 +2735,8 @@ int EX_FactoryRecovery(void)
 	return 0;
 }
 int EX_GetDevBuildDate(char *date,char*hms)
-{
+{
+
 	if((date != NULL)&&(hms!= NULL))
 	{
 		char buf[128];
@@ -2746,7 +2747,8 @@ int EX_GetDevBuildDate(char *date,char*hms)
 	return 0;
 }
 int EX_SetTimeAndDate(char*weekDay,char*date,char*hms)
-{
+{
+
 	printf("week:%s date:%s hms:%s\n",weekDay,date,hms);
 
 	int year=0,mon=0,day=0,hh=0,mm=0,ss=0;
@@ -2778,7 +2780,8 @@ int EX_SetTimeAndDate(char*weekDay,char*date,char*hms)
 	return 0;
 }
 int EX_GetTimeAndDate(char*weekDay,char*date,char*hms)
-{
+{
+
 	time_t secTime;
 	struct tm *ptime =NULL;
 	char *str[] = {"sun","mon","tue","wed","thu","fri","sat"};
@@ -2792,7 +2795,8 @@ int EX_GetTimeAndDate(char*weekDay,char*date,char*hms)
 }
 
 int EX_GetLogResetEvent(int * iLog,char*date,char*hms)
-{
+{
+
 	time_t secTime;
 	struct tm *ptime =NULL;
 	//char *str[] = {"sun","mon","tue","wed","thu","fri","sat"};
@@ -2807,14 +2811,16 @@ int EX_GetLogResetEvent(int * iLog,char*date,char*hms)
 }
 
 int EX_SetTimeZero(int tz,int timingMethod)
-{
+{
+
 	printf("EX_SetTimeZero tz = %d,timingMethod = %d\n",tz,timingMethod);
 	Cfg_Set_Time_Loc(tz,timingMethod);
 
 	return 0;
 }
 int EX_GetTimeZero(int *tz,int *timingMethod)
-{
+{
+
 	Cfg_Get_Time_Loc(tz,timingMethod);
 
 	return 0;

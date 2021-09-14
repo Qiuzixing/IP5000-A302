@@ -145,7 +145,7 @@ rootfs:
 	#######################################################################
 	# Create Version file
 	#######################################################################
-	@echo KDS-6X > $(IMAGE_FOLDER)/version-$(CONFIG)
+	@echo KDS-7 > $(IMAGE_FOLDER)/version-$(CONFIG)
 	@cat $(AST_SDK_ROOT)/version >> $(IMAGE_FOLDER)/version-$(CONFIG)
 	@date -u +%Y/%m/%d,%H:%M:%S >> $(IMAGE_FOLDER)/version-$(CONFIG)
 

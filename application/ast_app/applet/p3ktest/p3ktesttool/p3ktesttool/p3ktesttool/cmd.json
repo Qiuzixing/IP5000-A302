@@ -90,7 +90,7 @@
 			{"name":"LOG-TAIL?","str":"#LOG-TAIL? 2\r"},
 			{"name":"PORT-DIRECTION","str":"#PORT-DIRECTION both.analog.1.audio,IN\r"},
 			{"name":"PORT-DIRECTION?","str":"#PORT-DIRECTION? both.analog.1.audio,IN\r"},
-			{"name":"KDS-DANTE-NAME","str":"#KDS-DANTE-NAME  KDS-6x-MAC\r"},
+			{"name":"KDS-DANTE-NAME","str":"#KDS-DANTE-NAME  KDS-7-MAC\r"},
 			{"name":"KDS-DANTE-NAME?","str":"#KDS-DANTE-NAME?\r"},
 			{"name":"KDS_AUD_OUTPUT","str":"#KDS_AUD_OUTPUT [1,2,3]\r"},
 			{"name":"KDS_AUD_OUTPUT?","str":"#KDS_AUD_OUTPUT?\r"},

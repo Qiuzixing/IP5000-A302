@@ -464,7 +464,11 @@ _chg_hostname()
 
 	local _HOSTNAME_ID="$1"
 
-	HOSTNAME="${MODEL_NUMBER}-${_HOSTNAME_ID}"
+	if [ -z "$HOSTNAME_CUSTOMIZED" ]; then
+		HOSTNAME="${MODEL_NUMBER}-${_HOSTNAME_ID}"
+	else
+		HOSTNAME="$HOSTNAME_CUSTOMIZED"
+	fi
 
 	echo "HOSTNAME=$HOSTNAME"
 	astsetname $HOSTNAME
@@ -478,6 +482,10 @@ _chg_hostname()
 
 handle_e_chg_hostname()
 {
+	_IFS="$IFS";IFS=':';set -- $*;shift 2;IFS="$_IFS"
+	local _host_name=$1
+	astparam s hostname_customized $_host_name
+	astparam save
 	#start avahi-daemon
 	# The $HOSTNAME_ID is now decided in refresh_hostname_params()
 	refresh_4bits_ch
@@ -677,7 +685,11 @@ handle_e_ip_got()
 			tcp.sh
 		fi
 		# The $HOSTNAME_ID is now decided in init_share_param_from_flash()
-		HOSTNAME="${MODEL_NUMBER}-${HOSTNAME_ID}"
+		if [ -z "$HOSTNAME_CUSTOMIZED" ]; then
+			HOSTNAME="${MODEL_NUMBER}-${HOSTNAME_ID}"
+		else
+			HOSTNAME="$HOSTNAME_CUSTOMIZED"
+		fi
 
 		echo "HOSTNAME=$HOSTNAME"
 		astsetname $HOSTNAME
@@ -1947,6 +1959,9 @@ state_machine()
 			;;
 			e_video_stat_?*)
 				handle_e_video_stat "$event"
+			;;
+			e_chg_hostname*)
+				handle_e_chg_hostname "$event"
 			;;
 			e_?*)
 				tickle_watchdog

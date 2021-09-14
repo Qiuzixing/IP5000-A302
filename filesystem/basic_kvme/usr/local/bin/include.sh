@@ -811,7 +811,7 @@ foolproof_ch_select()
 		?*.?*.?*.?*)
 			# Host can't accept IP format as CH_SELECT
 			if [ "$IS_HOST" = 'y' ]; then
-				echo "0000"
+				echo "0001"
 				echo "ERROR: CH_SELECT ($_ch_select) must be 0000~9999 format" >&2
 				return
 			fi
@@ -833,7 +833,7 @@ foolproof_ch_select()
 					# good
 				;;
 				*)
-					echo "0000"
+					echo "0001"
 					echo "ERROR: CH_SELECT ($_ch_select) is not in 0000~9999 format" >&2
 					return
 				;;
@@ -846,7 +846,7 @@ foolproof_ch_select()
 			if [[ $_ch_select =~ ^[0-9][0-9][0-9][0-9]$ ]]; then
 				echo "$_ch_select"
 			else
-				echo "0000"
+				echo "0001"
 				echo "ERROR: CH_SELECT ($_ch_select) is not a number" >&2
 			fi
 		;;
@@ -1051,7 +1051,8 @@ refresh_ch_params()
 			case "$CH_SELECT" in
 				*'not defined')
 					#CH_SELECT=`astconfig channel`
-					CH_SELECT="${CH0}${CH1}${CH2}${CH3}"
+					# CH_SELECT="${CH0}${CH1}${CH2}${CH3}"
+					CH_SELECT="0001"
 					_CH_SELECT_SPECIFIED='n'
 				;;
 				*)
@@ -1131,6 +1132,15 @@ refresh_hostname_params()
 				*)
 				;;
 			esac
+		;;
+		*)
+		;;
+	esac
+
+	HOSTNAME_CUSTOMIZED=`astparam g hostname_customized`
+	case "$HOSTNAME_CUSTOMIZED" in
+		*'not defined')
+			HOSTNAME_CUSTOMIZED=""
 		;;
 		*)
 		;;
@@ -2212,10 +2222,10 @@ init_share_param_from_flash()
 						# For USB only solution to easily connect to the web page,
 						# we use 4-bits dip switch as hostname_id.
 						if [ "$SCENARIO" = 'usb_only' ] && [ "$MULTICAST_ON" = 'n' ]; then
-							HOSTNAMEBYDIPSWITCH='y'
+							HOSTNAMEBYDIPSWITCH='n'
 						fi
 					else
-						HOSTNAMEBYDIPSWITCH='y'
+						HOSTNAMEBYDIPSWITCH='n'
 					fi
 				;;
 				*)
