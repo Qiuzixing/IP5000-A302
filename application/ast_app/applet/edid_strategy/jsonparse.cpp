@@ -50,6 +50,7 @@ bool ParseJsonFile(const char * i_modejsonfile,unsigned char *last_index)
 				if(buf0.length() == 0)
 				{
 					*last_index = 0;
+					is.close();
 					return true;
 				}
 				else
@@ -68,6 +69,7 @@ bool ParseJsonFile(const char * i_modejsonfile,unsigned char *last_index)
 				if(buf1.length() == 0)
 				{
 					*last_index = 1;
+					is.close();
 					return true;
 				}
 				else
@@ -86,6 +88,7 @@ bool ParseJsonFile(const char * i_modejsonfile,unsigned char *last_index)
 				if(buf2.length() == 0)
 				{
 					*last_index = 2;
+					is.close();
 					return true;
 				}
 				else
@@ -104,6 +107,7 @@ bool ParseJsonFile(const char * i_modejsonfile,unsigned char *last_index)
 				if(buf3.length() == 0)
 				{
 					*last_index = 3;
+					is.close();
 					return true;
 				}
 				else
@@ -122,6 +126,7 @@ bool ParseJsonFile(const char * i_modejsonfile,unsigned char *last_index)
 				if(buf4.length() == 0)
 				{
 					*last_index = 4;
+					is.close();
 					return true;
 				}
 				else
@@ -140,6 +145,7 @@ bool ParseJsonFile(const char * i_modejsonfile,unsigned char *last_index)
 				if(buf5.length() == 0)
 				{
 					*last_index = 5;
+					is.close();
 					return true;
 				}
 				else
@@ -158,6 +164,7 @@ bool ParseJsonFile(const char * i_modejsonfile,unsigned char *last_index)
 				if(buf6.length() == 0)
 				{
 					*last_index = 6;
+					is.close();
 					return true;
 				}
 				else
@@ -176,6 +183,7 @@ bool ParseJsonFile(const char * i_modejsonfile,unsigned char *last_index)
 				if(buf7.length() == 0)
 				{
 					*last_index = 7;
+					is.close();
 					return true;
 				}
 				else

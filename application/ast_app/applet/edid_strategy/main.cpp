@@ -372,7 +372,7 @@ static void do_handle_edid_file(char op_edid_file, char *edid_file, unsigned cha
     {
         return;
     }
-    if(last_index == 0)
+    if(last_index == 0 && op_edid_file == ADD_EDID_FILE)
     {
         return;
     }
