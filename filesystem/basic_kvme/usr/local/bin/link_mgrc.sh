@@ -2844,7 +2844,7 @@ handle_e_p3k_fp_lock()
 {
 	case "$event" in
 		e_p3k_fp_lock_off)
-			ipc @m_lm_set s set_gpio_val:1:65:0
+			echo 0 > /sys/class/leds/lcd_power/brightness
 			usleep 500000
 			case $MODEL_NUMBER in
 				KDS-DEC7)
@@ -2856,7 +2856,7 @@ handle_e_p3k_fp_lock()
 			esac
 		;;
 		e_p3k_fp_lock_on)
-			ipc @m_lm_set s set_gpio_val:1:65:1
+			echo 1 > /sys/class/leds/lcd_power/brightness
 			pkill -9 lcd_display
 		;;
 		*)
