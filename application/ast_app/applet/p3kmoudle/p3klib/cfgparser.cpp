@@ -8,6 +8,7 @@
 
 #include "cfgparser.h"
 #include "funcexcute.h"
+#include "ast_send_event.h"
 
 #include "debugtool.h"
 
@@ -401,8 +402,11 @@ int Cfg_Init_AutoSwitch(void)
 	g_autoswitch_info.input_pri[0] = 1;
 	g_autoswitch_info.input_pri[1] = 2;
 	g_autoswitch_info.input_pri[2] = 3;
+#ifdef CONFIG_P3K_HOST
 	g_autoswitch_info.source = 1;
-
+#else
+	g_autoswitch_info.source = 2;
+#endif
 	//Check autoswitch cfg
 	int nAccessRet = access(path,F_OK | R_OK | W_OK);
 	if(0 > nAccessRet)
@@ -573,6 +577,12 @@ int Cfg_Init_AVSetting(void)
 
 			if(!root[JSON_AV_ACTION].empty())
 			{
+				string action =  root[JSON_AV_ACTION].asString();
+
+				if(action == JSON_AV_STOP)
+					g_avsetting_info.action = CODEC_ACTION_STOP;
+				else
+					g_avsetting_info.action = CODEC_ACTION_PLAY;
 			}
 
 #ifdef CONFIG_P3K_HOST
@@ -584,11 +594,11 @@ int Cfg_Init_AVSetting(void)
 				{
 					string mode;
 					if((i == 0)&&(!JsonHDCP[JSON_HDMI_1].empty()))
-						mode =  root[JSON_HDMI_1].asString();
+						mode =  JsonHDCP[JSON_HDMI_1].asString();
 					else if((i == 1)&&(!JsonHDCP[JSON_HDMI_2].empty()))
-						mode =  root[JSON_HDMI_2].asString();
+						mode =  JsonHDCP[JSON_HDMI_2].asString();
 					else if((i == 2)&&(!JsonHDCP[JSON_USBC_3].empty()))
-						mode =  root[JSON_USBC_3].asString();
+						mode =  JsonHDCP[JSON_USBC_3].asString();
 					else
 						continue;
 
@@ -684,7 +694,8 @@ int Cfg_Init_EDID(void)
 
 			if(!root[JSON_EDID_ACTIVE].empty())
 			{
-				g_edid_info.active_id = root[JSON_EDID_ACTIVE].asInt();
+				string id = root[JSON_EDID_ACTIVE].asString();
+				g_edid_info.active_id = atoi(id.c_str());
 			}
 		}
 	}
@@ -740,9 +751,15 @@ int Cfg_Init_Device(void)
 			{
 				string mode = root[JSON_DEV_FP_LOCK].asString();
 				if(mode == JSON_PARAM_ON)
+				{
 					g_device_info.fp_lock = ON;
+					printf("g_device_info.fp_lock = ON;\n");
+				}
 				else
+				{
 					g_device_info.fp_lock = OFF;
+					printf("g_device_info.fp_lock = OFF;\n");
+				}
 			}
 
 			if(!root[JSON_DEV_STANDBY_TIME].empty())
@@ -1175,6 +1192,26 @@ int Cfg_Init_Gateway(void)
 					g_gateway_info.cec_output = 2;
 				else if(mode == JSON_GW_CEC_DEST_LOOP)
 					g_gateway_info.cec_output = 3;
+			}
+
+			if(!root[JSON_GW_IR_DIR].empty())
+			{
+				string mode = root[JSON_GW_IR_DIR].asString();
+
+				if(mode == JSON_PARAM_IN)
+					g_gateway_info.ir_direction = DIRECTION_IN;
+				else
+					g_gateway_info.ir_direction = DIRECTION_OUT;
+			}
+
+			if(!root[JSON_GW_IR_MODE].empty())
+			{
+				string mode = root[JSON_GW_IR_MODE].asString();
+
+				if(mode == JSON_PARAM_ON)
+					g_gateway_info.ir_mode = ON;
+				else
+					g_gateway_info.ir_mode = OFF;
 			}
 
 			if(!root[JSON_GW_UART_MODE].empty())
@@ -2431,7 +2468,10 @@ int Cfg_Update_EDID(void)
 		root[JSON_EDID_MODE] = JSON_EDID_DEFAULTE;
 
 	root[JSON_EDID_SRC] = g_edid_info.net_src;
-	root[JSON_EDID_ACTIVE] = g_edid_info.active_id;
+
+	char id[4] = "";
+	sprintf(id,"%d",g_edid_info.active_id);
+	root[JSON_EDID_ACTIVE] = id;
 
 	Json::Value root1;
 	root1[JSON_EDID_SETTING] = root;
@@ -2473,7 +2513,7 @@ int Cfg_Update_Device(void)
 	if(g_device_info.fp_lock == ON)
 		root[JSON_DEV_FP_LOCK] = JSON_PARAM_ON;
 	else
-		root[JSON_EDID_LOCK] = JSON_PARAM_OFF;
+		root[JSON_DEV_FP_LOCK] = JSON_PARAM_OFF;
 
 	root[JSON_DEV_HOSTNAME] = g_device_info.hostname;
 	root[JSON_DEV_MAC] = g_device_info.mac_addr;
@@ -4276,4 +4316,62 @@ int Cfg_Set_Dec_Usb_KVM()
 	return 0;
 }
 
+int Cfg_Init_Param()
+{
+	DBG_InfoMsg("Cfg_Init_Param\n");
+
+	return 0;
+
+	//fp_lock
+	if(g_device_info.fp_lock == 0)
+		ast_send_event(0xFFFFFFFF,"e_p3k_fp_lock_off");
+	else
+		ast_send_event(0xFFFFFFFF,"e_p3k_fp_lock_on");
+
+	//ir_dir
+	if(g_gateway_info.ir_direction == DIRECTION_IN)
+		ast_send_event(0xFFFFFFFF,"e_p3k_ir_dir::in");
+	else
+		ast_send_event(0xFFFFFFFF,"e_p3k_ir_dir::out");
+
+#ifdef CONFIG_P3K_CLIENT
+	DBG_InfoMsg("This is Decoder\n");
+	//DECODER SOURCE
+	if(g_autoswitch_info.source == 1)
+		ast_send_event(0xFFFFFFFF,"e_p3k_switch_in::HDMI");
+	else
+		ast_send_event(0xFFFFFFFF,"e_p3k_switch_in::STREAM");
+
+#else
+	DBG_InfoMsg("This is Encoder\n");
+	//HDCP
+	char module[32]="";
+	int ncount = 1;
+	GetBoardInfo(BOARD_MODEL, module, 32);
+	if(strcmp(module,IPE_P_MODULE) == 0)
+		ncount = 3;
+	else if(strcmp(module,IPE_W_MODULE) == 0)
+		ncount = 2;
+
+	for(int i = 1;i <= ncount;i++)
+		EX_SetHDCPMode(i,(HDCPMode_E)(g_avsetting_info.hdcp_mode[i-1]));
+
+
+	//EDID
+	char sCmd[64] = "";
+	if(g_edid_info.edid_mode == PASSTHRU)
+		sprintf(sCmd,"e_p3k_video_edid_passthru::%s",g_edid_info.net_src);
+	else if(g_edid_info.edid_mode == CUSTOM)
+		sprintf(sCmd,"e_p3k_video_edid_custom::%d",g_edid_info.active_id);
+	else
+		sprintf(sCmd,"e_p3k_video_edid_default");
+
+	printf("ast_send_event %s\n",sCmd);
+	ast_send_event(0xFFFFFFFF,sCmd);
+
+#endif
+
+
+	return 0;
+}
 

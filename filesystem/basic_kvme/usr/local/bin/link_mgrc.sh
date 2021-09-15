@@ -3261,6 +3261,41 @@ init_param_from_flash()
 	astparam s repeat_board_lighting_flag 0
 	# Print the final parameters
 	echo_parameters
+
+	init_param_from_p3k_cfg
+}
+
+init_param_from_p3k_cfg()
+{
+	P3KCFG_FP_LOCK_ON=`jq -r '.device_setting.fp_lock' /data/configs/kds-7/device/device_setting.json`
+	if echo "$P3KCFG_FP_LOCK_ON" | grep -q "null" ; then
+		P3KCFG_FP_LOCK_ON=`on`
+	fi
+	echo "P3KCFG_FP_LOCK_ON=$P3KCFG_FP_LOCK_ON"
+	
+	P3KCFG_AV_MUTE=`jq -r '.av_setting.mute' /data/configs/kds-7/av_setting/av_setting.json`
+	if echo "$P3KCFG_AV_MUTE" | grep -q "null" ; then
+		P3KCFG_AV_MUTE=`off`
+	fi
+	echo "P3KCFG_AV_MUTE=$P3KCFG_AV_MUTE"
+
+	P3KCFG_AV_ACTION=`jq -r '.av_setting.action' /data/configs/kds-7/av_setting/av_setting.json`
+	if echo "$P3KCFG_AV_ACTION" | grep -q "null" ; then
+		P3KCFG_AV_ACTION=`play`
+	fi
+	echo "P3KCFG_AV_ACTION=$P3KCFG_AV_ACTION"
+
+	P3KCFG_IR_DIR=`jq -r '.gateway.ir_direction' /data/configs/kds-7/gateway/gateway.json`
+	if echo "$P3KCFG_IR_DIR" | grep -q "null" ; then
+		P3KCFG_IR_DIR=`out`
+	fi
+	echo "P3KCFG_IR_DIR=$P3KCFG_IR_DIR"
+
+	P3KCFG_SWITCH_IN=`jq -r '.auto_switch_setting.source_select' /data/configs/kds-7/switch/auto_switch_setting.json`
+	if echo "$P3KCFG_SWITCH_IN" | grep -q "null" ; then
+		P3KCFG_SWITCH_IN=`stream`
+	fi
+	echo "P3KCFG_SWITCH_IN=$P3KCFG_SWITCH_IN"
 }
 
 signal_handler()
