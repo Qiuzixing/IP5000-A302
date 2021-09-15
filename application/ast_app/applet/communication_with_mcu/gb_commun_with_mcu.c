@@ -60,6 +60,7 @@ uint8_t up_or_commun_flag = UPGRADE;
 audio_inout_info_struct audio_inout_info;
 uint8_t board_type_flag = IPE5000P;
 uint8_t last_hdmi_in_index = 0;
+uint8_t auto_av_report_flag = CLOSE_REPROT;
 
 const ipc_cmd_struct ipc_cmd_list[] =
     {
@@ -93,6 +94,7 @@ const ipc_cmd_struct ipc_cmd_list[] =
         {IPC_EVENT_GPIO_VAL,            "unknown",                  sizeof("unknown"),              EVENT_GPIO_VAL,                     SEND_CMD},
         {IPC_GET_GPIO_VAL,              "get_gpio_val",             sizeof("get_gpio_val"),         CMD_GPIO_GET_VAL,                   QUERY_CMD},
         {IPC_SET_GPIO_VAL,              "set_gpio_val",             sizeof("set_gpio_val"),         CMD_GPIO_SET_VAL,                   SEND_CMD},
+        {IPC_OPEN_REPORT,               "open_report",              sizeof("open_report"),          0,                                  SEND_CMD},
         //audio_autoswitch
         {IPC_AUDIO_IN,                  "audio_in",                 sizeof("audio_in"),             0,                                  SEND_CMD},
         {IPC_AUDIO_OUT,                 "audio_out",                sizeof("audio_out"),            0,                                  SEND_CMD}
@@ -656,7 +658,7 @@ static void do_handle_audio_in(char *cmd_param)
     char *audio_in_type = strtok(cmd_param,":");
     int i = 0;
     int ret = 0;
-    if(audio_in_type != NULL)
+    if(auto_av_report_flag == OPEN_REPROT && audio_in_type != NULL)
     {
         audio_inout_info.audio_in = atoi(audio_in_type);
         handle_audio();
@@ -679,8 +681,7 @@ static void do_handle_audio_out(char *cmd_param)
         audio_out_type = strtok(NULL,":");
     }
     audio_inout_info.audio_out[i] = AUDIO_OUT_NULL;
-
-    if(audio_inout_info.audio_in != AUDIO_IN_NULL)
+    if(auto_av_report_flag == OPEN_REPROT && audio_inout_info.audio_in != AUDIO_IN_NULL)
     {
         handle_audio();
     }
@@ -749,6 +750,9 @@ static void do_handle_ipc_cmd(int index,char *cmd_param)
         break;
     case IPC_SET_GPIO_VAL:
         do_handle_set_gpio_val(ipc_cmd_list[index].a30_cmd,cmd_param);
+        break;
+    case IPC_OPEN_REPORT:
+        auto_av_report_flag = OPEN_REPROT;
         break;
 
     //audio_autoswitch
@@ -834,6 +838,17 @@ static void set_audio_inout_default()
     memset(audio_inout_info.audio_out,AUDIO_OUT_NULL,sizeof(audio_inout_info.audio_out));
 }
 
+static void mkdir_ready_file(void)
+{
+    FILE *fp = NULL;
+    if((fp = fopen("/tmp/socket_ready", "w+")) == NULL)
+    {
+        printf("creat /tmp/socket_ready fail\n");
+        return;
+    }
+    fclose(fp);
+}
+
 void print_usage() {
 	/* TODO */
 	printf("Usage: communication_with_mcu -u/-c [-b]\n");
@@ -853,7 +868,6 @@ int main(int argc, char *argv[])
         {"board_type",                    no_argument,       0,  'b' },
 		{0,                             0,                 0,  0   }
 	};
-
     while ((opt = getopt_long_only(argc, argv, "ucb:", long_options, &long_index )) != -1) {
 		switch (opt) {
 		case 'u':
@@ -896,6 +910,7 @@ int main(int argc, char *argv[])
     fd_set rset;
     int maxfd = 0;
     int ipc_fd = -1;
+    int mkdir_ready_flag = 0;
     struct timeval timeout;
     struct timespec last_time;
     timeout.tv_sec = 0;
@@ -916,6 +931,11 @@ int main(int argc, char *argv[])
             {
                 info("ipc_fd() failed [%d:%s]\n", errno, strerror(errno));
                 return -1;
+            }
+            if(mkdir_ready_flag == 0)
+            {
+                mkdir_ready_file();
+                mkdir_ready_flag = 1;
             }
         }
         timeout.tv_usec = 200000;

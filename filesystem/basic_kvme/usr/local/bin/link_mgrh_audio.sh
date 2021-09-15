@@ -442,24 +442,21 @@ start_alm()
 	# start event loop
 	event_loop &
 
-	#The I2S driver is loaded here,So need start communication_app here
-	if [ $UGP_FLAG = 'success' ];then
-		echo "lock file for @m_lm_query" > /var/lock/@m_lm_query.lck
-		ipc_server_listen_one @m_lm_set @m_lm_get @m_lm_query @m_lm_reply &
-		usleep 1000
-		communication_with_mcu -c &
-		usleep 10000
-	fi
-
 	if [ $UGP_FLAG = 'success' ];then
 		#set lineio_sel pin to default to line_out;0:line_out;1:line_in
-		ipc @m_lm_set s set_gpio_config:2:70:1:65:1
-		ipc @m_lm_set s set_gpio_val:2:70:0:65:0
-		ipc @m_lm_set s set_gpio_config:9:15:1:35:1:8:1:36:1:37:1:32:1:33:1:11:1:12:1
-		ipc @m_lm_set s set_gpio_val:9:15:1:35:1:8:1:36:1:37:1:32:1:33:1:11:1:12:1
-		ipc @m_lm_set s audio_out:0:1:2:3
-		ipc @m_lm_set s get_link_status:1
-		ipc @m_lm_set s get_link_status:2
+		case "$MODEL_NUMBER" in
+			KDS-EN7)
+			;;
+			KDS-SW3-EN7)
+				ipc @m_lm_set s open_report
+				ipc @m_lm_set s audio_out:0:1:2:3
+				ipc @m_lm_set s get_link_status:0
+				ipc @m_lm_set s get_link_status:1
+				ipc @m_lm_set s get_link_status:2
+			;;
+			*)
+			;;
+		esac
 	fi
 
 	audio_detect &

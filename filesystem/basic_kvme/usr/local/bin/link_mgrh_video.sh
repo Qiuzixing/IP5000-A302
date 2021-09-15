@@ -713,6 +713,21 @@ start_vlm()
 
 	# start event loop
 	event_loop &
+
+	if [ "$NO_I2S" = 'y' ]; then
+		case "$MODEL_NUMBER" in
+			KDS-EN7)
+			;;
+			KDS-SW3-EN7)
+				ipc @m_lm_set s open_report
+				ipc @m_lm_set s get_link_status:0
+				ipc @m_lm_set s get_link_status:1
+				ipc @m_lm_set s get_link_status:2
+			;;
+			*)
+			;;
+		esac
+	fi
 }
 
 start_vlm

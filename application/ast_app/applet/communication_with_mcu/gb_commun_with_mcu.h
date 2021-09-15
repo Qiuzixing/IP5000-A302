@@ -40,6 +40,13 @@ enum
     DANTE_AUDIO_DISCONNECT ,
     UNKNOW_DANTE_STATUS = 0xff
 };
+
+enum
+{
+    OPEN_REPROT = 0,
+    CLOSE_REPROT ,
+};
+
 typedef enum
 {
     SEND_CMD = 0,
@@ -107,6 +114,7 @@ typedef enum
     IPC_EVENT_GPIO_VAL,
     IPC_GET_GPIO_VAL,
     IPC_SET_GPIO_VAL,
+    IPC_OPEN_REPORT,
 
     //audio_autoswitch
     IPC_AUDIO_IN,

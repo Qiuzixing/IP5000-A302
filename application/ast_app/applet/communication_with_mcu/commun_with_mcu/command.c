@@ -30,6 +30,7 @@ extern const ipc_cmd_struct ipc_cmd_list[];
 int dante_state = UNKNOW_DANTE_STATUS;
 extern uint8_t board_type_flag;
 extern uint8_t last_hdmi_in_index;
+extern uint8_t auto_av_report_flag;
 int Cmdfd;
 CommandInterfaceFun Cmdfun;
 U8 CmdinitFlag=0;//0->nomal  1->init   防止没有初始化就发送指令 
@@ -409,7 +410,7 @@ int APP_Comm_Recv(CmdProtocolParam * param)
                 }
             }
 
-            if(0 == socket_msg_struct_conver(&send_socket_msg,vdo_link.port,vdo_link.isConnect,-1))
+            if(auto_av_report_flag == OPEN_REPROT && 0 == socket_msg_struct_conver(&send_socket_msg,vdo_link.port,vdo_link.isConnect,-1))
             {
                 sendEvent(sock_fd,send_socket_msg.type,send_socket_msg.source);
             }
@@ -419,11 +420,11 @@ int APP_Comm_Recv(CmdProtocolParam * param)
             memset(&vdo_status, 0, sizeof(vdo_status));
             memcpy(&vdo_status, (struct CmdDataVideoStatus *)param->Data, sizeof(vdo_status));
             printf("port[0x%x] stable [0x%x]\n", vdo_status.port, vdo_status.isStable); 
-            if(0 == socket_msg_struct_conver(&send_socket_msg,vdo_status.port,-1,vdo_status.isStable))
+            if(auto_av_report_flag == OPEN_REPROT && 0 == socket_msg_struct_conver(&send_socket_msg,vdo_status.port,-1,vdo_status.isStable))
             {
                 sendEvent(sock_fd,send_socket_msg.type,send_socket_msg.source);
             }
-            if(vdo_status.isStable == 1)
+            if(auto_av_report_flag == OPEN_REPROT && vdo_status.isStable == 1)
             {
                 audioSendEventMsg(sock_fd,"plugin","hdmi");
                 if(vdo_status.port == HDMIRX1 || vdo_status.port == HDMIRX2 || vdo_status.port == HDMIRX3)
@@ -431,7 +432,7 @@ int APP_Comm_Recv(CmdProtocolParam * param)
                     last_hdmi_in_index = vdo_status.port;
                 }   
             }
-            else if(vdo_status.isStable == 0)
+            else if(auto_av_report_flag == OPEN_REPROT && vdo_status.isStable == 0)
             {
                 audioSendEventMsg(sock_fd,"plugout","hdmi");
             }

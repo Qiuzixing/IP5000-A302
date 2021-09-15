@@ -2215,6 +2215,58 @@ if [ $UGP_FLAG = 'success' ];then
 	audioswitch &
 fi
 
+if [ $UGP_FLAG = 'success' ];then
+	echo "lock file for @m_lm_query" > /var/lock/@m_lm_query.lck
+	ipc_server_listen_one @m_lm_set @m_lm_get @m_lm_query @m_lm_reply &
+	usleep 1000
+	case "$MODEL_NUMBER" in
+		#-b Indicates the board type:0-IPE5000;1-IPE5000P;
+		KDS-EN7)
+				communication_with_mcu -c -b 0 &
+			;;
+		KDS-SW3-EN7)
+				communication_with_mcu -c -b 1 &
+			;;
+		*)
+		;;
+	esac
+fi
+
+if [ $UGP_FLAG = 'success' ];then
+	start_time=$(date +%s)
+	while [ -f "/tmp/socket_ready" ];
+	do
+		end_time=$(date +%s)
+		time_diff=$(( $end_time - $start_time ))
+		if [ $time_diff -ge 1 ];then
+			UGP_FLAG="fail"
+			break
+		fi
+	done
+	if [ ! -f "/tmp/socket_ready" ];then
+		rm /tmp/socket_ready
+	fi
+fi
+
+if [ $UGP_FLAG = 'success' ];then
+	case "$MODEL_NUMBER" in
+		KDS-EN7)
+			#set lineio_sel pin to default to line_out;0:line_out;1:line_in
+			ipc @m_lm_set s set_gpio_config:2:70:1:65:1
+			ipc @m_lm_set s set_gpio_val:2:70:0:65:0
+		;;
+		KDS-SW3-EN7)
+			#set lineio_sel pin to default to line_out;0:line_out;1:line_in
+			ipc @m_lm_set s set_gpio_config:2:70:1:65:1
+			ipc @m_lm_set s set_gpio_val:2:70:0:65:0
+			ipc @m_lm_set s set_gpio_config:9:15:1:35:1:8:1:36:1:37:1:32:1:33:1:11:1:12:1
+			ipc @m_lm_set s set_gpio_val:9:15:1:35:1:8:1:36:1:37:1:32:1:33:1:11:1:12:1
+		;;
+		*)
+		;;
+	esac
+fi
+
 # start event_monitor
 ast_event_monitor &
 EM_PID=$!
