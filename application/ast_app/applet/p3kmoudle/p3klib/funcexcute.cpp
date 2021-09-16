@@ -2836,6 +2836,18 @@ int EX_SetTimeSyncInfo(TimeSyncConf_S*syncInfo)
 {
 	printf("EX_SetTimeSyncInfo server =%s\n",syncInfo->serverIp);
 	Cfg_Set_Time_Srv(*syncInfo);
+
+	if(syncInfo->enable == 0)
+	{
+		ast_send_event(0xFFFFFFFF,"e_p3k_ntp_enable_off");
+	}
+	else
+	{
+		char sCmd[128] = "";
+		sprintf(sCmd,"e_p3k_ntp_enable_on::%s::%d",syncInfo->serverIp,syncInfo->syncInerval);
+		printf("ast_send_event %s\n",sCmd);
+		ast_send_event(0xFFFFFFFF,sCmd);
+	}
 	return 0;
 }
 int EX_GetTimeSyncInfo(TimeSyncConf_S*syncInfo)

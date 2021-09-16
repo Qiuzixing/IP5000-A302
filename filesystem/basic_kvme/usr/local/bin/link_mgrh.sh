@@ -1835,6 +1835,45 @@ handle_e_p3k_net()
 	esac
 }
 
+handle_e_p3k_ntp_on()
+{
+	echo "handle_e_p3k_ntp_on."
+
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+
+	echo "ntp_client $1 $3"
+
+	#ntp_client "$1" "$3"
+}
+
+handle_e_p3k_ntp_off()
+{
+	echo "handle_e_p3k_ntp_off."
+
+	echo "pkill -9 ntp_client"
+
+	#pkill -9 ntp_client
+}
+
+handle_e_p3k_ntp()
+{
+	echo "handle_e_p3k_ntp."
+
+	case "$event" in
+		e_p3k_ntp_enable_on?*)
+			handle_e_p3k_ntp_on "$event"
+		;;
+		e_p3k_ntp_enable_off)
+			handle_e_p3k_ntp_off
+		;;
+		*)
+			echo "error param"
+		;;
+	esac
+}
+
 handle_e_p3k()
 {
 	echo "handle_e_p3k."
@@ -1874,6 +1913,9 @@ handle_e_p3k()
 		;;
 		e_p3k_download_fw_stop)
 			handle_e_p3k_download_fw_stop
+		;;
+		e_p3k_ntp_?*)
+			handle_e_p3k_ntp "$event"
 		;;
 		*)
 		;;
