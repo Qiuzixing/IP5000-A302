@@ -1156,10 +1156,14 @@ int EX_GetHWTemp(int  id,int iMode)
 
 int EX_GetUPGTime(char * day,char * time)
 {
-	char *str = "05-12-2018";
-	char *str1 = "14:30:00";
-	memcpy(day,str,strlen(str));
-	memcpy(time,str1,strlen(str1));
+//	char *str = "05-12-2018";
+//	char *str1 = "14:30:00";
+//	memcpy(day,str,strlen(str));
+//	memcpy(time,str1,strlen(str1));
+
+	printf(" EX_GetUPGTime\n");
+	sscanf(g_version_info.upg_time,"%s,%s",day,time);
+
 	return 0;
 }
 
@@ -2623,6 +2627,14 @@ int EX_Upgrade(void)
 
 //	Cfg_Set_UPG_Info();
 	strcpy(g_version_info.standby_version,g_version_info.fw_version);
+
+	time_t secTime;
+	struct tm *ptime =NULL;
+	secTime = time(NULL);
+	ptime = localtime(&secTime);
+
+	sprintf(g_version_info.upg_time,"%02d-%02d-%04d,%02d:%02d:%02d",ptime->tm_mon+1,ptime->tm_mday,ptime->tm_year+1900,ptime->tm_hour,ptime->tm_min,ptime->tm_sec);
+
 	Cfg_Update_Version();
 
 	printf("EX_Upgrade \n");
@@ -2736,7 +2748,6 @@ int EX_FactoryRecovery(void)
 }
 int EX_GetDevBuildDate(char *date,char*hms)
 {
-
 	if((date != NULL)&&(hms!= NULL))
 	{
 		char buf[128];
@@ -2748,7 +2759,6 @@ int EX_GetDevBuildDate(char *date,char*hms)
 }
 int EX_SetTimeAndDate(char*weekDay,char*date,char*hms)
 {
-
 	printf("week:%s date:%s hms:%s\n",weekDay,date,hms);
 
 	int year=0,mon=0,day=0,hh=0,mm=0,ss=0;
@@ -2781,7 +2791,6 @@ int EX_SetTimeAndDate(char*weekDay,char*date,char*hms)
 }
 int EX_GetTimeAndDate(char*weekDay,char*date,char*hms)
 {
-
 	time_t secTime;
 	struct tm *ptime =NULL;
 	char *str[] = {"sun","mon","tue","wed","thu","fri","sat"};
@@ -2796,7 +2805,6 @@ int EX_GetTimeAndDate(char*weekDay,char*date,char*hms)
 
 int EX_GetLogResetEvent(int * iLog,char*date,char*hms)
 {
-
 	time_t secTime;
 	struct tm *ptime =NULL;
 	//char *str[] = {"sun","mon","tue","wed","thu","fri","sat"};
@@ -2812,7 +2820,6 @@ int EX_GetLogResetEvent(int * iLog,char*date,char*hms)
 
 int EX_SetTimeZero(int tz,int timingMethod)
 {
-
 	printf("EX_SetTimeZero tz = %d,timingMethod = %d\n",tz,timingMethod);
 	Cfg_Set_Time_Loc(tz,timingMethod);
 
