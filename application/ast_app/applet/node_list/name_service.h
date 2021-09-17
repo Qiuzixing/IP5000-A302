@@ -50,8 +50,8 @@ typedef struct _query_struct_
 #define MAX_NAME_LENGTH 64
 #define MAX_MODEL_LENGTH 32
 #define MAX_VER_LENGTH 16
-#define MAX_CH_NUM_LENGTH 8
-#define MAX_RESERVED_LENGTH 136
+#define MAX_DNT_MAC_LENGTH 18
+#define MAX_RESERVED_LENGTH 42
 typedef struct _reply_struct_
 {
 	AST_Device_Type	device_type;
@@ -60,8 +60,13 @@ typedef struct _reply_struct_
 	char device_name[MAX_NAME_LENGTH];
 	char model_name[MAX_MODEL_LENGTH];
 	char version[MAX_VER_LENGTH];
-	char channel_number[MAX_CH_NUM_LENGTH];
+	char dnt_mac[MAX_DNT_MAC_LENGTH];
+	unsigned int 	protocol_version; 		// 3
+	unsigned int 	service_capability; 	// 0--关，1--开,bit0代表telnet,bit1代表ssh,bit2代表http,bit3代表https
+	unsigned int 	channel_number;
+	char hostname[MAX_NAME_LENGTH];
 	char reserved[MAX_RESERVED_LENGTH];
+
 }reply_struct, *preply_struct;
 
 //AST_Device_Status device_status = Status_Unknown;

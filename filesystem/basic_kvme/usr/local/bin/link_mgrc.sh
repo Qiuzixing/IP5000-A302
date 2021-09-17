@@ -1029,13 +1029,14 @@ handle_e_chg_hostname()
 	refresh_ch_params
 	refresh_hostname_params
 	if [ -z "$HOSTNAME_CUSTOMIZED" ]; then
-		HOSTNAME="${MODEL_NUMBER}-${_HOSTNAME_ID}"
+		HOSTNAME="${MODEL_NUMBER}-${HOSTNAME_ID}"
 	else
 		HOSTNAME="$HOSTNAME_CUSTOMIZED"
 	fi
 
 	echo "HOSTNAME=$HOSTNAME"
 	astsetname $HOSTNAME
+	echo "${MODEL_NUMBER}-${HOSTNAME_ID}" > /etc/device_name
 	echo $HOSTNAME > /etc/hostname
 	hostname -F /etc/hostname
 
@@ -1397,6 +1398,7 @@ handle_e_ip_got()
 
 		echo "HOSTNAME:$HOSTNAME"
 		astsetname $HOSTNAME
+		echo "${MODEL_NUMBER}-${HOSTNAME_ID}" > /etc/device_name
 		echo $HOSTNAME > /etc/hostname
 		hostname -F /etc/hostname
 

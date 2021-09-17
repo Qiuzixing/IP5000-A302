@@ -472,6 +472,7 @@ _chg_hostname()
 
 	echo "HOSTNAME=$HOSTNAME"
 	astsetname $HOSTNAME
+	echo "${MODEL_NUMBER}-${_HOSTNAME_ID}" > /etc/device_name
 	echo $HOSTNAME > /etc/hostname
 	hostname -F /etc/hostname
 
@@ -693,6 +694,7 @@ handle_e_ip_got()
 
 		echo "HOSTNAME=$HOSTNAME"
 		astsetname $HOSTNAME
+		echo "${MODEL_NUMBER}-${HOSTNAME_ID}" > /etc/device_name
 		echo $HOSTNAME > /etc/hostname
 		hostname -F /etc/hostname
 

@@ -17,9 +17,11 @@
 #include "astnetwork.h"
 #include "name_service.h"
 
-#define AST_DEVICE_NAME_FILE "/etc/hostname"
+#define AST_HOST_NAME_FILE "/etc/hostname"
+#define AST_DEVICE_NAME_FILE "/etc/device_name"
 #define AST_DEVICE_STATUS_FILE "/var/ast_device_status"
 #define AST_VERSION_FILE "/etc/version"
+#define AST_DNT_MAC_FILE "/etc/dnt_mac"
 
 #if 0
 static void signal_handler(int i)
@@ -97,45 +99,52 @@ static void do_reply(AST_Device_Type device_type, AST_Device_Function device_fun
 			dbg("query device_type = %d\n", query.device_type);
 			dbg("query device_function = %d\n", query.device_function);
 			if (((query.device_type == Type_Any) || (device_type == query.device_type)) &&
-				((query.device_function == Function_Any) || (device_function == query.device_function))/* &&
-				((query.device_status == Status_Any) || (device_status == query.device_status))*/)
+				((query.device_function == Function_Any) || (device_function == query.device_function)))
 			{
 				r_fd = udp_create_sender();
 				if (r_fd != -1) {
 					FILE *fps = fopen(AST_DEVICE_STATUS_FILE, "r");
-					char device_status[MAX_STATUS_LENGTH];
 					FILE *fpn = fopen(AST_DEVICE_NAME_FILE, "r");
-					char device_name[MAX_NAME_LENGTH];
+					FILE *fph = fopen(AST_HOST_NAME_FILE, "r");
 					FILE *fpv = fopen(AST_VERSION_FILE, "r");
-					char model_name[MAX_MODEL_LENGTH];
-					char version[MAX_VER_LENGTH];
-					if ((fps) && (fpn))
+					FILE *fpd = fopen(AST_DNT_MAC_FILE, "r");
+					memset(&reply, 0, sizeof(reply));
+					if ((fps) && (fpn) && (fph))
 					{
-						fgets(device_status, 31, fps);
+						fgets(reply.device_status, 31, fps);
 						//remove possible new line in the end
-						if (device_status[strlen(device_status) - 1] == '\n')
-							device_status[strlen(device_status) - 1] = '\0';
-						fgets(device_name, 31, fpn);
+						if (reply.device_status[strlen(reply.device_status) - 1] == '\n')
+							reply.device_status[strlen(reply.device_status) - 1] = '\0';
+						fgets(reply.device_name, 31, fpn);
 						//remove possible new line in the end
-						if (device_name[strlen(device_name) - 1] == '\n')
-							device_name[strlen(device_name) - 1] = '\0';
-						fgets(model_name, 31, fpv);
+						if (reply.device_name[strlen(reply.device_name) - 1] == '\n')
+							reply.device_name[strlen(reply.device_name) - 1] = '\0';
+						fgets(reply.model_name, 31, fpv);
 						//remove possible new line in the end
-						if (model_name[strlen(model_name) - 1] == '\n')
-							model_name[strlen(model_name) - 1] = '\0';
-						fgets(version, 15, fpv);
+						if (reply.model_name[strlen(reply.model_name) - 1] == '\n')
+							reply.model_name[strlen(reply.model_name) - 1] = '\0';
+						fgets(reply.version, 15, fpv);
 						//remove possible new line in the end
-						if (version[strlen(version) - 1] == '\n')
-							version[strlen(version) - 1] = '\0';
-						
+						if (reply.version[strlen(reply.version) - 1] == '\n')
+							reply.version[strlen(reply.version) - 1] = '\0';
+						if (fpd)
+						{
+							fgets(reply.dnt_mac, sizeof(reply.dnt_mac), fpd);
+							//remove possible new line in the end
+							if (reply.dnt_mac[strlen(reply.dnt_mac) - 1] == '\n')
+								reply.dnt_mac[strlen(reply.dnt_mac) - 1] = '\0';
+						}
+						fgets(reply.hostname, sizeof(reply.hostname), fph);
+						//remove possible new line in the end
+						if (reply.hostname[strlen(reply.hostname) - 1] == '\n')
+							reply.hostname[strlen(reply.hostname) - 1] = '\0';
+
 						addr.sin_port = htons(AST_NAME_SERVICE_REPLY_PORT);
 						reply.device_type = device_type;
 						reply.device_function = device_function;
-						strcpy (reply.device_status, device_status);
-						strcpy (reply.device_name, device_name);
-						strcpy (reply.model_name, model_name);
-						strcpy (reply.version, version);
-						snprintf(reply.channel_number, sizeof(reply.channel_number) - 1, "%04d", get_channel_number());
+						reply.protocol_version = 4;
+						reply.service_capability = 0x05; // Telnet + http now only
+						reply.channel_number = get_channel_number();
 						reply.reserved[0] = '\0';
 						sendto(r_fd, &reply, sizeof(reply), 0, (struct sockaddr *)&addr, addr_len);
 					}
