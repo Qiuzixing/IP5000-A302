@@ -2188,61 +2188,61 @@ init_param_from_p3k_cfg()
 {
 	P3KCFG_FP_LOCK_ON=`jq -r '.device_setting.fp_lock' /data/configs/kds-7/device/device_setting.json`
 	if echo "$P3KCFG_FP_LOCK_ON" | grep -q "null" ; then
-		P3KCFG_FP_LOCK_ON=`on`
+		P3KCFG_FP_LOCK_ON='on'
 	fi
 	echo "P3KCFG_FP_LOCK_ON=$P3KCFG_FP_LOCK_ON"
 
 	P3KCFG_EDID_MODE=`jq -r '.edid_setting.edid_mode' /data/configs/kds-7/edid/edid_setting.json`
 	if echo "$P3KCFG_EDID_MODE" | grep -q "null" ; then
-		P3KCFG_EDID_MODE=`default`
+		P3KCFG_EDID_MODE='default'
 	fi
 	echo "P3KCFG_EDID_MODE=$P3KCFG_EDID_MODE"
 
 	P3KCFG_EDID_ACTIVE=`jq -r '.edid_setting.active_edid' /data/configs/kds-7/edid/edid_setting.json`
 	if echo "$P3KCFG_EDID_ACTIVE" | grep -q "null" ; then
-		P3KCFG_EDID_ACTIVE=`0`
+		P3KCFG_EDID_ACTIVE='0'
 	fi
 	echo "P3KCFG_EDID_ACTIVE=$P3KCFG_EDID_ACTIVE"
 
 	P3KCFG_EDID_NET_SRC=`jq -r '.edid_setting.net_src' /data/configs/kds-7/edid/edid_setting.json`
 	if echo "$P3KCFG_EDID_NET_SRC" | grep -q "null" ; then
-		P3KCFG_EDID_NET_SRC=`0.0.0.0`
+		P3KCFG_EDID_NET_SRC='0.0.0.0'
 	fi
 	echo "P3KCFG_EDID_NET_SRC=$P3KCFG_EDID_NET_SRC"
 
 	P3KCFG_HDCP_1_ON=`jq -r '.av_setting.hdcp_mode.hdmi_in1' /data/configs/kds-7/av_setting/av_setting.json`
 	if echo "$P3KCFG_HDCP_1_ON" | grep -q "null" ; then
-		P3KCFG_HDCP_1_ON=`on`
+		P3KCFG_HDCP_1_ON='on'
 	fi
 	echo "P3KCFG_HDCP_1_ON=$P3KCFG_HDCP_1_ON"
 
 	P3KCFG_HDCP_2_ON=`jq -r '.av_setting.hdcp_mode.hdmi_in2' /data/configs/kds-7/av_setting/av_setting.json`
 	if echo "$P3KCFG_HDCP_2_ON" | grep -q "null" ; then
-		P3KCFG_HDCP_2_ON=`on`
+		P3KCFG_HDCP_2_ON='on'
 	fi
 	echo "P3KCFG_HDCP_2_ON=$P3KCFG_HDCP_2_ON"
 
 	P3KCFG_HDCP_3_ON=`jq -r '.av_setting.hdcp_mode.usb_in3' /data/configs/kds-7/av_setting/av_setting.json`
 	if echo "$P3KCFG_HDCP_3_ON" | grep -q "null" ; then
-		P3KCFG_HDCP_3_ON=`on`
+		P3KCFG_HDCP_3_ON='on'
 	fi
 	echo "P3KCFG_HDCP_3_ON=$P3KCFG_HDCP_3_ON"
 
 	P3KCFG_AV_MUTE=`jq -r '.av_setting.mute' /data/configs/kds-7/av_setting/av_setting.json`
 	if echo "$P3KCFG_AV_MUTE" | grep -q "null" ; then
-		P3KCFG_AV_MUTE=`off`
+		P3KCFG_AV_MUTE='off'
 	fi
 	echo "P3KCFG_AV_MUTE=$P3KCFG_AV_MUTE"
 
 	P3KCFG_AV_ACTION=`jq -r '.av_setting.action' /data/configs/kds-7/av_setting/av_setting.json`
 	if echo "$P3KCFG_AV_ACTION" | grep -q "null" ; then
-		P3KCFG_AV_ACTION=`play`
+		P3KCFG_AV_ACTION='play'
 	fi
 	echo "P3KCFG_AV_ACTION=$P3KCFG_AV_ACTION"
 
 	P3KCFG_IR_DIR=`jq -r '.gateway.ir_direction' /data/configs/kds-7/gateway/gateway.json`
 	if echo "$P3KCFG_IR_DIR" | grep -q "null" ; then
-		P3KCFG_IR_DIR=`out`
+		P3KCFG_IR_DIR='out'
 	fi
 	echo "P3KCFG_IR_DIR=$P3KCFG_IR_DIR"
 }
