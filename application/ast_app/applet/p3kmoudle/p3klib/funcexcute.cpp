@@ -743,7 +743,20 @@ int EX_SetRollback(char * type)
 int EX_SetIRGateway(int  iIr_mode)
 {
 	printf("Tr gw mode = %d\n",iIr_mode);
+	Cfg_Set_GW_IR_Mode((State_E)iIr_mode);
 	char sCmd[64] = "";
+#if 1
+	if(iIr_mode == 1)
+	{
+		system("astparam s ir_guest_on y;");
+		system("astparam s ir_sw_decode_on y;astparam save");
+	}
+	else
+	{
+		system("astparam s ir_guest_on n;");
+		system("astparam s ir_sw_decode_on n;astparam save");
+	}
+#else
 	if((iIr_mode == 0)||(iIr_mode == 1))
 	{
 		sprintf(sCmd,"e_p3k_ir_gw::%d",iIr_mode);
@@ -755,13 +768,14 @@ int EX_SetIRGateway(int  iIr_mode)
 	}
 	printf("ast_send_event %s\n",sCmd);
 	ast_send_event(0xFFFFFFFF,sCmd);
+#endif
 	return 0;
 }
 
 int EX_GetIRGateway(void)
 {
-	int iIr_mode = 1;//0-off 1-on
-	printf("Tr gw mode = %d\n",iIr_mode);
+	int iIr_mode = g_gateway_info.ir_mode;//0-off 1-on
+	printf("EX_GetIRGateway gw mode = %d\n",iIr_mode);
 	return iIr_mode;
 }
 
@@ -2843,7 +2857,6 @@ int EX_SetTimeZero(int tz,int timingMethod)
 }
 int EX_GetTimeZero(int *tz,int *timingMethod)
 {
-
 	Cfg_Get_Time_Loc(tz,timingMethod);
 
 	return 0;
