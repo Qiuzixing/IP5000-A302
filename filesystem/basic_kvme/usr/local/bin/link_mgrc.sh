@@ -2913,7 +2913,8 @@ handle_e_p3k_ntp_on()
 
 	echo "ntp_client $1 $3"
 
-	#ntp_client "$1" "$3"
+	pkill -9 ntp_client
+	ntp_client "$1" "$3" &
 }
 
 handle_e_p3k_ntp_off()
@@ -2922,7 +2923,7 @@ handle_e_p3k_ntp_off()
 
 	echo "pkill -9 ntp_client"
 
-	#pkill -9 ntp_client
+	pkill -9 ntp_client
 }
 
 handle_e_p3k_ntp()
