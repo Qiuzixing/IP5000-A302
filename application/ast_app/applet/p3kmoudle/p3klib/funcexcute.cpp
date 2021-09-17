@@ -2324,6 +2324,16 @@ int EX_GetRouteMatch(PortInfo_S*inPortInfo,PortInfo_S*matchPortInfo)
 int EX_SetUartConf(UartMessageInfo_S*conf)
 {
 	Cfg_Set_GW_Uart_Param(*conf);
+
+	char cmd[128] = "";
+	if(conf->parity == PARITY_ODD)
+		sprintf(cmd,"astparam s s0_baudrate %d-%do%d;astparam save",conf->rate,conf->bitWidth,(int)conf->stopBitsMode);
+	else if(conf->parity == PARITY_EVEN)
+		sprintf(cmd,"astparam s s0_baudrate %d-%de%d;astparam save",conf->rate,conf->bitWidth,(int)conf->stopBitsMode);
+	else
+		sprintf(cmd,"astparam s s0_baudrate %d-%dn%d;astparam save",conf->rate,conf->bitWidth,(int)conf->stopBitsMode);
+
+	system(cmd);
 	return 0;
 }
 int EX_GetUartConf(int comId,UartMessageInfo_S*conf)
@@ -2338,17 +2348,23 @@ int EX_GetUartConf(int comId,UartMessageInfo_S*conf)
 	conf->stopBitsMode = tmpconf.stopBitsMode;
 	conf->serialType =0;
 	conf->term_485 = 0;
+	conf->parity = tmpconf.parity;
 
 	return 0;
 }
 int EX_AddComRoute(ComRouteInfo_S*info,int comId)
 {
 	Cfg_Set_GW_COM_Add(info->portNumber);
+
+	system("astparam s no_soip n;astparam save");
+
 	return 0;
 }
 int EX_RemoveComRoute(int comId)
 {
 	Cfg_Set_GW_COM_Remove();
+
+	system("astparam s no_soip y;astparam save");
 	return 0;
 }
 int EX_GetComRoute(int comId,ComRouteInfo_S*info)
