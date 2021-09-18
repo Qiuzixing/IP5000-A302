@@ -221,6 +221,7 @@ int mc_create_sender(char *mgroup, int port)
 	/* bind to receive address */
 	if (bind(fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) < 0) {
 		perror("bind");
+		close(fd);
 		return -1;
 	}
 
@@ -232,12 +233,14 @@ int mc_create_sender(char *mgroup, int port)
 
 	if (connect(fd, (struct sockaddr *)&addr, sizeof(struct sockaddr)) < 0) {
 		perror("connect");
+		close(fd);
 		return -1;
 	}
 #if 0	
 	char *message = "Hello Start Kernel World!\n";
 	if (sendto(fd, message, strlen(message) + 1, 0, &addr, sizeof(addr)) < 0) {
 		perror("sendto");
+		close(fd);
 		return -1;
 	}
 #endif
@@ -260,6 +263,7 @@ int mc_connect(char *mgroup, int port)
 	/* allow multiple sockets to use the same PORT number */
 	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
 		perror("Reusing ADDR failed");
+		close(fd);
 		return -1;
 	}
 
@@ -272,6 +276,7 @@ int mc_connect(char *mgroup, int port)
 	/* bind to receive address */
 	if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
 		perror("bind");
+		close(fd);
 		return -1;
 	}
 	
@@ -280,6 +285,7 @@ int mc_connect(char *mgroup, int port)
 	mreq.imr_interface.s_addr=htonl(INADDR_ANY);
 	if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) {
 		perror("setsockopt");
+		close(fd);
 		return -1;
 	}
 

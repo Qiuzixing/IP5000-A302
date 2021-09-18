@@ -204,7 +204,7 @@ static int create_event_listener(void)
 
 	return event_listener;
 done:
-	if (event_listener)
+	if (event_listener >= 0)
 		close(event_listener);
 	return -1;
 }
@@ -250,7 +250,7 @@ static int create_listener(unsigned int is_multicast)
 
 	return listener;
 done:
-	if (listener)
+	if (listener >= 0)
 		close(listener);
 	
 	return -1;

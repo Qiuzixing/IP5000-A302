@@ -240,7 +240,7 @@ int main(int argc, char *argv[])
 	}
 	
 err:
-	if (pfd.fd != -1)
+	if (pfd.fd >= 0)
 		close(pfd.fd);
 	if (nlh)
 		free(nlh);
@@ -315,7 +315,7 @@ static int create_event_listener(void)
 
 	return event_listener;
 done:
-	if (event_listener && (event_listener != -1))
+	if (event_listener >= 0)
 		close(event_listener);
 	return -1;
 }
@@ -349,6 +349,8 @@ int create_uds(void)
 
 	return socket_fd;
 err:
+	if (socket_fd >= 0)
+		close(socket_fd);
 	return -1;
 }
 

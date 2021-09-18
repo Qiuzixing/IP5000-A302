@@ -647,11 +647,11 @@ done:
 		close(csock);
 	if (lsock >= 0)
 		close(lsock);
-	if (fd_c > 0)
+	if (fd_c >= 0)
 		close(fd_c);
-	if (fd_h > 0)
+	if (fd_h >= 0)
 		close(fd_h);
-	if (fd_osd > 0)
+	if (fd_osd >= 0)
 		close(fd_osd);
 	//send_event(-1, "e_no_heartbeat");
 

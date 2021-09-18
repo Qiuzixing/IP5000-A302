@@ -54,6 +54,9 @@ int create_uds_server(unsigned char *uds_name)
 
 	return socket_fd;
 err:
+	if (socket_fd >= 0) {
+		close(socket_fd);
+	}
 	return -1;
 }
 

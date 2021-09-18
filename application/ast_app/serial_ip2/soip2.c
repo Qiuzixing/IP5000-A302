@@ -401,7 +401,7 @@ int soip2_connect_to_host(int fd, struct s_req_pkt *req)
 	return socket_fd;
 
 out: //Failed
-	if (socket_fd > 0)
+	if (socket_fd >= 0)
 		close(socket_fd);
 
 	return ret;
@@ -821,7 +821,7 @@ static int soip2_create_event_listener(void)
 
 	return event_listener;
 done:
-	if (event_listener)
+	if (event_listener >= 0)
 		close(event_listener);
 	return -1;
 }
@@ -866,7 +866,7 @@ int soip2_host_start_listen(void)
 	return sock;
 
 out:
-	if (sock > 0)
+	if (sock >= 0)
 		close(sock);
 	
 	return ret;

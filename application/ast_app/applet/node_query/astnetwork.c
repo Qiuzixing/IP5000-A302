@@ -227,6 +227,7 @@ int udp_create_sender(unsigned int ip_to_send_to, int port, unsigned int *binded
 	/* bind to local address */
 	if (bind(fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) < 0) {
 		perror("udp_create_sender bind");
+		close(fd);
 		return -1;
 	}
 
@@ -266,6 +267,7 @@ int udp_create_sender(unsigned int ip_to_send_to, int port, unsigned int *binded
 
 	if (connect(fd, (struct sockaddr *)&addr, sizeof(struct sockaddr)) < 0) {
 		perror("udp_create_sender connect");
+		close(fd);
 		return -1;
 	}
 
@@ -283,6 +285,7 @@ int udp_create_sender(unsigned int ip_to_send_to, int port, unsigned int *binded
 	char *message = "Hello Start Kernel World!\n";
 	if (sendto(fd, message, strlen(message) + 1, 0, &addr, sizeof(addr)) < 0) {
 		perror("sendto");
+		close(fd);
 		return -1;
 	}
 #endif
@@ -308,6 +311,7 @@ static int _udp_connect(unsigned int ip_to_listen, int port, unsigned int specif
 	/* allow multiple sockets to use the same PORT number */
 	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
 		perror("Reusing ADDR failed");
+		close(fd);
 		return -1;
 	}
 
@@ -332,6 +336,7 @@ static int _udp_connect(unsigned int ip_to_listen, int port, unsigned int specif
 	/* bind to receive address */
 	if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
 		perror("udp_connect bind");
+		close(fd);
 		return -1;
 	}
 
@@ -342,6 +347,7 @@ static int _udp_connect(unsigned int ip_to_listen, int port, unsigned int specif
 		mreq.imr_interface.s_addr = INADDR_ANY;
 		if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) {
 			perror("udp_connect setsockopt");
+			close(fd);
 			return -1;
 		}
 	} else {
@@ -354,6 +360,7 @@ static int _udp_connect(unsigned int ip_to_listen, int port, unsigned int specif
 			addr.sin_port = htons(0); /* Receive from any sender port number. */
 			if (connect(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
 				perror("udp_connect connect");
+				close(fd);
 				return -1;
 			}
 		}

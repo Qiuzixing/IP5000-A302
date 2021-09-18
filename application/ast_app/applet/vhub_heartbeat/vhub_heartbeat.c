@@ -104,7 +104,7 @@ void send_event(unsigned int dest_pid, char *event_msg)
 	sendmsg(sock_fd, &msg_hdr, 0);
 	
 err_out:
-	if (sock_fd != -1)
+	if (sock_fd >= 0)
 		close(sock_fd);
 
 	if (nlh)

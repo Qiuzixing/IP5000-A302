@@ -198,7 +198,7 @@ static int igmpV2_send(
 	sendto(fd, packet, ip->tot_len, 0, (struct sockaddr *)&addr, sizeof(struct sockaddr));
 
 OUT:
-	if (fd > 0)
+	if (fd >= 0)
 		close(fd);
 
 #if USE_MALLOC

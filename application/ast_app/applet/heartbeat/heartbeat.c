@@ -1075,7 +1075,7 @@ static int igmpV2_send(int dst_addr, int src_addr, unsigned char igmp_type, unsi
 	/* now the packet is sent */
 	sendto(fd, packet, ip->tot_len, 0, (struct sockaddr *)&addr, sizeof(struct sockaddr));
 OUT:
-	if (fd > 0)
+	if (fd >= 0)
 		close(fd);
 
 	return 0;

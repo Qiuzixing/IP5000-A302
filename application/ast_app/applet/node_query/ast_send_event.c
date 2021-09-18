@@ -100,7 +100,7 @@ void ast_send_event(unsigned int dest_pid, char *event_msg)
 	sched_yield();
 
 err:
-	if (sock_fd != -1)
+	if (sock_fd >= 0)
 		close(sock_fd);
 
 	if (nlh)

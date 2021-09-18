@@ -526,7 +526,7 @@ int connect_to_client(int fd, struct s_req_pkt *req)
 	return socket_fd;
 
 out: //Failed
-	if (socket_fd > 0)
+	if (socket_fd >= 0)
 		close(socket_fd);
 
 	return ret;
@@ -916,7 +916,7 @@ unsigned int do_soip_host(char *uart_port, char *uart_config)
 out:
 
 	info("Ending SoIP...\n");
-	if (socket_fd > 0)
+	if (socket_fd >= 0)
 		close(socket_fd);
 
 	if (uart_fd > 0)

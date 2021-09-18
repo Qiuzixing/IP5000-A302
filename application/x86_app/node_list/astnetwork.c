@@ -38,6 +38,7 @@ int udp_create_sender(unsigned int local_intf)
 	/* bind to send address */
 	if (bind(fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) < 0) {
 		perror("bind");
+		close(fd);
 		return -1;
 	}
 	return fd;
@@ -59,6 +60,7 @@ int udp_create_receiver(char *mgroup, int port, unsigned int local_intf)
 	/* allow multiple sockets to use the same PORT number */
 	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
 		perror("setsockopt (SO_REUSEADDR)");
+		close(fd);
 		return -1;
 	}
 
@@ -72,6 +74,7 @@ int udp_create_receiver(char *mgroup, int port, unsigned int local_intf)
 	/* bind to receive address */
 	if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
 		perror("bind");
+		close(fd);
 		return -1;
 	}
 
@@ -81,6 +84,7 @@ int udp_create_receiver(char *mgroup, int port, unsigned int local_intf)
 		mreq.imr_interface.s_addr = (in_addr_t)local_intf;
 		if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) {
 			perror("setsockopt (IP_ADD_MEMBERSHIP)");
+			close(fd);
 			return -1;
 		}
 	}

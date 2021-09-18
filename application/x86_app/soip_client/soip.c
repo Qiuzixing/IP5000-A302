@@ -336,6 +336,7 @@ static int udp_create_receiver(char *mgroup, int port, char *minterface)
 	/* allow multiple sockets to use the same PORT number */
 	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
 		perror("setsockopt (SO_REUSEADDR)");
+		close(fd);
 		return -1;
 	}
 
@@ -358,6 +359,7 @@ static int udp_create_receiver(char *mgroup, int port, char *minterface)
 	/* bind to receive address */
 	if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
 		perror("bind");
+		close(fd);
 		return -1;
 	}
 
@@ -374,6 +376,7 @@ static int udp_create_receiver(char *mgroup, int port, char *minterface)
 			
 		if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) {
 			perror("setsockopt (IP_ADD_MEMBERSHIP)");
+			close(fd);
 			return -1;
 		}
 	}
@@ -408,6 +411,7 @@ static int udp_create_sender(char *dst_addr, int port)
 	/* bind to send address */
 	if (bind(fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) < 0) {
 		perror("bind");
+		close(fd);
 		return -1;
 	}
 
@@ -430,6 +434,7 @@ static int udp_create_sender(char *dst_addr, int port)
 
 	if (connect(fd, (struct sockaddr *)&addr, sizeof(struct sockaddr)) < 0) {
 		perror("connect");
+		close(fd);
 		return -1;
 	}
 
