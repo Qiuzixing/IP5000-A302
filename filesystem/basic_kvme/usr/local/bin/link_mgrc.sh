@@ -9,6 +9,11 @@
 ## the terms of the ASPEED SDK license agreement.
 ##
 
+#config file path
+device_setting="/data/configs/kds-7/device/device_setting.json"
+av_setting="/data/configs/kds-7/av_setting/av_setting.json"
+gateway_setting="/data/configs/kds-7/gateway/gateway.json"
+auto_switch_setting="/data/configs/kds-7/switch/auto_switch_setting.json"
 # 0: This value does not exist.
 # 1: GUI screen
 # 2: Decode screen
@@ -1421,9 +1426,15 @@ handle_e_ip_got()
 		p3ktcp &
 		usleep 10000
 		web &
+
+		if [ "$P3KCFG_AV_ACTION" = 'stop' ];then
+			e e_stop_link
+		fi
 		case $MODEL_NUMBER in
 			KDS-DEC7)
-				lcd_display IPD5000 &
+				if [ $P3KCFG_FP_LOCK_ON = 'off' ];then
+					lcd_display IPD5000 &
+				fi
 			;;
 			*)
 			;;
@@ -3312,35 +3323,65 @@ init_param_from_flash()
 
 init_param_from_p3k_cfg()
 {
-	P3KCFG_FP_LOCK_ON=`jq -r '.device_setting.fp_lock' /data/configs/kds-7/device/device_setting.json`
-	if echo "$P3KCFG_FP_LOCK_ON" | grep -q "null" ; then
-		P3KCFG_FP_LOCK_ON='on'
+	if [ -f "$device_setting" ];then
+		P3KCFG_FP_LOCK_ON=`jq -r '.device_setting.fp_lock' $device_setting`
+		if echo "$P3KCFG_FP_LOCK_ON" | grep -q "null" ; then
+			P3KCFG_FP_LOCK_ON='off'
+		fi
+	else
+		P3KCFG_FP_LOCK_ON='off'
 	fi
 	echo "P3KCFG_FP_LOCK_ON=$P3KCFG_FP_LOCK_ON"
 
-	P3KCFG_AV_MUTE=`jq -r '.av_setting.mute' /data/configs/kds-7/av_setting/av_setting.json`
-	if echo "$P3KCFG_AV_MUTE" | grep -q "null" ; then
-		P3KCFG_AV_MUTE='off'
-	fi
-	echo "P3KCFG_AV_MUTE=$P3KCFG_AV_MUTE"
+	if [ -f "$av_setting" ];then
+		P3KCFG_AV_MUTE=`jq -r '.av_setting.mute' $av_setting`
+		if echo "$P3KCFG_AV_MUTE" | grep -q "null" ; then
+			P3KCFG_AV_MUTE='off'
+		fi
 
-	P3KCFG_AV_ACTION=`jq -r '.av_setting.action' /data/configs/kds-7/av_setting/av_setting.json`
-	if echo "$P3KCFG_AV_ACTION" | grep -q "null" ; then
+		P3KCFG_AV_ACTION=`jq -r '.av_setting.action' $av_setting`
+		if echo "$P3KCFG_AV_ACTION" | grep -q "null" ; then
+			P3KCFG_AV_ACTION='play'
+		fi
+	else
+		P3KCFG_AV_MUTE='off'
 		P3KCFG_AV_ACTION='play'
 	fi
+	echo "P3KCFG_AV_MUTE=$P3KCFG_AV_MUTE"
 	echo "P3KCFG_AV_ACTION=$P3KCFG_AV_ACTION"
 
-	P3KCFG_IR_DIR=`jq -r '.gateway.ir_direction' /data/configs/kds-7/gateway/gateway.json`
-	if echo "$P3KCFG_IR_DIR" | grep -q "null" ; then
+	if [ -f "$gateway_setting" ];then
+		P3KCFG_IR_DIR=`jq -r '.gateway.ir_direction' $gateway_setting`
+		if echo "$P3KCFG_IR_DIR" | grep -q "null" ; then
+			P3KCFG_IR_DIR='out'
+		fi
+	else
 		P3KCFG_IR_DIR='out'
 	fi
 	echo "P3KCFG_IR_DIR=$P3KCFG_IR_DIR"
 
-	P3KCFG_SWITCH_IN=`jq -r '.auto_switch_setting.source_select' /data/configs/kds-7/switch/auto_switch_setting.json`
-	if echo "$P3KCFG_SWITCH_IN" | grep -q "null" ; then
+	if [ -f "$auto_switch_setting" ];then
+		P3KCFG_SWITCH_IN=`jq -r '.gateway.ir_direction' $auto_switch_setting`
+		if echo "$P3KCFG_SWITCH_IN" | grep -q "null" ; then
+			P3KCFG_SWITCH_IN='stream'
+		fi
+	else
 		P3KCFG_SWITCH_IN='stream'
 	fi
 	echo "P3KCFG_SWITCH_IN=$P3KCFG_SWITCH_IN"
+}
+
+set_variable_power_on_status()
+{
+	if [ $P3KCFG_AV_MUTE = 'off' ];then
+		echo 0 > /sys/class/leds/linein_mute/brightness
+		echo 0 > /sys/class/leds/lineout_mute/brightness
+	else
+		echo 1 > /sys/class/leds/linein_mute/brightness
+		echo 1 > /sys/class/leds/lineout_mute/brightness
+	fi
+
+	
 }
 
 signal_handler()
@@ -3437,7 +3478,13 @@ if [ $UGP_FLAG = 'success' ];then
 	#set lineio_sel pin to default to line_out;0:line_out;1:line_in
 	ipc @m_lm_set s set_gpio_config:2:65:1:70:1
 	ipc @m_lm_set s set_gpio_val:2:70:0:65:0
+	if [ $P3KCFG_SWITCH_IN = 'hdmi_in1' ];then
+		ipc @m_lm_set s set_input_source:16:1
+	fi
 fi
+
+set_variable_power_on_status
+
 # TBD remove? screen switch doesn't check HAS_CRT anymore
 #if [ -f "$DISPLAY_SYS_PATH"/screen ]; then
 #	HAS_CRT='y'

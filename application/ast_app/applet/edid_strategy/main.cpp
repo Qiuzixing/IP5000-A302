@@ -20,18 +20,29 @@
 #include "jsonparse.h"
 using namespace std;
 #define EEPROM_CONTENT          "/sys/devices/platform/videoip/eeprom_content"
+#define EEPROM_CONTENT_EX          "/sys/devices/platform/videoip/edid_cache"
 #define EDID_LIST               "edid_list.json"
-#define DEFAULT_EDID            "default"
+#define DEFAULT_EDID            "default.bin"
 #define EDID_FILE_LENGTH        30
 #define EDID_MAXLEN             256
 #define EDID_FILE_MAXNUM        8
 #define EDID_PATH_LENGTH        120
+#define EEPROM_EDID_MAX_LEN     1024
 enum
 {
     GB_VALID = 0,
     GB_INVALID,
     GB_ERROR
 };
+
+enum
+{
+    GB_SAME = 0,
+    GB_NOT_THE_SAME,
+    GB_FILE_ERROR,
+    GB_READ_OK
+};
+
 enum
 {
     READ_EDID_FILE = 0,
@@ -84,7 +95,7 @@ const a30_board_name board_name_list[] =
     {IPD5000W,   "/data/configs/kds-7/edid/"}
 };
 
-static void HexToAscii(char *pHex, char *pAscii, int nLen)
+static void HexToAscii(unsigned char *pHex, char *pAscii, int nLen)
 {
     char Nibble[2];
     unsigned int i,j;
@@ -108,9 +119,50 @@ static void HexToAscii(char *pHex, char *pAscii, int nLen)
     }       
 }
 
-static void write_eeprom(char *edid_data)
+static uint8_t ascii_to_hex(uint8_t b_hex)
 {
-    char eeprom_edid_buf[1024] = {0};
+    if ((b_hex >= 0x30) && (b_hex <= 0x39)) //num:0-9
+    {
+        b_hex = b_hex - 0x30;
+    }
+    else if ((b_hex >= 0x41) && (b_hex <= 0x46)) //A,B,C,D,E,F....
+    {
+        b_hex = b_hex - 0x37;
+    }
+    else if ((b_hex >= 0x61) && (b_hex <= 0x66)) //a,b,c,d,e,f....
+    {
+        b_hex = b_hex - 0x57;
+    }
+    else
+    {
+        b_hex = 0xff;
+    }
+
+    return b_hex;
+}
+
+static uint8_t *do_handle_read_edid_info(int edid_file_size, uint8_t *edid_file_point, uint8_t *edid_info)
+{
+    int i = 0;
+
+    uint8_t k = 0;
+    uint8_t tmp = 0;
+    for (i = 0; i < edid_file_size; i++)
+    {
+        tmp = ascii_to_hex(edid_file_point[i]);
+        if (0xff == tmp)
+        {
+            continue;
+        }
+        edid_info[k++] = tmp * 16 + ascii_to_hex(edid_file_point[++i]);
+    }
+
+    return edid_info;
+}
+
+static void write_eeprom(unsigned char *edid_data)
+{
+    char eeprom_edid_buf[EEPROM_EDID_MAX_LEN] = {0};
     HexToAscii(edid_data,eeprom_edid_buf,EDID_MAXLEN);//Data conversion
     int fd = open(EEPROM_CONTENT, O_RDWR);
     if (fd < 0)
@@ -175,7 +227,7 @@ static void read_file_and_write_eeprom(char *path)
     FILE *fp = fopen(path, "rb");
     int i = 0;
     int ret = 0;
-    char edid_buf[EDID_MAXLEN] = {0};
+    uint8_t edid_buf[EDID_MAXLEN] = {0};
     if (fp == NULL)
     {
         printf( "\nCan not open the path: %s \n", path);
@@ -188,7 +240,7 @@ static void read_file_and_write_eeprom(char *path)
         printf("fread error\n");
     }
     fclose(fp);
-    if (1 == App_EDID_IsValid((uint8_t *)edid_buf))
+    if (1 == App_EDID_IsValid(edid_buf))
     {
         write_eeprom(edid_buf);
     }
@@ -197,6 +249,72 @@ static void read_file_and_write_eeprom(char *path)
         printf("%s edid Validation failed\n",path);
     }
     
+}
+
+static int get_eeprom_edid_cache_conten(char *eeprom_edid_ex,unsigned char *edid_content)
+{
+    uint8_t eeprom_edid[EEPROM_EDID_MAX_LEN] = {0};
+    int fd = open(eeprom_edid_ex, O_RDWR);
+    if (fd < 0)
+    {
+        printf("open %s error:%s", eeprom_edid_ex,strerror(errno));
+        return GB_FILE_ERROR;
+    }
+    ssize_t ret = 0;
+    ret = read(fd, eeprom_edid, sizeof(eeprom_edid));
+    close(fd);
+    if (ret < 0)
+    {
+        printf("read %s error\n", EEPROM_CONTENT_EX);
+        return GB_FILE_ERROR;
+    }
+    do_handle_read_edid_info(ret,eeprom_edid,edid_content);
+    if (0 == App_EDID_IsValid(edid_content))
+    {
+        return GB_NOT_THE_SAME;
+    }
+
+    return GB_READ_OK;
+}
+
+static int compare_file(char *edid_file,char *eeprom_edid_ex)
+{
+    /* open EEPROM_CONTENT_EX file,extract the content of EDID  */
+    uint8_t eeprom_edid_buf[EDID_MAXLEN] = {0};
+    int ret = 0;
+    ret = get_eeprom_edid_cache_conten(eeprom_edid_ex,eeprom_edid_buf);
+    if(ret != GB_READ_OK)
+    {
+        return ret;
+    }
+
+    /* open edid_file,get the content of edid_file */
+    uint8_t edid_file_buf[EDID_MAXLEN] = {0};
+    FILE *fp = fopen(edid_file, "rb");
+    if (fp == NULL)
+    {
+        printf( "\nCan not open the path: %s \n", edid_file);
+        return GB_FILE_ERROR;
+    }
+    ret = fread(edid_file_buf, sizeof(unsigned char), EDID_MAXLEN, fp);
+    if(ret != EDID_MAXLEN)
+    {
+        printf("fread error\n");
+        fclose(fp);
+        return GB_FILE_ERROR;
+    }
+    fclose(fp);
+
+    /* compare */
+    int i = 0;
+    for(i = 0;i < EDID_MAXLEN;i++)
+    {
+        if(edid_file_buf[i] != eeprom_edid_buf[i])
+        {
+            return GB_NOT_THE_SAME;
+        } 
+    }
+    return GB_SAME;
 }
 
 int connect_rx_get_edid(char *rx_ip_addr,int port_num,int index)
@@ -209,7 +327,7 @@ int connect_rx_get_edid(char *rx_ip_addr,int port_num,int index)
     int sockfd = 0;
     int n = 0;
     int i = 0;
-    char edid_info[EDID_MAXLEN] = {0};
+    unsigned char edid_info[EDID_MAXLEN] = {0};
     struct sockaddr_in servaddr;
     int ret = 0;
     int reuse = 1;
@@ -262,11 +380,21 @@ int connect_rx_get_edid(char *rx_ip_addr,int port_num,int index)
                     }
                     else
                     {
-                        if(App_EDID_IsValid((unsigned char*)edid_info))
+                        if(App_EDID_IsValid(edid_info))
                         {
-                            printf("edid verify success,write eeprom\n");
-                            write_eeprom(edid_info);
-                            
+                            uint8_t eeprom_edid_buf[EDID_MAXLEN] = {0};
+                            get_eeprom_edid_cache_conten(EEPROM_CONTENT_EX,eeprom_edid_buf);
+                            int i = 0;
+                            for(i = 0;i < EDID_MAXLEN;i++)
+                            {
+                                if(edid_info[i] != eeprom_edid_buf[i])
+                                {
+                                    printf("the edid is not same,write eeprom\n");
+                                    write_eeprom(edid_info);
+                                    break;
+                                } 
+                            }
+                            printf("The EDID of the two is consistent\n");
                         }
                         else
                         {
@@ -293,7 +421,19 @@ int connect_rx_get_edid(char *rx_ip_addr,int port_num,int index)
                 {
                     if(App_EDID_IsValid((unsigned char*)edid_info))
                     {
-                        write_eeprom(edid_info);
+                        uint8_t eeprom_edid_buf[EDID_MAXLEN] = {0};
+                        get_eeprom_edid_cache_conten(EEPROM_CONTENT_EX,eeprom_edid_buf);
+                        int i = 0;
+                        for(i = 0;i < EDID_MAXLEN;i++)
+                        {
+                            if(edid_info[i] != eeprom_edid_buf[i])
+                            {
+                                printf("the edid is not same,write eeprom\n");
+                                write_eeprom(edid_info);
+                                break;
+                            } 
+                        }
+                        printf("The EDID of the two is consistent\n");
                     }
                     else
                     {
@@ -323,7 +463,21 @@ static void edid_mode_is_default(unsigned char board_index)
 {
     char edid_file_path[EDID_PATH_LENGTH] = {0};
     sprintf(edid_file_path,"%s%s",board_name_list[board_index].edid_path,DEFAULT_EDID);
-    read_file_and_write_eeprom(edid_file_path);
+    int ret = compare_file(edid_file_path,EEPROM_CONTENT_EX);
+    if (GB_NOT_THE_SAME == ret)
+    {
+        printf("the edid is not same,write eeprom\n");
+        read_file_and_write_eeprom(edid_file_path);
+    }
+    else if(GB_SAME == ret)
+    {
+        printf("The EDID of the two is consistent\n");
+    }
+    else
+    {
+         printf("error\n");
+    }
+    
 }
 
 static void edid_mode_is_custom(unsigned char index,char *edid_list_path,unsigned char board_index)
@@ -339,15 +493,32 @@ static void edid_mode_is_custom(unsigned char index,char *edid_list_path,unsigne
     if(edid_file_name == NULL)
     {
         printf("File does not exist in %d index\n",index);
+        sprintf(edid_file_path,"%s%s",board_name_list[board_index].edid_path,DEFAULT_EDID);
+        read_file_and_write_eeprom(edid_file_path);
     }
     else if(strlen(edid_file_name) >= EDID_FILE_LENGTH)
     {
         printf("file name is too long,please Modify file name\n");
+        sprintf(edid_file_path,"%s%s",board_name_list[board_index].edid_path,DEFAULT_EDID);
+        read_file_and_write_eeprom(edid_file_path);
     }
     else
     {
         sprintf(edid_file_path,"%s%s",board_name_list[board_index].edid_path,edid_file_name);
-        read_file_and_write_eeprom(edid_file_path);
+        int ret = compare_file(edid_file_path,EEPROM_CONTENT_EX);
+        if (GB_NOT_THE_SAME == ret)
+        {
+            printf("the edid is not same,write eeprom\n");
+            read_file_and_write_eeprom(edid_file_path);
+        }
+        else if(GB_SAME == ret)
+        {
+            printf("The EDID of the two is consistent\n");
+        }
+        else
+        {
+            /* code */
+        }
     }
 }
 
@@ -406,56 +577,15 @@ static void do_handle_edid_file(char op_edid_file, char *edid_file, unsigned cha
     }
 }
 
-static uint8_t ascii_to_hex(uint8_t b_hex)
-{
-    if ((b_hex >= 0x30) && (b_hex <= 0x39)) //num:0-9
-    {
-        b_hex = b_hex - 0x30;
-    }
-    else if ((b_hex >= 0x41) && (b_hex <= 0x46)) //A,B,C,D,E,F....
-    {
-        b_hex = b_hex - 0x37;
-    }
-    else if ((b_hex >= 0x61) && (b_hex <= 0x66)) //a,b,c,d,e,f....
-    {
-        b_hex = b_hex - 0x57;
-    }
-    else
-    {
-        b_hex = 0xff;
-    }
-
-    return b_hex;
-}
-
-static uint8_t *do_handle_read_edid_info(int edid_file_size, uint8_t *edid_file_point, uint8_t *edid_info)
-{
-    int i = 0;
-
-    uint8_t k = 0;
-    uint8_t tmp = 0;
-    for (i = 0; i < edid_file_size; i++)
-    {
-        tmp = ascii_to_hex(edid_file_point[i]);
-        if (0xff == tmp)
-        {
-            continue;
-        }
-        edid_info[k++] = tmp * 16 + ascii_to_hex(edid_file_point[++i]);
-    }
-
-    return edid_info;
-}
-
 static int gb_detect_eeprom_edid_whether_valid()
 {
     int ret = 0;
     uint8_t edid_num[EDID_MAXLEN];
-    uint8_t tmp_point[1024] = {0};
-    int fd = open(EEPROM_CONTENT, O_RDWR);
+    uint8_t tmp_point[EEPROM_EDID_MAX_LEN] = {0};
+    int fd = open(EEPROM_CONTENT_EX, O_RDWR);
     if (fd < 0)
     {
-        printf("open %s error\n", EEPROM_CONTENT);
+        printf("open %s error\n", EEPROM_CONTENT_EX);
         return GB_ERROR;
     }
 
@@ -463,13 +593,10 @@ static int gb_detect_eeprom_edid_whether_valid()
     close(fd);
     if (ret < 0)
     {
-        printf("read %s error\n", EEPROM_CONTENT);
-
+        printf("read %s error\n", EEPROM_CONTENT_EX);
         return GB_ERROR;
     }
-
     do_handle_read_edid_info(ret, tmp_point, edid_num);
-
     if (App_EDID_IsValid(edid_num))
     {
         return GB_VALID;
@@ -602,10 +729,12 @@ int main(int argc, char *argv[])
         if (GB_VALID == gb_detect_eeprom_edid_whether_valid())
         {
             printf("edid verify success\n");
+            return 0;
         }
         else
         {
             printf("edid verify error\n");
+            return 1;
         }
     }
 

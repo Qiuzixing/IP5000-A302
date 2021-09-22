@@ -711,7 +711,7 @@ int Cfg_Init_Device(void)
 	char path[128] = "";
 	sprintf(path,"%s%s%s",CONF_PATH,g_module,DEVICE_FILE);
 
-	g_device_info.fp_lock = ON;
+	g_device_info.fp_lock = OFF;
 	g_device_info.standby_time = 30;
 	GetBoardInfo(BOARD_MAC, g_device_info.mac_addr, 32);
 	GetBoardInfo(BOARD_HOSTNAME, g_device_info.hostname, 32);
@@ -2386,12 +2386,15 @@ int Cfg_Update_AVSetting(void)
 	if(g_avsetting_info.mute_mode == ON)
 		root[JSON_AV_MUTE] = JSON_PARAM_ON;
 	else
-		root[JSON_AV_MUTE] = JSON_PARAM_OFF;
+		root[JSON_AV_MUTE] = JSON_PARAM_OFF;
+
+
 
 	if(g_avsetting_info.action == CODEC_ACTION_STOP)
 		root[JSON_AV_ACTION] = JSON_AV_STOP;
 	else
-		root[JSON_AV_ACTION] = JSON_AV_PLAY;
+		root[JSON_AV_ACTION] = JSON_AV_PLAY;
+
 
 #ifdef CONFIG_P3K_HOST
 	Json::Value JsonHDCP;
@@ -2399,17 +2402,20 @@ int Cfg_Update_AVSetting(void)
 		if(g_avsetting_info.hdcp_mode[0] == ON)
 			JsonHDCP[JSON_HDMI_1] = JSON_PARAM_ON;
 		else
-			JsonHDCP[JSON_HDMI_1] = JSON_PARAM_OFF;
+			JsonHDCP[JSON_HDMI_1] = JSON_PARAM_OFF;
+
 
 		if(g_avsetting_info.hdcp_mode[1] == ON)
 			JsonHDCP[JSON_HDMI_2] = JSON_PARAM_ON;
 		else
-			JsonHDCP[JSON_HDMI_2] = JSON_PARAM_OFF;
+			JsonHDCP[JSON_HDMI_2] = JSON_PARAM_OFF;
+
 
 		if(g_avsetting_info.hdcp_mode[2] == ON)
 			JsonHDCP[JSON_USBC_3] = JSON_PARAM_ON;
 		else
-			JsonHDCP[JSON_USBC_3] = JSON_PARAM_OFF;
+			JsonHDCP[JSON_USBC_3] = JSON_PARAM_OFF;
+
 	}
 
 	root[JSON_AV_HDCP] = JsonHDCP;

@@ -9,6 +9,13 @@
 ## the terms of the ASPEED SDK license agreement.
 ##
 
+#config file path
+device_setting="/data/configs/kds-7/device/device_setting.json"
+edid_setting="/data/configs/kds-7/edid/edid_setting.json"
+av_setting="/data/configs/kds-7/av_setting/av_setting.json"
+gateway_setting="/data/configs/kds-7/gateway/gateway.json"
+rx_tcp_port='8888'
+
 stop_all_service()
 {
 	## A7 TBD
@@ -711,12 +718,21 @@ handle_e_ip_got()
 		usleep 10000
 		web &
 		
+		if [ "$P3KCFG_AV_ACTION" = 'stop' ];then
+			e e_stop_link
+		fi
 		case $MODEL_NUMBER in
 			KDS-SW3-EN7)
-					lcd_display IPE5000P &
+					if [ $P3KCFG_FP_LOCK_ON = 'off' ];then
+						echo "123"
+						lcd_display IPE5000P &
+					fi
 				;;
 			KDS-EN7)
-					lcd_display IPE5000 &
+					if [ $P3KCFG_FP_LOCK_ON = 'off' ];then
+						echo "234"
+						lcd_display IPE5000 &
+					fi
 				;;
 			*)
 			;;
@@ -2060,7 +2076,7 @@ init_param_from_flash()
 				REMOTE_EDID_PATCH='00000005'
 			;;
 			3)
-				REMOTE_EDID_PATCH='00000001'
+				REMOTE_EDID_PATCH='00000000'
 			;;
 			*)
 				REMOTE_EDID_PATCH='00000001'
@@ -2187,65 +2203,114 @@ init_param_from_flash()
 
 init_param_from_p3k_cfg()
 {
-	P3KCFG_FP_LOCK_ON=`jq -r '.device_setting.fp_lock' /data/configs/kds-7/device/device_setting.json`
-	if echo "$P3KCFG_FP_LOCK_ON" | grep -q "null" ; then
-		P3KCFG_FP_LOCK_ON='on'
+	if [ -f "$device_setting" ];then
+		P3KCFG_FP_LOCK_ON=`jq -r '.device_setting.fp_lock' $device_setting`
+		if echo "$P3KCFG_FP_LOCK_ON" | grep -q "null" ; then
+			P3KCFG_FP_LOCK_ON='off'
+		fi
+	else
+		P3KCFG_FP_LOCK_ON='off'
 	fi
 	echo "P3KCFG_FP_LOCK_ON=$P3KCFG_FP_LOCK_ON"
 
-	P3KCFG_EDID_MODE=`jq -r '.edid_setting.edid_mode' /data/configs/kds-7/edid/edid_setting.json`
-	if echo "$P3KCFG_EDID_MODE" | grep -q "null" ; then
+	if [ -f "$edid_setting" ];then
+		P3KCFG_EDID_MODE=`jq -r '.edid_setting.edid_mode' $edid_setting`
+		if echo "$P3KCFG_EDID_MODE" | grep -q "null" ; then
+			P3KCFG_EDID_MODE='default'
+		fi
+
+		P3KCFG_EDID_ACTIVE=`jq -r '.edid_setting.active_edid' $edid_setting`
+		if echo "$P3KCFG_EDID_ACTIVE" | grep -q "null" ; then
+			P3KCFG_EDID_ACTIVE='0'
+		fi
+
+		P3KCFG_EDID_NET_SRC=`jq -r '.edid_setting.net_src' $edid_setting`
+		if echo "$P3KCFG_EDID_NET_SRC" | grep -q "null" ; then
+			P3KCFG_EDID_NET_SRC='0.0.0.0'
+		fi
+	else
 		P3KCFG_EDID_MODE='default'
-	fi
-	echo "P3KCFG_EDID_MODE=$P3KCFG_EDID_MODE"
-
-	P3KCFG_EDID_ACTIVE=`jq -r '.edid_setting.active_edid' /data/configs/kds-7/edid/edid_setting.json`
-	if echo "$P3KCFG_EDID_ACTIVE" | grep -q "null" ; then
 		P3KCFG_EDID_ACTIVE='0'
-	fi
-	echo "P3KCFG_EDID_ACTIVE=$P3KCFG_EDID_ACTIVE"
-
-	P3KCFG_EDID_NET_SRC=`jq -r '.edid_setting.net_src' /data/configs/kds-7/edid/edid_setting.json`
-	if echo "$P3KCFG_EDID_NET_SRC" | grep -q "null" ; then
 		P3KCFG_EDID_NET_SRC='0.0.0.0'
 	fi
+	echo "P3KCFG_EDID_MODE=$P3KCFG_EDID_MODE"
+	echo "P3KCFG_EDID_ACTIVE=$P3KCFG_EDID_ACTIVE"
 	echo "P3KCFG_EDID_NET_SRC=$P3KCFG_EDID_NET_SRC"
 
-	P3KCFG_HDCP_1_ON=`jq -r '.av_setting.hdcp_mode.hdmi_in1' /data/configs/kds-7/av_setting/av_setting.json`
-	if echo "$P3KCFG_HDCP_1_ON" | grep -q "null" ; then
+	if [ -f "$av_setting" ];then
+		P3KCFG_HDCP_1_ON=`jq -r '.av_setting.hdcp_mode.hdmi_in1' $av_setting`
+		if echo "$P3KCFG_HDCP_1_ON" | grep -q "null" ; then
+			P3KCFG_HDCP_1_ON='on'
+		fi
+
+		P3KCFG_HDCP_2_ON=`jq -r '.av_setting.hdcp_mode.hdmi_in2' $av_setting`
+		if echo "$P3KCFG_HDCP_2_ON" | grep -q "null" ; then
+			P3KCFG_HDCP_2_ON='on'
+		fi
+
+		P3KCFG_HDCP_3_ON=`jq -r '.av_setting.hdcp_mode.usb_in3' $av_setting`
+		if echo "$P3KCFG_HDCP_3_ON" | grep -q "null" ; then
+			P3KCFG_HDCP_3_ON='on'
+		fi
+
+		P3KCFG_AV_MUTE=`jq -r '.av_setting.mute' $av_setting`
+		if echo "$P3KCFG_AV_MUTE" | grep -q "null" ; then
+			P3KCFG_AV_MUTE='off'
+		fi
+
+		P3KCFG_AV_ACTION=`jq -r '.av_setting.action' $av_setting`
+		if echo "$P3KCFG_AV_ACTION" | grep -q "null" ; then
+			P3KCFG_AV_ACTION='play'
+		fi
+	else
 		P3KCFG_HDCP_1_ON='on'
-	fi
-	echo "P3KCFG_HDCP_1_ON=$P3KCFG_HDCP_1_ON"
-
-	P3KCFG_HDCP_2_ON=`jq -r '.av_setting.hdcp_mode.hdmi_in2' /data/configs/kds-7/av_setting/av_setting.json`
-	if echo "$P3KCFG_HDCP_2_ON" | grep -q "null" ; then
 		P3KCFG_HDCP_2_ON='on'
-	fi
-	echo "P3KCFG_HDCP_2_ON=$P3KCFG_HDCP_2_ON"
-
-	P3KCFG_HDCP_3_ON=`jq -r '.av_setting.hdcp_mode.usb_in3' /data/configs/kds-7/av_setting/av_setting.json`
-	if echo "$P3KCFG_HDCP_3_ON" | grep -q "null" ; then
 		P3KCFG_HDCP_3_ON='on'
-	fi
-	echo "P3KCFG_HDCP_3_ON=$P3KCFG_HDCP_3_ON"
-
-	P3KCFG_AV_MUTE=`jq -r '.av_setting.mute' /data/configs/kds-7/av_setting/av_setting.json`
-	if echo "$P3KCFG_AV_MUTE" | grep -q "null" ; then
 		P3KCFG_AV_MUTE='off'
-	fi
-	echo "P3KCFG_AV_MUTE=$P3KCFG_AV_MUTE"
-
-	P3KCFG_AV_ACTION=`jq -r '.av_setting.action' /data/configs/kds-7/av_setting/av_setting.json`
-	if echo "$P3KCFG_AV_ACTION" | grep -q "null" ; then
 		P3KCFG_AV_ACTION='play'
 	fi
+	echo "P3KCFG_HDCP_1_ON=$P3KCFG_HDCP_1_ON"
+	echo "P3KCFG_HDCP_2_ON=$P3KCFG_HDCP_2_ON"
+	echo "P3KCFG_HDCP_3_ON=$P3KCFG_HDCP_3_ON"
+	echo "P3KCFG_AV_MUTE=$P3KCFG_AV_MUTE"
 	echo "P3KCFG_AV_ACTION=$P3KCFG_AV_ACTION"
 
-	P3KCFG_IR_DIR=`jq -r '.gateway.ir_direction' /data/configs/kds-7/gateway/gateway.json`
-	if echo "$P3KCFG_IR_DIR" | grep -q "null" ; then
+	if [ -f "$gateway_setting" ];then
+		P3KCFG_IR_DIR=`jq -r '.gateway.ir_direction' $gateway_setting`
+		if echo "$P3KCFG_IR_DIR" | grep -q "null" ; then
+			P3KCFG_IR_DIR='out'
+		fi
+	else
 		P3KCFG_IR_DIR='out'
 	fi
 	echo "P3KCFG_IR_DIR=$P3KCFG_IR_DIR"
+}
+
+set_variable_power_on_status()
+{
+	if [ $P3KCFG_HDCP_1_ON = 'on' ];then
+		ipc @m_lm_set s set_hdcp_cap:0:1
+	else
+		ipc @m_lm_set s set_hdcp_cap:0:0
+	fi
+	if [ $P3KCFG_HDCP_2_ON = 'on' ];then
+		ipc @m_lm_set s set_hdcp_cap:1:1
+	else
+		ipc @m_lm_set s set_hdcp_cap:1:0
+	fi
+	if [ $P3KCFG_HDCP_3_ON = 'on' ];then
+		ipc @m_lm_set s set_hdcp_cap:2:1
+	else
+		ipc @m_lm_set s set_hdcp_cap:2:0
+	fi
+
+	if [ $P3KCFG_AV_MUTE = 'off' ];then
+		echo 0 > /sys/class/leds/linein_mute/brightness
+		echo 0 > /sys/class/leds/lineout_mute/brightness
+	else
+		echo 1 > /sys/class/leds/linein_mute/brightness
+		echo 1 > /sys/class/leds/lineout_mute/brightness
+	fi
 }
 
 signal_handler()
@@ -2358,6 +2423,7 @@ if [ $UGP_FLAG = 'success' ];then
 	fi
 fi
 
+#configure the default configuration of MCU pin
 if [ $UGP_FLAG = 'success' ];then
 	case "$MODEL_NUMBER" in
 		KDS-EN7)
@@ -2371,6 +2437,20 @@ if [ $UGP_FLAG = 'success' ];then
 			ipc @m_lm_set s set_gpio_val:2:70:0:65:0
 			ipc @m_lm_set s set_gpio_config:9:15:1:35:1:8:1:36:1:37:1:32:1:33:1:11:1:12:1
 			ipc @m_lm_set s set_gpio_val:9:15:1:35:1:8:1:36:1:37:1:32:1:33:1:11:1:12:1
+		;;
+		*)
+		;;
+	esac
+fi
+
+#configuration function power on timing
+if [ $UGP_FLAG = 'success' ];then
+	case "$MODEL_NUMBER" in
+		KDS-EN7)
+			set_variable_power_on_status
+		;;
+		KDS-SW3-EN7)
+			set_variable_power_on_status
 		;;
 		*)
 		;;

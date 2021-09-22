@@ -621,6 +621,12 @@ start_rlm()
 
 	# start event loop
 	event_loop &
+
+	if [ $P3KCFG_IR_DIR = 'out' ];then
+		e e_p3k_ir_dir::out
+	else
+		e e_p3k_ir_dir::in
+	fi
 }
 
 start_rlm

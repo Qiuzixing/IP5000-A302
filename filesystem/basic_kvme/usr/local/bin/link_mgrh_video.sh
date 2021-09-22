@@ -629,7 +629,7 @@ v_lm_init()
 		else
 			echo 0 > $HDMIRX_SYS_PATH/LoopbackEnable
 		fi
-		load_sii9679_drv
+		#load_sii9679_drv
 	fi
 
 	start_videoip_h
@@ -727,6 +727,14 @@ start_vlm()
 			*)
 			;;
 		esac
+	fi
+
+	if [ $P3KCFG_EDID_MODE = 'passthru' ];then
+		handle_edid -c $P3KCFG_EDID_NET_SRC -t $rx_tcp_port -m 1
+	elif [ $P3KCFG_EDID_MODE = 'custom' ];then
+		handle_edid -s custom -i $P3KCFG_EDID_ACTIVE
+	elif [ $P3KCFG_EDID_MODE = 'default' ];then
+		handle_edid -s default
 	fi
 }
 
