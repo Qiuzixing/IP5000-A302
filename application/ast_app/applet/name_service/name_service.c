@@ -47,7 +47,7 @@ extern char* astparam(int argc, char** argv);
 static int get_channel_number()
 {
     int argc = 3;
-    char* argv[3] = {"astparam", "g", "ch_select"};
+    char* argv[3] = {"astparam", "g", "ch_select_v"};
     char* pVal = astparam(argc, argv);
 	if (NULL == pVal)
 	{
@@ -154,6 +154,8 @@ static void do_reply(AST_Device_Type device_type, AST_Device_Function device_fun
 						fclose(fpn);
 					if (fpv)
 						fclose(fpv);
+					if (fph)
+						fclose(fph);
 					close(r_fd);
 				}
 			}
