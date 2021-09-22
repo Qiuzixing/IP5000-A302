@@ -36,7 +36,7 @@ static void set_signal(void)
 }
 #endif
 
-#define WAIT_REPLY_TIMEOUT 3
+#define WAIT_REPLY_TIMEOUT 1
 static void do_query(AST_Device_Type device_type, AST_Device_Function device_function)
 {
 	int q_fd, r_fd;
@@ -71,7 +71,7 @@ static void do_query(AST_Device_Type device_type, AST_Device_Function device_fun
 	//receive until timeout & prepare list
 	timeout.tv_usec = 0;
 	timeout.tv_sec = WAIT_REPLY_TIMEOUT;
-	info("IP\tDeviceName\tHostname\tModel\tVersion\tChannel\tServices\tStatus\n");
+	info("IP                 DeviceName                  Hostname                    Model          Version       Channel    Services    Status\n");
 	info(">>>>>\n");
 	while (select(r_fd + 1, &fds, NULL, NULL, &timeout) > 0)
 	{
@@ -85,13 +85,13 @@ static void do_query(AST_Device_Type device_type, AST_Device_Function device_fun
 			err("peer shutdowned");
 			break;
 		} else {
-			info("%s\t", inet_ntoa(addr.sin_addr));
-			info("%s\t", reply.device_name);
-			info("%s\t", reply.hostname);
-			info("%s\t", reply.model_name);
-			info("%s\t", reply.version);
-			info("%04u\t", reply.channel_number);
-			info("0x%04X\t", reply.service_capability);
+			info("%-15s    ", inet_ntoa(addr.sin_addr));
+			info("%-24s    ", reply.device_name);
+			info("%-24s    ", reply.hostname);
+			info("%-11s    ", reply.model_name);
+			info("%-10s    ", reply.version);
+			info("%04u       ", reply.channel_number);
+			info("0x%04X      ", reply.service_capability);
 			info("%s", reply.device_status);
 			info("\n");
 			//info("--------------------------------------------------\n");
@@ -159,15 +159,15 @@ static void do_query_json(AST_Device_Type device_type, AST_Device_Function devic
 			// item name: == ip
 			info("\t\"%s\":\n\t{\n", reply.device_name);
 			// Start of data
-			info("\t\t\"ip\":\"%s\",\n", inet_ntoa(addr.sin_addr));
-			info("\t\t\"device_name\":\"%s\",\n", reply.device_name);
-			info("\t\t\"host_name\":\"%s\",\n", reply.hostname);
-			info("\t\t\"model\":\"%s\",\n", reply.model_name);
-			info("\t\t\"version\":\"%s\",\n", reply.version);
-			info("\t\t\"channel\":\"%04u\",\n", reply.channel_number);
-			info("\t\t\"services\":\"0x%04X\",\n", reply.service_capability);
-			info("\t\t\"status\":\"%s\",\n", reply.device_status);
-			info("\t\t\"is_host\":\"%s\"\n", (reply.device_type == Type_Host)?("y"):("n"));
+			info("\t\t\"ip\": \"%s\",\n", inet_ntoa(addr.sin_addr));
+			info("\t\t\"device_name\": \"%s\",\n", reply.device_name);
+			info("\t\t\"host_name\": \"%s\",\n", reply.hostname);
+			info("\t\t\"model\": \"%s\",\n", reply.model_name);
+			info("\t\t\"version\": \"%s\",\n", reply.version);
+			info("\t\t\"channel\": \"%04u\",\n", reply.channel_number);
+			info("\t\t\"services\": \"0x%04X\",\n", reply.service_capability);
+			info("\t\t\"status\": \"%s\",\n", reply.device_status);
+			info("\t\t\"is_host\": \"%s\"\n", (reply.device_type == Type_Host)?("y"):("n"));
 			// End of data
 			info("\t}");
 		}

@@ -52,6 +52,8 @@ typedef struct _query_struct_
 #define MAX_VER_LENGTH 16
 #define MAX_DNT_MAC_LENGTH 18
 #define MAX_RESERVED_LENGTH 42
+
+#pragma pack (1)
 typedef struct _reply_struct_
 {
 	AST_Device_Type	device_type;
@@ -68,6 +70,7 @@ typedef struct _reply_struct_
 	char reserved[MAX_RESERVED_LENGTH];
 
 }reply_struct, *preply_struct;
+#pragma pack ()
 
 //AST_Device_Status device_status = Status_Unknown;
 #define AST_NAME_SERVICE_GROUP_ADDR "225.1.0.0";
