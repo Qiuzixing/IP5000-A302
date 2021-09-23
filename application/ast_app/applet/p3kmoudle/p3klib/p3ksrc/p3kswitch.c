@@ -2005,10 +2005,15 @@ static int P3K_SetDHCPMode(char*reqparam,char*respParam,char*userdata)
 		dhcpMode = atoi(str[0]);
 
 	}
-	else
+	else if(count == 2)
 	{
 		nedId = atoi(str[0]);
 		dhcpMode = atoi(str[1]);
+	}
+	else
+	{
+		DBG_ErrMsg("EX_SetDHCPMode err\n");
+		return 0;
 	}
 
 	s32Ret = EX_SetDHCPMode(nedId, dhcpMode);

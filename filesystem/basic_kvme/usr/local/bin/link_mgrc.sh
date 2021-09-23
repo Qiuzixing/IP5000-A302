@@ -545,6 +545,7 @@ handle_e_sys_ip_chg()
 	pkill -9 name_service
 	pkill -9 inetd
 	#pkill -9 httpd
+	pkill -9 lcd_display
 	pkill -9 web
 	pkill -9 telnetd
 	pkill -9 p3ktcp
@@ -564,6 +565,16 @@ handle_e_sys_ip_chg()
 	p3ktcp &
 	usleep 10000
 	web &
+
+	case $MODEL_NUMBER in
+		KDS-DEC7)
+			if [ $P3KCFG_FP_LOCK_ON = 'off' ];then
+				lcd_display IPD5000 &
+			fi
+		;;
+		*)
+		;;
+	esac
 
 	ulmparam s MY_IP $MY_IP
 	ast_send_event -1 e_reconnect
@@ -2856,6 +2867,7 @@ handle_e_p3k_fp_lock()
 {
 	case "$event" in
 		e_p3k_fp_lock_off)
+			P3KCFG_FP_LOCK_ON='off'
 			echo 0 > /sys/class/leds/lcd_power/brightness
 			usleep 500000
 			case $MODEL_NUMBER in
@@ -2868,6 +2880,7 @@ handle_e_p3k_fp_lock()
 			esac
 		;;
 		e_p3k_fp_lock_on)
+			P3KCFG_FP_LOCK_ON='on'
 			echo 1 > /sys/class/leds/lcd_power/brightness
 			pkill -9 lcd_display
 		;;
