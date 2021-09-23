@@ -548,6 +548,9 @@ handle_e_sys_ip_chg()
 	pkill -9 lcd_display
 	pkill -9 web
 	pkill -9 telnetd
+	pkill -9 ldap_daemon
+	pkill -9 ieee802dot1x
+	pkill -9 wpa
 	pkill -9 p3ktcp
 
 	avahi-daemon -D

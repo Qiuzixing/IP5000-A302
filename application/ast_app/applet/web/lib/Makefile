@@ -3,7 +3,7 @@ ifeq ($(PARAM_FILE), )
 	include $(PARAM_FILE)
 endif
 
-dirs =  log jsoncpp-0.y.z libcivetweb openssl-support-tls1.3
+dirs =  log jsoncpp-0.y.z libcivetweb
 
 SUBDIRS = $(dirs)
 

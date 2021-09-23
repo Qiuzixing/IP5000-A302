@@ -1575,6 +1575,117 @@ _map_mcip_srv_map()
 	#echo "MCIP_SRV_MAP_U=$MCIP_SRV_MAP_U"
 }
 
+init_802_1x_params()
+{
+	IEEE802_1X_ENABLE=`astparam g ieee802_1x_enable`
+	if echo "$IEEE802_1X_ENABLE" | grep -q "not defined" ; then
+		IEEE802_1X_ENABLE=`astparam r ieee802_1x_enable`
+		if echo "$IEEE802_1X_ENABLE" | grep -q "not defined" ; then
+			IEEE802_1X_ENABLE='n'
+		fi
+	fi
+
+	IEEE802_1X_MODE=`astparam g ieee802_1x_mode`
+	if echo "$IEEE802_1X_MODE" | grep -q "not defined" ; then
+		IEEE802_1X_MODE=`astparam r ieee802_1x_mode`
+		if echo "$IEEE802_1X_MODE" | grep -q "not defined" ; then
+			IEEE802_1X_MODE='mschapv2'
+		fi
+	fi
+
+	IEEE802_1X_MSCHAPV2_USER=`astparam g ieee802_1x_mschapv2_user`
+	if echo "$IEEE802_1X_MSCHAPV2_USER" | grep -q "not defined" ; then
+		IEEE802_1X_MSCHAPV2_USER=`astparam r ieee802_1x_mschapv2_user`
+		if echo "$IEEE802_1X_MSCHAPV2_USER" | grep -q "not defined" ; then
+			IEEE802_1X_MSCHAPV2_USER='none'
+		fi
+	fi
+
+	IEEE802_1X_MSCHAPV2_PASSWORD=`astparam g ieee802_1x_mschapv2_password`
+	if echo "$IEEE802_1X_MSCHAPV2_PASSWORD" | grep -q "not defined" ; then
+		IEEE802_1X_MSCHAPV2_PASSWORD=`astparam r ieee802_1x_mschapv2_password`
+		if echo "$IEEE802_1X_MSCHAPV2_PASSWORD" | grep -q "not defined" ; then
+			IEEE802_1X_MSCHAPV2_PASSWORD='none'
+		fi
+	fi
+
+	IEEE802_1X_TLS_USER=`astparam g ieee802_1x_tls_user`
+	if echo "$IEEE802_1X_TLS_USER" | grep -q "not defined" ; then
+		IEEE802_1X_TLS_USER=`astparam r ieee802_1x_tls_user`
+		if echo "$IEEE802_1X_TLS_USER" | grep -q "not defined" ; then
+			IEEE802_1X_TLS_USER='none'
+		fi
+	fi
+
+	IEEE802_1X_TLS_PRIVATE_KEY_PASSWORD=`astparam g ieee802_1x_tls_private_key_password`
+	if echo "$IEEE802_1X_TLS_PRIVATE_KEY_PASSWORD" | grep -q "not defined" ; then
+		IEEE802_1X_TLS_PRIVATE_KEY_PASSWORD=`astparam r ieee802_1x_tls_private_key_password`
+		if echo "$IEEE802_1X_TLS_PRIVATE_KEY_PASSWORD" | grep -q "not defined" ; then
+			IEEE802_1X_TLS_PRIVATE_KEY_PASSWORD='none'
+		fi
+	fi
+}
+
+init_ldap_params()
+{
+	LDAP_ENABLE=`astparam g ldap_enable`
+	if echo "$LDAP_ENABLE" | grep -q "not defined" ; then
+		LDAP_ENABLE=`astparam r ldap_enable`
+		if echo "$LDAP_ENABLE" | grep -q "not defined" ; then
+			LDAP_ENABLE='n'
+		fi
+	fi
+	LDAP_MODE=`astparam g ldap_mode`
+	if echo "$LDAP_MODE" | grep -q "not defined" ; then
+		LDAP_MODE=`astparam r ldap_mode`
+		if echo "$LDAP_MODE" | grep -q "not defined" ; then
+			LDAP_MODE='dn'
+		fi
+	fi
+	LDAP_URI=`astparam g ldap_uri`
+	if echo "$LDAP_URI" | grep -q "not defined" ; then
+		LDAP_URI=`astparam r ldap_uri`
+		if echo "$LDAP_URI" | grep -q "not defined" ; then
+			LDAP_URI='ldap://'
+		fi
+	fi
+	LDAP_UID=`astparam g ldap_uid`
+	if echo "$LDAP_UID" | grep -q "not defined" ; then
+		LDAP_UID=`astparam r ldap_uid`
+		if echo "$LDAP_UID" | grep -q "not defined" ; then
+			LDAP_UID='0'
+		fi
+	fi
+	LDAP_BASE_DN=`astparam g ldap_base_dn`
+	if echo "$LDAP_BASE_DN" | grep -q "not defined" ; then
+		LDAP_BASE_DN=`astparam r ldap_base_dn`
+		if echo "$LDAP_BASE_DN" | grep -q "not defined" ; then
+			LDAP_BASE_DN='none'
+		fi
+	fi
+	LDAP_BIND_DN=`astparam g ldap_bind_dn`
+	if echo "$LDAP_BIND_DN" | grep -q "not defined" ; then
+		LDAP_BIND_DN=`astparam r ldap_bind_dn`
+		if echo "$LDAP_BIND_DN" | grep -q "not defined" ; then
+			LDAP_BIND_DN='none'
+		fi
+	fi
+	LDAP_USER_ATTR=`astparam g ldap_user_attr`
+	if echo "$LDAP_USER_ATTR" | grep -q "not defined" ; then
+		LDAP_USER_ATTR=`astparam r ldap_user_attr`
+		if echo "$LDAP_USER_ATTR" | grep -q "not defined" ; then
+			LDAP_USER_ATTR='none'
+		fi
+	fi
+	LDAP_PASSWORD=`astparam g ldap_password`
+	if echo "$LDAP_PASSWORD" | grep -q "not defined" ; then
+		LDAP_PASSWORD=`astparam r ldap_password`
+		if echo "$LDAP_PASSWORD" | grep -q "not defined" ; then
+			LDAP_PASSWORD='none'
+		fi
+	fi
+}
+
 init_share_param_from_flash()
 {
 	DBG='0'
@@ -2646,6 +2757,7 @@ init_share_param_from_flash()
 	if echo "$ETH_ADDR" | grep -q "not defined"; then
 		ETH_ADDR='RANDOM'
 	fi
+	init_ldap_params
 
 	######### Always buttom ##############################################
 	WEB_UI_CFG=`astparam g web_ui_cfg`
@@ -3859,3 +3971,46 @@ init_info_file() {
 	echo "    \"firmware version\": \"$FIRMWARE_VERSION\"" >> /etc/board_info.json
 	echo "}" >> /etc/board_info.json
 }
+
+handle_e_ldap() {
+	init_ldap_params
+	pkill -9 ldap_daemon
+	start_ldap_daemon
+}
+
+handle_e_802_1x() {
+	init_802_1x_params
+	pkill -9 ieee802dot1x
+	pkill -9 wpa
+	start_ieee802dot1x_daemon
+}
+
+
+start_ldap_daemon()
+{
+	if [ '$LDAP_ENABLE' = 'y' ]; then
+		case "$LDAP_MODE" in
+			dn)
+				ldap_daemon --uri=$LDAP_URI --dn=$LDAP_BIND_DN --password=$LDAP_PASSWORD --ca_cert=/data/ldap_ca.pem -n 1
+				;;
+			uid)
+				ldap_daemon --uri=$LDAP_URI --base_dn=$LDAP_BASE_DN --password=$LDAP_PASSWORD --uid=$LDAP_UID --ca_cert=/data/ldap_ca.pem  -n 2
+				;;
+		esac
+	fi
+}
+
+start_ieee802dot1x_daemon()
+{
+	if [ '$IEEE802_1X_ENABLE' = 'y' ]; then
+		case "$IEEE802_1X_MODE" in
+			mschapv2)
+				ieee802dot1x -u $IEEE802_1X_MSCHAPV2_USER -p $IEEE802_1X_MSCHAPV2_PASSWORD -d /usr/local/bin/ -m peap_mschapv2 &
+				;;
+			tls)
+				ieee802dot1x -c /data/802_ca.pem -t /data/802_client.pem  -k /data/802_client.key -d /usr/local/bin/ -m tls &
+				;;
+		esac
+	fi
+}
+

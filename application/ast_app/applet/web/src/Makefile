@@ -50,7 +50,7 @@ CFLAGS = -I$(JPG_INCLUDE)
 
 
 
-LDFLAGS = $(CIVETWEB_LIB) $(LOG4CPP_LIB)  -L$(PREFIX_LIB) \
+LDFLAGS = $(CIVETWEB_LIB) $(LOG4CPP_LIB)  -L$(PREFIX_LIB) -L$(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/prefix/lib\
 			-L./ -lssl -lcrypt -lcrypto  -ljsoncpp $(LIBS)
 
 	

@@ -120,6 +120,7 @@ rootfs:
 	@# 8.04MB
 	@rm -f $(ROOTFS)/lib/*.a
 	@rm -f $(ROOTFS)/lib/*.la
+	@rm -f $(ROOTFS)/lib/*.lai
 	@rm -rf $(ROOTFS)/lib/pkgconfig
 	# Remove vss file
 	@find $(ROOTFS) -name '*.scc' -type f -print -exec rm -f '{}' \;
@@ -136,6 +137,10 @@ rootfs:
 	@# 6.98MB
 	@$(STRIP) --strip-all $(ROOTFS)/usr/bin/* 2>/dev/null || echo "Ignore strip error"
 	@$(STRIP) --strip-all $(ROOTFS)/sbin/* 2>/dev/null || echo "Ignore strip error"
+	@$(STRIP) --strip-all $(ROOTFS)/bin/* 2>/dev/null || echo "Ignore strip error"
+	@$(STRIP) --strip-all $(ROOTFS)/usr/local/lib/* 2>/dev/null || echo "Ignore strip error"
+	@$(STRIP) --strip-all $(ROOTFS)/usr/lib/* 2>/dev/null || echo "Ignore strip error"
+	@$(STRIP) --strip-all $(ROOTFS)/lib/* 2>/dev/null || echo "Ignore strip error"
 	@$(STRIP) --strip-all $(ROOTFS)/www/cgi-bin/* 2>/dev/null || echo "Ignore strip error"
 	@# 6.90MB
 	@find $(ROOTFS)/usr/local/bin/ -name '*.ko' -type f -exec $(STRIP) --strip-unneeded --strip-debug '{}' ';' 2>/dev/null
