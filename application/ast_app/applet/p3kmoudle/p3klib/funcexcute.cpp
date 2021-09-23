@@ -2776,6 +2776,9 @@ int EX_DeviceReset(void)
 }
 int EX_FactoryRecovery(void)
 {
+	printf("EX_FactoryRecovery\n");
+
+	ast_send_event(0xFFFFFFFF,"e_button_link_5");
 	return 0;
 }
 int EX_GetDevBuildDate(char *date,char*hms)
