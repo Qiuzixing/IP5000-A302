@@ -2415,7 +2415,7 @@ init_share_param_from_flash()
 	if echo "$EN_LOG" | grep -q "not defined" ; then
 		EN_LOG=`astparam r en_log`
 		if echo "$EN_LOG" | grep -q "not defined" ; then
-			EN_LOG='y'
+			EN_LOG='n'
 		fi
 	fi
 
