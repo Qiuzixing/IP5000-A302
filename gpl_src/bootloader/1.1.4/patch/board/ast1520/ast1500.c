@@ -8,6 +8,7 @@
 #include <command.h>
 #include <pci.h>
 
+#define GPIO_MUX_SCU8C 			0x1E6E208c
 #define GPIO_MUX_SCU90 			0x1E6E2090
 #define GPIO_MUX_SCU84 			0x1E6E2084
 #define GPIO_MUX_SCU94 			0x1E6E2094
@@ -19,6 +20,8 @@
 #define GPIOI_L_DIR_REG			0x1e780074
 #define GPIOI_L_DATA_REG		0x1e780070
 
+#define GPIOA_D_DIR_REG			0x1e780004
+#define GPIOA_D_DATA_REG		0x1e780000
 typedef enum
 {
 	BIT_CLEAR = 0,
@@ -49,7 +52,6 @@ int board_init (void)
 	DECLARE_GLOBAL_DATA_PTR;
 	unsigned char data;
 	unsigned long reg;
-
 #if (CONFIG_AST1500_SOC_VER >= 3)
 	*((volatile ulong*) 0x1e620000) |= 0x00030000;	/* enable Flash Write */
 #else
@@ -129,6 +131,13 @@ int board_init (void)
 	register_opeartion(GPIO_MUX_SCU84,5,BIT_CLEAR);
 	register_opeartion(GPIOE_H_DIR_REG,21,BIT_SET);
 	register_opeartion(GPIOE_H_DATA_REG,21,BIT_CLEAR);/* led_on_b -- GPIOG5 */
+
+	/* pull up GPIOD4 */
+	register_opeartion(GPIO_MUX_SCU90,1,BIT_CLEAR);
+	register_opeartion(GPIO_MUX_SCU8C,10,BIT_CLEAR);
+	register_opeartion(GPIO_MUX_STRAP,21,BIT_CLEAR);
+	register_opeartion(GPIOA_D_DIR_REG,28,BIT_SET);
+	register_opeartion(GPIOA_D_DATA_REG,28,BIT_CLEAR);
 #elif (CONFIG_AST1500_SOC_VER == 2) //This is actually board dependent.
     /* Initialize LED. Turn off Power LED (GPIOP5). */
 	reg = *((volatile ulong*) 0x1e78007C);
