@@ -44,19 +44,24 @@ static void set_signal(void)
 
 extern char* astparam(int argc, char** argv);
 
-static int get_channel_number()
+static int get_channel_number(AST_Device_Type device_type)
 {
-    int argc = 3;
-    char* argv[3] = {"astparam", "g", "ch_select_v"};
-    char* pVal = astparam(argc, argv);
-	if (NULL == pVal)
+	int argc = 3;
+	char *argv[3] = {"astparam", "g", "ch_select"};
+	switch (device_type)
 	{
-		argv[1] = "r";
-		pVal = astparam(argc, argv);
-		if (NULL != pVal)
-		{
-			return atoi(pVal);
-		}
+		case Type_Host:
+			break;
+		case Type_Client:
+			argv[2] = "ch_select_v";
+			break;
+		default:
+			break;
+	}
+	char *pVal = astparam(argc, argv);
+	if (NULL != pVal)
+	{
+		return atoi(pVal);
 	}
 	return 1;	// Default Channel Number is 1;
 }
@@ -144,7 +149,7 @@ static void do_reply(AST_Device_Type device_type, AST_Device_Function device_fun
 						reply.device_function = device_function;
 						reply.protocol_version = 4;
 						reply.service_capability = 0x05; // Telnet + http now only
-						reply.channel_number = get_channel_number();
+						reply.channel_number = get_channel_number(device_type);
 						reply.reserved[0] = '\0';
 						sendto(r_fd, &reply, sizeof(reply), 0, (struct sockaddr *)&addr, addr_len);
 					}
@@ -175,19 +180,18 @@ int main(int argc, char *argv[])
 {
 	AST_Device_Type device_type = Type_Unknown;
 	AST_Device_Function device_function = Function_Unknown;
+	int debug = 0;
 	struct option longopts[] = {
-		{"type",	required_argument,	NULL, 't'},
-		{"function",	required_argument,	NULL, 'f'},
-//		{"status",	required_argument,	NULL, 's'},
-		{NULL,		0,		NULL,  0}
-	};
+		{"type", required_argument, NULL, 't'},
+		{"function", required_argument, NULL, 'f'},
+		{"debug", no_argument, NULL, 'd'},
+		{NULL, 0, NULL, 0}};
 
 	for (;;) {
 		int c;
 		int index = 0;
 
-//		c = getopt_long(argc, argv, "qrn:t:f:s:", longopts, &index);
-		c = getopt_long(argc, argv, "t:f:", longopts, &index);
+		c = getopt_long(argc, argv, "t:f:d", longopts, &index);
 
 		if (c == -1)
 			break;
@@ -209,6 +213,9 @@ int main(int argc, char *argv[])
 				else if (strncmp(optarg, "analog", 6) == 0)
 					device_function = Function_Analog;
 				break;
+			case 'd':
+				debug = 1;
+				break;
 			default:
 				err("getopt error (%d)\n", c);
 		}
@@ -218,10 +225,10 @@ int main(int argc, char *argv[])
 		dbg("device_function = %d\n", device_function);
 	}
 
-	daemon(0,0);
-#if 0
-	set_signal();
-#endif
+	if (!debug)
+	{
+		daemon(0,0);
+	}
 
 	do_reply(device_type, device_function);			
 
