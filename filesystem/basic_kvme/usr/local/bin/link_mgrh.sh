@@ -724,13 +724,11 @@ handle_e_ip_got()
 		case $MODEL_NUMBER in
 			KDS-SW3-EN7)
 					if [ $P3KCFG_FP_LOCK_ON = 'off' ];then
-						echo "123"
 						lcd_display IPE5000P &
 					fi
 				;;
 			KDS-EN7)
 					if [ $P3KCFG_FP_LOCK_ON = 'off' ];then
-						echo "234"
 						lcd_display IPE5000 &
 					fi
 				;;
@@ -1213,17 +1211,10 @@ handle_e_sh_jsonp()
 handle_e_button()
 {
 	case "$*" in
-		e_button_link)
-			handle_e_button_link
-		;;
-		e_button_link_1)
-			handle_e_button_link_1
-		;;
-		e_button_pairing)
-			handle_e_button_pairing
-		;;
-		e_button_pairing_1)
-			handle_e_button_pairing_1
+		e_button_link_5)
+			./reset_to_default.sh
+			reboot
+			#handle_e_button_link
 		;;
 		*)
 		;;

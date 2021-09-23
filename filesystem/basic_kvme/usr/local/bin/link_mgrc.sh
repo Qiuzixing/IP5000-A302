@@ -2182,23 +2182,10 @@ handle_e_pwr_status_chg()
 handle_e_button()
 {
 	case "$*" in
-		e_button_link)
-			handle_e_button_link
-		;;
-		e_button_link_1)
-			handle_e_button_link_1
-		;;
-		e_button_pairing)
-			handle_e_button_pairing
-		;;
-		e_button_pairing_1)
-			handle_e_button_pairing_1
-		;;
-		e_button_chg_ch)
-			handle_e_button_chg_ch
-		;;
-		e_button_remote_ctrl_?*)
-			handle_e_button_remote_ctrl "$*"
+		e_button_link_5)
+			./reset_to_default.sh
+			reboot
+			#handle_e_button_link
 		;;
 		*)
 		;;

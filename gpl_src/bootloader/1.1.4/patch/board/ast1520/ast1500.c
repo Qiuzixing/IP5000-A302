@@ -90,6 +90,45 @@ int board_init (void)
 	/* pull up POWERON_1V3 (GPIOH6)*/
 	register_opeartion(GPIOE_H_DIR_REG,30,BIT_SET);
 	register_opeartion(GPIOE_H_DATA_REG,30,BIT_SET);
+
+	/* turn on all led */
+	register_opeartion(GPIO_MUX_SCU84,9,BIT_CLEAR);
+	register_opeartion(GPIOI_L_DIR_REG,9,BIT_SET);
+	register_opeartion(GPIOI_L_DATA_REG,9,BIT_CLEAR);/* led_link_b -- GPIOJ1 */
+
+	register_opeartion(GPIO_MUX_SCU84,10,BIT_CLEAR);
+	register_opeartion(GPIOI_L_DIR_REG,10,BIT_SET);
+	register_opeartion(GPIOI_L_DATA_REG,10,BIT_CLEAR);/* led_link_g -- GPIOJ2 */
+
+	register_opeartion(GPIO_MUX_SCU84,11,BIT_CLEAR);
+	register_opeartion(GPIOI_L_DIR_REG,11,BIT_SET);
+	register_opeartion(GPIOI_L_DATA_REG,11,BIT_CLEAR);/* led_link_r -- GPIOJ3 */
+
+	register_opeartion(GPIO_MUX_SCU90,6,BIT_CLEAR);
+	register_opeartion(GPIO_MUX_SCU84,0,BIT_CLEAR);
+	register_opeartion(GPIOE_H_DIR_REG,16,BIT_SET);
+	register_opeartion(GPIOE_H_DATA_REG,16,BIT_CLEAR);/* led_status_b -- GPIOG0 */
+
+	register_opeartion(GPIO_MUX_SCU84,1,BIT_CLEAR);
+	register_opeartion(GPIOE_H_DIR_REG,17,BIT_SET);
+	register_opeartion(GPIOE_H_DATA_REG,17,BIT_CLEAR);/* led_status_g -- GPIOG1 */
+
+	register_opeartion(GPIO_MUX_SCU84,2,BIT_CLEAR);
+	register_opeartion(GPIOE_H_DIR_REG,18,BIT_SET);
+	register_opeartion(GPIOE_H_DATA_REG,18,BIT_CLEAR);/* led_status_r -- GPIOG2 */
+
+	register_opeartion(GPIO_MUX_SCU84,3,BIT_CLEAR);
+	register_opeartion(GPIOE_H_DIR_REG,19,BIT_SET);
+	register_opeartion(GPIOE_H_DATA_REG,19,BIT_CLEAR);/* led_on_g -- GPIOG3 */
+
+	register_opeartion(GPIO_MUX_SCU94,12,BIT_CLEAR);
+	register_opeartion(GPIO_MUX_SCU84,4,BIT_CLEAR);
+	register_opeartion(GPIOE_H_DIR_REG,20,BIT_SET);
+	register_opeartion(GPIOE_H_DATA_REG,20,BIT_CLEAR);/* led_on_r -- GPIOG4 */
+
+	register_opeartion(GPIO_MUX_SCU84,5,BIT_CLEAR);
+	register_opeartion(GPIOE_H_DIR_REG,21,BIT_SET);
+	register_opeartion(GPIOE_H_DATA_REG,21,BIT_CLEAR);/* led_on_b -- GPIOG5 */
 #elif (CONFIG_AST1500_SOC_VER == 2) //This is actually board dependent.
     /* Initialize LED. Turn off Power LED (GPIOP5). */
 	reg = *((volatile ulong*) 0x1e78007C);
