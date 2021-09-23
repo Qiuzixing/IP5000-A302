@@ -2669,6 +2669,8 @@ int EX_Upgrade(void)
 
 	printf("EX_Upgrade \n");
 
+	ast_send_event(0xFFFFFFFF,"e_p3k_download_fw_start");
+
 	ast_send_event(0xFFFFFFFF,"e_stop_link");
 
 	sleep(2);
