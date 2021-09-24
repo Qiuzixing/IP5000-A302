@@ -5,6 +5,8 @@
 #include "p3kapi.h"
 #include "handlelist.h"
 #include "debugtool.h"
+
+#include "../p3klib/cfgparser.h"
 SocketWorkInfo_S gs_netHandle = {0};
 
 
@@ -267,6 +269,19 @@ int Tcp_NetRecvMsg(NetCliInfo_T *cli)
 	}
 	int ret = 0;
 	int handleId = 0;
+	int bSeur = 0;
+
+	if((!strcmp(cli->fromIP,"127.0.0.1"))||(g_user_info.seurity_status == 0))
+	{
+		bSeur = 0;
+		//printf(">>>>>>>>bSeur = 0\n");
+	}
+	else
+	{
+		bSeur = 1;
+		//printf(">>>>>>>>bSeur = 1\n");
+	}
+
 	TcpCliP3KInfo_S *info = NULL;
 	info = Tcp_NetGetHandleMsgByID(cli->recvSocket);
 	if(info == NULL)
@@ -285,16 +300,18 @@ int Tcp_NetRecvMsg(NetCliInfo_T *cli)
 			}
 			HandleManageAddHandle(Tcp_NetGetMngHandleHead (), (void *)hd);
 			info = hd;
-			
+
 	}
-	if(!memcmp(cli->recvmsg,"#\r",strlen(cli->recvmsg)) && Cheak_TcpStartLink(sTimeOut,cli->recvSocket) == 0 && flagS == 0)
+
+	if(!memcmp(cli->recvmsg,"#\r",strlen(cli->recvmsg)) && Cheak_TcpStartLink(sTimeOut,cli->recvSocket) == 0)// && flagS == 0)
 	{
-		printf("###  %d\n",cli->recvSocket);
+		//printf("###  %d\n",cli->recvSocket);
 		handleId = info->p3kHandle.handleId;
 		info->p3kHandle.P3kMsgRecv(handleId,cli->recvmsg,cli->recvLen);
 
 		DBG_ErrMsg("new link\n");
-		if(flagS == 0)
+		//if(flagS == 0)
+		if(bSeur == 1)
 		{
 			TimeOut_S * pnew = (TimeOut_S *)malloc(sizeof(TimeOut_S));
 			pnew->flag = 0;
@@ -305,19 +322,32 @@ int Tcp_NetRecvMsg(NetCliInfo_T *cli)
 			pthread_create(&pth_time, NULL, LoginTimtOut, &cli->recvSocket);
 		}
 	}
-	if(!memcmp(cli->recvmsg,"#LOGIN admin,33333\r",strlen(cli->recvmsg)) && Cheak_TcpStartLink(sTimeOut,cli->recvSocket) == cli->recvSocket)
+
+	if(bSeur == 1)
 	{
-		sTcpLogin.socketId[sTcpLogin.num] = cli->recvSocket;
-		sTcpLogin.num += 1;
-		SearchTcp(sTimeOut,cli->recvSocket);
+		char msg[64] = "";
+		sprintf(msg,"#LOGIN admin,%s\r",g_user_info.password);
+
+		//printf("login msg:%s\n",msg);
+
+		if(!memcmp(cli->recvmsg,msg,strlen(cli->recvmsg)) && Cheak_TcpStartLink(sTimeOut,cli->recvSocket) == cli->recvSocket)
+		{
+			sTcpLogin.socketId[sTcpLogin.num] = cli->recvSocket;
+			sTcpLogin.num += 1;
+			SearchTcp(sTimeOut,cli->recvSocket);
+		}
 	}
 	//数据下发
-	if((Cheak_TcpLink(sTimeOut,cli->recvSocket) == cli->recvSocket || flagS == 1))//&& Cheak_TcpLink(sTimeOut,cli->recvSocket) == cli->recvSocket//Tcp_chekid(info->sockfd,&sTcpLogin) > 0
+	if((Cheak_TcpLink(sTimeOut,cli->recvSocket) == cli->recvSocket || bSeur == 0))//&& Cheak_TcpLink(sTimeOut,cli->recvSocket) == cli->recvSocket//Tcp_chekid(info->sockfd,&sTcpLogin) > 0
 	{
 		handleId = info->p3kHandle.handleId;
 		info->p3kHandle.P3kMsgRecv(handleId,cli->recvmsg,cli->recvLen);
 	}
-	
+	else
+	{
+		printf(">>>>>>>>>>>>>>>>not login\n");
+	}
+
 	return 0;
 }
 int Tcp_NetClose(int sockeFd)
