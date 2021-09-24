@@ -2626,7 +2626,7 @@ int EX_Login(char*name,char*password)
 {
 	printf("EX_Login name= %s password =%s\n",name,password);
 	if((!memcmp(name,"admin",strlen("admin")))
-		&&((! strcmp(password,g_user_info.password))||(! strcmp(password,"33333"))))
+		&&((! strcmp(password,g_user_info.password))/*||(! strcmp(password,"33333"))*/))
 	{
 		return 0;
 	}

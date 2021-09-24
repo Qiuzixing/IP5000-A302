@@ -945,7 +945,7 @@ int Cfg_Init_User(void)
 	sprintf(path,"%s%s%s",CONF_PATH,g_module,USER_FILE);
 
 	sprintf(g_user_info.user_name, "admin");
-	sprintf(g_user_info.password, "123456");
+	sprintf(g_user_info.password, "admin");
 	g_user_info.user_role = 1;	//admin
 	g_user_info.logout_time = 10;
 	g_user_info.seurity_status = ON;
