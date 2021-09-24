@@ -490,8 +490,10 @@ int APP_Comm_Recv(CmdProtocolParam * param)
             }
             dante_state = UNKNOW_DANTE_STATUS;
             break;
+        case EVENT_HDMI_AUDIO_STATUS:
+            break;
         default:
-            printf("warning:known mcu cmd\n");
+            printf("warning:unknown mcu cmd:param->CMD = 0x%x\n",param->CMD);
             break;
     }
 
