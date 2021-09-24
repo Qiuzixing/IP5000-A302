@@ -15,7 +15,7 @@
 
 
 #define I2C_BUS_NUM     5
-#define I2C_FREQ    100000
+#define I2C_FREQ    400000
 #define I2C_ADDR    0x78
 
 enum
