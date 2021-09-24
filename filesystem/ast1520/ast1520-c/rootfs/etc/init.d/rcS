@@ -49,6 +49,9 @@ cd /usr/local/bin
 ifconfig eth0 down
 
 _t=`astparam r random_mac`
+if [ "$_t" = "\"random_mac\" not defined" ]; then
+	_t="n"
+fi
 if [ "$_t" = "n" ]; then
 	macaddr=`astparam r ethaddr`
 	if [ "$macaddr" = "\"ethaddr\" not defined" ]; then
