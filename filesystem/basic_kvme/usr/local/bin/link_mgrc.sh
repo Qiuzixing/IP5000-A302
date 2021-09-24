@@ -1551,6 +1551,7 @@ handle_e_vw_enable()
 	_VW_VAR_ROW=$6
 	_VW_VAR_COLUMN=$7
 	_VW_VAR_VER=$8
+	_VW_JUST_DO=$_VW_VAR_VER
 
 	#_VW_VAR_MAX_ROW=`expr "$1" : 'e_vw_enable_\([[:alnum:]]\{1,\}\)_[[:alnum:]]\{1,\}_[[:alnum:]]\{1,\}_[[:alnum:]]\{1,\}'`
 	#_VW_VAR_MAX_COLUMN=`expr "$1" : 'e_vw_enable_[[:alnum:]]\{1,\}_\([[:alnum:]]\{1,\}\)_[[:alnum:]]\{1,\}_[[:alnum:]]\{1,\}'`
@@ -1625,7 +1626,9 @@ handle_e_vw_enable()
 	#VW_VAR_LAYOUT=`expr $VW_VAR_MAX_ROW + 1`x`expr $VW_VAR_MAX_COLUMN + 1`
 	VW_VAR_LAYOUT="$(( $VW_VAR_MAX_ROW + 1 ))x$(( $VW_VAR_MAX_COLUMN + 1 ))"
 
-	vw_enable
+	if [ -z "$_VW_JUST_DO" ]; then
+		vw_enable
+	fi
 
 	./astparam s vw_max_row ${VW_VAR_MAX_ROW}
 	./astparam s vw_max_column ${VW_VAR_MAX_COLUMN}
@@ -1643,6 +1646,7 @@ handle_e_vw_moninfo()
 	VW_VAR_MONINFO_HT=$5
 	VW_VAR_MONINFO_VA=$6
 	VW_VAR_MONINFO_VT=$7
+	VW_VAR_MONINFO_DO_IT=$8
 
 	#VW_VAR_MONINFO_HA=`expr "$1" : 'e_vw_moninfo_\([[:digit:]]\{1,\}\)_[[:digit:]]\{1,\}_[[:digit:]]\{1,\}_[[:digit:]]\{1,\}'`
 	#VW_VAR_MONINFO_HT=`expr "$1" : 'e_vw_moninfo_[[:digit:]]\{1,\}_\([[:digit:]]\{1,\}\)_[[:digit:]]\{1,\}_[[:digit:]]\{1,\}'`
@@ -1662,7 +1666,9 @@ handle_e_vw_moninfo()
 		VW_VAR_MONINFO_VT='0'
 	fi
 
-	vw_update_moninfo
+	if [ "$VW_VAR_MONINFO_DO_IT" != '0' ]; then
+		vw_update_moninfo
+	fi
 
 	astparam s vw_moninfo_ha "$VW_VAR_MONINFO_HA"
 	astparam s vw_moninfo_ht "$VW_VAR_MONINFO_HT"
