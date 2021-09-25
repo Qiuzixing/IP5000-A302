@@ -261,13 +261,11 @@ handle_ae_mute()
 	echo "handle_ae_mute.($_para1)"
 
 	if [ _para1 != '1' ]; then
-		echo 0 > /sys/class/leds/linein_mute/brightness
-	    echo 0 > /sys/class/leds/lineout_mute/brightness
-	    echo 0 > /sys/class/leds/dante_mute/brightness
-	else
 		echo 1 > /sys/class/leds/linein_mute/brightness
 	    echo 1 > /sys/class/leds/lineout_mute/brightness
-	    echo 1 > /sys/class/leds/dante_mute/brightness
+	else
+		echo 0 > /sys/class/leds/linein_mute/brightness
+	    echo 0 > /sys/class/leds/lineout_mute/brightness
 	fi
 
 }
@@ -446,6 +444,7 @@ start_alm()
 		#set lineio_sel pin to default to line_out;0:line_out;1:line_in
 		case "$MODEL_NUMBER" in
 			KDS-EN7)
+				echo out_analog > /sys/devices/platform/1500_i2s/io_select
 			;;
 			KDS-SW3-EN7)
 				ipc @m_lm_set s open_report
@@ -459,11 +458,19 @@ start_alm()
 		esac
 	fi
 
-	audio_detect &
-	usleep 100
 	if [ $UGP_FLAG = 'success' ];then
-		echo 500 > /sys/class/leds/audio_detect/delay
-		adc_pin_mux_gpio
+		case "$MODEL_NUMBER" in
+			KDS-EN7)
+			;;
+			KDS-SW3-EN7)
+				audio_detect &
+				usleep 100
+				echo 500 > /sys/class/leds/audio_detect/delay
+				adc_pin_mux_gpio
+			;;
+			*)
+			;;
+		esac
 	fi
 }
 

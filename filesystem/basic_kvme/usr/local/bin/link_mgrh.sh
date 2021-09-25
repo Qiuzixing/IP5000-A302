@@ -1498,7 +1498,21 @@ handle_e_p3k_audio_src()
 	_switch_input="$1"
 
 	echo "set p3k switch input!!! $_switch_input"
-	sconfig --audio-input "$_switch_input"
+	case "$MODEL_NUMBER" in
+		KDS-EN7)
+			ipc @m_lm_set s set_gpio_val:1:72:0
+			echo $_switch_input > /sys/devices/platform/1500_i2s/io_select
+			if [ $_switch_input = 'hdmi' ];then
+				echo out_analog > /sys/devices/platform/1500_i2s/io_select
+			fi
+		;;
+		KDS-SW3-EN7)
+			sconfig --audio-input "$_switch_input"
+		;;
+		*)
+		;;
+	esac
+	
 }
 
 handle_e_p3k_audio_dst()
@@ -1637,7 +1651,27 @@ handle_e_p3k_audio()
 			ipc @a_lm_set s ae_level:$_para1
 		;;
 		e_p3k_audio_dir::?*)
-			ipc @a_lm_set s ae_dir:$_para1
+			#ipc @a_lm_set s ae_dir:$_para1
+			case "$_para1" in
+				in)
+					ipc @m_lm_set s set_gpio_val:1:70:1
+					case "$MODEL_NUMBER" in
+						KDS-EN7)
+							ipc @m_lm_set s set_gpio_val:1:72:0
+						;;
+					esac
+				;;
+				out)
+					ipc @m_lm_set s set_gpio_val:1:70:0
+					case "$MODEL_NUMBER" in
+						KDS-EN7)
+							ipc @m_lm_set s set_gpio_val:1:72:1
+						;;
+					esac
+				;;
+				*)
+				;;
+			esac
 		;;
 		e_p3k_audio_mute::?*)
 			ipc @a_lm_set s ae_mute:$_para1
@@ -2317,11 +2351,11 @@ set_variable_power_on_status()
 	fi
 
 	if [ $P3KCFG_AV_MUTE = 'off' ];then
-		echo 0 > /sys/class/leds/linein_mute/brightness
-		echo 0 > /sys/class/leds/lineout_mute/brightness
-	else
 		echo 1 > /sys/class/leds/linein_mute/brightness
 		echo 1 > /sys/class/leds/lineout_mute/brightness
+	else
+		echo 0 > /sys/class/leds/linein_mute/brightness
+		echo 0 > /sys/class/leds/lineout_mute/brightness
 	fi
 }
 
@@ -2398,8 +2432,15 @@ fi
 
 if [ $UGP_FLAG = 'success' ];then
 	echo "mainswitch start."
-	mainswitch &
-	audioswitch &
+	case "$MODEL_NUMBER" in
+		KDS-SW3-EN7)
+			mainswitch &
+			audioswitch &
+		;;
+		*)
+		;;
+	esac
+
 fi
 
 if [ $UGP_FLAG = 'success' ];then
@@ -2409,11 +2450,11 @@ if [ $UGP_FLAG = 'success' ];then
 	case "$MODEL_NUMBER" in
 		#-b Indicates the board type:0-IPE5000;1-IPE5000P;
 		KDS-EN7)
-				communication_with_mcu -c -b 0 &
-			;;
+			communication_with_mcu -c -b 0 &
+		;;
 		KDS-SW3-EN7)
-				communication_with_mcu -c -b 1 &
-			;;
+			communication_with_mcu -c -b 1 &
+		;;
 		*)
 		;;
 	esac
@@ -2439,9 +2480,10 @@ fi
 if [ $UGP_FLAG = 'success' ];then
 	case "$MODEL_NUMBER" in
 		KDS-EN7)
-			#set lineio_sel pin to default to line_out;0:line_out;1:line_in
-			ipc @m_lm_set s set_gpio_config:2:70:1:65:1
-			ipc @m_lm_set s set_gpio_val:2:70:0:65:0
+			#set lineio_sel(70) pin to default to line_out;0:line_out;1:line_in
+			#set i2s_sel(72) pin to default to 6802;0:ast1520 ; 1:it6802
+			ipc @m_lm_set s set_gpio_config:3:70:1:65:1:72:1
+			ipc @m_lm_set s set_gpio_val:3:70:0:65:0:72:1
 		;;
 		KDS-SW3-EN7)
 			#set lineio_sel pin to default to line_out;0:line_out;1:line_in

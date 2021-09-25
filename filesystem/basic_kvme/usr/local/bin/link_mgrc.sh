@@ -3383,11 +3383,11 @@ init_param_from_p3k_cfg()
 set_variable_power_on_status()
 {
 	if [ $P3KCFG_AV_MUTE = 'off' ];then
-		echo 0 > /sys/class/leds/linein_mute/brightness
-		echo 0 > /sys/class/leds/lineout_mute/brightness
-	else
 		echo 1 > /sys/class/leds/linein_mute/brightness
 		echo 1 > /sys/class/leds/lineout_mute/brightness
+	else
+		echo 0 > /sys/class/leds/linein_mute/brightness
+		echo 0 > /sys/class/leds/lineout_mute/brightness
 	fi
 
 	
