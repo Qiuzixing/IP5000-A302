@@ -66,7 +66,7 @@ int CWeb::s_mjpegSeq = 0;
 int CWeb::s_mjpegUsrCnt = 0;
 int CWeb::s_mjpegEnable = 0;
 long long CWeb::s_LastUpdataTime = 0;
-int CWeb::s_mjpegIntevalMs = 0;
+int CWeb::s_mjpegIntevalMs = 1000;
 
 
 
@@ -1153,7 +1153,7 @@ void *CWeb::MjpegStreamThread(void *param)
         }
         else
         {
-            //usleep(0);
+            sched_yield();
         }
 
         next += s_mjpegIntevalMs;
