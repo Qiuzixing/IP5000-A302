@@ -1153,7 +1153,7 @@ void *CWeb::MjpegStreamThread(void *param)
         }
         else
         {
-            usleep(0);
+            //usleep(0);
         }
 
         next += s_mjpegIntevalMs;
