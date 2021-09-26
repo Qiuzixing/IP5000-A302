@@ -353,6 +353,17 @@ static void do_handle_input_source(uint16_t cmd,char *cmd_param)
         vdo_source.rxPort = atoi(rx_port_num);
         printf("vdo_source.txPort:%d\nvdo_source.rxPort:%d\n",vdo_source.txPort,vdo_source.rxPort);
         APP_Comm_Send(cmd, (U8*)&vdo_source, sizeof(vdo_source));
+        uint16_t gpio_cmd = CMD_GPIO_SET_VAL;
+        char select_usb_type_c[] = "1:66:0";
+        char select_usb_type_b[] = "1:66:1";
+        if(vdo_source.rxPort == HDMIRX3)
+        {
+            do_handle_set_gpio_val(gpio_cmd,select_usb_type_c);
+        }
+        else
+        {
+            do_handle_set_gpio_val(gpio_cmd,select_usb_type_b);
+        }
     }
     else
     {
