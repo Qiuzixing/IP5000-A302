@@ -1500,11 +1500,19 @@ handle_e_p3k_audio_src()
 	echo "set p3k switch input!!! $_switch_input"
 	case "$MODEL_NUMBER" in
 		KDS-EN7)
-			ipc @m_lm_set s set_gpio_val:1:72:0
-			echo $_switch_input > /sys/devices/platform/1500_i2s/io_select
-			if [ $_switch_input = 'hdmi' ];then
-				echo out_analog > /sys/devices/platform/1500_i2s/io_select
-			fi
+			case "$_switch_input" in
+				hdmi)
+					ipc @m_lm_set s set_gpio_val:1:72:1
+					echo hdmi > /sys/devices/platform/1500_i2s/io_select
+					echo out_analog > /sys/devices/platform/1500_i2s/io_select
+				;;
+				analog)
+					ipc @m_lm_set s set_gpio_val:1:72:0
+					echo analog > /sys/devices/platform/1500_i2s/io_select
+				;;
+				*)
+				;;
+			esac
 		;;
 		KDS-SW3-EN7)
 			sconfig --audio-input "$_switch_input"
@@ -2462,7 +2470,7 @@ fi
 
 if [ $UGP_FLAG = 'success' ];then
 	start_time=$(date +%s)
-	while [ -f "/tmp/socket_ready" ];
+	while [ ! -f "/tmp/socket_ready" ];
 	do
 		end_time=$(date +%s)
 		time_diff=$(( $end_time - $start_time ))
@@ -2471,7 +2479,7 @@ if [ $UGP_FLAG = 'success' ];then
 			break
 		fi
 	done
-	if [ ! -f "/tmp/socket_ready" ];then
+	if [ -f "/tmp/socket_ready" ];then
 		rm /tmp/socket_ready
 	fi
 fi
