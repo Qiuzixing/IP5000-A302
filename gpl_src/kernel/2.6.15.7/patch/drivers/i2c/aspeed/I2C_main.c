@@ -695,6 +695,57 @@ int WaitI2CRdy(u32 DeviceSelect, u32 DeviceAddress, u32 ms)
 
 }
 
+int SetI2CBuf(u32 DeviceSelect,
+                u32 DeviceAddress,
+                u8 *buf,
+                u32 len)
+{
+    u32   Status;
+    u32   ulError = 0;
+    u32   count = 0;
+    unsigned long	flags;
+
+    if (WaitI2CRdy(DeviceSelect, DeviceAddress, 500)) {
+        return -ENODEV;
+    }
+
+    spin_lock_irqsave(&I2CSpinLock[DeviceSelect -1], flags);
+    Status = _i2c_start(DeviceSelect, DeviceAddress);
+    if (Status == -1) {
+        ulError = 1;
+        goto out;
+    }
+
+    for (count = 0; count < len; count++) {
+        WriteMemoryLong(APB_BRIDGE_2_BASE, I2C_BASE + DeviceSelect * 0x40 + 0x20, buf[count]);
+        barrier();
+        WriteMemoryLong(APB_BRIDGE_2_BASE, I2C_BASE + DeviceSelect * 0x40 + 0x14, 0x2);
+        barrier();
+        Status = wait_status(DeviceSelect, S_ACK);
+        if (Status == -1) {
+            printk("wait status timeout 1 (%d,0x%x,0x%x)\n", DeviceSelect, DeviceAddress,  buf[count]);
+            ulError = 1;
+            goto STOPWriteI2C;
+        }
+    }
+
+STOPWriteI2C:
+    Status = _i2c_stop(DeviceSelect);
+    if (Status == -1) {
+        printk("wait status timeout 3 (%d,0x%x,0x%x)\n", DeviceSelect, DeviceAddress, buf[count]);
+        ulError = 1;
+    }
+
+out:
+    if (1 == ulError)
+    {
+        printk("WriteI2C reg error \n");
+        spin_unlock_irqrestore(&I2CSpinLock[DeviceSelect -1], flags);
+        return -1;
+    }
+    spin_unlock_irqrestore(&I2CSpinLock[DeviceSelect -1], flags);
+    return 0;
+}
 
 int  SetI2CReg(u32   DeviceSelect,
                  u32   DeviceAddress,
@@ -1659,10 +1710,26 @@ static ssize_t store_io_value(struct device *dev, struct device_attribute *attr,
 	} else {
 		printk("Usage:\nOffset Value\n");
 	}
+out:
 	return count;
 }
 DEVICE_ATTR(io_value, (S_IRUGO | S_IWUSR), show_io_value, store_io_value);
 
+static ssize_t store_io_buf(struct device *dev, struct device_attribute *attr,
+		const char *buf, size_t count)
+{
+    int err;
+
+    err = SetI2CBuf(BusNum, DevAddr, buf, count);
+    if (err != 0) {
+        printk("SetI2CBuf error! count = %d\n", count);
+        return -1;
+    }
+    
+out:
+    return count;
+}
+DEVICE_ATTR(io_buf, (S_IRUGO|S_IWUSR), NULL, store_io_buf);
 #else
 static ssize_t show_io_value(struct device *dev, struct device_attribute *attr, char *buf)
 {
@@ -1845,6 +1912,7 @@ DEVICE_ATTR(bus_init, (S_IRUGO | S_IWUSR), show_bus_init, store_bus_init);
 static struct attribute *dev_attrs[] = {
 	&dev_attr_io_select.attr,
 	&dev_attr_io_value.attr,
+	&dev_attr_io_buf.attr,
 #if 0
 	&dev_attr_io_dump.attr,
 #else
