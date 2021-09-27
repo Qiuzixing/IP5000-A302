@@ -260,7 +260,7 @@ handle_ae_mute()
 	local _para1="$1"
 	echo "handle_ae_mute.($_para1)"
 
-	if [ _para1 != '1' ]; then
+	if [ $_para1 != '1' ]; then
 		echo 1 > /sys/class/leds/linein_mute/brightness
 	    echo 1 > /sys/class/leds/lineout_mute/brightness
 	else
