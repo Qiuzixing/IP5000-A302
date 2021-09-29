@@ -160,6 +160,24 @@ void SearchTcp(TimeOut_S * head,int socket)
 	return;
 }
 
+void LogoutTcp(TimeOut_S * head,int socket)
+{
+	if(head == NULL)
+	{
+		return;
+	}
+	TimeOut_S * tmp = head->next;
+	while(tmp != NULL)
+	{
+		if(tmp->soket == socket)
+		{
+			tmp->flag =0;
+			return;
+		}
+		tmp = tmp->next;
+	}
+	return;
+}
 int Cheak_TcpStartLink(TimeOut_S * head,int socket)
 {
 	if(head == NULL)
@@ -348,6 +366,21 @@ int Tcp_NetRecvMsg(NetCliInfo_T *cli)
 		DBG_WarnMsg(">>>>>>>>>>>>>>>>not login\n");
 	}
 
+	//logout
+	if(bSeur == 1)
+	{
+		char msg[64] = "#LOGOUT\r";
+
+		printf("recvmsg:%s;\n",cli->recvmsg);
+		printf("msg:%s\n",msg);
+		if(!memcmp(cli->recvmsg,msg,strlen(cli->recvmsg)) && Cheak_TcpStartLink(sTimeOut,cli->recvSocket) == cli->recvSocket)
+		{
+			printf("recvmsg:%s;msg:%s\n",cli->recvmsg,msg);
+			sTcpLogin.socketId[sTcpLogin.num] = cli->recvSocket;
+			sTcpLogin.num += 1;
+			LogoutTcp(sTimeOut,cli->recvSocket);
+		}
+	}
 	return 0;
 }
 int Tcp_NetClose(int sockeFd)
