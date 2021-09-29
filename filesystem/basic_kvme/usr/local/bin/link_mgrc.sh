@@ -2698,8 +2698,7 @@ handle_e_p3k_cec()
 handle_e_p3k_upgrade()
 {
 	cd /dev/shm/
-	mv IPD5000-A30_upgrade*.bin `echo *.bin | sed 's/.bin/.tar.gz/g'`
-	tar -zxvf ./IPD5000-A30*.tar.gz
+	tar -zxvf ./IP5000-A30_upgrade.tar.gz
 	./flash.sh
 
 	reboot

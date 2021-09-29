@@ -480,7 +480,8 @@ int CWeb::DownVideoWallHandle(struct mg_connection *conn, void *cbdata)
 int CWeb::UploadUpgradeHandle(struct mg_connection *conn, void *cbdata)
 {
     struct T_FromInfo tFrom;
-    if(!SaveUploadFile(conn, UPGRADE_FILE_PATH, NULL, &tFrom))
+    //if(!SaveUploadFile(conn, UPGRADE_FILE_PATH, NULL, &tFrom))
+    if(!SaveUploadFile(conn, UPGRADE_FILE_PATH, "IP5000-A30_upgrade.tar.gz", &tFrom))
     {
         BC_INFO_LOG("UploadUpgradeHandle upload file error");
         send_http_error_rsp(conn);
