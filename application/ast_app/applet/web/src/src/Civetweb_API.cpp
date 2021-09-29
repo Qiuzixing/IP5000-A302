@@ -535,7 +535,7 @@ void Send_Data_To_CurWebsocket(struct mg_connection *conn, const char *data, siz
 }
 
 
-void Send_Data_To_ALLWebsocket(char *data,size_t len)
+void Send_Data_To_ALLWebsocket(const char *data,size_t len)
 {
 	list<ws_clients>::iterator ws_clientIterator;
 	for(ws_clientIterator = gb_clientconnlist.begin();ws_clientIterator!=gb_clientconnlist.end();++ws_clientIterator)

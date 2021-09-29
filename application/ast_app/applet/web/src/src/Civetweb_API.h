@@ -215,7 +215,7 @@ void Send_Data_To_CurWebsocket(struct mg_connection *conn, const char *data, siz
 /*
 	广发消息时，只有 通过验证（即ldap_auth != 0） 的web才能收到服务器广发的消息
 */
-void Send_Data_To_ALLWebsocket(char *data,size_t len);
+void Send_Data_To_ALLWebsocket(const char *data,size_t len);
 
 
 #endif 	/*USE_WEBSOCKET*/

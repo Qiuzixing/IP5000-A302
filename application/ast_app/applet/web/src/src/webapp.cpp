@@ -333,7 +333,7 @@ int CWeb::UpdateEdidHandle(struct mg_connection *conn, void *cbdata)
     struct T_FromInfo tFrom;
     if(!SaveUploadFile(conn, "/tmp", NULL, &tFrom))
     {
-        BC_INFO_LOG("UpdateSleepImageHandle upload file error");
+        BC_INFO_LOG("UpdateEdidHandle upload file error");
     }
     else
     {
@@ -1061,6 +1061,7 @@ int CWeb::CapturebmpReqHandler(struct mg_connection *conn, void *cbdata)
             s_LastUpdataTime = cur;
         }
     }
+
     s_BmpMutex.Lock();
     My_System("cp "MJPEG_TMP_BMP_FILE" "CAPTURE_BMP_FILE);
     s_BmpMutex.Unlock();
@@ -1083,6 +1084,7 @@ int CWeb::CapturejpgReqHandler(struct mg_connection *conn, void *cbdata)
             s_BmpMutex.Lock();
             update_bmp_preview_file();
             s_BmpMutex.Unlock();
+
             s_MjpegMutex.Lock();
             update_jpg_preview_file();
             s_MjpegMutex.Unlock();
@@ -1194,35 +1196,13 @@ void CWeb::P3kWebsocketHandle(struct mg_connection *conn, char *data, size_t len
 	{
 		if(FD_ISSET(s_p3kSocket,&Writefds))
 		{
-		    s_p3kmutex.Lock();
-            if(s_p3kStatus.p3k_start == 1)
-            {
-                int WriteSize = write(s_p3kSocket, data, len - 1);
-    			if(WriteSize < 0)
-    			{
-    				BC_INFO_LOG("P3kWebsocketHandle send data failed");
-    			}
-                s_p3kStatus.p3k_start = 0;
-                s_p3kStatus.p3k_conn = conn;
-                s_p3kmutex.Unlock();
-            }
-            else
-            {
-                s_p3kcond.Wait(&s_p3kmutex, 1500);
-                while(s_p3kStatus.p3k_writeok)
-                {
-        			//int WriteSize = write(s_p3kSocket, "#KDS_AUD-OUTPUT?\r", strlen("#KDS_AUD-OUTPUT?\r"));
-        			int WriteSize = write(s_p3kSocket, data, len - 1);
-        			if(WriteSize < 0)
-        			{
-        				BC_INFO_LOG("P3kWebsocketHandle send data failed");
-        			}
-                    s_p3kStatus.p3k_writeok = false;
-                    s_p3kStatus.p3k_conn = conn;
 
-                    s_p3kmutex.Unlock();
-                }
-            }
+            CMutexLocker locker(&s_p3kmutex);
+            int WriteSize = write(s_p3kSocket, data, len - 1);
+			if(WriteSize < 0)
+			{
+				BC_INFO_LOG("P3kWebsocketHandle send data failed");
+			}
 		}
 	}
 
@@ -1351,23 +1331,10 @@ void *CWeb::P3kCommunicationThread(void *arg)
             }
             else
             {
-                if(strP3kReq.find("~01@KDS-CFG-MODIFY") != string::npos)
-                {
-                    continue;
-                }
 
-                s_p3kmutex.Lock();
                 int i = 0;
                 CStringSpliter split(strP3kReq);
-                split.Split("\n");
-                if(split.Size() < 2)
-                {
-                    Send_Data_To_CurWebsocket(s_p3kStatus.p3k_conn, aBuff, ret);
-                    s_p3kStatus.p3k_writeok = true;
-                    s_p3kcond.Signal();
-    				s_p3kmutex.Unlock();
-                    continue;
-                }
+                split.Split("\r\n");
 
                 for(i; i < split.Size(); i++)
                 {
@@ -1376,14 +1343,15 @@ void *CWeb::P3kCommunicationThread(void *arg)
                     {
                         continue;
                     }
+
+                    if(split[i].empty())
+                    {
+                        continue;
+                    }
                     strTmp = split[i];
                     strTmp += "\n";
-                    Send_Data_To_CurWebsocket(s_p3kStatus.p3k_conn, strTmp.c_str(), strTmp.length());
+                    Send_Data_To_ALLWebsocket(strTmp.c_str(), strTmp.length());
                 }
-
-                s_p3kStatus.p3k_writeok = true;
-                s_p3kcond.Signal();
-				s_p3kmutex.Unlock();
             }
         }
 	}
