@@ -11,7 +11,8 @@ extern "C"{
 
 
 #define _DBG_ON
-#define _DBG_LEVEL_INFO_
+//#define _DBG_LEVEL_INFO_
+#define _DBG_LEVEL_WARN_
 
 //define _DBG_ to open debug
 #ifdef _DBG_ON

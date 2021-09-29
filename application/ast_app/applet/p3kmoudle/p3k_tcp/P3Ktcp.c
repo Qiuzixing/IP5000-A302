@@ -303,7 +303,7 @@ int Tcp_NetRecvMsg(NetCliInfo_T *cli)
 
 	}
 
-	if(!memcmp(cli->recvmsg,"#\r",strlen(cli->recvmsg)) && Cheak_TcpStartLink(sTimeOut,cli->recvSocket) == 0)// && flagS == 0)
+	if(!memcmp(cli->recvmsg,"#\r",strlen(cli->recvmsg)) && Cheak_TcpStartLink(sTimeOut,cli->recvSocket) == 0&&(bSeur == 1))// && flagS == 0)
 	{
 		//printf("###  %d\n",cli->recvSocket);
 		handleId = info->p3kHandle.handleId;
@@ -345,7 +345,7 @@ int Tcp_NetRecvMsg(NetCliInfo_T *cli)
 	}
 	else
 	{
-		printf(">>>>>>>>>>>>>>>>not login\n");
+		DBG_WarnMsg(">>>>>>>>>>>>>>>>not login\n");
 	}
 
 	return 0;

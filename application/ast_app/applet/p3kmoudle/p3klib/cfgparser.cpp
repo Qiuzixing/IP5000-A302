@@ -117,7 +117,7 @@ int Cfg_Init_Channel(void)
 	FILE *fp;
 	fp = fopen(path, "r");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -194,7 +194,7 @@ int Cfg_Init_Audio(void)
 	FILE *fp;
 	fp = fopen(path, "r");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -243,12 +243,12 @@ int Cfg_Init_Audio(void)
 			if(!root[JSON_PRIORITY].empty())
 			{
 				Json::Value& JsonPriorityArray = root[JSON_PRIORITY];
-				printf("JsonPriorityArray.size() = %d\n",JsonPriorityArray.size());
+				//printf("JsonPriorityArray.size() = %d\n",JsonPriorityArray.size());
 
 				for(unsigned int i = 0; i < JsonPriorityArray.size(); i++)
 				{
 					string input = JsonPriorityArray[i].asString();
-					printf("JsonPriorityArray[%d]:[%s]\n",i,input.c_str());
+					//printf("JsonPriorityArray[%d]:[%s]\n",i,input.c_str());
 
 					if(input == JSON_AUDIO_DANTE)
 					{
@@ -271,7 +271,7 @@ int Cfg_Init_Audio(void)
 			if(!root[JSON_AUDIO_DEST].empty())
 			{
 				Json::Value& JsonDstArray = root[JSON_AUDIO_DEST];
-				printf("JsonDstArray.size() = %d\n",JsonDstArray.size());
+				//printf("JsonDstArray.size() = %d\n",JsonDstArray.size());
 
 				if(JsonDstArray.size() > 4)
 					JsonDstArray.resize(4);
@@ -279,7 +279,7 @@ int Cfg_Init_Audio(void)
 				for(unsigned int i = 0; i < JsonDstArray.size(); i++)
 				{
 					string output = JsonDstArray[i].asString();
-					printf("JsonDstArray[%d]:[%s]\n",i,output.c_str());
+					//printf("JsonDstArray[%d]:[%s]\n",i,output.c_str());
 
 					if(output == JSON_AUDIO_DANTE)
 					{
@@ -356,7 +356,7 @@ int Cfg_Init_Video(void)
 	FILE *fp;
 	fp = fopen(path, "r");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -372,7 +372,7 @@ int Cfg_Init_Video(void)
 			if(!root[JSON_AV_RGB].empty())
 			{
 				string mode = root[JSON_AV_RGB].asString();
-				printf("g_video_info.force_rgb = %s\n",mode.c_str());
+				//printf("g_video_info.force_rgb = %s\n",mode.c_str());
 
 				if(mode == JSON_PARAM_OFF)
 				{
@@ -425,7 +425,7 @@ int Cfg_Init_AutoSwitch(void)
 	FILE *fp;
 	fp = fopen(path, "r");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -442,7 +442,7 @@ int Cfg_Init_AutoSwitch(void)
 			if(!root[JSON_SWITCH_MODE].empty())
 			{
 				string mode = root[JSON_SWITCH_MODE].asString();
-				printf("g_autoswitch_info.switch_mode = %s\n",mode.c_str());
+				//printf("g_autoswitch_info.switch_mode = %s\n",mode.c_str());
 
 				if(mode == JSON_LAST_CONNECT)
 				{
@@ -462,12 +462,12 @@ int Cfg_Init_AutoSwitch(void)
 			if(!root[JSON_PRIORITY].empty())
 			{
 				Json::Value& JsonPriorityArray = root[JSON_PRIORITY];
-				printf("JsonPriorityArray.size() = %d\n",JsonPriorityArray.size());
+				//printf("JsonPriorityArray.size() = %d\n",JsonPriorityArray.size());
 
 				for(unsigned int i = 0; i < JsonPriorityArray.size(); i++)
 				{
 					string input = JsonPriorityArray[i].asString();
-					printf("JsonPriorityArray[%d]:[%s]\n",i,input.c_str());
+					//printf("JsonPriorityArray[%d]:[%s]\n",i,input.c_str());
 
 					if(input == JSON_HDMI_1)
 					{
@@ -512,8 +512,8 @@ int Cfg_Init_AutoSwitch(void)
 
 	fclose(fp);
 
-	printf("Cfg_Init_AutoSwitch switch_mode:%d,input_pri[0]:%d input_pri[1]:%d input_pri[2]:%d end\n",
-		g_autoswitch_info.switch_mode,g_autoswitch_info.input_pri[0],g_autoswitch_info.input_pri[1],g_autoswitch_info.input_pri[2]);
+	//printf("Cfg_Init_AutoSwitch switch_mode:%d,input_pri[0]:%d input_pri[1]:%d input_pri[2]:%d end\n",
+	//	g_autoswitch_info.switch_mode,g_autoswitch_info.input_pri[0],g_autoswitch_info.input_pri[1],g_autoswitch_info.input_pri[2]);
 	return 0;
 }
 
@@ -549,7 +549,7 @@ int Cfg_Init_AVSetting(void)
 	FILE *fp;
 	fp = fopen(path, "r");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -652,7 +652,7 @@ int Cfg_Init_EDID(void)
 	FILE *fp;
 	fp = fopen(path, "r");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -735,7 +735,7 @@ int Cfg_Init_Device(void)
 	FILE *fp;
 	fp = fopen(path, "r");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -753,12 +753,12 @@ int Cfg_Init_Device(void)
 				if(mode == JSON_PARAM_ON)
 				{
 					g_device_info.fp_lock = ON;
-					printf("g_device_info.fp_lock = ON;\n");
+					//printf("g_device_info.fp_lock = ON;\n");
 				}
 				else
 				{
 					g_device_info.fp_lock = OFF;
-					printf("g_device_info.fp_lock = OFF;\n");
+					//printf("g_device_info.fp_lock = OFF;\n");
 				}
 			}
 
@@ -810,7 +810,7 @@ int Cfg_Init_Version(void)
 	FILE *fp;
 	fp = fopen(path, "r");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -880,7 +880,7 @@ int Cfg_Init_Time(void)
 	FILE *fp;
 	fp = fopen(path, "r");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -968,7 +968,7 @@ int Cfg_Init_User(void)
 	FILE *fp;
 	fp = fopen(path, "r");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -1070,7 +1070,7 @@ int Cfg_Init_VideoWall(void)
 	FILE *fp;
 	fp = fopen(path, "r");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -1157,7 +1157,7 @@ int Cfg_Init_Gateway(void)
 	FILE *fp;
 	fp = fopen(path, "r");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -1334,7 +1334,7 @@ int Cfg_Init_Network(void)
 	FILE *fp;
 	fp = fopen(path, "r");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -1531,7 +1531,7 @@ int Cfg_Init_Log(void)
 	FILE *fp;
 	fp = fopen(path, "r");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -1598,7 +1598,7 @@ int Cfg_Create_AutoswitchDelay(void)
 	int nAccessRet = access(path,F_OK | R_OK | W_OK);
 	if(0 == nAccessRet)
 	{
-		printf("nAccessRet %s Suceess\n",path);
+		//printf("nAccessRet %s Suceess\n",path);
 		return 0;
 	}
 
@@ -1631,7 +1631,7 @@ int Cfg_Create_AutoswitchDelay(void)
 	FILE *fp;
 	fp = fopen(path, "w");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -1655,7 +1655,7 @@ int Cfg_Create_AVSignal(void)
 	int nAccessRet = access(path,F_OK | R_OK | W_OK);
 	if(0 == nAccessRet)
 	{
-		printf("nAccessRet %s Suceess\n",path);
+		//printf("nAccessRet %s Suceess\n",path);
 		return 0;
 	}
 
@@ -1688,7 +1688,7 @@ int Cfg_Create_AVSignal(void)
 	FILE *fp;
 	fp = fopen(path, "w");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -1712,7 +1712,7 @@ int Cfg_Create_DisplaySleep(void)
 	int nAccessRet = access(path,F_OK | R_OK | W_OK);
 	if(0 == nAccessRet)
 	{
-		printf("nAccessRet %s Suceess\n",path);
+		//printf("nAccessRet %s Suceess\n",path);
 		return 0;
 	}
 
@@ -1741,7 +1741,7 @@ int Cfg_Create_DisplaySleep(void)
 	FILE *fp;
 	fp = fopen(path, "w");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -1770,7 +1770,7 @@ int Cfg_Create_OsdSetting(void)
 	int nAccessRet = access(path,F_OK | R_OK | W_OK);
 	if(0 == nAccessRet)
 	{
-		printf("nAccessRet %s Suceess\n",path);
+		//printf("nAccessRet %s Suceess\n",path);
 		return 0;
 	}
 
@@ -1801,7 +1801,7 @@ int Cfg_Create_OsdSetting(void)
 	FILE *fp;
 	fp = fopen(path, "w");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -1825,7 +1825,7 @@ int Cfg_Create_SecuritySetting(void)
 	int nAccessRet = access(path,F_OK | R_OK | W_OK);
 	if(0 == nAccessRet)
 	{
-		printf("nAccessRet %s Suceess\n",path);
+		//printf("nAccessRet %s Suceess\n",path);
 		return 0;
 	}
 
@@ -1865,7 +1865,7 @@ int Cfg_Create_SecuritySetting(void)
 	FILE *fp;
 	fp = fopen(path, "w");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -1889,7 +1889,7 @@ int Cfg_Create_KVMSetting(void)
 	int nAccessRet = access(path,F_OK | R_OK | W_OK);
 	if(0 == nAccessRet)
 	{
-		printf("nAccessRet %s Suceess\n",path);
+		//printf("nAccessRet %s Suceess\n",path);
 		return 0;
 	}
 
@@ -1929,7 +1929,7 @@ int Cfg_Create_KVMSetting(void)
 	FILE *fp;
 	fp = fopen(path, "w");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -1953,7 +1953,7 @@ int Cfg_Create_EDIDList(void)
 	int nAccessRet = access(path,F_OK | R_OK | W_OK);
 	if(0 == nAccessRet)
 	{
-		printf("nAccessRet %s Suceess\n",path);
+		//printf("nAccessRet %s Suceess\n",path);
 		return 0;
 	}
 
@@ -1987,7 +1987,7 @@ int Cfg_Create_EDIDList(void)
 	FILE *fp;
 	fp = fopen(path, "w");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -2090,7 +2090,7 @@ int Cfg_Update_Channel(void)
 	FILE *fp;
 	fp = fopen(path, "w");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -2197,7 +2197,7 @@ int Cfg_Update_Audio(void)
 	FILE *fp;
 	fp = fopen(path, "w");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -2231,7 +2231,7 @@ int Cfg_Update_Video(void)
 		FILE *fp;
 		fp = fopen(path, "r");
 		if (fp == NULL) {
-			printf("ERROR! can't open %s\n",path);
+			DBG_ErrMsg("ERROR! can't open %s\n",path);
 			return -1;
 		}
 
@@ -2239,7 +2239,7 @@ int Cfg_Update_Video(void)
 
 		if(reader.parse(pBuf, root1))
 		{
-			printf("open %s Success !!!\n",path);
+			DBG_InfoMsg("open %s Success !!!\n",path);
 		}
 
 		fclose(fp);
@@ -2281,7 +2281,7 @@ int Cfg_Update_Video(void)
 	FILE *fp2;
 	fp2 = fopen(path, "w");
 	if (fp2 == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -2362,7 +2362,7 @@ int Cfg_Update_AutoSwitch(void)
 	FILE *fp;
 	fp = fopen(path, "w");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -2439,7 +2439,7 @@ int Cfg_Update_AVSetting(void)
 	FILE *fp;
 	fp = fopen(path, "w");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -2498,7 +2498,7 @@ int Cfg_Update_EDID(void)
 	FILE *fp;
 	fp = fopen(path, "w");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -2546,7 +2546,7 @@ int Cfg_Update_Device(void)
 	FILE *fp;
 	fp = fopen(path, "w");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -2596,7 +2596,7 @@ int Cfg_Update_Version(void)
 	FILE *fp;
 	fp = fopen(path, "w");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -2652,7 +2652,7 @@ int Cfg_Update_Time(void)
 	FILE *fp;
 	fp = fopen(path, "w");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -2703,7 +2703,7 @@ int Cfg_Update_User(void)
 	FILE *fp;
 	fp = fopen(path, "w");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -2764,7 +2764,7 @@ int Cfg_Update_VideoWall(void)
 	FILE *fp;
 	fp = fopen(path, "w");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -2884,7 +2884,7 @@ int Cfg_Update_Gateway(void)
 	FILE *fp;
 	fp = fopen(path, "w");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -2994,7 +2994,7 @@ int Cfg_Update_Network(void)
 	FILE *fp;
 	fp = fopen(path, "w");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -3041,7 +3041,7 @@ int Cfg_Update_Log(void)
 	FILE *fp;
 	fp = fopen(path, "w");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -3837,7 +3837,7 @@ int Cfg_Set_Net_Config(int netId,NetWorkInfo_S*netInfo)
 	}
 	else
 	{
-		DBG_InfoMsg("Cfg_Set_Net_Config netId:%d is Wrong!!!\n",netId);
+		DBG_WarnMsg("Cfg_Set_Net_Config netId:%d is Wrong!!!\n",netId);
 	}
 	return 0;
 }
@@ -3852,7 +3852,7 @@ int Cfg_Get_Net_Config(int netId,NetWorkInfo_S*netInfo)
 	}
 	else
 	{
-		DBG_InfoMsg("Cfg_Get_Net_Config netId:%d is Wrong!!!\n",netId);
+		DBG_WarnMsg("Cfg_Get_Net_Config netId:%d is Wrong!!!\n",netId);
 	}
 	return 0;
 }
@@ -3868,7 +3868,7 @@ int Cfg_Set_Net_DHCP(int netId,int dhcp)
 	}
 	else
 	{
-		DBG_InfoMsg("Cfg_Set_Net_DHCP netId:%d is Wrong!!!\n",netId);
+		DBG_WarnMsg("Cfg_Set_Net_DHCP netId:%d is Wrong!!!\n",netId);
 	}
 
 	return 0;
@@ -3883,7 +3883,7 @@ int Cfg_Get_Net_DHCP(int netId,int* dhcp)
 	}
 	else
 	{
-		DBG_InfoMsg("Cfg_Get_Net_DHCP netId:%d is Wrong!!!\n",netId);
+		DBG_WarnMsg("Cfg_Get_Net_DHCP netId:%d is Wrong!!!\n",netId);
 	}
 
 	return 0;
@@ -3916,7 +3916,7 @@ int Cfg_Set_Net_Port(NetPortType_E type, int port) //type:udp;tcp
 		g_network_info.tcp_port = port;
 	else
 	{
-		DBG_InfoMsg("Cfg_Set_Net_Port type:%d is Wrong!!!\n",type);
+		DBG_WarnMsg("Cfg_Set_Net_Port type:%d is Wrong!!!\n",type);
 		return -1;
 	}
 
@@ -3934,7 +3934,7 @@ int Cfg_Get_Net_Port(NetPortType_E type, int* port)
 		*port = g_network_info.tcp_port;
 	else
 	{
-		DBG_InfoMsg("Cfg_Get_Net_Port type:%d is Wrong!!!\n",type);
+		DBG_WarnMsg("Cfg_Get_Net_Port type:%d is Wrong!!!\n",type);
 		return -1;
 	}
 
@@ -3968,7 +3968,7 @@ int Cfg_Set_Net_Multicast(char * ip,int ttl) //type:udp;tcp
 		Cfg_Update(NETWORK_INFO);
 	}
 	else
-		DBG_InfoMsg("Cfg_Set_Net_Multicast method:%d is Wrong!!!\n",g_network_info.method);
+		DBG_WarnMsg("Cfg_Set_Net_Multicast method:%d is Wrong!!!\n",g_network_info.method);
 
 	return 0;
 }
@@ -3984,7 +3984,7 @@ int Cfg_Get_Net_Multicast(char * ip,int* ttl)
 	{
 		*ttl = 0;
 		strcpy(ip,"0.0.0.0");
-		DBG_InfoMsg("Cfg_Get_Net_Multicast method:%d is Wrong!!!\n",g_network_info.method);
+		DBG_WarnMsg("Cfg_Get_Net_Multicast method:%d is Wrong!!!\n",g_network_info.method);
 	}
 	return 0;
 }
@@ -3999,7 +3999,7 @@ int Cfg_Set_Net_GW_Port(NetGWType_E type, int port) //type:p3k,rs232,dante
 		g_network_info.dante_port = port;
 	else
 	{
-		DBG_InfoMsg("Cfg_Set_Net_GW_Port type:%d is Wrong!!!\n",type);
+		DBG_WarnMsg("Cfg_Set_Net_GW_Port type:%d is Wrong!!!\n",type);
 		return -1;
 	}
 
@@ -4017,7 +4017,7 @@ int Cfg_Get_Net_GW_Port(NetGWType_E type, int* port)
 		*port = g_network_info.dante_port;
 	else
 	{
-		DBG_InfoMsg("Cfg_Get_Net_GW_Port type:%d is Wrong!!!\n",type);
+		DBG_WarnMsg("Cfg_Get_Net_GW_Port type:%d is Wrong!!!\n",type);
 		return -1;
 	}
 
@@ -4034,7 +4034,7 @@ int Cfg_Set_Net_GW_Vlan(NetGWType_E type, int vlan) //type:p3k,rs232,dante
 		g_network_info.dante_vlan = vlan;
 	else
 	{
-		DBG_InfoMsg("Cfg_Set_Net_GW_Vlan type:%d is Wrong!!!\n",type);
+		DBG_WarnMsg("Cfg_Set_Net_GW_Vlan type:%d is Wrong!!!\n",type);
 		return -1;
 	}
 
@@ -4052,7 +4052,7 @@ int Cfg_Get_Net_GW_Vlan(NetGWType_E type, int* vlan)
 		*vlan = g_network_info.dante_vlan;
 	else
 	{
-		DBG_InfoMsg("Cfg_Get_Net_GW_Vlan type:%d is Wrong!!!\n",type);
+		DBG_WarnMsg("Cfg_Get_Net_GW_Vlan type:%d is Wrong!!!\n",type);
 		return -1;
 	}
 	return 0;
@@ -4072,7 +4072,7 @@ int Cfg_Get_EDID_List(char info[][MAX_EDID_LEN],int num)
 	DBG_InfoMsg("Cfg_Get_EDID_List\n");
 
 #ifdef CONFIG_P3K_CLIENT
-	DBG_InfoMsg("This is Decoder\n");
+	DBG_WarnMsg("This is Decoder\n");
 	return 0;
 #endif
 
@@ -4093,7 +4093,7 @@ int Cfg_Get_EDID_List(char info[][MAX_EDID_LEN],int num)
 	FILE *fp;
 	fp = fopen(path, "r");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -4145,7 +4145,7 @@ int Cfg_Set_Enc_AVSignal_Info()
 	FILE *fp;
 	fp = fopen(path, "r");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -4175,7 +4175,7 @@ int Cfg_Set_Enc_AVSignal_Info()
 				}
 				else
 				{
-					printf("JSON_AV_MAX_BITRATE Param: %s  Error!!!",bitrate.c_str());
+					DBG_WarnMsg("JSON_AV_MAX_BITRATE Param: %s  Error!!!",bitrate.c_str());
 				}
 
 				printf("%s\n",cmd);
@@ -4194,7 +4194,7 @@ int Cfg_Set_Enc_AVSignal_Info()
 				}
 				else
 				{
-					printf("JSON_AV_FRAME_RATE Param: %d  Error!!!",frame);
+					DBG_WarnMsg("JSON_AV_FRAME_RATE Param: %d  Error!!!",frame);
 				}
 
 				printf("%s\n",cmd);
@@ -4212,7 +4212,7 @@ int Cfg_Set_Dec_Usb_KVM()
 	DBG_InfoMsg("Cfg_Set_Dec_Usb_KVM\n");
 
 #ifdef CONFIG_P3K_HOST
-		DBG_InfoMsg("This is Encoder\n");
+		DBG_WarnMsg("This is Encoder\n");
 		return 0;
 #endif
 
@@ -4227,7 +4227,7 @@ int Cfg_Set_Dec_Usb_KVM()
 	FILE *fp;
 	fp = fopen(path, "r");
 	if (fp == NULL) {
-		printf("ERROR! can't open %s\n",path);
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
 		return -1;
 	}
 
@@ -4255,7 +4255,7 @@ int Cfg_Set_Dec_Usb_KVM()
 					system(cmd);
 				}
 
-				printf("%s\n",cmd);
+				DBG_InfoMsg("%s\n",cmd);
 			}
 
 			if(!root[JSON_USB_KVM_ROAMING].empty())
@@ -4280,7 +4280,7 @@ int Cfg_Set_Dec_Usb_KVM()
 
 						if((x == 0)&&(y == 0))
 						{
-							printf("This is master [x: %d][y: %d]\n",x,y);
+							DBG_InfoMsg("This is master [x: %d][y: %d]\n",x,y);
 						}
 						else if(mac.size()>1)
 						{
@@ -4299,7 +4299,7 @@ int Cfg_Set_Dec_Usb_KVM()
 					system(cmd);
 				}
 
-				printf("%s\n",cmd);
+				DBG_InfoMsg("%s\n",cmd);
 			}
 
 			if(!root[JSON_USB_KVM_TIMEOUT].empty())
@@ -4313,7 +4313,7 @@ int Cfg_Set_Dec_Usb_KVM()
 					system(cmd);
 				}
 
-				printf("%s\n",cmd);
+				DBG_InfoMsg("%s\n",cmd);
 			}
 		}
 	}
@@ -4372,7 +4372,7 @@ int Cfg_Init_Param()
 	else
 		sprintf(sCmd,"e_p3k_video_edid_default");
 
-	printf("ast_send_event %s\n",sCmd);
+	DBG_InfoMsg("ast_send_event %s\n",sCmd);
 	ast_send_event(0xFFFFFFFF,sCmd);
 
 #endif

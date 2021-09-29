@@ -343,7 +343,7 @@ int SOCKET_CreateTcpServer(SocketWorkInfo_S*serverhandle)
 		free(param);
 		return -1;
 	}
-	printf("------------------\n");
+	printf("--------P3K TCP Start----------\n");
 	serverhandle->sockfd = param->mainSockfd;
 	pthread_create(&pthid, NULL, TcpServerThead, (void *)param);
         pthread_detach(pthid);
