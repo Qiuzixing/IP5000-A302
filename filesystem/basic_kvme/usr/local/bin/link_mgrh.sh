@@ -2456,12 +2456,15 @@ if [ $UGP_FLAG = 'success' ];then
 	ipc_server_listen_one @m_lm_set @m_lm_get @m_lm_query @m_lm_reply &
 	usleep 1000
 	case "$MODEL_NUMBER" in
-		#-b Indicates the board type:0-IPE5000;1-IPE5000P;
+		#-b Indicates the board type:0-IPE5000;1-IPE5000P;4-IPE5000W;
 		KDS-EN7)
 			communication_with_mcu -c -b 0 &
 		;;
 		KDS-SW3-EN7)
 			communication_with_mcu -c -b 1 &
+		;;
+		WP-SW2-EN7)
+			communication_with_mcu -c -b 4 &
 		;;
 		*)
 		;;

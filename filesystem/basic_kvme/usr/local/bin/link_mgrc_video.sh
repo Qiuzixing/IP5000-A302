@@ -539,7 +539,13 @@ v_lm_init()
 	ipc_server @v_lm_set @v_lm_get @v_lm_query @v_lm_reply &
 	PID_IPC_SVR=$!
 
-	#load_sii9678_drv
+	case "$MODEL_NUMBER" in
+		WP-DEC7)
+			load_sii9678_drv
+		;;
+		*)
+		;;
+	esac
 
 	#load_videoip_driver_c
 	if [ "$HDCP_ALWAYS_ON_22" = 'y' ]; then

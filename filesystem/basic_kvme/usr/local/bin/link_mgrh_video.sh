@@ -618,7 +618,7 @@ v_lm_init()
 	ipc_server @v_lm_set @v_lm_get @v_lm_query @v_lm_reply &
 	PID_IPC_SVR=$!
 
-	load_sii9678_drv
+	#load_sii9678_drv
 
 	# Copied from link_mgrh.sh::handle_e_sys_init_ok()
 	# I2S also depends on cat6023.ko

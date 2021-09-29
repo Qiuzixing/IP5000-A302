@@ -18,6 +18,7 @@
 #include <linux/cdev.h>
 #include <asm/uaccess.h> // For copy_from_user()
 #include <asm/arch/drivers/crt.h>
+#include <asm/arch/ast-scu.h>
 #include <asm/arch/drivers/video_hal.h>
 #include <asm/arch/drivers/board_def.h>
 #include <asm/arch/drivers/crt.h>
@@ -314,7 +315,10 @@ static struct platform_driver sii_driver = {
 static int __init drv_init(void)
 {
 	int ret;
-
+	if(ast_scu.astparam.model_number == A30_IPD5000W)
+	{
+		return 0;
+	}
 	printk(KERN_ERR "hello gsv200x\n");
 
 	pdev = platform_device_register_simple(
@@ -342,6 +346,10 @@ out:
 
 static void __exit drv_exit(void)
 {
+	if(ast_scu.astparam.model_number == A30_IPD5000W)
+	{
+		return;
+	}
 	printk(KERN_ERR "goodbay gsv200x\n");
 	platform_driver_unregister(&sii_driver);
 	unregister_chrdev_region(MKDEV(gsv200x_major, 0), 1);

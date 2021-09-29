@@ -3469,27 +3469,47 @@ fi
 rx_tcp_server &
 handle_button_on_boot
 
-if communication_with_mcu -u -b 2; then
-    UGP_FLAG="success"
-else
-	UGP_FLAG="fail"
-fi
+case "$MODEL_NUMBER" in
+	KDS-DEC7)
+		if communication_with_mcu -u -b 2; then
+			UGP_FLAG="success"
+		else
+			UGP_FLAG="fail"
+		fi
+	;;
+	*)
+		UGP_FLAG="fail"
+	;;
+esac
+
 if [ $UGP_FLAG = 'success' ];then
-	echo "lock file for @m_lm_query" > /var/lock/@m_lm_query.lck
-	ipc_server_listen_one @m_lm_set @m_lm_get @m_lm_query @m_lm_reply &
-	usleep 1000
-	#-b:select board_type 0:IPE5000 1:IPE5000P 2:IPD5000 3:IPD5000W
-	communication_with_mcu -c -b 2 &
-	usleep 10000
+	case "$MODEL_NUMBER" in
+		KDS-DEC7)
+			echo "lock file for @m_lm_query" > /var/lock/@m_lm_query.lck
+			ipc_server_listen_one @m_lm_set @m_lm_get @m_lm_query @m_lm_reply &
+			usleep 1000
+			#-b:select board_type 0:IPE5000 1:IPE5000P 2:IPD5000 3:IPD5000W
+			communication_with_mcu -c -b 2 &
+			usleep 10000
+		;;
+		*)
+		;;
+	esac
 fi
 
 if [ $UGP_FLAG = 'success' ];then
-	#set lineio_sel pin to default to line_out;0:line_out;1:line_in
-	ipc @m_lm_set s set_gpio_config:2:65:1:70:1
-	ipc @m_lm_set s set_gpio_val:2:70:0:65:0
-	if [ $P3KCFG_SWITCH_IN = 'hdmi_in1' ];then
-		ipc @m_lm_set s set_input_source:16:1
-	fi
+	case "$MODEL_NUMBER" in
+		KDS-DEC7)
+			#set lineio_sel pin to default to line_out;0:line_out;1:line_in
+			ipc @m_lm_set s set_gpio_config:2:65:1:70:1
+			ipc @m_lm_set s set_gpio_val:2:70:0:65:0
+			if [ $P3KCFG_SWITCH_IN = 'hdmi_in1' ];then
+				ipc @m_lm_set s set_input_source:16:1
+			fi
+		;;
+		*)
+		;;
+	esac
 fi
 
 set_variable_power_on_status

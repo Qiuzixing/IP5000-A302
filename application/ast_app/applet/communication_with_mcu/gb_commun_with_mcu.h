@@ -31,6 +31,7 @@ enum
     IPE5000P,
     IPD5000,
     IPD5000W,
+    IPE5000W,
     UNKNOW_BOARD
 };
 
