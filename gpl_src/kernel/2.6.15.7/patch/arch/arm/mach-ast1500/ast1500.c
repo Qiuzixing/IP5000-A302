@@ -242,6 +242,12 @@ static struct ast_led_platdata ast1500_pdata_ledw3 = {
 	.def_trigger    = "pushbutton"
 };
 
+static struct ast_led_platdata ast1500_pdata_ledy6 = {
+	.gpio		= I2C_MUX_GPIO,
+	.flags		= AST_LEDF_DEFAULT_ON ,
+	.name		= "i2c_mux_gpio",
+};
+
 #ifdef CONFIG_ARCH_AST1500_HOST
 #if (BOARD_DESIGN_VER_VIDEO >= 300)
 static struct ast_led_platdata ast1500_pdata_v_input = {
@@ -496,7 +502,7 @@ static struct platform_device ast_ledh7 = {
 
 static struct platform_device ast_ledi4 = {
 	.name		= "ast1500_led",
-	.id		= 33,
+	.id		= 46,
 	.dev		= {
 		.platform_data = &ast1500_pdata_ledi4,
 	},
@@ -547,6 +553,14 @@ static struct platform_device ast_ledw3 = {
 	.id		= 42,
 	.dev		= {
 		.platform_data = &ast1500_pdata_ledw3,
+	},
+};
+
+static struct platform_device ast_ledy6 = {
+	.name		= "ast1500_led",
+	.id		= 33,
+	.dev		= {
+		.platform_data = &ast1500_pdata_ledy6,
 	},
 };
 
@@ -710,6 +724,7 @@ static struct platform_device __initdata *ast_devs[] = {
 	&ast_ledf4,
 	&ast_ledf5,
 	&ast_ledw3,
+	&ast_ledy6,
 #endif
 
 #ifdef CONFIG_ARCH_AST1500_CLIENT

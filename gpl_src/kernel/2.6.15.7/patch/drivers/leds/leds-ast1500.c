@@ -287,6 +287,100 @@ static void gpio_inv_sw_patch(unsigned int dev_id, struct ast_led_platdata *pd)
 	}
 }
 
+static void ipe5000w_gpio_set(struct ast_led_platdata *pdata)
+{
+	//GPIOE2
+	if(0 == strcmp(pdata->name,"key_left"))
+	{
+		pdata->name = "led_hdmi";
+		pdata->flags = AST_LEDF_DEFAULT_ON;
+		pdata->def_trigger = NULL;
+	}
+	//GPIOE3
+	if(0 == strcmp(pdata->name,"key_right"))
+	{
+		pdata->name = "on_red";
+		pdata->flags = AST_LEDF_DEFAULT_ON;
+		pdata->def_trigger = NULL;
+	}
+	//GPIOE4
+	if(0 == strcmp(pdata->name,"key_enter"))
+	{
+		pdata->name = "spi_wp";
+		pdata->flags = AST_LEDF_DEFAULT_ON;
+		pdata->def_trigger = NULL;
+	}
+	//GPIOH6
+	if(0 == strcmp(pdata->name,"poweron_1V3"))
+	{
+		pdata->name = "poweron_1V0";
+		pdata->flags = AST_LEDF_DEFAULT_ON;
+	}
+
+	//GPIOJ1
+	if(0 == strcmp(pdata->name,"led_link_b"))
+	{
+		pdata->name = "led_display_power1";
+		pdata->flags = AST_LEDF_DEFAULT_ON;
+	}
+
+	//GPIOJ2
+	if(0 == strcmp(pdata->name,"led_link_g"))
+	{
+		pdata->name = "led_display_power2";
+		pdata->flags = AST_LEDF_DEFAULT_ON;
+	}
+
+	//GPIOJ3
+	if(0 == strcmp(pdata->name,"led_link_r"))
+	{
+		pdata->name = "led_display_power3";
+		pdata->flags = AST_LEDF_DEFAULT_ON;
+	}
+
+	//GPIOG0
+	if(0 == strcmp(pdata->name,"led_status_b"))
+	{
+		pdata->name = "seg_leddp";
+		pdata->flags = AST_LEDF_DEFAULT_ON;
+	}
+
+	//GPIOG1
+	if(0 == strcmp(pdata->name,"led_status_g"))
+	{
+		pdata->name = "seg_lede";
+		pdata->flags = AST_LEDF_DEFAULT_ON;
+	}
+
+	//GPIOG2
+	if(0 == strcmp(pdata->name,"led_status_r"))
+	{
+		pdata->name = "seg_ledf";
+		pdata->flags = AST_LEDF_DEFAULT_ON;
+	}
+
+	//GPIOG3
+	if(0 == strcmp(pdata->name,"led_on_b"))
+	{
+		pdata->name = "seg_ledg";
+		pdata->flags = AST_LEDF_DEFAULT_ON;
+	}
+
+	//GPIOG4
+	if(0 == strcmp(pdata->name,"led_on_g"))
+	{
+		pdata->name = "seg_leda";
+		pdata->flags = AST_LEDF_DEFAULT_ON;
+	}
+
+	//GPIOG5
+	if(0 == strcmp(pdata->name,"led_on_r"))
+	{
+		pdata->name = "seg_ledb";
+		pdata->flags = AST_LEDF_DEFAULT_ON;
+	}
+}
+
 static int ast1500_led_probe(struct platform_device *dev)
 {
 	struct ast_led_platdata *pdata = dev->dev.platform_data;
@@ -304,33 +398,7 @@ static int ast1500_led_probe(struct platform_device *dev)
 	platform_set_drvdata(dev, led);
  	if(ast_scu.astparam.model_number == A30_IPD5000W)
 	{
-		//GPIOE2
-		if(0 == strcmp(pdata->name,"key_left"))
-		{
-			pdata->name = "led_hdmi";
-			pdata->flags = AST_LEDF_DEFAULT_ON;
-			pdata->def_trigger = NULL;
-		}
-		//GPIOE3
-		if(0 == strcmp(pdata->name,"key_right"))
-		{
-			pdata->name = "on_red";
-			pdata->flags = AST_LEDF_DEFAULT_ON;
-			pdata->def_trigger = NULL;
-		}
-		//GPIOE4
-		if(0 == strcmp(pdata->name,"key_enter"))
-		{
-			pdata->name = "spi_wp";
-			pdata->flags = AST_LEDF_DEFAULT_ON;
-			pdata->def_trigger = NULL;
-		}
-		//GPIOH6
-		if(0 == strcmp(pdata->name,"poweron_1V3"))
-		{
-			pdata->name = "poweron_1V0";
-			pdata->flags = AST_LEDF_DEFAULT_ON;
-		}
+		ipe5000w_gpio_set(pdata);
 	} 
 
 	led->cdev.brightness_set = ast1500_led_set;
@@ -401,6 +469,11 @@ static int ast1500_led_probe(struct platform_device *dev)
 		gpio_set_value(pdata->gpio,0);
 	}
 
+	if(0 == strcmp(pdata->name,"i2c_mux_gpio"))
+	{
+		gpio_set_value(pdata->gpio,0);
+	}
+
 	if(0 == strcmp(pdata->name,"mcu_reset"))
 	{
 		gpio_direction_output(pdata->gpio, 0);
@@ -408,6 +481,11 @@ static int ast1500_led_probe(struct platform_device *dev)
 		gpio_direction_output(pdata->gpio, 1);
 		mdelay(10);
 		gpio_direction_input(pdata->gpio);
+	}
+
+	if(0 == strcmp(pdata->name,"seg_ledg") || 0 == strcmp(pdata->name,"led_display_power1") || 0 == strcmp(pdata->name,"led_display_power2") || 0 == strcmp(pdata->name,"led_display_power3"))
+	{
+		gpio_set_value(pdata->gpio,0);
 	}
 
 	 	class_device_create_file(led->cdev.class_dev,

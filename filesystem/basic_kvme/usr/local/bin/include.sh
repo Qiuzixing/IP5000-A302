@@ -19,6 +19,8 @@ NET_ON_G="led_status_g"
 NET_ON_R="led_status_r"
 BOARD_ON_R="led_on_r"
 BOARD_ON_G="led_on_g"
+IPD5000W_BOARD_ON_R="on_red"
+IPD5000W_BOARD_ON_G="on_green"
 NET_IP_FALLBACK_BLINK_ON='500'
 NET_IP_FALLBACK_BLINK_OFF='10000'
 NET_FLAG_ME_BLINK_ON='250'
@@ -48,7 +50,6 @@ KMOIP_SYS_PATH="/sys/devices/platform/kmoip"
 VHUB_SYS_PATH="/sys/devices/platform/vhci_hcd"
 SCU_SYS_PATH="/sys/devices/platform/scu"
 CEC_SYS_PATH="/sys/devices/platform/cec"
-
 #watchdog defines & functions
 WATCHDOG_AVAILABLE='n'
 
@@ -59,21 +60,65 @@ JUMBO_MTU='8000'
 #. ip_mapping.sh
 . bash/utilities.sh
 
-
 a30_led_on()
 {
+	echo "1111111111111"
+	case $MODEL_NUMBER in
+		WP-DEC7)
+			if [ "$1" = "$BOARD_ON_G" ];then
+				echo none > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_G/trigger
+				echo 0 > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_G/brightness
+			elif [ "$1" = "$BOARD_ON_R" ];then
+				echo none > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_R/trigger
+				echo 0 > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_R/brightness
+			fi
+			return
+		;;
+		*)
+		;;
+	esac
 	echo none > ${GPIO_SYS_PATH}/$1/trigger
 	echo 0 > ${GPIO_SYS_PATH}/$1/brightness
 }
 
 a30_led_off()
 {
+	case $MODEL_NUMBER in
+		WP-DEC7)
+			if [ "$1" = "$BOARD_ON_G" ];then
+				echo none > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_G/trigger
+				echo 1 > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_G/brightness
+			elif [ "$1" = "$BOARD_ON_R" ];then
+				echo none > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_R/trigger
+				echo 1 > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_R/brightness
+			fi
+			return
+		;;
+		*)
+		;;
+	esac
 	echo none > ${GPIO_SYS_PATH}/$1/trigger
 	echo 1 > ${GPIO_SYS_PATH}/$1/brightness
 }
 
 a30_led_blink()
 {
+	case $MODEL_NUMBER in
+		WP-DEC7)
+			if [ "$1" = "$BOARD_ON_G" ];then
+				echo $2 > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_G/delay_off
+				echo $3 > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_G/delay_on
+				echo timer > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_G/trigger
+			elif [ "$1" = "$BOARD_ON_R" ];then
+				echo $2 > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_R/delay_off
+				echo $3 > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_R/delay_on
+				echo timer > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_R/trigger
+			fi
+			return
+		;;
+		*)
+		;;
+	esac
 	echo $2 > ${GPIO_SYS_PATH}/$1/delay_off
 	echo $3 > ${GPIO_SYS_PATH}/$1/delay_on
 	echo timer > ${GPIO_SYS_PATH}/$1/trigger
@@ -1683,6 +1728,14 @@ init_ldap_params()
 		if echo "$LDAP_PASSWORD" | grep -q "not defined" ; then
 			LDAP_PASSWORD='none'
 		fi
+	fi
+}
+
+query_board_type()
+{
+	MODEL_NUMBER=$(astparam r model_number)
+	if echo "$MODEL_NUMBER" | grep -q "not defined"; then
+		MODEL_NUMBER='UNKNOWN'
 	fi
 }
 

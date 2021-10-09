@@ -195,11 +195,16 @@ static void IPE5000W_GPIO_SET(void)
 	register_opeartion(GPIO_MUX_SCUA4,14,BIT_CLEAR);
 	register_opeartion(GPIO_MUX_SCUA4,15,BIT_CLEAR);
 
-	/* pull up LED_ON (GPIOE3) */
+	/* pull up LED_ON (GPIOG4) */
 	register_opeartion(GPIO_MUX_SCU94,12,BIT_CLEAR);
 	register_opeartion(GPIO_MUX_SCU84,4,BIT_CLEAR);
 	register_opeartion(GPIOE_H_DIR_REG,20,BIT_SET);
 	register_opeartion(GPIOE_H_DATA_REG,20,BIT_CLEAR);
+
+	/* pull up LED_ON (GPIOG5) */
+	register_opeartion(GPIO_MUX_SCU84,5,BIT_CLEAR);
+	register_opeartion(GPIOE_H_DIR_REG,21,BIT_SET);
+	register_opeartion(GPIOE_H_DATA_REG,21,BIT_CLEAR);
 }
 
 static void IPD5000W_GPIO_SET(void)

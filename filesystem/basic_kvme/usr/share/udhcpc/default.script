@@ -1,5 +1,5 @@
 #! /bin/sh
-. ../../../usr/local/bin/include.sh
+. /usr/local/bin/include.sh
 	case "$1" in  
 		deconfig) 
 					echo "udhcpc deconfig"
@@ -19,6 +19,7 @@
 					[ -n "$broadcast" ] && BROADCAST="broadcast $broadcast"
 					[ -n "subnet" ] && NETMASK="netmask $subnet"
 					ifconfig $interface:dhcp $ip $BROADCAST $NETMASK up
+					query_board_type
 					astparam s sec_priority_net_status $IP_VALID
 					astparam s third_priority_board_status
 					control_net_and_board_led_status
@@ -37,6 +38,7 @@
 					;;
 		leasefail)
 					echo "udhcpc leasefail"
+					query_board_type
 					astparam s sec_priority_net_status $DHCP_FAIL
 					astparam s third_priority_board_status $DHCP_FAIL
 					control_net_and_board_led_status
