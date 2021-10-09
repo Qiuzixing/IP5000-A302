@@ -1578,6 +1578,7 @@ int Cfg_Create_DefaultFile(void)
 	Cfg_Create_SecuritySetting();
 	Cfg_Create_KVMSetting();
 	Cfg_Create_EDIDList();
+	Cfg_Create_Channel();
 	return 0;
 }
 
@@ -1999,6 +2000,23 @@ int Cfg_Create_EDIDList(void)
 	return 0;
 }
 
+int Cfg_Create_Channel(void)
+{
+	DBG_InfoMsg("Cfg_Create_Channel\n");
+
+	char path[128] = "";
+	sprintf(path,"%s%s%s",CONF_PATH,g_module,CHANNEL_PATH);
+	int s32AccessRet = access(path, F_OK);
+	if(s32AccessRet != 0)
+	{
+		char cmd[256] = "";
+		sprintf(cmd,"mkdir -p %s",path);
+
+		system(cmd);
+	}
+
+	return 0;
+}
 
 int Cfg_Update(SyncInfoType_E type)
 {

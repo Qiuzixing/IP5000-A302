@@ -495,6 +495,8 @@ int Cfg_Create_OsdSetting(void);
 int Cfg_Create_SecuritySetting(void);
 int Cfg_Create_KVMSetting(void);
 int Cfg_Create_EDIDList(void);
+int Cfg_Create_Channel(void);
+
 
 int Cfg_Update(SyncInfoType_E type);
 int Cfg_Update_Channel(void);
