@@ -325,6 +325,23 @@ control_net_and_board_led_status()
 	status_light_up $tmp $?
 }
 
+kill_process()
+{
+	#2021.10.12 qzx:If the process starts with parameters, the pkill -9 process_name cannot be killed.You must use kill -9 to kill the process started with parameters
+	PROCESS_PID=`ps | grep $1 | grep -v grep | awk '{print $1}'`
+	if [ $PROCESS_PID ];then
+		kill -9 $PROCESS_PID
+	fi
+}
+
+led_display_num()
+{
+	kill_process led_display
+	#2021.10.12 qzx:Because the read value is a string such as 0001, you need to remove the previous 0, otherwise it will not be a normal number
+	tmp=`echo -e $LED_DISPLAY_CH_SELECT_V | sed -r 's/0*([0-9])/\1/'`
+	led_display -n $tmp &
+}
+
 init_watchdog()
 {
 	if [ -d /sys/devices/platform/watchdog ]; then
@@ -3118,6 +3135,7 @@ _echo_parameters_client()
 	echo "V_TURN_OFF_SCREEN_ON_PWR_SAVE=$V_TURN_OFF_SCREEN_ON_PWR_SAVE"
 	echo "V_SRC_UNAVAILABLE_TIMEOUT=$V_SRC_UNAVAILABLE_TIMEOUT"
 	echo "I2S_CLOCK_LOCK_MODE=$I2S_CLOCK_LOCK_MODE"
+	echo "LED_DISPLAY_CH_SELECT_V=$LED_DISPLAY_CH_SELECT_V"
 	sleep 0.01
 }
 

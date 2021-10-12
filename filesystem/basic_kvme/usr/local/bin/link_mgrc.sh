@@ -982,6 +982,10 @@ handle_e_reconnect()
 				_new_list[$i]="$w"
 				CH_SELECT_V=$_ch_select
 				astparam s ch_select_v $CH_SELECT_V
+				if [ "$MODEL_NUMBER" = 'WP-DEC7' ];then
+					LED_DISPLAY_CH_SELECT_V=$CH_SELECT_V
+					led_display_num
+				fi
 			;;
 			u)
 				_new_list[$i]="$w"
@@ -2627,18 +2631,47 @@ handle_e_key()
 {
 	case "$*" in
 		e_key_enter_pressed)
+			if [ "$MODEL_NUMBER" = 'WP-DEC7' ];then
+				return
+			fi
 			send_key_info 1
 		;;
 		e_key_up_pressed)
+			if [ "$MODEL_NUMBER" = 'WP-DEC7' ];then
+				LED_DISPLAY_CH_SELECT_V=`echo -e $LED_DISPLAY_CH_SELECT_V | sed -r 's/0*([0-9])/\1/'`
+				if [ $LED_DISPLAY_CH_SELECT_V -ge 999 ];then
+					return
+				fi
+				LED_DISPLAY_CH_SELECT_V=$[ $LED_DISPLAY_CH_SELECT_V + 1 ]
+				kill_process wp_dec7_key_timer.sh
+				./wp_dec7_key_timer.sh $LED_DISPLAY_CH_SELECT_V &
+				return
+			fi
 			send_key_info 2
 		;;
 		e_key_down_pressed)
+			if [ "$MODEL_NUMBER" = 'WP-DEC7' ];then
+				LED_DISPLAY_CH_SELECT_V=`echo -e $LED_DISPLAY_CH_SELECT_V | sed -r 's/0*([0-9])/\1/'`
+				if [ $LED_DISPLAY_CH_SELECT_V -le 0 ];then
+					return
+				fi
+				LED_DISPLAY_CH_SELECT_V=$[ $LED_DISPLAY_CH_SELECT_V - 1 ]
+				kill_process wp_dec7_key_timer.sh
+				./wp_dec7_key_timer.sh $LED_DISPLAY_CH_SELECT_V &
+				return
+			fi
 			send_key_info 3
 		;;
 		e_key_left_pressed)
+			if [ "$MODEL_NUMBER" = 'WP-DEC7' ];then
+				return
+			fi
 			send_key_info 4
 		;;
 		e_key_right_pressed)
+			if [ "$MODEL_NUMBER" = 'WP-DEC7' ];then
+				return
+			fi
 			send_key_info 5
 		;;
 		*)
@@ -3319,6 +3352,15 @@ init_param_from_flash()
 			USB_DISABLE_DEVICES=''
 		fi
 	fi
+
+	LED_DISPLAY_CH_SELECT_V=`astparam g ch_select_v`
+	if echo "$LED_DISPLAY_CH_SELECT_V" | grep -q "not defined" ; then
+		LED_DISPLAY_CH_SELECT_V=`astparam r ch_select_v`
+		if echo "$LED_DISPLAY_CH_SELECT_V" | grep -q "not defined" ; then
+			LED_DISPLAY_CH_SELECT_V='001'
+		fi
+	fi
+
 	astparam s fourth_priority_board_status $POWER_ON
 	astparam s sec_priority_net_status $GET_IP_FAIL
 	astparam s repeat_net_lighting_flag 0
@@ -3475,6 +3517,10 @@ case "$MODEL_NUMBER" in
 		else
 			UGP_FLAG="fail"
 		fi
+	;;
+	WP-DEC7)
+		UGP_FLAG="fail"
+		led_display_num
 	;;
 	*)
 		UGP_FLAG="fail"

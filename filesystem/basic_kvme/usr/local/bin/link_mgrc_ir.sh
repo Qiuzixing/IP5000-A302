@@ -457,7 +457,10 @@ handle_re_dir()
 {
 	#Parse re_dir:$DIR
 	echo "re_dir!!! $1"
-
+	#2021.10.12 qzx:Because communication_with_mcu start fail,IPC should not be called, otherwise the process will hang
+	if [ "$UGP_FLAG" = 'fail' ];then
+		return
+	fi
 	case "$1" in
 		in)
 			ipc @m_lm_set s set_gpio_config:1:71:1
