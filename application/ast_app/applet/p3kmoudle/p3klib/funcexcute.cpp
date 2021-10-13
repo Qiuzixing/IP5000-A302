@@ -742,7 +742,7 @@ int EX_SetIRGateway(int  iIr_mode)
 {
 	DBG_InfoMsg("Tr gw mode = %d\n",iIr_mode);
 	Cfg_Set_GW_IR_Mode((State_E)iIr_mode);
-	char sCmd[64] = "";
+
 #if 1
 	if(iIr_mode == 1)
 	{
@@ -755,6 +755,7 @@ int EX_SetIRGateway(int  iIr_mode)
 		system("astparam s ir_sw_decode_on n;astparam save");
 	}
 #else
+	char sCmd[64] = "";
 	if((iIr_mode == 0)||(iIr_mode == 1))
 	{
 		sprintf(sCmd,"e_p3k_ir_gw::%d",iIr_mode);

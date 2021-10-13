@@ -154,11 +154,13 @@ extern "C" {
 #define JSON_AUTOSWITCH			"auto_switch_setting"
 
 #define JSON_HDMI_1				"hdmi_in1"
+#define JSON_USBC_2    			"usb_in2"
 #define JSON_HDMI_2				"hdmi_in2"
 #define JSON_USBC_3    			"usb_in3"
 
 #define JSON_STREAM				"stream"
 
+#define JSON_CHAN_LIST			"channels_list"
 
 #define JSON_CHANNEL			"channel_define"
 #define JSON_CH_ID				"id"

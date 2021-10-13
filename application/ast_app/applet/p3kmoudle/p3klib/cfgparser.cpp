@@ -524,7 +524,7 @@ int Cfg_Init_AVSetting(void)
 	char path[128] = "";
 	sprintf(path,"%s%s%s",CONF_PATH,g_module,AV_SETTING_FILE);
 
-	g_avsetting_info.volume = 0;
+	g_avsetting_info.volume = 100;
 	g_avsetting_info.mute_mode = OFF;
 	g_avsetting_info.action = CODEC_ACTION_PLAY;
 	g_avsetting_info.hdcp_mode[0] = ON;
@@ -1904,10 +1904,11 @@ int Cfg_Create_KVMSetting(void)
 
 	Json::Value JsonRoamArray;
 	JsonRoamArray.resize(1);
-	Json::Value JsonRoam = JsonRoamArray[0];
+	Json::Value JsonRoam;
 	JsonRoam[JSON_USB_KVM_MAC] = "";
 	JsonRoam[JSON_USB_KVM_H] = "";
 	JsonRoam[JSON_USB_KVM_V] = "";
+	JsonRoamArray[0] = JsonRoam;
 
 	root[JSON_USB_KVM_ROAMING] = JsonRoamArray;
 
@@ -2004,6 +2005,7 @@ int Cfg_Create_Channel(void)
 {
 	DBG_InfoMsg("Cfg_Create_Channel\n");
 
+#ifdef CONFIG_P3K_HOST
 	char path[128] = "";
 	sprintf(path,"%s%s%s",CONF_PATH,g_module,CHANNEL_PATH);
 	int s32AccessRet = access(path, F_OK);
@@ -2015,6 +2017,63 @@ int Cfg_Create_Channel(void)
 		system(cmd);
 	}
 
+#else
+	char path[128] = "";
+	sprintf(path,"%s%s%s",CONF_PATH,g_module,CHANNEL_MAP_FILE);
+
+	//Check Video cfg
+	int nAccessRet = access(path,F_OK | R_OK | W_OK);
+	if(0 == nAccessRet)
+	{
+		//printf("nAccessRet %s Suceess\n",path);
+		return 0;
+	}
+
+	Json::Value JsonChanArray;
+	JsonChanArray.resize(50);
+
+	for(int i=1;i<51;i++)
+	{
+		Json::Value JsonChan;
+		JsonChan[JSON_CH_ID] = i;
+
+		char name[16] = "";
+		sprintf(name,"ch_%03d",i);
+		JsonChan[JSON_CH_NAME] = name;
+
+		JsonChanArray[i-1] = JsonChan;
+	}
+
+
+	Json::Value root1;
+	root1[JSON_CHAN_LIST] = JsonChanArray;
+
+	memset(path,0,128);
+	sprintf(path,"%s%s%s",CONF_PATH,g_module,CHANNEL_PATH);
+	int s32AccessRet = access(path, F_OK);
+	if(s32AccessRet != 0)
+	{
+		char cmd[256] = "";
+		sprintf(cmd,"mkdir -p %s",path);
+
+		system(cmd);
+	}
+
+	memset(path,0,128);
+	sprintf(path,"%s%s%s",CONF_PATH,g_module,CHANNEL_MAP_FILE);
+	FILE *fp;
+	fp = fopen(path, "w");
+	if (fp == NULL) {
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
+		return -1;
+	}
+
+	string strChanList = root1.toStyledString();
+	fwrite(strChanList.c_str(),1,strChanList.size(),fp);
+
+	fclose(fp);
+	fflush(fp);
+#endif
 	return 0;
 }
 
