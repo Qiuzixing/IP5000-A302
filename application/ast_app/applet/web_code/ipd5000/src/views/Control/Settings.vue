@@ -99,7 +99,8 @@
                 class="btn btn-plain-primary">CHECK</button>
       </div>
     </div>
-    <div class="setting-model">
+    <div class="setting-model"
+         v-if="this.$global.deviceType">
       <h3 class="setting-model-title">IR Settings</h3>
       <div class="setting">
         <span class="setting-title">Gateway</span>

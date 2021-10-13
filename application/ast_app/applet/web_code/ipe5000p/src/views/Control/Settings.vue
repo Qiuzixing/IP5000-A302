@@ -4,18 +4,30 @@
       <h3 class="setting-model-title">CEC Settings</h3>
       <div class="setting">
         <span class="setting-title">Gateway</span>
-        <v-switch open-text="Enable" v-model="cecGateWay" close-text="Disable" active-value="1" inactive-value="0" @input="setCECGateway"></v-switch>
+        <v-switch open-text="Enable"
+                  v-model="cecGateWay"
+                  close-text="Disable"
+                  active-value="1"
+                  inactive-value="0"
+                  @input="setCECGateway"></v-switch>
       </div>
       <div class="setting">
         <span class="setting-title">Gateway HDMI Port</span>
         <multiselect :disabled="cecGateWay === '0'"
                      :options="[{value: '1', label: 'HDMI Input'}, {value: '3', label: 'HDMI Loop Through'}]"
-                     v-model="cecGateWayPort" @input="setCECPort"></multiselect>
+                     v-model="cecGateWayPort"
+                     @input="setCECPort"></multiselect>
       </div>
       <div class="setting">
         <span class="setting-title">Command </span>
-        <input type="text" :disabled="cecGateWay === '0'"  class="setting-text" v-model="cecCmd">
-        <button class="btn btn-plain-primary" :disabled="cecGateWay === '0'"  style="margin-left: 25px" @click="sendCECCmd">SEND</button>
+        <input type="text"
+               :disabled="cecGateWay === '0'"
+               class="setting-text"
+               v-model="cecCmd">
+        <button class="btn btn-plain-primary"
+                :disabled="cecGateWay === '0'"
+                style="margin-left: 25px"
+                @click="sendCECCmd">SEND</button>
       </div>
       <div class="radio-setting">
         <span class="setting-title">responses </span>
@@ -25,7 +37,9 @@
             <span>Result</span>
           </div>
           <div class="res-info">
-            <div class="res-info-item" v-for="(item, index) in cecResList" :key="index">
+            <div class="res-info-item"
+                 v-for="(item, index) in cecResList"
+                 :key="index">
               <span>{{item.cmd}}</span>
               <span>{{responseType[item.type]}}</span>
             </div>
@@ -37,45 +51,77 @@
       <h3 class="setting-model-title">RS-232 Settings</h3>
       <div class="setting">
         <span class="setting-title">Gateway</span>
-        <v-switch v-model="rs232GW" open-text="Enable" close-text="Disable" @input="setRs232GW"></v-switch>
+        <v-switch v-model="rs232GW"
+                  open-text="Enable"
+                  close-text="Disable"
+                  @input="setRs232GW"></v-switch>
       </div>
       <div class="setting">
         <span class="setting-title">Gateway Port</span>
-        <el-input-number :disabled="!rs232GW" v-model="rs232Port" controls-position="right" :max="65535" :min="5000" @change="setRs232GW"></el-input-number>
+        <el-input-number :disabled="!rs232GW"
+                         v-model="rs232Port"
+                         controls-position="right"
+                         :max="65535"
+                         :min="5000"
+                         @change="setRs232GW"></el-input-number>
       </div>
       <div class="setting">
         <span class="setting-title">Baud Rate </span>
-        <multiselect :disabled="!rs232GW" :options="baudRateParam" v-model="baudRate"></multiselect>
-        <button :disabled="!rs232GW" class="btn btn-plain-primary"  style="margin-left: 25px" @click="saveBaudRate">SAVE</button>
+        <multiselect :disabled="!rs232GW"
+                     :options="baudRateParam"
+                     v-model="baudRate"></multiselect>
+        <button :disabled="!rs232GW"
+                class="btn btn-plain-primary"
+                style="margin-left: 25px"
+                @click="saveBaudRate">SAVE</button>
       </div>
       <div class="setting">
         <span class="setting-title">Data Bits </span>
-        <multiselect :disabled="!rs232GW" :options="dataBitsParam" v-model="dataBits"></multiselect>
+        <multiselect :disabled="!rs232GW"
+                     :options="dataBitsParam"
+                     v-model="dataBits"></multiselect>
       </div>
       <div class="setting">
         <span class="setting-title">Parity </span>
-        <multiselect :disabled="!rs232GW" :options="parityParam" v-model="parity"></multiselect>
+        <multiselect :disabled="!rs232GW"
+                     :options="parityParam"
+                     v-model="parity"></multiselect>
       </div>
       <div class="setting">
         <span class="setting-title">Stop Bits </span>
-        <multiselect :disabled="!rs232GW" :options="stopBitsParam" v-model="stopBits"></multiselect>
+        <multiselect :disabled="!rs232GW"
+                     :options="stopBitsParam"
+                     v-model="stopBits"></multiselect>
       </div>
       <div class="radio-setting">
         <span class="setting-title">Connection</span>
-        <button :disabled="!rs232GW" class="btn btn-plain-primary">CHECK</button>
+        <button :disabled="!rs232GW"
+                class="btn btn-plain-primary">CHECK</button>
       </div>
     </div>
-    <div class="setting-model">
+    <div class="setting-model"
+         v-if="this.$global.deviceType !== 2">
       <h3 class="setting-model-title">IR Settings</h3>
       <div class="setting">
         <span class="setting-title">Gateway</span>
-        <v-switch v-model="irGW" @input="setIRGateway" open-text="Enable" close-text="Disable" active-value="1" inactive-value="0"></v-switch>
+        <v-switch v-model="irGW"
+                  @input="setIRGateway"
+                  open-text="Enable"
+                  close-text="Disable"
+                  active-value="1"
+                  inactive-value="0"></v-switch>
       </div>
       <div class="radio-setting">
         <span class="setting-title">IR Direction IN/OUT</span>
         <div>
-          <radio-component v-model="irDirection" :disabled="irGW=='0'" label="in" @change="setIrDirection">IN</radio-component>
-          <radio-component v-model="irDirection" :disabled="irGW=='0'" label="out" @change="setIrDirection">OUT</radio-component>
+          <radio-component v-model="irDirection"
+                           :disabled="irGW=='0'"
+                           label="in"
+                           @change="setIrDirection">IN</radio-component>
+          <radio-component v-model="irDirection"
+                           :disabled="irGW=='0'"
+                           label="out"
+                           @change="setIrDirection">OUT</radio-component>
         </div>
       </div>
     </div>
@@ -205,7 +251,9 @@ export default {
     this.$socket.sendMsg('#UART? 1')
     this.$socket.sendMsg('#PORT-DIRECTION? both.ir.1.ir')
     this.$socket.sendMsg('#COM-ROUTE? *')
-    this.$socket.sendMsg('#KDS-IR-GW? ')
+    if (this.$global.deviceType !== 2) {
+      this.$socket.sendMsg('#KDS-IR-GW? ')
+    }
   },
   methods: {
     handleMsg (msg) {
@@ -316,33 +364,33 @@ export default {
 .setting-title {
   width: 200px;
 }
-.res-title{
+.res-title {
   display: flex;
-  span{
+  span {
     padding: 5px;
-    font-family: 'open sans semiblold';
+    font-family: "open sans semiblold";
   }
-  span:first-child{
+  span:first-child {
     width: 220px;
     background: #f3f3f3;
     margin-right: 24px;
   }
-  span:last-child{
+  span:last-child {
     width: 220px;
     background: #f3f3f3;
   }
 }
-.res-info{
+.res-info {
   max-height: 200px;
   overflow-y: auto;
   .res-info-item {
     display: flex;
-    span{
+    span {
       width: 220px;
       word-wrap: break-word;
       padding: 5px;
     }
-    span:first-child{
+    span:first-child {
       margin-right: 24px;
     }
   }

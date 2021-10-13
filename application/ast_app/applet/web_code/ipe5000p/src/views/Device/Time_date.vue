@@ -25,10 +25,12 @@
         </el-time-picker> -->
         <!--        <VueCtkDateTimePicker id="sys-time" color="#35ACF8" v-model="time" format="hh:mm a" formatted="hh:mm a" :no-clear-button="true" :no-label="true" style="width: 160px;margin: 0" :only-time="true" />-->
       </div>
-      <!-- <div class="setting">
+      <div class="setting">
         <span class="setting-title">Time Zone</span>
-        <multiselect class="time-select" :options="timeZone" v-model="timeVal"></multiselect>
-      </div> -->
+        <multiselect class="time-select"
+                     :options="timeZone"
+                     v-model="timeVal"></multiselect>
+      </div>
       <!-- <div class="setting">
         <span class="setting-title">Daylight Savings Time</span>
         <v-switch v-model="daylight" open-text="Yes" close-text="No" active-value="1" inactive-value="0"></v-switch>
@@ -49,11 +51,8 @@
       </div>
       <div class="setting">
         <span class="setting-title">NTP Daily Sync Hour</span>
-        <v-switch v-model="ntpDailySync"
-                  open-text="Yes"
-                  close-text="No"
-                  active-value="1"
-                  inactive-value="0"></v-switch>
+        <multiselect v-model="ntpDailySync"
+                     :options="ntpParam"></multiselect>
       </div>
     </div>
     <footer>
@@ -191,7 +190,8 @@ export default {
       ],
       ntpMode: '0',
       ntpServer: '',
-      ntpDailySync: '0'
+      ntpDailySync: '0',
+      ntpParam: Array.from({ length: 24 }).map((_, i) => { return { value: i + '', label: i + '' } })
     }
   },
   beforeCreate () {
@@ -201,7 +201,7 @@ export default {
   },
   created () {
     this.$socket.sendMsg('#TIME? ')
-    // this.$socket.sendMsg('#TIME-LOC? ')
+    this.$socket.sendMsg('#TIME-LOC? ')
     this.$socket.sendMsg('#TIME-SRV? ')
   },
   methods: {
@@ -251,14 +251,14 @@ export default {
       return time < 9 ? '0' + time : time.toString()
     },
     setDaylight () {
-      this.$socket.sendMsg(`#TIME-LOC ${this.daylight},${this.timeVal}`)
+      this.$socket.sendMsg(`#TIME-LOC ${this.timeVal},${this.daylight}`)
     },
     setNTP () {
       this.$socket.sendMsg(`#TIME-SRV ${this.ntpMode},${this.ntpServer},${this.ntpDailySync}`)
     },
     save: debounce(function () {
       // this.setDateTime()
-      // this.setDaylight()
+      this.setDaylight()
       this.setNTP()
     }, 2000, {
       leading: true,

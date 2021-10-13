@@ -81,7 +81,8 @@ export default {
       listMap: {
         'in.hdmi.1.video': 'HDMI IN1',
         'in.hdmi.2.video': 'HDMI IN2',
-        'in.usb_c.3.video': 'USB IN3'
+        'in.usb_c.3.video': 'USB IN3',
+        'in.usb_c.2.video': 'USB IN2'
       },
       switchMode: {
         val: '0',

@@ -20,7 +20,7 @@
                     @change="setHDCP($event, 2)"></v-switch>
         </div>
         <div class="setting"
-             v-if="this.$global.deviceType">
+             v-if="this.$global.deviceType === 1">
           <span class="setting-title">Input 3</span>
           <v-switch v-model="hdcp[2]"
                     active-value="1"
@@ -158,7 +158,9 @@ export default {
     this.$socket.sendMsg('#HDCP-MOD? 1')
     if (this.$global.deviceType) {
       this.$socket.sendMsg('#HDCP-MOD? 2')
-      this.$socket.sendMsg('#HDCP-MOD? 3')
+      if (this.$global.deviceType === 1) {
+        this.$socket.sendMsg('#HDCP-MOD? 3')
+      }
     }
     this.getAVSignal()
     this.getDisplayDelay()
@@ -181,7 +183,9 @@ export default {
     setAllHDCP (val) {
       this.$socket.sendMsg(`#HDCP-MOD 1,${val}`)
       this.$socket.sendMsg(`#HDCP-MOD 2,${val}`)
-      this.$socket.sendMsg(`#HDCP-MOD 3,${val}`)
+      if (this.$global.deviceType === 1) {
+        this.$socket.sendMsg(`#HDCP-MOD 3,${val}`)
+      }
     },
     setHDCP (val, index) {
       this.$socket.sendMsg(`#HDCP-MOD ${index},${val}`)

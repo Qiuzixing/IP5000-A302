@@ -8,6 +8,13 @@
                      :options="inputSelect.param"
                      @input="setInputSelect"></multiselect>
       </div>
+      <div class="setting"
+           v-if="this.$global.deviceType === 2">
+        <span class="setting-title">Input Selection</span>
+        <multiselect v-model="inputSelect.val"
+                     :options="inputSelect.param2"
+                     @input="setInputSelect"></multiselect>
+      </div>
       <div class="setting">
         <span class="setting-title">Stream ID</span>
         <el-input-number v-model="channel"
@@ -104,6 +111,10 @@ export default {
           { value: '1', label: 'HDMI IN1' },
           { value: '2', label: 'HDMI IN2' },
           { value: '3', label: 'USB IN3' }
+        ],
+        param2: [
+          { value: '1', label: 'HDMI IN1' },
+          { value: '2', label: 'USB IN2' }
         ]
       },
       channel: '',

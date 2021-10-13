@@ -6,16 +6,24 @@
         <h2 class="text-center">Login</h2>
         <div class="form-item">
           <h4>Username</h4>
-          <input type="text" class="setting-text" v-model="username">
+          <input type="text"
+                 class="setting-text"
+                 v-model="username">
         </div>
         <div class="form-item">
           <h4>Password</h4>
-          <input type="password" class="setting-text" v-model="password" @keyup.enter="login">
+          <input type="password"
+                 class="setting-text"
+                 v-model="password"
+                 @keyup.enter="login">
         </div>
         <div>
-          <button class="btn btn-primary" style="width: 100%" @click="login">Sign In</button>
+          <button class="btn btn-primary"
+                  style="width: 100%"
+                  @click="login">Sign In</button>
         </div>
-        <p style="margin: 5px 0;color: #D50000;" v-if="error">Incorrect username or password.</p>
+        <p style="margin: 5px 0;color: #D50000;"
+           v-if="error">Incorrect username or password.</p>
       </div>
     </section>
   </div>
@@ -60,7 +68,7 @@ export default {
       const model = msg.split(' ')[1]
       this.deviceModel = model
       this.$global.deviceModel = model
-      // this.$global.deviceType = model === 'KDS-SW3-EN7' ? 1 : 0
+      this.$global.deviceType = this.modelType(model)
       document.title = model
     },
     getModel () {
@@ -70,6 +78,21 @@ export default {
         this.count++
         setTimeout(this.getModel, 100)
       }
+    },
+    modelType (model) {
+      let type = 0
+      switch (model) {
+        case 'KDS-DEC7':
+          type = 1
+          break
+        case 'WP-DEC7':
+          type = 0
+          break
+        default:
+          type = 0
+          break
+      }
+      return type
     },
     login () {
       if (this.username && this.password) {
@@ -88,22 +111,22 @@ export default {
 }
 </script>
 <style lang="less" scoped>
-.view-container{
+.view-container {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  .main-container{
+  .main-container {
     display: flex;
     justify-content: center;
     align-items: center;
   }
 }
-.main-container{
+.main-container {
   height: calc(100vh - 70px);
   overflow: hidden;
   background: #f8f8f8;
 }
-.login-content{
+.login-content {
   width: 480px;
   height: 320px;
   padding: 15px 100px;
@@ -112,17 +135,17 @@ export default {
   box-sizing: border-box;
   input {
     width: 100%;
-    border: 1px solid #4D4D4F;
+    border: 1px solid #4d4d4f;
     border-radius: 4px;
   }
-  h2{
+  h2 {
     font-family: "open sans bold";
   }
-  h4{
+  h4 {
     margin-bottom: 10px;
     font-family: "open sans semiblold";
   }
-  .form-item{
+  .form-item {
     margin-bottom: 24px;
   }
 }

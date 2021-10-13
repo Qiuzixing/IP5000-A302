@@ -38,15 +38,22 @@
           <span style="margin-left: 12px;">{{ hdmiin1 ? 'On' : 'Off'}}</span>
         </div>
         <div class="setting"
-             v-if="this.$global.deviceType">
+             v-if="this.$global.deviceType == 1">
           <span class="setting-title">HDMI IN2</span>
           <div class="device-icon"
                :class="[hdmiin2 ? 'device-active' : 'device-default']"></div>
           <span style="margin-left: 12px;">{{ hdmiin2 ? 'On' : 'Off'}}</span>
         </div>
         <div class="setting"
-             v-if="this.$global.deviceType">
+             v-if="this.$global.deviceType == 1">
           <span class="setting-title">USB IN3</span>
+          <div class="device-icon"
+               :class="[usbin3 ? 'device-active' : 'device-default']"></div>
+          <span style="margin-left: 12px;">{{ usbin3 ? 'On' : 'Off'}}</span>
+        </div>
+        <div class="setting"
+             v-if="this.$global.deviceType == 2">
+          <span class="setting-title">USB IN2</span>
           <div class="device-icon"
                :class="[usbin3 ? 'device-active' : 'device-default']"></div>
           <span style="margin-left: 12px;">{{ usbin3 ? 'On' : 'Off'}}</span>
@@ -54,7 +61,8 @@
       </div>
       <div class="setting-model">
         <h3 class="setting-model-title">Output status</h3>
-        <div class="setting">
+        <div class="setting"
+             v-if="this.$global.deviceType !== 2">
           <span class="setting-title">HDMI OUT</span>
           <div class="device-icon"
                :class="[hdmiout ? 'device-active' : 'device-default']"></div>

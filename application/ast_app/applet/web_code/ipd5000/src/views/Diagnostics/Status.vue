@@ -28,7 +28,8 @@
       </div>
       <div class="setting-model">
         <h3 class="setting-model-title">Input status</h3>
-        <div class="setting">
+        <div class="setting"
+             v-if="this.$global.deviceType">
           <span class="setting-title">HDMI IN</span>
           <div class="device-icon"
                :class="[hdmiin1 ? 'device-active' : 'device-default']"></div>

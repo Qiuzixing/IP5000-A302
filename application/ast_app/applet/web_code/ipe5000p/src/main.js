@@ -41,7 +41,7 @@ Vue.prototype.$http = Axios
 Vue.prototype.$global = {
   isLogin: false,
   deviceModel: '',
-  deviceType: '' // 1 => DKS-SW3-EN-6X  0 =>KDS-EN-6X
+  deviceType: 0 // 1 => DKS-SW3-EN-6X  0 =>KDS-EN-6X
 }
 Vue.config.productionTip = false
 

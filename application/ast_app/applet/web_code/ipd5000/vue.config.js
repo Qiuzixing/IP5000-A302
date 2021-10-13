@@ -1,4 +1,4 @@
-const version = 'V1.0.5'
+const version = 'V1.0.6'
 const path = require('path')
 function resolve (dir) {
   return path.join(__dirname, dir)
@@ -91,7 +91,7 @@ if (process.env.NODE_ENV !== 'production') {
       } else if (message.startsWith('#NAME? ')) {
         ws.send('~nn@NAME room-442')
       } else if (message.startsWith('#MODEL? ')) {
-        ws.send(`~nn@MODEL ${['KDS-EN7', 'KDS-SW3-EN7'][Math.floor(Math.random() * 2)]}`)
+        ws.send(`~nn@MODEL ${['KDS-DEC7', 'WP-DEC7'][Math.floor(Math.random() * 2)]}`)
       } else if (message.startsWith('#HW-VERSION? ')) {
         ws.send('~nn@HW-VERSION 1.12.123')
       } else if (message.startsWith('#NET-MAC? ')) {

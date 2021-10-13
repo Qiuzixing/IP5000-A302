@@ -2,7 +2,8 @@
   <div class="main-setting">
     <div class="setting-model"
          style="margin-bottom: 0">
-      <div class="radio-setting">
+      <div class="radio-setting"
+           v-if="this.$global.deviceType !=2">
         <span class="setting-title">Analog Audio Direction IN/OUT</span>
         <div>
           <radio-component v-model="direction"
@@ -13,19 +14,17 @@
                            @change="changeAudioDirection">OUT</radio-component>
         </div>
       </div>
-      <div class="setting"
-           v-if="this.$global.deviceType">
+      <div class="setting">
         <span class="setting-title">Audio Source Mode</span>
         <multiselect v-model="audioMode.val"
                      :options="audioMode.param"></multiselect>
       </div>
-      <custom-sort v-if="this.$global.deviceType"
-                   v-model="lists"
+      <custom-sort v-model="lists"
                    :listMap="listMap"
                    :disabled="audioMode.val !== '1'"></custom-sort>
       <div class="setting"
            style="margin-top: 25px;"
-           v-if="this.$global.deviceType">
+           v-if="this.$global.deviceType == 1">
         <span class="setting-title">Audio Source Selection</span>
         <multiselect :disabled="audioMode.val != '0'"
                      v-model="audioSource.val"
@@ -36,31 +35,54 @@
            style="margin-top: 25px;">
         <span class="setting-title">Audio Source Selection</span>
         <multiselect v-model="audioSource.val"
+                     :disabled="audioMode.val != '0'"
                      :options="audioSource.encoderParam"></multiselect>
       </div>
-      <div class="setting"
-           v-if="this.$global.deviceType">
+      <div class="setting">
         <span class="setting-title">Audio Connection Guard Time (sec)</span>
         <el-input-number v-model="avSignal.audio_connection_guard_time_sec"
                          controls-position="right"
                          :max="90"
                          :min="0"></el-input-number>
       </div>
-      <div class="setting-model"
-           v-if="this.$global.deviceType">
+      <div class="setting-model">
         <h3 class="setting-title">Audio Destination</h3>
-        <div :key="item.name"
-             v-for="(item, index) in audioDestinationDesc"
-             style="margin-bottom: 15px;">
-          <checkbox-component :label="item"
-                              v-if="!(index ==1 && direction=='in')"
-                              v-model="audioDestination[index]"
-                              :active-value="1"
-                              :inactive-value="0" />
-        </div>
+        <template v-if="this.$global.deviceType == 0">
+          <div :key="item.name"
+               v-for="(item, index) in audioDestinationDesc"
+               style="margin-bottom: 15px;">
+            <checkbox-component :label="item"
+                                v-if="!(index ==1 && direction=='in' || index == 3) "
+                                v-model="audioDestination[index]"
+                                :active-value="1"
+                                :inactive-value="0" />
+          </div>
+        </template>
+        <template v-if="this.$global.deviceType == 1">
+          <div :key="item.name"
+               v-for="(item, index) in audioDestinationDesc"
+               style="margin-bottom: 15px;">
+            <checkbox-component :label="item"
+                                v-if="!(index ==1 && direction=='in')"
+                                v-model="audioDestination[index]"
+                                :active-value="1"
+                                :inactive-value="0" />
+          </div>
+        </template>
+        <template v-if="this.$global.deviceType == 2">
+          <div :key="item.name"
+               v-for="(item, index) in audioDestinationDesc"
+               style="margin-bottom: 15px;">
+            <checkbox-component :label="item"
+                                v-if="!(index ==1 || index == 3)"
+                                v-model="audioDestination[index]"
+                                :active-value="1"
+                                :inactive-value="0" />
+          </div>
+        </template>
       </div>
       <div class="setting"
-           v-if="this.$global.deviceType">
+           v-if="this.$global.deviceType == 1">
         <span class="setting-title">Dante/AES-67 Name</span>
         <input type="text"
                class="setting-text"
@@ -111,7 +133,7 @@ export default {
         ]
       },
       playStop: 'play',
-      lists: ['in.dante.1.audio', 'in.analog_audio.1.audio', 'in.hdmi.1.audio'],
+      lists: [],
       lists_bak: ['in.dante.1.audio', 'in.analog_audio.1.audio', 'in.hdmi.1.audio'],
       listMap: {
         'in.dante.1.audio': 'Dante',
@@ -144,12 +166,15 @@ export default {
   },
   created () {
     this.$socket.sendMsg('#PORT-DIRECTION? both.analog.1.audio')
+    this.$socket.sendMsg('#X-AV-SW-MODE? out.hdmi.1.audio.1')
+    this.$socket.sendMsg('#X-PRIORITY? out.hdmi.1.audio')
+    this.$socket.sendMsg('#KDS-AUD-OUTPUT? ')
+    this.getAVSignal()
     if (this.$global.deviceType) {
-      this.$socket.sendMsg('#X-AV-SW-MODE? out.hdmi.1.audio.1')
-      this.$socket.sendMsg('#X-PRIORITY? out.hdmi.1.audio')
-      this.$socket.sendMsg('#KDS-AUD-OUTPUT? ')
       this.$socket.sendMsg('#NAME? 1')
-      this.getAVSignal()
+    }
+    if (this.$global.deviceType !== 2) {
+      this.$socket.sendMsg('#PORT-DIRECTION? both.analog.1.audio')
     }
     this.$socket.sendMsg('#KDS-AUD? ')
   },
@@ -224,8 +249,14 @@ export default {
     handleSwitchPriority (msg) {
       if (msg.search(/audio/g) !== -1) {
         const arr = msg.match(/[^([]+(?=\])/g)[0].replace(/\s/g, '').split(',')
-        if (this.direction === 'out') {
-          arr.splice(arr.indexOf('in.analog_audio.1.audio'), 1)
+        if (this.$global.deviceType === 2) {
+          if (arr.indexOf('in.dante.1.audio') > -1) {
+            arr.splice(arr.indexOf('in.dante.1.audio'), 1)
+          }
+        } else {
+          if (this.direction === 'out') {
+            arr.splice(arr.indexOf('in.analog_audio.1.audio'), 1)
+          }
         }
         this.lists = arr
       }
@@ -259,24 +290,23 @@ export default {
       this.danteName = msg.split(',').slice(1).join(',')
     },
     save: debounce(function () {
-      this.$socket.sendMsg(`#PORT-DIRECTION both.analog.1.audio,${this.direction}`)
-      if (this.$global.deviceType) {
-        this.$socket.sendMsg(`#X-AV-SW-MODE out.hdmi.1.audio.1,${this.audioMode.val}`)
-        if (this.audioMode.val === '1') {
-          const data = this.lists.slice()
-          if (this.direction === 'out') {
-            data.push('in.analog_audio.1.audio')
-          }
-          this.$socket.sendMsg(`#X-PRIORITY out.hdmi.1.audio,[${data.join(',')}]`)
+      if (this.$global.deviceType !== 2) {
+        this.$socket.sendMsg(`#PORT-DIRECTION both.analog.1.audio,${this.direction}`)
+      }
+      this.$socket.sendMsg(`#X-AV-SW-MODE out.hdmi.1.audio.1,${this.audioMode.val}`)
+      this.setAVSingle()
+      this.setAudioDestination()
+      if (this.audioMode.val === '1') {
+        const data = this.lists.slice()
+        if (this.direction === 'out') {
+          data.push('in.analog_audio.1.audio')
         }
-        if (this.audioMode.val === '0') {
-          this.$socket.sendMsg(`#KDS-AUD ${this.audioSource.val}`)
-        }
-        this.$socket.sendMsg(`#NAME 1,${this.danteName}`)
-        this.setAVSingle()
-        this.setAudioDestination()
-      } else {
+        this.$socket.sendMsg(`#X-PRIORITY out.hdmi.1.audio,[${data.join(',')}]`)
+      } else if (this.audioMode.val === '0') {
         this.$socket.sendMsg(`#KDS-AUD ${this.audioSource.val}`)
+      }
+      if (this.$global.deviceType === 1) {
+        this.$socket.sendMsg(`#NAME 1,${this.danteName}`)
       }
     }, 2000, {
       leading: true,
