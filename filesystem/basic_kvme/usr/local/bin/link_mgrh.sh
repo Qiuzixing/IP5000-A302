@@ -2431,11 +2431,22 @@ fi
 
 handle_button_on_boot
 
-if communication_with_mcu -u ; then
-    UGP_FLAG="success"
-else
-	UGP_FLAG="fail"
-fi
+case "$MODEL_NUMBER" in
+	WP-SW2-EN7)
+		if communication_with_mcu -u -b 4; then
+			UGP_FLAG="success"
+		else
+			UGP_FLAG="fail"
+		fi
+	;;
+	*)
+		if communication_with_mcu -u; then
+			UGP_FLAG="success"
+		else
+			UGP_FLAG="fail"
+		fi
+	;;
+esac
 
 if [ $UGP_FLAG = 'success' ];then
 	echo "mainswitch start."

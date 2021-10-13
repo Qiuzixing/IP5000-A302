@@ -62,7 +62,6 @@ JUMBO_MTU='8000'
 
 a30_led_on()
 {
-	echo "1111111111111"
 	case $MODEL_NUMBER in
 		WP-DEC7)
 			if [ "$1" = "$BOARD_ON_G" ];then

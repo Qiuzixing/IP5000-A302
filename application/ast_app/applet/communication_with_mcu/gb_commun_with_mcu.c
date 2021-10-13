@@ -42,11 +42,13 @@
 #define UART_PORT "/dev/ttyS2"
 #define UART_COMFIG "115200-8n1"
 #define IPC_CMD_TOO_OFTEN_LIMIT 40
+#define IP5000_MCU_UPGRADE_PACKAGE  "/usr/share/ip5000_a30/"
+#define IPE5000W_MCU_UPGRADE_PACKAGE  "/usr/share/ipe5000w_a30/"
 
 int sock_fd = -1;
 int uart_fd = -1;
 int errno;
-uint8_t file_path[120] = "/usr/share/ch6001/";
+uint8_t file_path[120];
 uint8_t file_path_len = 0;
 uint8_t arm_version[30] = "GET VER "; //用于记录版本信息
 uint8_t version_len = 0;
@@ -253,6 +255,14 @@ static uint8_t get_version()
     uint8_t len = 0; //用于记录bin文件名的长度
     uint8_t i, k, j;
     uint8_t V_flag = 0; //用于判断fw文件名是否符合命名规范，也就是文件名中是否含有V
+    if(board_type_flag == IPE5000W)
+    {
+        memcpy(file_path,IPE5000W_MCU_UPGRADE_PACKAGE,strlen(IPE5000W_MCU_UPGRADE_PACKAGE));
+    }
+    else
+    {
+        memcpy(file_path,IP5000_MCU_UPGRADE_PACKAGE,strlen(IP5000_MCU_UPGRADE_PACKAGE));
+    }
     dp = opendir(file_path);
     if (NULL == dp)
     {

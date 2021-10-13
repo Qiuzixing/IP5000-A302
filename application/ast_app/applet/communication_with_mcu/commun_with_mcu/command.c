@@ -381,7 +381,7 @@ int APP_Comm_Recv(CmdProtocolParam * param)
             memset(&hdcp_status, 0, sizeof(hdcp_status));
             memcpy(&hdcp_status, &param->Data, sizeof(hdcp_status));
             printf("port[0x%x] hdcp isEncrypted[0x%x] status[0x%x]\n", hdcp_status.port, hdcp_status.isEncrypted, hdcp_status.status);
-            if(board_type_flag == IPE5000P)
+            if(board_type_flag == IPE5000P || board_type_flag == IPE5000 || board_type_flag == IPE5000W)
                 set_hdcp_status(TX_HDCP_STATUS_DIR,hdcp_status.status);
             break;
         case EVENT_HDMI_LINK_STATUS:

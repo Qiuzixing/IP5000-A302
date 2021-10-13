@@ -34,8 +34,10 @@ default: build
 build : communication_with_mcu ipc_server_listen_one
 	mkdir -p $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 	cp -f communication_with_mcu $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
-	mkdir -p $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/share/ch6001/
-	cp -f ./*.bin $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/share/ch6001/
+	mkdir -p $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/share/ip5000_a30/
+	mkdir -p $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/share/ipe5000w_a30/
+	cp -f ./IP5000*.bin $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/share/ip5000_a30/
+	cp -f ./IPE5000W*.bin $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/share/ipe5000w_a30/
 	cp -f ipc_server_listen_one $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 
 communication_with_mcu : gb_commun_with_mcu.o uds_ipc.o ipc.o set_hdcp_status.o create_socket.o\
