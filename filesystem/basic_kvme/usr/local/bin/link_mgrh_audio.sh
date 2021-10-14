@@ -453,6 +453,11 @@ start_alm()
 				ipc @m_lm_set s get_link_status:1
 				ipc @m_lm_set s get_link_status:2
 			;;
+			WP-SW2-EN7)
+				ipc @m_lm_set s open_report
+				ipc @m_lm_set s get_link_status:0
+				ipc @m_lm_set s get_link_status:1
+			;;
 			*)
 			;;
 		esac

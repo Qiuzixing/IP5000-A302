@@ -2494,6 +2494,9 @@ if [ $UGP_FLAG = 'success' ];then
 			mainswitch &
 			audioswitch &
 		;;
+		WP-SW2-EN7)
+			mainswitch &
+		;;
 		*)
 		;;
 	esac
