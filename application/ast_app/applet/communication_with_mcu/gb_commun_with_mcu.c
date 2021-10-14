@@ -97,6 +97,9 @@ const ipc_cmd_struct ipc_cmd_list[] =
         {IPC_GET_GPIO_VAL,              "get_gpio_val",             sizeof("get_gpio_val"),         CMD_GPIO_GET_VAL,                   QUERY_CMD},
         {IPC_SET_GPIO_VAL,              "set_gpio_val",             sizeof("set_gpio_val"),         CMD_GPIO_SET_VAL,                   SEND_CMD},
         {IPC_OPEN_REPORT,               "open_report",              sizeof("open_report"),          0,                                  SEND_CMD},
+        {IPC_LCD_GET_TYPE,              "get_lcd_type",             sizeof("get_lcd_type"),         CMD_LCD_GET_TYPE,                   SEND_CMD},
+        {IPC_LCD_CONTROL,               "set_lcd_control",          sizeof("set_lcd_control"),      CMD_LCD_CONTROL,                    SEND_CMD},
+        {IPC_LCD_SET_CONTENT,           "set_lcd_content",          sizeof("set_lcd_content"),      CMD_LCD_SET_CONTENT,                SEND_CMD},
         //audio_autoswitch
         {IPC_AUDIO_IN,                  "audio_in",                 sizeof("audio_in"),             0,                                  SEND_CMD},
         {IPC_AUDIO_OUT,                 "audio_out",                sizeof("audio_out"),            0,                                  SEND_CMD}
@@ -593,6 +596,44 @@ void do_handle_set_gpio_val(uint16_t cmd,char *cmd_param)
     free(gpio_val);
 }
 
+void do_handle_get_lcd_type(uint16_t cmd,char *cmd_param)
+{
+    uint32_t NullValue = 0;
+    APP_Comm_Send(cmd, (U8*)(&NullValue),4);
+}
+
+void do_handle_set_lcd_control(uint16_t cmd,char *cmd_param)
+{
+    struct CmdDataLCDControl lcd_control;
+    char *lcd_type = strtok(cmd_param,":");
+    char *enable = strtok(NULL,":");
+    if(lcd_type != NULL && enable != NULL)
+    {
+        lcd_control.type = atoi(lcd_type);
+        lcd_control.enable = atoi(enable);
+    }
+    APP_Comm_Send(cmd, (U8*)(&lcd_control), sizeof(struct CmdDataLCDControl));
+}
+
+void do_handle_set_lcd_content(uint16_t cmd,char *cmd_param)
+{
+    struct CmdDataLCDContect *lcd_contect;
+    char *display_num = strtok(cmd_param,":");
+    if(display_num != NULL)
+    {
+        lcd_contect = (struct CmdDataLCDContect *)calloc(strlen(display_num)+sizeof(struct CmdDataLCDContect), sizeof(uint8_t));
+        lcd_contect->dataLength = strlen(display_num);
+        strcpy((char*)&(lcd_contect->data),(const char*)(display_num));
+        lcd_contect->type = LCD_TYPE_LED;
+        APP_Comm_Send(CMD_LCD_SET_CONTENT, (U8*)lcd_contect, sizeof(struct CmdDataLCDContect)+strlen(display_num));
+        free(lcd_contect);
+    }
+    else
+    {
+        printf("warn:Illegal parameter, discard directly\n");
+    }
+}
+
 void do_handle_set_audio_insert_extract(uint16_t cmd,char *cmd_param)
 {
     struct CmdDataAudioInsertAndExtract ado_insert;
@@ -775,7 +816,15 @@ static void do_handle_ipc_cmd(int index,char *cmd_param)
     case IPC_OPEN_REPORT:
         auto_av_report_flag = OPEN_REPROT;
         break;
-
+    case IPC_LCD_GET_TYPE:
+        do_handle_get_lcd_type(ipc_cmd_list[index].a30_cmd,cmd_param);
+        break;
+    case IPC_LCD_CONTROL:
+        do_handle_set_lcd_control(ipc_cmd_list[index].a30_cmd,cmd_param);
+        break;
+    case IPC_LCD_SET_CONTENT:
+        do_handle_set_lcd_content(ipc_cmd_list[index].a30_cmd,cmd_param);
+        break;
     //audio_autoswitch
     case IPC_AUDIO_IN:
         do_handle_audio_in(cmd_param);

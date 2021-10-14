@@ -612,6 +612,8 @@ handle_e_reconnect()
 	CH_SELECT=$_ch_select
 	# Still need to set astparam here because handle_e_reconnect_refresh()::refresh_ch_params() need it.
 	astparam s ch_select $CH_SELECT
+	LED_DISPLAY_CH_SELECT_V=$CH_SELECT
+	led_display_num
 	# Optimize astparam access. Do save astparam if RESET_CH_ON_BOOT is y.
 	if [ "$RESET_CH_ON_BOOT" = 'n' ]; then
 		astparam save
@@ -1328,18 +1330,47 @@ handle_e_key()
 {
 	case "$*" in
 		e_key_enter_pressed)
+			if [ "$MODEL_NUMBER" = 'WP-SW2-EN7' ];then
+				return
+			fi
 			send_key_info 1
 		;;
 		e_key_up_pressed)
+			if [ "$MODEL_NUMBER" = 'WP-SW2-EN7' ];then
+				LED_DISPLAY_CH_SELECT_V=`echo -e $LED_DISPLAY_CH_SELECT_V | sed -r 's/0*([0-9])/\1/'`
+				if [ $LED_DISPLAY_CH_SELECT_V -ge 999 ];then
+					return
+				fi
+				LED_DISPLAY_CH_SELECT_V=$[ $LED_DISPLAY_CH_SELECT_V + 1 ]
+				kill_process wp_dec7_key_timer.sh
+				./wp_dec7_key_timer.sh $LED_DISPLAY_CH_SELECT_V &
+				return
+			fi
 			send_key_info 2
 		;;
 		e_key_down_pressed)
+			if [ "$MODEL_NUMBER" = 'WP-SW2-EN7' ];then
+				LED_DISPLAY_CH_SELECT_V=`echo -e $LED_DISPLAY_CH_SELECT_V | sed -r 's/0*([0-9])/\1/'`
+				if [ $LED_DISPLAY_CH_SELECT_V -le 0 ];then
+					return
+				fi
+				LED_DISPLAY_CH_SELECT_V=$[ $LED_DISPLAY_CH_SELECT_V - 1 ]
+				kill_process wp_dec7_key_timer.sh
+				./wp_dec7_key_timer.sh $LED_DISPLAY_CH_SELECT_V &
+				return
+			fi
 			send_key_info 3
 		;;
 		e_key_left_pressed)
+			if [ "$MODEL_NUMBER" = 'WP-SW2-EN7' ];then
+				return
+			fi
 			send_key_info 4
 		;;
 		e_key_right_pressed)
+			if [ "$MODEL_NUMBER" = 'WP-SW2-EN7' ];then
+				return
+			fi
 			send_key_info 5
 		;;
 		*)
@@ -2244,6 +2275,14 @@ init_param_from_flash()
 		fi
 	fi
 
+	LED_DISPLAY_CH_SELECT_V=`astparam g ch_select`
+	if echo "$LED_DISPLAY_CH_SELECT_V" | grep -q "not defined" ; then
+		LED_DISPLAY_CH_SELECT_V=`astparam r ch_select`
+		if echo "$LED_DISPLAY_CH_SELECT_V" | grep -q "not defined" ; then
+			LED_DISPLAY_CH_SELECT_V='001'
+		fi
+	fi
+
 	astparam s fourth_priority_board_status $POWER_ON
 	astparam s sec_priority_net_status $GET_IP_FAIL
 	astparam s repeat_net_lighting_flag 0
@@ -2514,6 +2553,11 @@ if [ $UGP_FLAG = 'success' ];then
 			ipc @m_lm_set s set_gpio_val:3:70:0:65:0:66:0
 			ipc @m_lm_set s set_gpio_config:9:15:1:35:1:8:1:36:1:37:1:32:1:33:1:11:1:12:1
 			ipc @m_lm_set s set_gpio_val:9:15:1:35:1:8:1:36:1:37:1:32:1:33:1:11:1:12:1
+		;;
+		WP-SW2-EN7)
+			#enable led_display	set_lcd_control--cmd;0--led_type 1--lcd_type;1--enable  0--disenable;
+			ipc @m_lm_set s set_lcd_control:0:1
+			led_display_num
 		;;
 		*)
 		;;

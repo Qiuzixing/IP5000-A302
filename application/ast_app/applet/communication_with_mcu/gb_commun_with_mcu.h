@@ -116,6 +116,9 @@ typedef enum
     IPC_GET_GPIO_VAL,
     IPC_SET_GPIO_VAL,
     IPC_OPEN_REPORT,
+    IPC_LCD_GET_TYPE,
+    IPC_LCD_CONTROL,
+    IPC_LCD_SET_CONTENT,
 
     //audio_autoswitch
     IPC_AUDIO_IN,

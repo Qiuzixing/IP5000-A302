@@ -338,7 +338,16 @@ led_display_num()
 	kill_process led_display
 	#2021.10.12 qzx:Because the read value is a string such as 0001, you need to remove the previous 0, otherwise it will not be a normal number
 	tmp=`echo -e $LED_DISPLAY_CH_SELECT_V | sed -r 's/0*([0-9])/\1/'`
-	led_display -n $tmp &
+	case "$MODEL_NUMBER" in
+		WP-SW2-EN7)
+			ipc @m_lm_set s set_lcd_content:$tmp
+		;;
+		WP-DEC7)
+			led_display -n $tmp &
+		;;
+		*)
+		;;
+	esac
 }
 
 init_watchdog()

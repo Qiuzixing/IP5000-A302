@@ -361,6 +361,7 @@ int APP_Comm_Recv(CmdProtocolParam * param)
     struct CmdDataGpioVal *gpio_val= NULL;
     struct CmdDataGpioList *gpio_list= NULL;
     struct CmdDataUartPassthrough *uart_pass = NULL;
+    struct CmdDataKey key_value;
 
     socket_msg send_socket_msg;
     int i = 0;
@@ -491,6 +492,21 @@ int APP_Comm_Recv(CmdProtocolParam * param)
             dante_state = UNKNOW_DANTE_STATUS;
             break;
         case EVENT_HDMI_AUDIO_STATUS:
+            break;
+        case EVENT_KEY_STATUS:
+            memcpy(&key_value, &param->Data, param->DataLen);
+            if(key_value.key == 0)
+            {
+                system("e e_key_up_pressed");
+            }
+            else if(key_value.key == 1)
+            {
+                system("e e_key_down_pressed");
+            }
+            else
+            {
+                /* code */
+            }
             break;
         default:
             printf("warning:unknown mcu cmd:param->CMD = 0x%x\n",param->CMD);
