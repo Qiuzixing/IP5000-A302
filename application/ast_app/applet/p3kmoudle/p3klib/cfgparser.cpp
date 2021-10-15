@@ -1883,6 +1883,11 @@ int Cfg_Create_KVMSetting(void)
 {
 	DBG_InfoMsg("Cfg_Create_KVMSetting\n");
 
+#ifdef CONFIG_P3K_HOST
+	DBG_InfoMsg("This is Encoder\n");
+	return 0;
+#endif
+
 	char path[128] = "";
 	sprintf(path,"%s%s%s",CONF_PATH,g_module,KVM_FILE);
 
@@ -1948,17 +1953,25 @@ int Cfg_Create_EDIDList(void)
 {
 	DBG_InfoMsg("Cfg_Create_EDIDList\n");
 
+#ifdef CONFIG_P3K_CLIENT
+	DBG_InfoMsg("This is Decoder\n");
+	return 0;
+#endif
+
 	char path[128] = "";
 	sprintf(path,"%s%s%s",CONF_PATH,g_module,EDID_LIST_FILE);
 
-	//Check Video cfg
+	//Check EDID
 	int nAccessRet = access(path,F_OK | R_OK | W_OK);
 	if(0 == nAccessRet)
 	{
 		//printf("nAccessRet %s Suceess\n",path);
 		return 0;
 	}
+#if 1
+	system("cp -rf /share/edid /data/configs/kds-7/");
 
+#else
 	Json::Value root;
 
 	root["0"] = JSON_EDID_DEFAULT;
@@ -1998,6 +2011,7 @@ int Cfg_Create_EDIDList(void)
 
 	fclose(fp);
 	fflush(fp);
+#endif
 	return 0;
 }
 

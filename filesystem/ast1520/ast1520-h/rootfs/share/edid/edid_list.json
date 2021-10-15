@@ -1,0 +1,12 @@
+{
+   "edid_list" : {
+      "0" : "default.bin",
+      "1" : "4K30_2.0CH_SDR.bin",
+      "2" : "4K30_Dolby_DTS7.1_SDR.bin",
+      "3" : "1080P50_Dolby_DTS7.1_SDR.bin",
+      "4" : "720P50_2.0CH_SDR.bin",
+      "5" : "720P50_Dolby_DTS7.1_SDR.bin",
+      "6" : "",
+      "7" : ""
+   }
+}
