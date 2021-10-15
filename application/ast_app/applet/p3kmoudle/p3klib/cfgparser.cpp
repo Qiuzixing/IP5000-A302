@@ -59,6 +59,7 @@ int Cfg_Init(void)
 	DBG_InfoMsg("Cfg_Init\n");
 	pthread_mutex_init(&g_cfg_lock,NULL);
 	//Cfg_InitModule();
+	Cfg_Init_Version();
 
 	Cfg_Create_DefaultFile();
 
@@ -69,7 +70,6 @@ int Cfg_Init(void)
 	Cfg_Init_AVSetting();
 	Cfg_Init_EDID();
 	Cfg_Init_Device();
-	Cfg_Init_Version();
 	Cfg_Init_Time();
 	Cfg_Init_User();
 	Cfg_Init_VideoWall();
@@ -283,7 +283,9 @@ int Cfg_Init_Audio(void)
 
 					if(output == JSON_AUDIO_DANTE)
 					{
-						g_audio_info.dst_port[i] = PORT_DANTE;
+						if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+							g_audio_info.dst_port[i] = PORT_DANTE;
+
 						continue;
 					}
 					else if(output == JSON_AUDIO_ANALOG)
@@ -459,53 +461,99 @@ int Cfg_Init_AutoSwitch(void)
 
 			}
 
-			if(!root[JSON_PRIORITY].empty())
+			if(strcmp(g_version_info.model,IPE_W_MODULE) == 0)
 			{
-				Json::Value& JsonPriorityArray = root[JSON_PRIORITY];
-				//printf("JsonPriorityArray.size() = %d\n",JsonPriorityArray.size());
-
-				for(unsigned int i = 0; i < JsonPriorityArray.size(); i++)
+				if(!root[JSON_PRIORITY].empty())
 				{
-					string input = JsonPriorityArray[i].asString();
-					//printf("JsonPriorityArray[%d]:[%s]\n",i,input.c_str());
+					Json::Value& JsonPriorityArray = root[JSON_PRIORITY];
+					//printf("JsonPriorityArray.size() = %d\n",JsonPriorityArray.size());
 
+					for(unsigned int i = 0; i < JsonPriorityArray.size(); i++)
+					{
+						string input = JsonPriorityArray[i].asString();
+						//printf("JsonPriorityArray[%d]:[%s]\n",i,input.c_str());
+
+						if(input == JSON_HDMI_1)
+						{
+							g_autoswitch_info.input_pri[i] = 1;
+							continue;
+						}
+						else if(input == JSON_USBC_2)
+						{
+							g_autoswitch_info.input_pri[i] = 2;
+							continue;
+						}
+					}
+				}
+
+				if(!root[JSON_SOURCE_SELECT].empty())
+				{
+					string input = root[JSON_SOURCE_SELECT].asString();
 					if(input == JSON_HDMI_1)
+						g_autoswitch_info.source = 1;
+					else if(input == JSON_USBC_2)
+						g_autoswitch_info.source = 2;
+				}
+			}
+			else
+			{
+				if(!root[JSON_PRIORITY].empty())
+				{
+					Json::Value& JsonPriorityArray = root[JSON_PRIORITY];
+					//printf("JsonPriorityArray.size() = %d\n",JsonPriorityArray.size());
+
+					for(unsigned int i = 0; i < JsonPriorityArray.size(); i++)
 					{
-						g_autoswitch_info.input_pri[i] = 1;
-						continue;
+						string input = JsonPriorityArray[i].asString();
+						//printf("JsonPriorityArray[%d]:[%s]\n",i,input.c_str());
+
+						if(input == JSON_HDMI_1)
+						{
+							g_autoswitch_info.input_pri[i] = 1;
+							continue;
+						}
+						else if(input == JSON_HDMI_2)
+						{
+							g_autoswitch_info.input_pri[i] = 2;
+							continue;
+						}
+						else if(input == JSON_USBC_3)
+						{
+							g_autoswitch_info.input_pri[i] = 3;
+							continue;
+						}
 					}
+				}
+
+				if(!root[JSON_SOURCE_SELECT].empty())
+				{
+					string input = root[JSON_SOURCE_SELECT].asString();
+					if(input == JSON_HDMI_1)
+						g_autoswitch_info.source = 1;
 					else if(input == JSON_HDMI_2)
-					{
-						g_autoswitch_info.input_pri[i] = 2;
-						continue;
-					}
+						g_autoswitch_info.source = 2;
 					else if(input == JSON_USBC_3)
-					{
-						g_autoswitch_info.input_pri[i] = 3;
-						continue;
-					}
+						g_autoswitch_info.source = 3;
+				}
+			}
+#else
+			if(strcmp(g_version_info.model,IPD_W_MODULE) == 0)
+			{
+				g_autoswitch_info.source = 2;
+			}
+			else
+			{
+				if(!root[JSON_SOURCE_SELECT].empty())
+				{
+					string input = root[JSON_SOURCE_SELECT].asString();
+					if(input == JSON_HDMI_1)
+						g_autoswitch_info.source = 1;
+					else if(input == JSON_STREAM)
+						g_autoswitch_info.source = 2;
 				}
 			}
 
-			if(!root[JSON_SOURCE_SELECT].empty())
-			{
-				string input = root[JSON_SOURCE_SELECT].asString();
-				if(input == JSON_HDMI_1)
-					g_autoswitch_info.source = 1;
-				else if(input == JSON_HDMI_2)
-					g_autoswitch_info.source = 2;
-				else if(input == JSON_USBC_3)
-					g_autoswitch_info.source = 3;
-			}
-#else
-			if(!root[JSON_SOURCE_SELECT].empty())
-			{
-				string input = root[JSON_SOURCE_SELECT].asString();
-				if(input == JSON_HDMI_1)
-					g_autoswitch_info.source = 1;
-				else if(input == JSON_STREAM)
-					g_autoswitch_info.source = 2;
-			}
+
 #endif
 		}
 	}
@@ -586,28 +634,54 @@ int Cfg_Init_AVSetting(void)
 			}
 
 #ifdef CONFIG_P3K_HOST
-			if(!root[JSON_AV_HDCP].empty())
+			if(strcmp(g_version_info.model,IPE_W_MODULE) == 0)
 			{
-				Json::Value& JsonHDCP = root[JSON_AV_HDCP];
-
-				for(int i = 0; i < 3; i++)
+				if(!root[JSON_AV_HDCP].empty())
 				{
-					string mode;
-					if((i == 0)&&(!JsonHDCP[JSON_HDMI_1].empty()))
-						mode =  JsonHDCP[JSON_HDMI_1].asString();
-					else if((i == 1)&&(!JsonHDCP[JSON_HDMI_2].empty()))
-						mode =  JsonHDCP[JSON_HDMI_2].asString();
-					else if((i == 2)&&(!JsonHDCP[JSON_USBC_3].empty()))
-						mode =  JsonHDCP[JSON_USBC_3].asString();
-					else
-						continue;
+					Json::Value& JsonHDCP = root[JSON_AV_HDCP];
 
-					if(mode == JSON_PARAM_ON)
-						g_avsetting_info.hdcp_mode[i]= ON;
-					else if(mode == JSON_PARAM_OFF)
-						g_avsetting_info.hdcp_mode[i] = OFF;
+					for(int i = 0; i < 2; i++)
+					{
+						string mode;
+						if((i == 0)&&(!JsonHDCP[JSON_HDMI_1].empty()))
+							mode =  JsonHDCP[JSON_HDMI_1].asString();
+						else if((i == 1)&&(!JsonHDCP[JSON_USBC_2].empty()))
+							mode =  JsonHDCP[JSON_USBC_2].asString();
+						else
+							continue;
+
+						if(mode == JSON_PARAM_ON)
+							g_avsetting_info.hdcp_mode[i]= ON;
+						else if(mode == JSON_PARAM_OFF)
+							g_avsetting_info.hdcp_mode[i] = OFF;
+					}
+
+				}			}
+			else
+			{
+				if(!root[JSON_AV_HDCP].empty())
+				{
+					Json::Value& JsonHDCP = root[JSON_AV_HDCP];
+
+					for(int i = 0; i < 3; i++)
+					{
+						string mode;
+						if((i == 0)&&(!JsonHDCP[JSON_HDMI_1].empty()))
+							mode =  JsonHDCP[JSON_HDMI_1].asString();
+						else if((i == 1)&&(!JsonHDCP[JSON_HDMI_2].empty()))
+							mode =  JsonHDCP[JSON_HDMI_2].asString();
+						else if((i == 2)&&(!JsonHDCP[JSON_USBC_3].empty()))
+							mode =  JsonHDCP[JSON_USBC_3].asString();
+						else
+							continue;
+
+						if(mode == JSON_PARAM_ON)
+							g_avsetting_info.hdcp_mode[i]= ON;
+						else if(mode == JSON_PARAM_OFF)
+							g_avsetting_info.hdcp_mode[i] = OFF;
+					}
+
 				}
-
 			}
 #endif
 		}
@@ -1577,8 +1651,8 @@ int Cfg_Create_DefaultFile(void)
 	Cfg_Create_OsdSetting();
 	Cfg_Create_SecuritySetting();
 	Cfg_Create_KVMSetting();
-	Cfg_Create_EDIDList();
 	Cfg_Create_Channel();
+	Cfg_Create_EDIDList();
 	return 0;
 }
 
@@ -2217,57 +2291,105 @@ int Cfg_Update_Audio(void)
 	else
 		root[JSON_SWITCH_MODE] = JSON_LAST_CONNECT;
 
-	Json::Value JsonPriorityArray;
-	JsonPriorityArray.resize(3);
-	for(int i = 0; i < 3; i++)
+	if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
 	{
-		Json::Value& JasonPri = JsonPriorityArray[i];
-
-		if(g_audio_info.input_pri[i] == AUDIO_IN_HDMI)
-			JasonPri = JSON_AUDIO_HDMI;
-		else if(g_audio_info.input_pri[i] == AUDIO_IN_ANALOG)
-			JasonPri = JSON_AUDIO_ANALOG;
-		else if(g_audio_info.input_pri[i] == AUDIO_IN_DANTE)
-			JasonPri = JSON_AUDIO_DANTE;
-		else
-			continue;
-	}
-
-	root[JSON_PRIORITY] = JsonPriorityArray;
-
-	Json::Value JsonDestArray;
-	JsonDestArray.resize(4);
-	for(int i = 0; i < 4; i++)
-	{
-		Json::Value& JsonDst = JsonDestArray[i];
-
-		if(g_audio_info.dst_port[i] == PORT_HDMI)
-			JsonDst = JSON_AUDIO_HDMI;
-		else if(g_audio_info.dst_port[i] == PORT_ANALOG_AUDIO)
-			JsonDst = JSON_AUDIO_ANALOG;
-		else if(g_audio_info.dst_port[i] == PORT_DANTE)
-			JsonDst = JSON_AUDIO_DANTE;
-		else if(g_audio_info.dst_port[i] == PORT_STREAM)
-			JsonDst = JSON_AUDIO_LAN;
-		else
+		Json::Value JsonPriorityArray;
+		JsonPriorityArray.resize(3);
+		for(int i = 0; i < 3; i++)
 		{
-			JsonDestArray.resize(i);
-			break;
+			Json::Value& JasonPri = JsonPriorityArray[i];
+
+			if(g_audio_info.input_pri[i] == AUDIO_IN_HDMI)
+				JasonPri = JSON_AUDIO_HDMI;
+			else if(g_audio_info.input_pri[i] == AUDIO_IN_ANALOG)
+				JasonPri = JSON_AUDIO_ANALOG;
+			else if(g_audio_info.input_pri[i] == AUDIO_IN_DANTE)
+				JasonPri = JSON_AUDIO_DANTE;
+			else
+				continue;
 		}
+
+		root[JSON_PRIORITY] = JsonPriorityArray;
+
+		Json::Value JsonDestArray;
+		JsonDestArray.resize(4);
+		for(int i = 0; i < 4; i++)
+		{
+			Json::Value& JsonDst = JsonDestArray[i];
+
+			if(g_audio_info.dst_port[i] == PORT_HDMI)
+				JsonDst = JSON_AUDIO_HDMI;
+			else if(g_audio_info.dst_port[i] == PORT_ANALOG_AUDIO)
+				JsonDst = JSON_AUDIO_ANALOG;
+			else if(g_audio_info.dst_port[i] == PORT_DANTE)
+				JsonDst = JSON_AUDIO_DANTE;
+			else if(g_audio_info.dst_port[i] == PORT_STREAM)
+				JsonDst = JSON_AUDIO_LAN;
+			else
+			{
+				JsonDestArray.resize(i);
+				break;
+			}
+		}
+		root[JSON_AUDIO_DEST] = JsonDestArray;
+
+		if(g_audio_info.source == AUDIO_IN_HDMI)
+			root[JSON_SOURCE_SELECT] = JSON_AUDIO_HDMI;
+		else if(g_audio_info.source == AUDIO_IN_ANALOG)
+			root[JSON_SOURCE_SELECT] = JSON_AUDIO_ANALOG;
+		else
+			root[JSON_SOURCE_SELECT] = JSON_AUDIO_DANTE;
+
+		if(strlen(g_audio_info.dante_name) > 0)
+			root[JSON_DANTE_NAME] = g_audio_info.dante_name;
+	}
+	else
+	{
+		Json::Value JsonPriorityArray;
+		JsonPriorityArray.resize(2);
+		for(int i = 0; i < 2; i++)
+		{
+			Json::Value& JasonPri = JsonPriorityArray[i];
+
+			if(g_audio_info.input_pri[i] == AUDIO_IN_HDMI)
+				JasonPri = JSON_AUDIO_HDMI;
+			else if(g_audio_info.input_pri[i] == AUDIO_IN_ANALOG)
+				JasonPri = JSON_AUDIO_ANALOG;
+			else
+				continue;
+		}
+
+		root[JSON_PRIORITY] = JsonPriorityArray;
+
+		Json::Value JsonDestArray;
+		JsonDestArray.resize(3);
+		for(int i = 0; i < 3; i++)
+		{
+			Json::Value& JsonDst = JsonDestArray[i];
+
+			if(g_audio_info.dst_port[i] == PORT_HDMI)
+				JsonDst = JSON_AUDIO_HDMI;
+			else if(g_audio_info.dst_port[i] == PORT_ANALOG_AUDIO)
+				JsonDst = JSON_AUDIO_ANALOG;
+			else if(g_audio_info.dst_port[i] == PORT_STREAM)
+				JsonDst = JSON_AUDIO_LAN;
+			else
+			{
+				JsonDestArray.resize(i);
+				break;
+			}
+		}
+		root[JSON_AUDIO_DEST] = JsonDestArray;
+
+		if(g_audio_info.source == AUDIO_IN_HDMI)
+			root[JSON_SOURCE_SELECT] = JSON_AUDIO_HDMI;
+		else
+			root[JSON_SOURCE_SELECT] = JSON_AUDIO_ANALOG;
+
 	}
 
 
-	root[JSON_AUDIO_DEST] = JsonDestArray;
 
-	if(g_audio_info.source == AUDIO_IN_HDMI)
-		root[JSON_SOURCE_SELECT] = JSON_AUDIO_HDMI;
-	else if(g_audio_info.source == AUDIO_IN_ANALOG)
-		root[JSON_SOURCE_SELECT] = JSON_AUDIO_ANALOG;
-	else
-		root[JSON_SOURCE_SELECT] = JSON_AUDIO_DANTE;
-
-	if(strlen(g_audio_info.dante_name) > 0)
-		root[JSON_DANTE_NAME] = g_audio_info.dante_name;
 
 	Json::Value root1;
 	root1[JSON_AUDIO] = root;
@@ -2405,34 +2527,66 @@ int Cfg_Update_AutoSwitch(void)
 	}
 
 	Json::Value JsonPriorityArray;
-	JsonPriorityArray.resize(3);
-	for(int i = 0; i < 3; i++)
+	if(strcmp(g_version_info.model,IPE_W_MODULE) == 0)
 	{
-		Json::Value& JasonPri = JsonPriorityArray[i];
+		JsonPriorityArray.resize(2);
+		for(int i = 0; i < 2; i++)
+		{
+			Json::Value& JasonPri = JsonPriorityArray[i];
 
-		if(g_autoswitch_info.input_pri[i] == 1)
-			JasonPri = JSON_HDMI_1;
-		else if(g_autoswitch_info.input_pri[i] == 2)
-			JasonPri = JSON_HDMI_2;
-		else if(g_autoswitch_info.input_pri[i] == 3)
-			JasonPri = JSON_USBC_3;
-		else
-			continue;
+			if(g_autoswitch_info.input_pri[i] == 1)
+				JasonPri = JSON_HDMI_1;
+			else if(g_autoswitch_info.input_pri[i] == 2)
+				JasonPri = JSON_USBC_2;
+			else
+				continue;
+		}
+
+		root[JSON_PRIORITY] = JsonPriorityArray;
+
+		if(g_autoswitch_info.source == 1)
+			root[JSON_SOURCE_SELECT] = JSON_HDMI_1;
+		else if(g_autoswitch_info.source == 2)
+			root[JSON_SOURCE_SELECT] = JSON_USBC_2;
 	}
-
-	root[JSON_PRIORITY] = JsonPriorityArray;
-
-	if(g_autoswitch_info.source == 1)
-		root[JSON_SOURCE_SELECT] = JSON_HDMI_1;
-	else if(g_autoswitch_info.source == 2)
-		root[JSON_SOURCE_SELECT] = JSON_HDMI_2;
 	else
-		root[JSON_SOURCE_SELECT] = JSON_USBC_3;
+	{
+		JsonPriorityArray.resize(3);
+		for(int i = 0; i < 3; i++)
+		{
+			Json::Value& JasonPri = JsonPriorityArray[i];
+
+			if(g_autoswitch_info.input_pri[i] == 1)
+				JasonPri = JSON_HDMI_1;
+			else if(g_autoswitch_info.input_pri[i] == 2)
+				JasonPri = JSON_HDMI_2;
+			else if(g_autoswitch_info.input_pri[i] == 3)
+				JasonPri = JSON_USBC_3;
+			else
+				continue;
+		}
+
+		root[JSON_PRIORITY] = JsonPriorityArray;
+
+		if(g_autoswitch_info.source == 1)
+			root[JSON_SOURCE_SELECT] = JSON_HDMI_1;
+		else if(g_autoswitch_info.source == 2)
+			root[JSON_SOURCE_SELECT] = JSON_HDMI_2;
+		else
+			root[JSON_SOURCE_SELECT] = JSON_USBC_3;
+	}
 #else
-	if(g_autoswitch_info.source == 1)
-		root[JSON_SOURCE_SELECT] = JSON_HDMI_1;
-	else
+	if(strcmp(g_version_info.model,IPD_W_MODULE) == 0)
+	{
 		root[JSON_SOURCE_SELECT] = JSON_STREAM;
+	}
+	else
+	{
+		if(g_autoswitch_info.source == 1)
+			root[JSON_SOURCE_SELECT] = JSON_HDMI_1;
+		else
+			root[JSON_SOURCE_SELECT] = JSON_STREAM;
+	}
 #endif
 	Json::Value root1;
 	root1[JSON_AUTOSWITCH] = root;
@@ -2495,18 +2649,26 @@ int Cfg_Update_AVSetting(void)
 		else
 			JsonHDCP[JSON_HDMI_1] = JSON_PARAM_OFF;
 
-
-		if(g_avsetting_info.hdcp_mode[1] == ON)
-			JsonHDCP[JSON_HDMI_2] = JSON_PARAM_ON;
+		if(strcmp(g_version_info.model,IPE_W_MODULE) == 0)
+		{
+			if(g_avsetting_info.hdcp_mode[1] == ON)
+				JsonHDCP[JSON_USBC_2] = JSON_PARAM_ON;
+			else
+				JsonHDCP[JSON_USBC_2] = JSON_PARAM_OFF;
+		}
 		else
-			JsonHDCP[JSON_HDMI_2] = JSON_PARAM_OFF;
+		{
+			if(g_avsetting_info.hdcp_mode[1] == ON)
+				JsonHDCP[JSON_HDMI_2] = JSON_PARAM_ON;
+			else
+				JsonHDCP[JSON_HDMI_2] = JSON_PARAM_OFF;
 
 
-		if(g_avsetting_info.hdcp_mode[2] == ON)
-			JsonHDCP[JSON_USBC_3] = JSON_PARAM_ON;
-		else
-			JsonHDCP[JSON_USBC_3] = JSON_PARAM_OFF;
-
+			if(g_avsetting_info.hdcp_mode[2] == ON)
+				JsonHDCP[JSON_USBC_3] = JSON_PARAM_ON;
+			else
+				JsonHDCP[JSON_USBC_3] = JSON_PARAM_OFF;
+		}
 	}
 
 	root[JSON_AV_HDCP] = JsonHDCP;

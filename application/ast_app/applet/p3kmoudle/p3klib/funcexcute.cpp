@@ -1039,9 +1039,12 @@ int EX_SetVidOutput(char info[][MAX_PARAM_LEN],int count )
 			}
 			else if(out_id == AUDIO_OUT_DANTE)
 			{
-				sprintf(sCmd,"%s::dante",sCmd);
-				port[nCount] = PORT_DANTE;
-				nCount++;
+				if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+				{
+					sprintf(sCmd,"%s::dante",sCmd);
+					port[nCount] = PORT_DANTE;
+					nCount++;
+				}
 			}
 			else if(out_id == AUDIO_OUT_STREAM)
 			{
@@ -1097,10 +1100,13 @@ int EX_GetVidOutput(char * date)
 		}
 		else if(g_audio_info.dst_port[i] == PORT_DANTE)
 		{
-			if(strlen(str) > 0)
-				sprintf(str,"%s%d",str,AUDIO_OUT_DANTE);
-			else
-				sprintf(str,"%d",AUDIO_OUT_DANTE);
+			if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+			{
+				if(strlen(str) > 0)
+					sprintf(str,"%s%d",str,AUDIO_OUT_DANTE);
+				else
+					sprintf(str,"%d",AUDIO_OUT_DANTE);
+			}
 		}
 		else
 		{
@@ -1361,21 +1367,21 @@ int EX_SetAutoSwitchPriority(AudioInfo_S * info,AudioInfo_S * gain,int count)
 			}
 			else if(gain[i].portFormat == PORT_ANALOG_AUDIO)
 			{
-				//if(g_audio_info.direction == DIRECTION_IN)
 				{
 					sprintf(sCmd,"%s::analog",sCmd);
 					port[i] = AUDIO_IN_ANALOG;
 				}
-				//else
-				//{
-				//	DBG_WarnMsg(" !!! g_audio_info.direction == DIRECTION_OUT \n");
-				//	break;
-				//}
 			}
 			else if(gain[i].portFormat == PORT_DANTE)
 			{
-				sprintf(sCmd,"%s::dante",sCmd);
-				port[i] = AUDIO_IN_DANTE;
+				if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+				{
+					if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+					{
+						sprintf(sCmd,"%s::dante",sCmd);
+						port[i] = AUDIO_IN_DANTE;
+					}
+				}
 			}
 		}
 	}
@@ -1406,56 +1412,109 @@ int EX_GetAutoSwitchPriority(AudioInfo_S * gain,int count)
 		Cfg_Get_Autoswitch_Priority(gain[0].signal,&port[1],&port[2],&port[3]);
 		DBG_InfoMsg("EX_GetAutoSwitchPriority %d,%d,%d\n",port[1],port[2],port[3]);
 
-		for(int i = 1; i<=3; i++)
+		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
 		{
-			if(type == SIGNAL_VIDEO)
+			for(int i = 1; i<=3; i++)
 			{
-				gain[i].direction = DIRECTION_IN;
-				gain[i].signal = SIGNAL_VIDEO;
-				if((port[i] == 1)||(port[i] == 2))
+				if(type == SIGNAL_VIDEO)
 				{
-					gain[i].portFormat = PORT_HDMI;
-					gain[i].portIndex = port[i];
-					num++;
-				}
-				else if(port[i] == 3)
-				{
-					gain[i].portFormat = PORT_USB_C;
-					gain[i].portIndex = port[i];
-					num++;
+					gain[i].direction = DIRECTION_IN;
+					gain[i].signal = SIGNAL_VIDEO;
+					if((port[i] == 1)||(port[i] == 2))
+					{
+						gain[i].portFormat = PORT_HDMI;
+						gain[i].portIndex = port[i];
+						num++;
+					}
+					else if(port[i] == 3)
+					{
+						gain[i].portFormat = PORT_USB_C;
+						gain[i].portIndex = port[i];
+						num++;
+					}
+					else
+					{
+						num = i + 1;
+					 	break;
+					}
 				}
 				else
 				{
-					num = i + 1;
-				 	break;
+					gain[i].direction = DIRECTION_IN;
+					gain[i].signal = SIGNAL_AUDIO;
+					if(port[i] == AUDIO_IN_HDMI)
+					{
+						gain[i].portFormat = PORT_HDMI;
+						gain[i].portIndex = 1;
+						num++;
+					}
+					else if(port[i] == AUDIO_IN_ANALOG)
+					{
+						gain[i].portFormat = PORT_ANALOG_AUDIO;
+						gain[i].portIndex = 1;
+						num++;
+					}
+					else if(port[i] == AUDIO_IN_DANTE)
+					{
+						gain[i].portFormat = PORT_DANTE;
+						gain[i].portIndex = 1;
+						num++;
+					}
+					else
+					{
+						num = i + 1;
+					 	break;
+					}
 				}
 			}
-			else
+		}
+		else
+		{
+			for(int i = 1; i<=2; i++)
 			{
-				gain[i].direction = DIRECTION_IN;
-				gain[i].signal = SIGNAL_AUDIO;
-				if(port[i] == AUDIO_IN_HDMI)
+				if((type == SIGNAL_VIDEO)&&(strcmp(g_version_info.model,IPE_W_MODULE) == 0))
 				{
-					gain[i].portFormat = PORT_HDMI;
-					gain[i].portIndex = 1;
-					num++;
-				}
-				else if(port[i] == AUDIO_IN_ANALOG)
-				{
-					gain[i].portFormat = PORT_ANALOG_AUDIO;
-					gain[i].portIndex = 1;
-					num++;
-				}
-				else if(port[i] == AUDIO_IN_DANTE)
-				{
-					gain[i].portFormat = PORT_DANTE;
-					gain[i].portIndex = 1;
-					num++;
+					gain[i].direction = DIRECTION_IN;
+					gain[i].signal = SIGNAL_VIDEO;
+					if(port[i] == 1)
+					{
+						gain[i].portFormat = PORT_HDMI;
+						gain[i].portIndex = port[i];
+						num++;
+					}
+					else if(port[i] == 2)
+					{
+						gain[i].portFormat = PORT_USB_C;
+						gain[i].portIndex = port[i];
+						num++;
+					}
+					else
+					{
+						num = i + 1;
+					 	break;
+					}
 				}
 				else
 				{
-					num = i + 1;
-				 	break;
+					gain[i].direction = DIRECTION_IN;
+					gain[i].signal = SIGNAL_AUDIO;
+					if(port[i] == AUDIO_IN_HDMI)
+					{
+						gain[i].portFormat = PORT_HDMI;
+						gain[i].portIndex = 1;
+						num++;
+					}
+					else if(port[i] == AUDIO_IN_ANALOG)
+					{
+						gain[i].portFormat = PORT_ANALOG_AUDIO;
+						gain[i].portIndex = 1;
+						num++;
+					}
+					else
+					{
+						num = i + 1;
+					 	break;
+					}
 				}
 			}
 		}
@@ -1469,50 +1528,7 @@ int EX_GetAutoSwitchPriority(AudioInfo_S * gain,int count)
 	DBG_WarnMsg(" !!! This is Decoder\n");
 #endif
 
-/*
-	pid_t status;
-	//int ret =0;
-	int num = 0;
-	char buf[24] = {0};
-	char * p;
-	char m[] = " ";
-	FILE * ptr;
-	char * cmd2 = "./sconfig --show priority";
-	status = system(cmd2);
-	if((ptr = popen(cmd2,"r")) != NULL)
-	{
-		fgets(buf,24,ptr);
-		pclose(ptr);
-	}
-	p = strtok(buf,m);
-	while(p)
-	{
-		//printf(">>>%s\n",p);
-		if(!memcmp(p,"HDMI3",strlen("HDMI3")))
-		{
-			gain[num].direction = DIRECTION_IN;
-			gain[num].portFormat = PORT_USB_C;
-			gain[num].portIndex = 3;
-			gain[num].signal = SIGNAL_VIDEO;
-		}
-		else if(!memcmp(p,"HDMI2",strlen("HDMI2")))
-		{
-			gain[num].direction = DIRECTION_IN;
-			gain[num].portFormat = PORT_HDMI;
-			gain[num].portIndex = 2;
-			gain[num].signal = SIGNAL_VIDEO;
-		}
-		else if(!memcmp(p,"HDMI1",strlen("HDMI1")))
-		{
-			gain[num].direction = DIRECTION_IN;
-			gain[num].portFormat = PORT_HDMI;
-			gain[num].portIndex = 1;
-			gain[num].signal = SIGNAL_VIDEO;
-		}
-		num += 1;
-		p = strtok(NULL,m);
-	}
-*/	return num;
+	return num;
 }
 int EX_CopyEDID(EDIDPortInfo_S*src,EDIDPortInfo_S*dest,int bitMap,int safemode)
 {
@@ -2194,9 +2210,12 @@ int EX_SetRouteMatch(PortInfo_S*inPortInfo,PortInfo_S*matchPortInfo,int num)
 			}
 			else if(inPortInfo[i].portFormat == PORT_DANTE)
 			{
-				sprintf(sCmd,"%s::dante",sCmd);
-				port[nCount] = PORT_DANTE;
-				nCount++;
+				if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+				{
+					sprintf(sCmd,"%s::dante",sCmd);
+					port[nCount] = PORT_DANTE;
+					nCount++;
+				}
 			}
 			else if(inPortInfo[i].portFormat == PORT_STREAM)
 			{
@@ -2219,8 +2238,11 @@ int EX_SetRouteMatch(PortInfo_S*inPortInfo,PortInfo_S*matchPortInfo,int num)
 	{
 		if(matchPortInfo->portFormat == PORT_HDMI)
 		{
-			sprintf(sCmd,"e_p3k_switch_in::HDMI");
-			Cfg_Set_Autoswitch_Source(SIGNAL_VIDEO,1);
+			if(strcmp(g_version_info.model,IPD_MODULE) == 0)
+			{
+				sprintf(sCmd,"e_p3k_switch_in::HDMI");
+				Cfg_Set_Autoswitch_Source(SIGNAL_VIDEO,1);
+			}
 		}
 		else if(matchPortInfo->portFormat == PORT_STREAM)
 		{
@@ -2273,26 +2295,46 @@ int EX_GetRouteMatch(PortInfo_S*inPortInfo,PortInfo_S*matchPortInfo)
 
 		DBG_InfoMsg("EX_GetRouteMatch buf %s p %s\n",buf,p);
 		matchPortInfo->signal = SIGNAL_VIDEO;
-		if(!memcmp(p,"HDMI3",strlen("HDMI3")))
+		if(strcmp(g_version_info.model,IPE_W_MODULE)==0)
 		{
-			matchPortInfo->direction = DIRECTION_IN;
-			matchPortInfo->portFormat = PORT_USB_C;
-			matchPortInfo->portIndex = 3;
-			matchPortInfo->index = 1;
+			if(!memcmp(p,"HDMI2",strlen("HDMI2")))
+			{
+				matchPortInfo->direction = DIRECTION_IN;
+				matchPortInfo->portFormat = PORT_USB_C;
+				matchPortInfo->portIndex = 2;
+				matchPortInfo->index = 1;
+			}
+			else if(!memcmp(p,"HDMI1",strlen("HDMI1")))
+			{
+				matchPortInfo->direction = DIRECTION_IN;
+				matchPortInfo->portFormat = PORT_HDMI;
+				matchPortInfo->portIndex = 1;
+				matchPortInfo->index = 1;
+			}
 		}
-		else if(!memcmp(p,"HDMI2",strlen("HDMI2")))
+		else if(strcmp(g_version_info.model,IPE_P_MODULE)==0)
 		{
-			matchPortInfo->direction = DIRECTION_IN;
-			matchPortInfo->portFormat = PORT_HDMI;
-			matchPortInfo->portIndex = 2;
-			matchPortInfo->index = 1;
-		}
-		else if(!memcmp(p,"HDMI1",strlen("HDMI1")))
-		{
-			matchPortInfo->direction = DIRECTION_IN;
-			matchPortInfo->portFormat = PORT_HDMI;
-			matchPortInfo->portIndex = 1;
-			matchPortInfo->index = 1;
+			if(!memcmp(p,"HDMI3",strlen("HDMI3")))
+			{
+				matchPortInfo->direction = DIRECTION_IN;
+				matchPortInfo->portFormat = PORT_USB_C;
+				matchPortInfo->portIndex = 3;
+				matchPortInfo->index = 1;
+			}
+			else if(!memcmp(p,"HDMI2",strlen("HDMI2")))
+			{
+				matchPortInfo->direction = DIRECTION_IN;
+				matchPortInfo->portFormat = PORT_HDMI;
+				matchPortInfo->portIndex = 2;
+				matchPortInfo->index = 1;
+			}
+			else if(!memcmp(p,"HDMI1",strlen("HDMI1")))
+			{
+				matchPortInfo->direction = DIRECTION_IN;
+				matchPortInfo->portFormat = PORT_HDMI;
+				matchPortInfo->portIndex = 1;
+				matchPortInfo->index = 1;
+			}
 		}
 #else
 	int port = 0;
