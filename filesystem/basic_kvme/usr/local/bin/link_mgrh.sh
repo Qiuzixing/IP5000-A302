@@ -1341,10 +1341,10 @@ handle_e_key()
 		e_key_up_pressed)
 			if [ "$MODEL_NUMBER" = 'WP-SW2-EN7' ];then
 				LED_DISPLAY_CH_SELECT_V=`echo -e $LED_DISPLAY_CH_SELECT_V | sed -r 's/0*([0-9])/\1/'`
-				if [ $LED_DISPLAY_CH_SELECT_V -ge 999 ];then
-					return
-				fi
 				LED_DISPLAY_CH_SELECT_V=$[ $LED_DISPLAY_CH_SELECT_V + 1 ]
+				if [ $LED_DISPLAY_CH_SELECT_V -gt 999 ];then
+					LED_DISPLAY_CH_SELECT_V=1
+				fi
 				kill_process wp_dec7_key_timer.sh
 				./wp_dec7_key_timer.sh $LED_DISPLAY_CH_SELECT_V &
 				return
@@ -1354,10 +1354,10 @@ handle_e_key()
 		e_key_down_pressed)
 			if [ "$MODEL_NUMBER" = 'WP-SW2-EN7' ];then
 				LED_DISPLAY_CH_SELECT_V=`echo -e $LED_DISPLAY_CH_SELECT_V | sed -r 's/0*([0-9])/\1/'`
-				if [ $LED_DISPLAY_CH_SELECT_V -le 0 ];then
-					return
-				fi
 				LED_DISPLAY_CH_SELECT_V=$[ $LED_DISPLAY_CH_SELECT_V - 1 ]
+				if [ $LED_DISPLAY_CH_SELECT_V -lt 1 ];then
+					LED_DISPLAY_CH_SELECT_V=999
+				fi
 				kill_process wp_dec7_key_timer.sh
 				./wp_dec7_key_timer.sh $LED_DISPLAY_CH_SELECT_V &
 				return
