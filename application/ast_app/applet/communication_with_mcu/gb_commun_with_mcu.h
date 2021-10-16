@@ -119,6 +119,7 @@ typedef enum
     IPC_LCD_GET_TYPE,
     IPC_LCD_CONTROL,
     IPC_LCD_SET_CONTENT,
+    IPC_SET_LED_CONTROL,
 
     //audio_autoswitch
     IPC_AUDIO_IN,
@@ -140,6 +141,7 @@ typedef struct
 void do_handle_set_gpio_val(uint16_t cmd,char *cmd_param);
 void do_handle_set_audio_insert_extract(uint16_t cmd,char *cmd_param);
 void do_handle_set_hdcp_cap(uint16_t cmd,char *cmd_param);
+void do_handle_set_led_control(uint16_t cmd,char *cmd_param);
 #define DANTE_UART_BUFFER 256
 
 #endif

@@ -456,11 +456,11 @@ static int ast1500_led_probe(struct platform_device *dev)
 		dev_err(&dev->dev, "led_classdev_register failed\n");
 		goto exit_err1;
 	}
-	if(0 == strcmp(pdata->name,"led_on_g"))
+	if(0 == strcmp(pdata->name,"led_on_g") || 0 == strcmp(pdata->name,"on_green"))
 	{
 		gpio_set_value(pdata->gpio,0);
 	}
-	if(0 == strcmp(pdata->name,"led_on_r"))
+	if(0 == strcmp(pdata->name,"led_on_r") || 0 == strcmp(pdata->name,"on_red"))
 	{
 		gpio_set_value(pdata->gpio,0);
 	}

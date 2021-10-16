@@ -424,8 +424,9 @@ enum LEDMode {
 struct CmdDataLEDControl {
     uint8_t led;  // enum Led
     uint8_t mode; // enum LEDMode
-    uint8_t onTime;  // ms
-    uint8_t offTime; // ms
+    uint16_t onTime;  // ms
+    uint16_t offTime; // ms
+    uint8_t rsvd[2];
 };
 
 enum LCDType {

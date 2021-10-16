@@ -100,6 +100,7 @@ const ipc_cmd_struct ipc_cmd_list[] =
         {IPC_LCD_GET_TYPE,              "get_lcd_type",             sizeof("get_lcd_type"),         CMD_LCD_GET_TYPE,                   SEND_CMD},
         {IPC_LCD_CONTROL,               "set_lcd_control",          sizeof("set_lcd_control"),      CMD_LCD_CONTROL,                    SEND_CMD},
         {IPC_LCD_SET_CONTENT,           "set_lcd_content",          sizeof("set_lcd_content"),      CMD_LCD_SET_CONTENT,                SEND_CMD},
+        {IPC_SET_LED_CONTROL,           "set_led_control",          sizeof("set_led_control"),      CMD_LED_CONTROL,                    SEND_CMD},
         //audio_autoswitch
         {IPC_AUDIO_IN,                  "audio_in",                 sizeof("audio_in"),             0,                                  SEND_CMD},
         {IPC_AUDIO_OUT,                 "audio_out",                sizeof("audio_out"),            0,                                  SEND_CMD}
@@ -357,6 +358,7 @@ static void do_handle_get_cmd(uint16_t cmd,char *cmd_param)
 static void do_handle_input_source(uint16_t cmd,char *cmd_param)
 {
     struct CmdDataInputSorce vdo_source;
+
     memset((unsigned char *)&vdo_source, 0, sizeof(vdo_source));
     char *tx_port_num = strtok(cmd_param,":");
     char *rx_port_num = strtok(NULL,":");
@@ -369,13 +371,20 @@ static void do_handle_input_source(uint16_t cmd,char *cmd_param)
         uint16_t gpio_cmd = CMD_GPIO_SET_VAL;
         char select_usb_type_c[] = "1:66:0";
         char select_usb_type_b[] = "1:66:1";
-        if(vdo_source.rxPort == HDMIRX3)
+        switch(board_type_flag)
         {
-            do_handle_set_gpio_val(gpio_cmd,select_usb_type_c);
-        }
-        else
-        {
-            do_handle_set_gpio_val(gpio_cmd,select_usb_type_b);
+            case IPE5000P:
+                if(vdo_source.rxPort == HDMIRX3)
+                {
+                    do_handle_set_gpio_val(gpio_cmd,select_usb_type_c);
+                }
+                else
+                {
+                    do_handle_set_gpio_val(gpio_cmd,select_usb_type_b);
+                }
+                break;
+            default:
+                break;
         }
     }
     else
@@ -634,6 +643,26 @@ void do_handle_set_lcd_content(uint16_t cmd,char *cmd_param)
     }
 }
 
+void do_handle_set_led_control(uint16_t cmd,char *cmd_param)
+{
+    struct CmdDataLEDControl LEDControl;
+    char *led = strtok(cmd_param,":");
+    char *led_mode = strtok(NULL,":");
+    if(led != NULL && led_mode != NULL)
+    {
+        LEDControl.led = atoi(led);
+        LEDControl.mode = atoi(led_mode);
+        if(LED_MODE_FLASH == LEDControl.mode)
+        {
+            char *delay_on = strtok(NULL,":");
+            char *delay_off = strtok(NULL,":");
+            LEDControl.onTime = atoi(delay_on);
+            LEDControl.offTime = atoi(delay_off);
+        }
+    }
+    APP_Comm_Send(cmd, (U8*)(&LEDControl), sizeof(struct CmdDataLEDControl));
+}
+
 void do_handle_set_audio_insert_extract(uint16_t cmd,char *cmd_param)
 {
     struct CmdDataAudioInsertAndExtract ado_insert;
@@ -824,6 +853,9 @@ static void do_handle_ipc_cmd(int index,char *cmd_param)
         break;
     case IPC_LCD_SET_CONTENT:
         do_handle_set_lcd_content(ipc_cmd_list[index].a30_cmd,cmd_param);
+        break;
+    case IPC_SET_LED_CONTROL:
+        do_handle_set_led_control(ipc_cmd_list[index].a30_cmd,cmd_param);
         break;
     //audio_autoswitch
     case IPC_AUDIO_IN:

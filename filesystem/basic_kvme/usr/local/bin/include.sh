@@ -19,8 +19,10 @@ NET_ON_G="led_status_g"
 NET_ON_R="led_status_r"
 BOARD_ON_R="led_on_r"
 BOARD_ON_G="led_on_g"
+IPE5000W_INPUT_SOURCE_LED="hdmi"
 IPD5000W_BOARD_ON_R="on_red"
 IPD5000W_BOARD_ON_G="on_green"
+IPD5000W_HDMI_LED="led_hdmi"
 NET_IP_FALLBACK_BLINK_ON='500'
 NET_IP_FALLBACK_BLINK_OFF='10000'
 NET_FLAG_ME_BLINK_ON='250'
@@ -64,13 +66,36 @@ a30_led_on()
 {
 	case $MODEL_NUMBER in
 		WP-DEC7)
-			if [ "$1" = "$BOARD_ON_G" ];then
-				echo none > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_G/trigger
-				echo 0 > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_G/brightness
-			elif [ "$1" = "$BOARD_ON_R" ];then
-				echo none > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_R/trigger
-				echo 0 > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_R/brightness
-			fi
+			case $1 in
+				$BOARD_ON_G)
+					echo none > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_G/trigger
+					echo 0 > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_G/brightness
+				;;
+				$BOARD_ON_R)
+					echo none > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_R/trigger
+					echo 0 > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_R/brightness
+				;;
+				$LINK_ON_G)
+					echo none > ${GPIO_SYS_PATH}/$IPD5000W_HDMI_LED/trigger
+					echo 0 > ${GPIO_SYS_PATH}/$IPD5000W_HDMI_LED/brightness
+				;;
+				*)
+				;;
+			esac
+			return
+		;;
+		WP-SW2-EN7)
+			case $1 in
+				$LINK_ON_G)
+					if [ $IPE5000W_INPUT_SOURCE_LED = 'hdmi' ];then
+						ipc @m_lm_set s set_led_control:0:1
+					else
+						ipc @m_lm_set s set_led_control:1:1
+					fi
+				;;
+				*)
+				;;
+			esac
 			return
 		;;
 		*)
@@ -84,13 +109,22 @@ a30_led_off()
 {
 	case $MODEL_NUMBER in
 		WP-DEC7)
-			if [ "$1" = "$BOARD_ON_G" ];then
-				echo none > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_G/trigger
-				echo 1 > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_G/brightness
-			elif [ "$1" = "$BOARD_ON_R" ];then
-				echo none > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_R/trigger
-				echo 1 > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_R/brightness
-			fi
+			case $1 in
+				$BOARD_ON_G)
+					echo none > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_G/trigger
+					echo 1 > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_G/brightness
+				;;
+				$BOARD_ON_R)
+					echo none > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_R/trigger
+					echo 1 > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_R/brightness
+				;;
+				$LINK_ON_G)
+					echo none > ${GPIO_SYS_PATH}/$IPD5000W_HDMI_LED/trigger
+					echo 1 > ${GPIO_SYS_PATH}/$IPD5000W_HDMI_LED/brightness
+				;;
+				*)
+				;;
+			esac
 			return
 		;;
 		*)
@@ -104,15 +138,25 @@ a30_led_blink()
 {
 	case $MODEL_NUMBER in
 		WP-DEC7)
-			if [ "$1" = "$BOARD_ON_G" ];then
-				echo $2 > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_G/delay_off
-				echo $3 > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_G/delay_on
-				echo timer > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_G/trigger
-			elif [ "$1" = "$BOARD_ON_R" ];then
-				echo $2 > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_R/delay_off
-				echo $3 > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_R/delay_on
-				echo timer > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_R/trigger
-			fi
+			case $1 in
+				$BOARD_ON_G)
+					echo $2 > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_G/delay_off
+					echo $3 > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_G/delay_on
+					echo timer > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_G/trigger
+				;;
+				$BOARD_ON_R)
+					echo $2 > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_R/delay_off
+					echo $3 > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_R/delay_on
+					echo timer > ${GPIO_SYS_PATH}/$IPD5000W_BOARD_ON_R/trigger
+				;;
+				$LINK_ON_G)
+					echo $2 > ${GPIO_SYS_PATH}/$IPD5000W_HDMI_LED/delay_off
+					echo $3 > ${GPIO_SYS_PATH}/$IPD5000W_HDMI_LED/delay_on
+					echo timer > ${GPIO_SYS_PATH}/$IPD5000W_HDMI_LED/trigger
+				;;
+				*)
+				;;
+			esac
 			return
 		;;
 		*)

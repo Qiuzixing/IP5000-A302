@@ -646,6 +646,9 @@ handle_e_video_start_working()
 			echo "Video start capture"
 			# We change state to s_srv_on state, but stop blinking the LED_LINK
 			to_s_srv_on
+			if [ $MODEL_NUMBER = 'WP-SW2-EN7' ];then
+				return
+			fi
 			a30_led_on $LINK_ON_G
 		;;
 		s_stop_srv)
@@ -2025,6 +2028,20 @@ handle_e_p3k()
 	esac
 }
 
+handle_e_ipe5000w_led_chose()
+{
+	case "$*" in
+		e_ipe5000w_led_hdmi)
+			IPE5000W_INPUT_SOURCE_LED="hdmi"
+		;;
+		e_ipe5000w_led_typec)
+			IPE5000W_INPUT_SOURCE_LED="typec"
+		;;
+		*)
+		;;
+	esac
+}
+
 state_machine()
 {
 	# Bruce160308. Try to ignore all TERM signals.
@@ -2107,6 +2124,9 @@ state_machine()
 			;;
 			e_chg_hostname*)
 				handle_e_chg_hostname "$event"
+			;;
+			e_ipe5000w_led*)
+				handle_e_ipe5000w_led_chose "$event"
 			;;
 			e_?*)
 				tickle_watchdog

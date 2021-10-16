@@ -340,6 +340,103 @@ static int socket_msg_struct_conver(socket_msg *msg,char port,char is_connect,ch
     return ret;
 }
 
+static void a30_led_link_control(struct CmdDataLinkStatus *vdo_link)
+{
+    char hdmi_led_blink[] = "0:2:500:500";
+    char typec_led_blink[] = "1:2:500:500";
+    char hdmi_led_off[] = "0:0";
+    char typec_led_off[] = "1:0";
+    if(board_type_flag == IPE5000 || board_type_flag == IPE5000P || board_type_flag == IPE5000W)
+    {
+        if(vdo_link->port == HDMIRX1 || vdo_link->port == HDMIRX2 || vdo_link->port == HDMIRX3)
+        {
+            if(vdo_link->isHpd == 0)
+            {
+                if(vdo_link->isConnect == 1)
+                {
+                    if(board_type_flag == IPE5000W)
+                    {
+                        if(auto_av_report_flag == OPEN_REPROT)
+                        {
+                            if(vdo_link->port == HDMIRX1)
+                            {
+                                do_handle_set_led_control(CMD_LED_CONTROL,hdmi_led_blink);
+                            }
+                            else if(vdo_link->port == HDMIRX2)
+                            {
+                                do_handle_set_led_control(CMD_LED_CONTROL,typec_led_blink);
+                            }
+                            else
+                            {
+
+                            }
+                        }
+                    }
+                    else
+                    {
+                        system("echo 500 > /sys/class/leds/led_link_g/delay_on");
+                        system("echo 500 > /sys/class/leds/led_link_g/delay_off");
+                        system("echo timer > /sys/class/leds/led_link_g/trigger");
+                    }
+                }
+                else
+                {
+                    if(board_type_flag == IPE5000W)
+                    {
+                        if(auto_av_report_flag == OPEN_REPROT)
+                        {
+                            if(vdo_link->port == HDMIRX1)
+                            {
+                                do_handle_set_led_control(CMD_LED_CONTROL,hdmi_led_off);
+                            }
+                            else if(vdo_link->port == HDMIRX2)
+                            {
+                                do_handle_set_led_control(CMD_LED_CONTROL,typec_led_off);
+                            }
+                            else
+                            {
+
+                            }
+                        }
+
+                    }
+                    else
+                    {
+                        system("echo none > /sys/class/leds/led_link_g/trigger");
+                        system("echo 1 > /sys/class/leds/led_link_g/brightness");
+                    }
+                }
+            }
+        }
+    }
+}
+
+static void ipe5000w_led_light_up(struct CmdDataVideoStatus *vdo_status)
+{
+    char hdmi_led_on[] = "0:1";
+    char hdmi_led_off[] = "0:0";
+    char typec_led_on[] = "1:1";
+    char typec_led_off[] = "1:0";
+    if(vdo_status->isStable == 1)
+    {
+        switch(vdo_status->port)
+        {
+            case HDMIRX1:
+                do_handle_set_led_control(CMD_LED_CONTROL,hdmi_led_on);
+                do_handle_set_led_control(CMD_LED_CONTROL,typec_led_off);
+                break;
+            case HDMIRX2:
+                do_handle_set_led_control(CMD_LED_CONTROL,typec_led_on);
+                do_handle_set_led_control(CMD_LED_CONTROL,hdmi_led_off);
+                break;
+            case HDMIRX3:
+                break; 
+            default:
+                break;                         
+        }
+    }
+}
+
 int APP_Comm_Recv(CmdProtocolParam * param)
 {
 
@@ -389,28 +486,7 @@ int APP_Comm_Recv(CmdProtocolParam * param)
             memset(&vdo_link, 0, sizeof(vdo_link));
             memcpy(&vdo_link, &param->Data, sizeof(vdo_link));
             printf("port[0x%x] connect [0x%x] isHpd [0x%x]\n", vdo_link.port, vdo_link.isConnect,vdo_link.isHpd);
-            if(board_type_flag == IPE5000 || board_type_flag == IPE5000P)
-            {
-                if(vdo_link.port == HDMIRX1 || vdo_link.port == HDMIRX2 || vdo_link.port == HDMIRX3)
-                {
-                    if(vdo_link.isHpd == 0)
-                    {
-                        if(vdo_link.isConnect == 1)
-                        {
-                            system("echo 500 > /sys/class/leds/led_link_g/delay_on");
-                            system("echo 500 > /sys/class/leds/led_link_g/delay_off");
-                            system("echo timer > /sys/class/leds/led_link_g/trigger");
-                        }
-                        else
-                        {
-                            system("echo none > /sys/class/leds/led_link_g/trigger");
-                            system("echo 1 > /sys/class/leds/led_link_g/brightness");
-                        }
-
-                    }
-                }
-            }
-
+            a30_led_link_control(&vdo_link);
             if(auto_av_report_flag == OPEN_REPROT && 0 == socket_msg_struct_conver(&send_socket_msg,vdo_link.port,vdo_link.isConnect,-1))
             {
                 sendEvent(sock_fd,send_socket_msg.type,send_socket_msg.source);
@@ -420,11 +496,17 @@ int APP_Comm_Recv(CmdProtocolParam * param)
         case EVENT_HDMI_VIDEO_STATUS:
             memset(&vdo_status, 0, sizeof(vdo_status));
             memcpy(&vdo_status, (struct CmdDataVideoStatus *)param->Data, sizeof(vdo_status));
-            printf("port[0x%x] stable [0x%x]\n", vdo_status.port, vdo_status.isStable); 
+            printf("port[0x%x] stable [0x%x]\n", vdo_status.port, vdo_status.isStable);
+            if(board_type_flag == IPE5000W)
+            {
+                ipe5000w_led_light_up(&vdo_status);
+            }
+
             if(auto_av_report_flag == OPEN_REPROT && 0 == socket_msg_struct_conver(&send_socket_msg,vdo_status.port,-1,vdo_status.isStable))
             {
                 sendEvent(sock_fd,send_socket_msg.type,send_socket_msg.source);
             }
+
             if(auto_av_report_flag == OPEN_REPROT && vdo_status.isStable == 1)
             {
                 audioSendEventMsg(sock_fd,"plugin","hdmi");

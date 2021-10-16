@@ -205,6 +205,14 @@ static void IPE5000W_GPIO_SET(void)
 	register_opeartion(GPIO_MUX_SCU84,5,BIT_CLEAR);
 	register_opeartion(GPIOE_H_DIR_REG,21,BIT_SET);
 	register_opeartion(GPIOE_H_DATA_REG,21,BIT_CLEAR);
+
+	/* pull up GPIOD4 */
+	/* 2021.10.09 qzx: pull down hpd pin（connect to gsv）,let it plot in the kernel */
+	register_opeartion(GPIO_MUX_SCU90,1,BIT_CLEAR);
+	register_opeartion(GPIO_MUX_SCU8C,10,BIT_CLEAR);
+	register_opeartion(GPIO_MUX_STRAP,21,BIT_CLEAR);
+	register_opeartion(GPIOA_D_DIR_REG,28,BIT_SET);
+	register_opeartion(GPIOA_D_DATA_REG,28,BIT_CLEAR);
 }
 
 static void IPD5000W_GPIO_SET(void)
