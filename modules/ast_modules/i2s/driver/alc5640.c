@@ -721,6 +721,20 @@ void alc5640_analog_out_volume_cfg(int cfg)
 	if (cfg != 0)
 		mute_mask = 0;
 
+	// Sid 2021-10-16, For Kramer, requir 80 as 0dB
+	if (cfg >= 80)
+	{
+		// Sid 2021-10-16, when cfg = 80, it should be 0dB as Kramer's requirement, and 100 is full range to 12dB
+		cfg = 100 - cfg;	// 0~20
+		cfg = (cfg * 8) / 20;	// 8 is 0dB, 0 is 12dB
+	}
+	else
+	{
+		// Sid 2021-10-16 when cfg < 80, for smooth matching from 0x3F to 8
+		cfg = 80 - cfg; // 1~79
+		cfg = ((cfg * (range - 8)) / 80) + 8; // 8 is 0dB, 0x3F is -82.5dB
+	}
+
 	/* 0x0: +12dB, 0x8: 0dB,  0x3F: -46.5dB */
 	cfg = 100 - cfg;
 	cfg = range * cfg / 100;
