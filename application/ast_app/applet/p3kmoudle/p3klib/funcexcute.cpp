@@ -2537,7 +2537,7 @@ int EX_ResetDNSName(char *name)
 int EX_SetDHCPMode(int netid,int mode)
 {
 	DBG_InfoMsg("EX_SetDHCPMode ethid= %d mode =%d\n",netid,mode);
-	if((netid == 0)||(netid == 1))
+	if((netid == 0)/*||(netid == 1)*/)
 	{
 		if((mode == 0)||(mode == 1))
 		{
