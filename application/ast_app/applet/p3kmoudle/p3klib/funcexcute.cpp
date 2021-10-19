@@ -2497,7 +2497,7 @@ int EX_SetDNSName(int id,char*name)
 		if(strlen(name)>0)
 		{
 			char sCmd[64] = "";
-			sprintf(sCmd,"e_p3k_net_hostname::%s",name);
+			sprintf(sCmd,"e_chg_hostname::%s",name);
 			DBG_InfoMsg("ast_send_event %s\n",sCmd);
 			ast_send_event(0xFFFFFFFF,sCmd);
 		}
@@ -2515,7 +2515,8 @@ int EX_GetDNSName(int id,char*name)
 {
 	if(id == 0)
 	{
-		GetBoardInfo(BOARD_HOSTNAME, name, MAX_DEV_NAME_LEN);
+		mysystem("astparam g hostname_customized",name,64);
+		//GetBoardInfo(BOARD_HOSTNAME, name, MAX_DEV_NAME_LEN);
 	}
 	else if(id == 1)
 	{
@@ -2568,7 +2569,7 @@ int EX_SetNetWorkConf(int netId,NetWorkInfo_S*netInfo)
 {
 	DBG_InfoMsg("EX_SetNetWorkConf ip %s\n",netInfo->ipAddr);
 
-	if((netId == 0)||(netId == 1))
+	if((netId == 0)/*||(netId == 1)*/)
 	{
 		if(g_network_info.eth_info[netId].dhcp_enable == 0)
 		{
