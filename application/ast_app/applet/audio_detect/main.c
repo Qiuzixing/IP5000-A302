@@ -185,7 +185,7 @@ int main(int argc, char *argv[])
 				event_msg[len] = 0;
 				if(0 == strncmp("e_audio_detect_pressed",event_msg,sizeof("e_audio_detect_pressed")))
 				{
-					if(flag == AUDIO_UNKNOW)
+					if(flag == AUDIO_UNKNOW || flag == AUDIO_OUT)
 					{
 						audioSendEventMsg(sock_fd,"plugin","analog");
 						flag = AUDIO_IN;

@@ -444,6 +444,7 @@ start_alm()
 		#set lineio_sel pin to default to line_out;0:line_out;1:line_in
 		case "$MODEL_NUMBER" in
 			KDS-EN7)
+				ipc @m_lm_set s open_report
 				echo out_analog > /sys/devices/platform/1500_i2s/io_select
 			;;
 			KDS-SW3-EN7)
@@ -466,6 +467,10 @@ start_alm()
 	if [ $UGP_FLAG = 'success' ];then
 		case "$MODEL_NUMBER" in
 			KDS-EN7)
+				audio_detect &
+				usleep 100
+				echo 500 > /sys/class/leds/audio_detect/delay
+				adc_pin_mux_gpio
 			;;
 			KDS-SW3-EN7)
 				audio_detect &

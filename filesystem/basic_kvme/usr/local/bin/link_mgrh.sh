@@ -2510,6 +2510,9 @@ esac
 if [ $UGP_FLAG = 'success' ];then
 	echo "mainswitch start."
 	case "$MODEL_NUMBER" in
+		KDS-EN7)
+			audioswitch &
+		;;
 		KDS-SW3-EN7)
 			mainswitch &
 			audioswitch &
