@@ -2587,6 +2587,9 @@ if [ $UGP_FLAG = 'success' ];then
 	esac
 fi
 
+#Initialize I2C bus3(temperature sensor)
+init_temperature_sensor
+
 #configuration function power on timing
 if [ $UGP_FLAG = 'success' ];then
 	case "$MODEL_NUMBER" in

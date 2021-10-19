@@ -3557,6 +3557,9 @@ if [ $UGP_FLAG = 'success' ];then
 	esac
 fi
 
+#Initialize I2C bus3(temperature sensor)
+init_temperature_sensor
+
 set_variable_power_on_status
 
 # TBD remove? screen switch doesn't check HAS_CRT anymore

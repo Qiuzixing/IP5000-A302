@@ -439,7 +439,9 @@ static inline unsigned int is_ast1525(void)
 
 static video_type_e get_video_loopback_type(void)
 {
-	unsigned int result;
+	//2021.10.18 qzx:Initialization parameters are VT_DISABLE,Let it not initialize I2C bus 3,Prevent interference with the temperature sensor of I2C bus 3
+	unsigned int result = VT_DISABLE;
+	return (video_type_e)result;
 
 	if (astparam_get_hex("v_loopback_type", &result)) {
 		if (ast_scu.board_info.board_revision & BOARD_REV_PATCH_VIDEO_SPLITTER) {

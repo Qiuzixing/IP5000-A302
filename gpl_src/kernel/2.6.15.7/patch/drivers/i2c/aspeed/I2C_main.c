@@ -1622,7 +1622,7 @@ int SetI2CBlock(u32 DeviceSelect, u32 DeviceAddress, u32 RegisterIndex, const u8
 EXPORT_SYMBOL(SetI2CBlock);
 
 #if 1
-static unsigned int BusNum, DevAddr, Offset = 0, Length = 1;
+static unsigned int BusNum, DevAddr, Offset = 0, Length = 1,word_offset = 0;
 #else
 static unsigned int BusNum, DevAddr, Offset, Value;
 #endif
@@ -1803,12 +1803,27 @@ static ssize_t store_io_dump(struct device *dev, struct device_attribute *attr,
 DEVICE_ATTR(io_dump, S_IWUSR, NULL, store_io_dump);
 #endif
 
+static ssize_t show_io_word(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	int i, num = 0;
+	unsigned short int value;
+	
+	if (GetI2CWord(BusNum, DevAddr, word_offset, (u16 *)&value)) {
+		num += snprintf(buf + num, PAGE_SIZE - num, "read fail\n");
+	}
+	else
+	{
+		num += snprintf(buf + num, PAGE_SIZE - num, "%x\n",value);
+	}
+	return num;
+}
+
 static ssize_t store_io_word(struct device *dev, struct device_attribute *attr,
 		const char *buf, size_t count)
 {
-	unsigned int c, offset, value;
+	unsigned int c, value;
 
-	c = sscanf(buf, "%x %x", &offset, &value);
+	c = sscanf(buf, "%x %x", &word_offset, &value);
 	if (c != 0)
 	{
 #if 0 /* WM8903 has odd offset. */
@@ -1820,19 +1835,22 @@ static ssize_t store_io_word(struct device *dev, struct device_attribute *attr,
 #endif
 		if (c == 2)
 		{
-			printk("Write word at Offset:0x%x to Value:0x%04x\n", offset, value);
-			if (SetI2CWord(BusNum, DevAddr, offset, (u16)value)) {
-				printk("Write word at Offset:0x%x FAILED!\n", offset);
+			printk("Write word at Offset:0x%x to Value:0x%04x\n", word_offset, value);
+			if (SetI2CWord(BusNum, DevAddr, word_offset, (u16)value)) {
+				printk("Write word at Offset:0x%x FAILED!\n", word_offset);
 				goto out;
 			}
 		}
 		else if (c == 1) {
-			printk("Read word at Offset:0x%x\n", offset);
-			if (GetI2CWord(BusNum, DevAddr, offset, (u16 *)&value)) {
-				printk("Read word at Offset:0x%x FAILED!\n", offset);
+			#if 0
+			printk("Read word at Offset:0x%x\n", word_offset);
+			if (GetI2CWord(BusNum, DevAddr, word_offset, (u16 *)&value)) {
+				printk("Read word at Offset:0x%x FAILED!\n", word_offset);
 				goto out;
 			}
 			printk("Value:0x%04x\n", value);
+			#endif
+			printk("Offset:0x%x\n", word_offset);
 		}
 	}
 	else
@@ -1842,7 +1860,7 @@ static ssize_t store_io_word(struct device *dev, struct device_attribute *attr,
 out:
 	return count;
 }
-DEVICE_ATTR(io_word, S_IWUSR, NULL, store_io_word);
+DEVICE_ATTR(io_word, (S_IRUGO|S_IWUSR), show_io_word, store_io_word);
 
 static ssize_t store_d_word(struct device *dev, struct device_attribute *attr,
 		const char *buf, size_t count)
