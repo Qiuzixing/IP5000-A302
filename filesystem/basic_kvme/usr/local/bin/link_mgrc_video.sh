@@ -486,27 +486,33 @@ handle_ve_rgb()
 handle_ve_scale()
 {
 	local _para1=$1
-	echo "handle_ve_scale.($_para1)" 
-	
+	echo "handle_ve_scale.($_para1)"
+
 	case "$_para1" in
 		pass)
 			astparam s v_output_timing_convert 0
+			echo 0 > /sys/devices/platform/videoip/output_timing_convert
 		;;
 		2160p30)
 			astparam s v_output_timing_convert 8000005F
+			echo 8000005F > /sys/devices/platform/videoip/output_timing_convert
 		;;
 		2160p25)
 			astparam s v_output_timing_convert 8000005E
+			echo 8000005E > /sys/devices/platform/videoip/output_timing_convert
 		;;
 		1080p60)
 			astparam s v_output_timing_convert 80000010
+			echo 80000010 > /sys/devices/platform/videoip/output_timing_convert
 		;;
 		1080p50)
 			astparam s v_output_timing_convert 8000001F
+			echo 8000001F > /sys/devices/platform/videoip/output_timing_convert
 		;;
 		720p60)
 			astparam s v_output_timing_convert 80000004
-		;;		
+			echo 80000004 > /sys/devices/platform/videoip/output_timing_convert
+		;;
 		*)
 			echo "ERROR: Unknown param ($1)!?"
 		;;
