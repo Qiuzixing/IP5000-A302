@@ -13,7 +13,7 @@ int IPD5000_MAIN_MENU_SHOW(void);
 
 static void IP_SETTING_MENU_SHOW_D(void);
 static void VIDEO_IN_SELECT_SHOW_D(void);
-static void VEDIO_OUT_RES_SHOW_D();
+static void VIDEO_OUT_RES_SHOW_D();
 static void HDCP_SHOW_D();
 static void FIRMWARE_INFO_SHOW_D();
 static void DEVICE_STATUS_SHOW_D();

@@ -61,7 +61,7 @@ char firmware_buf[MIN_SIZE_D][SIZE_D];
 //用来显示的
 const char* MAIN_MENU_strings_D[] = {
 	"MAIN MENU", "VIDEO SELECT", "IP SETTING", "HDCP SETTING",
-	"VEDIO OUT RES", "FIRMWARE INFO", "DEVICE STATUS",
+	"VIDEO OUT RES", "FIRMWARE INFO", "DEVICE STATUS",
 };
 
 const char* IP_SET_strings_D[] = {
@@ -482,9 +482,9 @@ int IPD5000_MAIN_MENU_SHOW(void)
 						break;
 					}
 	
-					if ( MAIN_MENU_SHOWWING_D[param.x/2] == MAIN_MENU_strings_D[4]) //  VEDIO OUT RES
+					if ( MAIN_MENU_SHOWWING_D[param.x/2] == MAIN_MENU_strings_D[4]) //  VIDEO OUT RES
 					{
-						VEDIO_OUT_RES_SHOW_D();
+						VIDEO_OUT_RES_SHOW_D();
 						break;
 					}
 					if (MAIN_MENU_SHOWWING_D[param.x/2] == MAIN_MENU_strings_D[5]) // FIRMWARE INFO
@@ -1016,7 +1016,7 @@ void VIDEO_IN_SELECT_SHOW_D(void)
 }
 
 //二级目录
-void VEDIO_OUT_RES_SHOW_D()
+void VIDEO_OUT_RES_SHOW_D()
 {
 	u8 count = 2;
 	int p = 4; 
