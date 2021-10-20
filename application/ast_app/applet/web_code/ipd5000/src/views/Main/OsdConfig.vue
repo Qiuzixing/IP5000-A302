@@ -302,7 +302,7 @@ export default {
       }
     },
     getOsdJson () {
-      this.$http.post('/device/json?path=/osd/osd.json&t=' + Math.random()).then(msg => {
+      this.$http.get('/device/json?path=/osd/osd.json&t=' + Math.random()).then(msg => {
         if (msg.data.channel_menu) {
           this.osdConfig = msg.data.channel_menu
         }
