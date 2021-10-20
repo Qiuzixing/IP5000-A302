@@ -862,8 +862,23 @@ int Cfg_Init_Version(void)
 	GetBoardInfo(BOARD_BUILD_DATE, g_version_info.build_time, 16);
 
 	sprintf(g_version_info.file_version,"1.0.0");
-	sprintf(g_version_info.standby_version,"1.0.0");
-	sprintf(g_version_info.upg_time,"01-01-2020,00:00:00");
+
+	char time[16] = "";
+	mysystem("astparam misc g upg_time",time,16);
+
+	char stb_ver[16] = "";
+	mysystem("astparam misc g stb_ver",stb_ver,16);
+
+	strcpy(g_version_info.standby_version,stb_ver);
+
+	time_t secTime;
+	struct tm *ptime =NULL;
+	secTime = atol(time);
+	ptime = localtime(&secTime);
+
+	sprintf(g_version_info.upg_time,"%02d-%02d-%04d,%02d:%02d:%02d",ptime->tm_mon+1,ptime->tm_mday,ptime->tm_year+1900,ptime->tm_hour,ptime->tm_min,ptime->tm_sec);
+
+//	sprintf(g_version_info.upg_time,"01-01-2020,00:00:00");
 
 
 	//Check version cfg

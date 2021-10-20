@@ -704,6 +704,8 @@ int EX_SetRollback(char * type)
 	char * aOk = "ok";
 	memcpy(type,aOk,strlen(aOk));
 
+	char cmd[64] = "";
+
 	char* cmd1 = "astparam misc g cursys";
 	char buf1[64] = "";
 
@@ -717,6 +719,9 @@ int EX_SetRollback(char * type)
 	else if(strstr(buf1,"a") != 0)
 	{
 		strcpy(g_version_info.standby_version,g_version_info.fw_version);
+		sprintf(cmd, "astparam misc s stb_ver %s",g_version_info.standby_version);
+		system(cmd);
+
 		Cfg_Update_Version();
 		system("astparam misc s cursys b");
 		system("reboot");
@@ -724,6 +729,9 @@ int EX_SetRollback(char * type)
 	else if(strstr(buf1,"b") != 0)
 	{
 		strcpy(g_version_info.standby_version,g_version_info.fw_version);
+		sprintf(cmd, "astparam misc s stb_ver %s",g_version_info.standby_version);
+		system(cmd);
+
 		Cfg_Update_Version();
 		system("astparam misc s cursys a");
 		system("reboot");
@@ -2689,6 +2697,14 @@ int EX_Upgrade(void)
 	ptime = localtime(&secTime);
 
 	sprintf(g_version_info.upg_time,"%02d-%02d-%04d,%02d:%02d:%02d",ptime->tm_mon+1,ptime->tm_mday,ptime->tm_year+1900,ptime->tm_hour,ptime->tm_min,ptime->tm_sec);
+
+	char cmd[64] = "";
+	sprintf(cmd, "astparam misc s upg_time %d",(int)secTime);
+	system(cmd);
+
+	memset(cmd,0,64);
+	sprintf(cmd, "astparam misc s stb_ver %s",g_version_info.standby_version);
+	system(cmd);
 
 	Cfg_Update_Version();
 

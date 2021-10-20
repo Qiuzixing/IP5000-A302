@@ -571,6 +571,8 @@ int EX_AutomaticReporting(char * info);
 int EX_GetCECGateWayMode(void);
 int EX_SetCfgModify(char* cfgName);
 
+int mysystem(char* cmdstring, char* buf, int len);
+
 int Clear_Re(void);
 
 int classTest(int a,int b);
