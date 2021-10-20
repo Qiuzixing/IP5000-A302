@@ -5,6 +5,7 @@ obj-$(CONFIG_LEDS_CLASS)		+= led-class.o
 obj-$(CONFIG_LEDS_TRIGGERS)		+= led-triggers.o
 
 # LED Platform Drivers
+obj-$(CONFIG_LEDS_AST1500)		+= oled_booting/
 obj-$(CONFIG_LEDS_AST1500)		+= leds-ast1500.o
 
 # LED Triggers

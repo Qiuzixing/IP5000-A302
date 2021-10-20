@@ -17,6 +17,7 @@
 #include <linux/sysdev.h>
 #include <linux/timer.h>
 #include <linux/ctype.h>
+#include "oled_booting/oled.h"
 
 /* This macro convert true/false to 1/0. */
 #define LOGIC_TO_01(l) (!!(l))
@@ -472,6 +473,17 @@ static int ast1500_led_probe(struct platform_device *dev)
 	if(0 == strcmp(pdata->name,"i2c_mux_gpio"))
 	{
 		gpio_set_value(pdata->gpio,0);
+	}
+
+	
+	if(0 == strcmp(pdata->name,"lcd_power"))
+	{
+		gpio_set_value(pdata->gpio,0);
+		mdelay(10);
+		if(ast_scu.astparam.model_number == A30_IPD5000 || ast_scu.astparam.model_number == A30_IPE5000 || ast_scu.astparam.model_number == A30_IPE5000P)
+		{
+			oled_set_booting();
+		}
 	}
 
 	if(0 == strcmp(pdata->name,"mcu_reset"))
