@@ -2552,7 +2552,7 @@ if [ $UGP_FLAG = 'success' ];then
 	do
 		end_time=$(date +%s)
 		time_diff=$(( $end_time - $start_time ))
-		if [ $time_diff -ge 1 ];then
+		if [ $time_diff -ge 2 ];then
 			UGP_FLAG="fail"
 			break
 		fi
