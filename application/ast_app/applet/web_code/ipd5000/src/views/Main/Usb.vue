@@ -26,8 +26,7 @@
                          controls-position="right"
                          :min="5"
                          :max="10"
-                         :disabled="castMode === '1'"
-                         @blur="checkBlur"></el-input-number>
+                         :disabled="castMode === '1'"></el-input-number>
       </div>
       <div class="radio-setting"
            v-if="kvmMode === 'km'">
@@ -45,24 +44,22 @@
            v-if="roaming === '1' && kvmMode === 'km'">
         <div class="error-input">
           Row:
-          <el-input-number style="width: 60px;margin-right: 24px;"
+          <el-input-number style="width: 80px;margin-right: 24px;"
                            controls-position="right"
                            v-model="row"
                            :max="16"
                            :min="1"
-                           @change="handleRowKvmMap"
-                           @blur="checkBlur"></el-input-number>
+                           @change="handleRowKvmMap"></el-input-number>
           Col:
-          <el-input-number style="width: 60px;margin-right: 24px;"
+          <el-input-number style="width: 80px;margin-right: 24px;"
                            controls-position="right"
                            v-model="col"
                            :max="16"
                            :min="1"
-                           @change="handleColKvmMap"
-                           @blur="checkBlur"></el-input-number>
+                           @change="handleColKvmMap"></el-input-number>
           <!-- <button class="btn btn-primary">CHANGE</button> -->
           <span class="alert-error"
-                style="top: 40px;"
+                style="top: 60px;"
                 v-if="(col * row) > 16">Maximum 16 Slaves</span>
         </div>
         <div v-if="(col * row) <= 16"
@@ -150,11 +147,6 @@ export default {
     handleIpCastMode (msg) {
       this.castMode = msg.split(' ')[1]
     },
-    checkBlur () {
-      this.timeout = this.timeout || 5
-      this.col = this.col || this.kvmMap[0].length
-      this.row = this.row || this.kvmMap.length
-    },
     save () {
       if (this.roaming === '1' && this.col * this.row > 16) return
       this.kvm.kvm_timeout_sec = this.timeout
@@ -208,12 +200,11 @@ export default {
       }
     },
     handleRowKvmMap (currentVal, oldVal) {
-      if (this.col * this.row <= 16) {
-        // 非法值到有效值时检查，5 x 4 => 4 * 4
-        if (currentVal === this.kvmMap.length) return
-        if (currentVal > oldVal) {
-          const v = this.kvmMap[this.kvmMap.length - 1][0].v - 1
-          const startX = this.kvmMap[0][0].h
+      // 非法值到有效值时检查，5 x 4 => 4 * 4
+      if (currentVal > oldVal) {
+        const v = this.kvmMap[this.kvmMap.length - 1][0].v - 1
+        const startX = this.kvmMap[0][0].h
+        for (let i = 0; i < currentVal - oldVal; i++) {
           const arr = [...new Array(this.col)].map((item, index) => {
             return {
               mac: '',
@@ -222,31 +213,35 @@ export default {
             }
           })
           this.kvmMap.push(arr)
-        } else {
+        }
+      } else {
+        for (let i = 0; i < oldVal - currentVal; i++) {
           this.kvmMap.pop()
         }
-        this.checkMasterExist()
       }
+      this.checkMasterExist()
     },
     handleColKvmMap (currentVal, oldVal) {
-      if (this.col * this.row <= 16) {
-        // 非法值到有效值时检查，4 x 5 => 4 * 4
-        if (currentVal === this.kvmMap[0].length) return
-        if (currentVal > oldVal) {
-          const h = this.kvmMap[0][this.kvmMap[0].length - 1].h + 1
-          this.kvmMap.forEach(item => {
+      // 非法值到有效值时检查，4 x 5 => 4 * 4
+      if (currentVal === this.kvmMap[0].length) return
+      if (currentVal > oldVal) {
+        this.kvmMap.forEach(item => {
+          for (let i = 0; i < currentVal - oldVal; i++) {
+            const h = this.kvmMap[0][this.kvmMap[0].length - 1].h + 1
             item.push({
               mac: '',
               h,
               v: item[0].v
             })
-          })
-        } else {
-          this.kvmMap.forEach(item => {
+          }
+        })
+      } else {
+        this.kvmMap.forEach(item => {
+          for (let i = 0; i < oldVal - currentVal; i++) {
             item.pop()
-          })
-          this.checkMasterExist()
-        }
+          }
+        })
+        this.checkMasterExist()
       }
     },
     // 检查master是否存在， 不存在重置为第一个。

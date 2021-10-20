@@ -6,7 +6,7 @@ const socket = {
   data: [],
   stopSend: false,
   host: window.location.protocol === 'http:' ? 'ws://' + window.location.host + '/websocket' : 'wss://' + window.location.host + '/websocket',
-  // host: 'ws://' + window.location.hostname + ':19999',
+  // host: 'ws://' + window.location.hostname + ':20000',
   isCreateWs: false,
   supportWs: true,
   command: 'command',

@@ -227,8 +227,8 @@
         <span class="setting-title">UDP Port</span>
         <el-input-number v-model="udp"
                          controls-position="right"
-                         :max="50000"
-                         :min="50999"></el-input-number>
+                         :min="50000"
+                         :max="50999"></el-input-number>
       </div>
     </div>
     <footer>

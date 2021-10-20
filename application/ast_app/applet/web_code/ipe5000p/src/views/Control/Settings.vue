@@ -30,7 +30,7 @@
                 @click="sendCECCmd">SEND</button>
       </div>
       <div class="radio-setting">
-        <span class="setting-title">responses </span>
+        <span class="setting-title">Responses </span>
         <div>
           <div class="res-title">
             <span>Command</span>

@@ -1,9 +1,12 @@
 @font-face {
   font-family: 'open sans regular';
   src: url('../fonts/opensans_regular_macroman/OpenSans-Regular-webfont.eot');
-  src: url('../fonts/opensans_regular_macroman/OpenSans-Regular-webfont.eot?#iefix') format('embedded-opentype'),
-  url('../fonts/opensans_regular_macroman/OpenSans-Regular-webfont.woff') format('woff'),
-  url('../fonts/opensans_regular_macroman/OpenSans-Regular-webfont.ttf') format('truetype');
+  src: url('../fonts/opensans_regular_macroman/OpenSans-Regular-webfont.eot?#iefix')
+      format('embedded-opentype'),
+    url('../fonts/opensans_regular_macroman/OpenSans-Regular-webfont.woff')
+      format('woff'),
+    url('../fonts/opensans_regular_macroman/OpenSans-Regular-webfont.ttf')
+      format('truetype');
   font-weight: normal;
   font-style: normal;
   font-display: fallback;
@@ -11,126 +14,140 @@
 @font-face {
   font-family: 'open sans semiblold';
   src: url('../fonts/opensans_semibold_macroman/OpenSans-Semibold-webfont.eot');
-  src: url('../fonts/opensans_semibold_macroman/OpenSans-Semibold-webfont.eot?#iefix') format('embedded-opentype'),
-  url('../fonts/opensans_semibold_macroman/OpenSans-Semibold-webfont.woff') format('woff'),
-  url('../fonts/opensans_semibold_macroman/OpenSans-Semibold-webfont.ttf') format('truetype');
+  src: url('../fonts/opensans_semibold_macroman/OpenSans-Semibold-webfont.eot?#iefix')
+      format('embedded-opentype'),
+    url('../fonts/opensans_semibold_macroman/OpenSans-Semibold-webfont.woff')
+      format('woff'),
+    url('../fonts/opensans_semibold_macroman/OpenSans-Semibold-webfont.ttf')
+      format('truetype');
   font-weight: normal;
   font-style: normal;
 }
 @font-face {
   font-family: 'open sans bold';
   src: url('../fonts/opensans_bold_macroman/OpenSans-Bold-webfont.eot');
-  src: url('../fonts/opensans_bold_macroman/OpenSans-Bold-webfont.eot?#iefix') format('embedded-opentype'),
-  url('../fonts/opensans_bold_macroman/OpenSans-Bold-webfont.woff') format('woff'),
-  url('../fonts/opensans_bold_macroman/OpenSans-Bold-webfont.ttf') format('truetype');
+  src: url('../fonts/opensans_bold_macroman/OpenSans-Bold-webfont.eot?#iefix')
+      format('embedded-opentype'),
+    url('../fonts/opensans_bold_macroman/OpenSans-Bold-webfont.woff')
+      format('woff'),
+    url('../fonts/opensans_bold_macroman/OpenSans-Bold-webfont.ttf')
+      format('truetype');
   font-weight: normal;
   font-style: normal;
 }
 
 body {
-  font-family: 'open sans regular',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-  color: #4D4D4F;
+  font-family: 'open sans regular', -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color: #4d4d4f;
   font-size: 15px;
 }
-.text-center{
+.text-center {
   text-align: center;
 }
-button, input, optgroup, select, textarea{
+button,
+input,
+optgroup,
+select,
+textarea {
   line-height: 1;
 }
-.main-setting{
+.main-setting {
   padding-left: 64px;
   padding-top: 50px;
-  .setting-model{
+  .setting-model {
     margin-bottom: 30px;
-    .h3{
+    .h3 {
       margin-bottom: 24px;
     }
-    .setting-title{
-      color: #4D4D4F
+    .setting-title {
+      color: #4d4d4f;
     }
   }
-  .setting-model-title{
+  .setting-model-title {
     font-family: 'open sans semiblold';
     margin-top: 0;
     flex-shrink: 0;
     font-size: 15px;
     width: 300px;
-    color: #35ACF8;
+    color: #35acf8;
   }
-  .radio-setting{
+  .radio-setting {
     display: flex;
   }
-  .setting{
+  .setting {
     display: flex;
     align-items: center;
     margin-bottom: 24px;
   }
-  .setting-title{
-    font-family: 'open sans semiblold', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  .setting-title {
+    font-family: 'open sans semiblold', -apple-system, BlinkMacSystemFont,
+      'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     width: 300px;
     font-size: 15px;
     flex-shrink: 0;
     //color: #35ACF8;
   }
 }
-.setting-text{
-  font-family: "open sans regular";
+.setting-text {
+  font-family: 'open sans regular';
   flex-shrink: 0;
   padding: 5px;
   width: 180px;
-  color: #4D4D4F;
+  color: #4d4d4f;
   border-top: none;
   border-left: none;
   border-right: none;
-  border-bottom: 1px solid #4D4D4F;
+  border-bottom: 1px solid #4d4d4f;
   box-sizing: border-box;
-  &:focus{
+  &:focus {
     outline: none;
   }
-  &[disabled]{
-    opacity: .5;
+  &[disabled] {
+    opacity: 0.5;
     cursor: not-allowed;
   }
 }
 // button
 
-.btn, .el-button {
+.btn,
+.el-button {
   box-sizing: border-box;
   height: 36px;
   min-width: 90px;
   padding: 8px 18px;
   border-radius: 3px;
   font-size: 14px;
-  font-family: "open sans semiblold";
+  font-family: 'open sans semiblold';
   overflow: visible;
   border: 0;
   white-space: nowrap;
   text-transform: none;
   -webkit-appearance: button;
   cursor: pointer;
-  &:focus{
+  &:focus {
     outline: none;
   }
-  &[disabled]{
+  &[disabled] {
     cursor: not-allowed;
-    opacity: .5;
+    opacity: 0.5;
   }
 }
-.el-button{
+.el-button {
   width: 50px;
   min-width: 50px;
   height: 26px;
   padding: 0;
-  &~.el-button{
+  & ~ .el-button {
     margin-left: 5px;
   }
 }
-.btn-plain-primary, .el-button{
+.btn-plain-primary,
+.el-button {
   border: 2px solid #35acf8;
-  background-color: #FFFFFF;
-  color: #35ACF8;
-  &:hover{
+  background-color: #ffffff;
+  color: #35acf8;
+  &:hover {
     background-color: #f9f9f9;
   }
   &:active {
@@ -138,10 +155,10 @@ button, input, optgroup, select, textarea{
     box-shadow: inset 1px 1px 1px rgb(0 0 0 / 20%), 0 0 1px transparent;
   }
 }
-.btn-primary{
-  background-color: #35ACF8;
-  color: #FFFFFF;
-  &:hover{
+.btn-primary {
+  background-color: #35acf8;
+  color: #ffffff;
+  &:hover {
     background-color: #0098e3;
   }
   &:active {
@@ -149,46 +166,47 @@ button, input, optgroup, select, textarea{
   }
 }
 .btn-default {
-  color: #4D4D4F;
-  background-color: #EBEBEB;
-  &:hover{
+  color: #4d4d4f;
+  background-color: #ebebeb;
+  &:hover {
     background-color: #e2e2e2;
   }
   &:active {
-    background-color: #EBEBEB;
+    background-color: #ebebeb;
   }
 }
 
 // vodal
-.vodal-close:before, .vodal-close:after{
+.vodal-close:before,
+.vodal-close:after {
   border-radius: 0;
 }
 .vodal-dialog {
   padding: 20px 24px;
 }
-.vodal-model{
+.vodal-model {
   display: flex;
   flex-direction: column;
   height: 100%;
 }
-.vodal-header{
+.vodal-header {
   font-family: 'open sans semiblold';
   font-size: 20px;
   height: 27px;
 }
-.vodal-body{
+.vodal-body {
   padding-top: 15px;
   flex: 1;
   font-size: 16px;
 }
-.vodal-footer{
+.vodal-footer {
   display: flex;
   justify-content: space-between;
 }
-.alert-title{
+.alert-title {
   font-family: 'open sans semiblold';
   font-size: 16px;
-  color: #4D4D4F;
+  color: #4d4d4f;
 }
 .error-input {
   position: relative;
@@ -196,24 +214,31 @@ button, input, optgroup, select, textarea{
   //  color: #ED0006!important;
   //  border-bottom: 1px solid #ED0006!important;
   //}
-  .alert-error{
+  .alert-error {
     display: block;
   }
 }
-.alert-error{
+.alert-error {
   position: absolute;
   top: 105%;
   display: none;
-  color: #D50000;
+  color: #d50000;
   font-size: 12px;
-  font-family: "open sans bold";
+  font-family: 'open sans bold';
+}
+.range-alert {
+  position: absolute;
+  top: 30px;
+  left: 0;
+  width: 100%;
+  color: #d50000;
+  font-size: 12px;
+  font-family: 'open sans bold';
 }
 
-
-.vue-numeric-input .numeric-input{
+.vue-numeric-input .numeric-input {
   border-radius: 0;
 }
-
 
 ::-webkit-scrollbar {
   width: 8px;
@@ -233,23 +258,23 @@ button, input, optgroup, select, textarea{
 }
 
 // 设置滑块里范围值位置
-.vue-slider{
-  .slider-range{
+.vue-slider {
+  .slider-range {
     position: absolute;
     width: 34px;
     display: block;
     text-align: center;
   }
-  .slider-min{
+  .slider-min {
     left: -18px;
     top: 20px;
   }
-  .slider-max{
+  .slider-max {
     right: -15px;
     top: 20px;
   }
 }
-.el-popconfirm__main{
+.el-popconfirm__main {
   font-family: 'open sans semiblold';
-  color: #4D4D4F;
+  color: #4d4d4f;
 }

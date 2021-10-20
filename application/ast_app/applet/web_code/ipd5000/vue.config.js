@@ -1,4 +1,4 @@
-const version = 'V1.0.6'
+const version = 'V1.0.7'
 const path = require('path')
 function resolve (dir) {
   return path.join(__dirname, dir)
@@ -40,7 +40,7 @@ module.exports = {
 // 创建websocket服务器
 if (process.env.NODE_ENV !== 'production') {
   var WebSocketServer = require('ws').Server
-  var wss = new WebSocketServer({ port: 19999 })
+  var wss = new WebSocketServer({ port: 20000 })
   wss.on('connection', function connection (ws) {
     ws.on('message', function incoming (message) {
       if (message.startsWith('#X-ROUTE?')) {

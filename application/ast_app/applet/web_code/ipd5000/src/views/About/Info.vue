@@ -20,8 +20,11 @@
           Jerusalem, Israel, 9546303<br>
           Tel: +972-73-2650200<br>
           Fax: +972-2-6535369<br>
-          Email: info@kramerav.com<br>
-          Web: KramerAV.com
+          Email: <a class="about-link"
+             href="mailto:info@kramerav.com">info@kramerav.com</a><br>
+          Web: <a class="about-link"
+             href="http://www.kramerav.com"
+             target="_blank">KramerAV.com</a>
         </div>
       </div>
     </div>
@@ -79,27 +82,27 @@ export default {
 </script>
 
 <style lang="less" scoped>
-.info-title{
-  font-family: 'open sans semiblold';
+.info-title {
+  font-family: "open sans semiblold";
   font-size: 15px;
   margin-bottom: 13px;
-  color: #35ACF8;
+  color: #35acf8;
 }
-.info-desc{
-  font-family: 'open sans bold';
+.info-desc {
+  font-family: "open sans bold";
   font-size: 15px;
   margin-bottom: 13px;
   margin-top: 13px;
 }
-.info-company{
-  font-family: 'open sans semiblold';
+.info-company {
+  font-family: "open sans semiblold";
   font-size: 15px;
   margin-bottom: 0;
 }
-.main-setting{
+.main-setting {
   display: flex;
   flex-direction: column;
-  .info{
+  .info {
     flex: 1;
   }
   footer {
@@ -107,6 +110,13 @@ export default {
     margin-top: 15px;
     height: 30px;
     font-size: 13px;
+  }
+}
+.about-link {
+  text-decoration: none;
+  color: #4d4d4f;
+  &:hover {
+    color: #35acf8;
   }
 }
 </style>

@@ -57,10 +57,10 @@ export default {
       logResetPolicy: '0',
       logResetPolicyParam: [{
         value: '0',
-        label: 'Days'
+        label: 'Daily'
       }, {
         value: '1',
-        label: 'Week'
+        label: 'Weekly'
       }],
       rs232: {
         recv: 0,

@@ -7,14 +7,12 @@
                          controls-position="right"
                          :max="3600"
                          :precision="0"
-                         @blur="checkBlur"
                          :min="0"></el-input-number>
       </div>
       <div class="setting">
         <span class="setting-title">Channels per Page</span>
         <el-input-number v-model="osdConfig.max_channels_per_page"
                          controls-position="right"
-                         @blur="checkBlur"
                          :max="10"
                          :min="5"></el-input-number>
       </div>
@@ -23,7 +21,6 @@
         <el-input-number v-model="osdConfig.max_channels"
                          controls-position="right"
                          :max="999"
-                         @blur="checkBlur"
                          :min="0"></el-input-number>
       </div>
       <div>
@@ -431,11 +428,6 @@ export default {
           channels_list: this.channelList
         }
       })
-    },
-    checkBlur () {
-      this.osdConfig.timeout_sec = this.osdConfig.timeout_sec || 0
-      this.osdConfig.max_channels_per_page = this.osdConfig.max_channels_per_page || 0
-      this.osdConfig.max_channels = this.osdConfig.max_channels || 0
     }
   }
 }

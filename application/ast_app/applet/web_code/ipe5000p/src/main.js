@@ -9,9 +9,10 @@ import './assets/css/global.less'
 import './theme-chalk/color-picker.css'
 import Multiselect from './components/vue-multiselect/src'
 import Axios from 'axios'
+import './theme-chalk/input-number.css'
+import InputNumber from './components/input-number'
 import {
   Dialog,
-  InputNumber,
   Upload,
   // DatePicker,
   // TimeSelect,

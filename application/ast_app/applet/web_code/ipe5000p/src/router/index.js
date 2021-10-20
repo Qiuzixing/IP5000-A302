@@ -55,25 +55,25 @@ const routes = [
         path: 'auto_switch',
         component: () => import('../views/AvSetting/AutoSwitch.vue'),
         name: 'auto_switch',
-        meta: { title: 'Auto Switch', desc: 'AV Setting > Auto Switch', icon: 'auto_switch', hidden: true }
+        meta: { title: 'Auto Switch', desc: 'AV Settings > Auto Switch', icon: 'auto_switch', hidden: true }
       },
       {
         path: 'videoPage',
         component: () => import('../views/AvSetting/Video.vue'),
         name: 'videoPage',
-        meta: { title: 'Video', desc: 'AV Setting > Video', icon: 'video' }
+        meta: { title: 'Video', desc: 'AV Settings > Video', icon: 'video' }
       },
       {
         path: 'audioPage',
         component: () => import('../views/AvSetting/Audio.vue'),
         name: 'audioPage',
-        meta: { title: 'Audio', desc: 'AV Setting > Audio', icon: 'audio' }
+        meta: { title: 'Audio', desc: 'AV Settings > Audio', icon: 'audio' }
       },
       {
         path: 'edid',
         component: () => import('../views/AvSetting/Edid.vue'),
         name: 'edid',
-        meta: { title: 'EDID', desc: 'AV Setting > EDID Management', icon: 'edid' }
+        meta: { title: 'EDID', desc: 'AV Settings > EDID Management', icon: 'edid' }
       }
       // {
       //   path: 'loopThough',
@@ -92,13 +92,13 @@ const routes = [
         path: 'general',
         component: () => import('../views/Device/General.vue'),
         name: 'general',
-        meta: { title: 'General', desc: 'Devices Setting > General', icon: 'general' }
+        meta: { title: 'General', desc: 'Device Settings > General', icon: 'general' }
       },
       {
         path: 'network',
         component: () => import('../views/Device/Network.vue'),
         name: 'network',
-        meta: { title: 'Network', desc: 'Devices Setting > Network', icon: 'network' }
+        meta: { title: 'Network', desc: 'Device Settings > Network', icon: 'network' }
       },
       // {
       //   path: 'firmware',
@@ -110,19 +110,19 @@ const routes = [
         path: 'time_date',
         component: () => import('../views/Device/Time_date.vue'),
         name: 'time_date',
-        meta: { title: 'Time and Date', desc: 'Devices Setting > Time and Date', icon: 'time_date' }
+        meta: { title: 'Time and Date', desc: 'Device Settings > Time and Date', icon: 'time_date' }
       },
       {
         path: 'Security',
         component: () => import('../views/Device/Security.vue'),
         name: 'Security',
-        meta: { title: 'Security', desc: 'Devices Setting > Security', icon: 'security' }
+        meta: { title: 'Security', desc: 'Device Settings > Security', icon: 'security' }
       },
       {
         path: 'Users',
         component: () => import('../views/Device/Users.vue'),
         name: 'Users',
-        meta: { title: 'Users', desc: 'Devices Setting > Users', icon: 'user' }
+        meta: { title: 'Users', desc: 'Device Settings > Users', icon: 'user' }
       }
     ]
   },

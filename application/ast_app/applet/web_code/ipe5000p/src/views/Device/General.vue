@@ -39,7 +39,7 @@
                   @change="setFrontLock"></v-switch>
       </div>
       <div class="setting">
-        <span class="setting-title">Import/Export Device Setting</span>
+        <span class="setting-title">Import/Export Device Settings</span>
         <multiselect v-model="exportAndImport.val"
                      :options="exportAndImport.param"></multiselect>
         <button type="button"
@@ -114,7 +114,7 @@
                alt="">RESET</button>
       </div>
     </div>
-    <el-dialog title="RESET"
+    <el-dialog title="RESTART"
                :visible.sync="dialogVisibleReset"
                width="500px">
       <p class="dialog-second-title">Do you want to restart the device? </p>
@@ -158,7 +158,7 @@ export default {
           { value: 'all', label: 'All' },
           { value: 'ip', label: 'Without IP' },
           { value: 'stream', label: 'Streams' },
-          { value: 'av', label: 'AV Setting Only' }
+          { value: 'av', label: 'AV Settings Only' }
         ]
       },
       displayOverlay: 'off',

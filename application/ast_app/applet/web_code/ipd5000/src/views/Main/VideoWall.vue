@@ -4,7 +4,7 @@
       <div>
         <span class="setting-title"
               style="margin-right: 15px;">Horizontal</span>
-        <el-input-number style="width: 50px;margin-right: 30px;"
+        <el-input-number style="width: 80px;margin-right: 30px;"
                          v-model="col"
                          :max="16"
                          :min="1"
@@ -15,7 +15,7 @@
         <el-input-number v-model="row"
                          :max="16"
                          :min="1"
-                         style="width: 50px;"
+                         style="width: 80px;"
                          @change="checkSelectId"
                          class="video-wall-child"
                          controls-position="right"></el-input-number>

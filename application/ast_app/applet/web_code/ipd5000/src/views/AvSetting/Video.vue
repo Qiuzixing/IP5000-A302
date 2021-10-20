@@ -205,7 +205,7 @@ export default {
     getDisplayDelay () {
       this.$http
         .get(
-          '/device/json?path=display/display_sleep.json&t=' + Math.random()
+          '/device/json?path=/display/display_sleep.json&t=' + Math.random()
         )
         .then(msg => {
           if (msg.data.display_delays) {

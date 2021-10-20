@@ -17,7 +17,7 @@
                     inactive-value="0"></v-switch>
         </div>
         <div class="setting-title"
-             v-if="daisyChain === '1'">
+             v-if="daisyChain === '0'">
           <v-switch v-model="ipMode1"
                     style="width: 120px"
                     active-value="1"
@@ -211,8 +211,8 @@
         <span class="setting-title">UDP Port</span>
         <el-input-number v-model="udp"
                          controls-position="right"
-                         :max="50000"
-                         :min="50999"></el-input-number>
+                         :min="50000"
+                         :max="50999"></el-input-number>
       </div>
     </div>
     <footer>
@@ -243,8 +243,8 @@ export default {
       configPort2: '0',
       danteTag: '',
       tcp: '5000',
-      serverTcpPort: '5001',
-      udp: '50000',
+      serverTcpPort: 5000,
+      udp: 50000,
       castMode: '1',
       multicastAddress: '',
       ttl: 64,
