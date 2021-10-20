@@ -345,9 +345,9 @@ typedef struct _BeaconInfo_S
 }BeaconInfo_S;
 typedef struct _TimeSyncConf_S
 {
-	int enable; //Ê¹ÄÜ
-	int  syncInerval; //Í¬²½Ê±¼ä¼ä¸ô
-	char serverIp[MAX_IP_ADDR_LEN]; //·þÎñÆ÷IP
+	int enable; //Ê¹ï¿½ï¿½
+	int  syncInerval; //Í¬ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½
+	char serverIp[MAX_IP_ADDR_LEN]; //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½IP
 }TimeSyncConf_S;
 
 typedef struct _EDIDPortInfo_S
@@ -570,6 +570,7 @@ int EX_GetVideoWallStretch(int  index);
 int EX_AutomaticReporting(char * info);
 int EX_GetCECGateWayMode(void);
 int EX_SetCfgModify(char* cfgName);
+void GetUpgradeStatus(char *info, unsigned int size);
 
 int mysystem(char* cmdstring, char* buf, int len);
 

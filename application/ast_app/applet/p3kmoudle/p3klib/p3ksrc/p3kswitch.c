@@ -1,20 +1,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include "debugtool.h"
 #include "p3kswitch.h"
 #include "common.h"
 #include "funcexcute.h"
 /*******************************************************************
-±¾ÎÄ¼þ½âÎöÖÐÏÈÓÃ¾²Ì¬Êý×é×÷Îª²ÎÊý´æ´¢
+ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã¾ï¿½Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½æ´¢
 
 
 ******************************************************************/
 #define MAX_PARAM_COUNT 10
 typedef struct _P3K_PhraserToExecute_S
 {
-	char	 *cmd; //P3KÖ¸Áî
-	int (*ParamPhraser)(char*reqparam,char*respParam,char*userdata); //p3k ²ÎÊý½âÎö´¦Àí
+	char	 *cmd; //P3KÖ¸ï¿½ï¿½
+	int (*ParamPhraser)(char*reqparam,char*respParam,char*userdata); //p3k ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 }P3K_PhraserToExecute_S;
 
 #define PARAM_SEPARATOR ','
@@ -554,7 +555,7 @@ static int P3K_GetPortSInfo(char*param,PortInfo_S*info,int num)
 static int P3K_SetAudioInputMode(char*reqparam,char*respParam,char*userdata)
 {
 	DBG_InfoMsg("SetAudioInputMode\n");
-	//½âÎöµ×²ãÐèÒª²ÎÊý
+	//ï¿½ï¿½ï¿½ï¿½ï¿½×²ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½
 	int mode;
 	int count = 0;
 	int s32Ret = 0;
@@ -563,14 +564,14 @@ static int P3K_SetAudioInputMode(char*reqparam,char*respParam,char*userdata)
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	//sscanf(param,"%1d",mode);
 	mode = atoi(str[0]);
-	//º¯Êý´¦Àí
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	s32Ret = EX_SetAudSrcMode(mode);
 	if(s32Ret)
 	{
 		DBG_ErrMsg("EX_SetAudSrcMode err\n");
 	}
 
-	//»Ø¸´×é°üµÄcmd ºÍcmd²ÎÊý°ü
+	//ï¿½Ø¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½cmd ï¿½ï¿½cmdï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	sprintf(tmpparam,"%d",mode);
 	memcpy(respParam,tmpparam,MAX_PARAM_LEN);
 	return  0;
@@ -594,9 +595,10 @@ static int P3K_GetAudioInputMode(char*reqparam,char*respParam,char*userdata)
 static int P3K_SetAudLevel(char*reqparam,char*respParam,char*userdata)
 {
 	DBG_InfoMsg("P3K_SetAudLevel\n");
-	//½âÎöµ×²ãÐèÒª²ÎÊý
+	//ï¿½ï¿½ï¿½ï¿½ï¿½×²ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½
 	int count = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
+	
 	//char tmpparam[MAX_PARAM_LEN] = {0};
 	int gain = 0;
 	PortInfo_S  tmpInfo = {0};
@@ -611,7 +613,7 @@ static int P3K_SetAudLevel(char*reqparam,char*respParam,char*userdata)
 	{
 		DBG_ErrMsg("EX_SetAudGainLevel err\n");
 	}
-	//»Ø¸´×é°üµÄcmd ºÍcmd²ÎÊý°ü
+	//ï¿½Ø¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½cmd ï¿½ï¿½cmdï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	memcpy(respParam,reqparam,strlen(reqparam));
 	return  0;
 
@@ -1205,7 +1207,7 @@ static int P3K_GetChannleSelection(char*reqparam,char*respParam,char*userdata)
 static int P3K_SetVideoOutMode(char*reqparam,char*respParam,char*userdata)
 {
 	//#IMAGE-PROP scaler_id,,video_mode<CR>
-	//~nn@IMAGE-PROP scaler_id,video_mode¡­<CR><LF>
+	//~nn@IMAGE-PROP scaler_id,video_modeï¿½ï¿½<CR><LF>
 	DBG_InfoMsg("P3K_SetVideoOutMode\n");
 	int s32Ret = 0;
 	int scalerId = 0;
@@ -1227,7 +1229,7 @@ static int P3K_SetVideoOutMode(char*reqparam,char*respParam,char*userdata)
 static int P3K_GetVideoOutMode(char*reqparam,char*respParam,char*userdata)
 {
 	//#IMAGE PROP? scaler_id<CR>:
-	//~nn@IMAGE-PROP scaler_id,video_mode¡­<CR><LF>
+	//~nn@IMAGE-PROP scaler_id,video_modeï¿½ï¿½<CR><LF>
 	DBG_InfoMsg("P3K_GetVideoOutMode\n");
 	int s32Ret = 0;
 	int scalerId = 0;
@@ -1470,7 +1472,7 @@ static int P3K_SendCECMsg(char*reqparam,char*respParam,char*userdata)
 static int P3K_RecvCECNtfy(char*reqparam,char*respParam,char*userdata)
 {
 	//#CEC-NTFY <CR>
-       //~nn@CEC-NTFY port_index,len,<cec_command¡­><CR><LF>
+       //~nn@CEC-NTFY port_index,len,<cec_commandï¿½ï¿½><CR><LF>
        DBG_InfoMsg("P3K_RecvCECNtfy\n");
 	int s32Ret =0;
 	int portId;
@@ -1528,7 +1530,7 @@ static int P3K_GetCECGWMode(char*reqparam,char*respParam,char*userdata)
 
 static int P3K_SendIRMsg(char*reqparam,char*respParam,char*userdata)
 {
-	//#IR-SND ir_index,sn_id,cmd_name,repeat_amount,total_packages, package_id,<pronto command¡­><CR>
+	//#IR-SND ir_index,sn_id,cmd_name,repeat_amount,total_packages, package_id,<pronto commandï¿½ï¿½><CR>
 	//~nn@IR-SND ir_index,sn_id,cmd_name,ir_status<CR><LF>
 	DBG_InfoMsg("P3K_SendIRMsg\n");
 	IRMessageInfo_S irMsg = {0};
@@ -2339,17 +2341,40 @@ static int P3K_Upgrade(char*reqparam,char*respParam,char*userdata)
 	//#UPGRADE<CR>
 	//~nn@UPGRADE ok<CR><LF>
 	DBG_InfoMsg("P3K_Upgrade\n");
-	int s32Ret = 0;
+	int s32Ret = -1;
 	char tmpparam[MAX_PARAM_LEN] = {0};
 
-	s32Ret = EX_Upgrade();
-	if(s32Ret)
+    struct stat buf;
+	memset(&buf, 0, sizeof(buf));
+	if ((0 == stat("/dev/shm/IP5000-A30_upgrade.tar.gz", &buf)) && (buf.st_size > 0))
 	{
-		DBG_ErrMsg("EX_Upgrade err\n");
+		s32Ret = EX_Upgrade();
+		if(s32Ret)
+		{
+			DBG_ErrMsg("EX_Upgrade err\n");
+			sprintf(tmpparam,"%s","err 002");
+		}
+		else
+		{
+			sprintf(tmpparam,"%s","ok");
+		}
 	}
-	sprintf(tmpparam,"%s","ok");
+	else
+	{
+		sprintf(tmpparam,"%s","err 002");
+	}
 
 	memcpy(respParam,tmpparam,strlen(tmpparam));
+	return s32Ret;
+}
+static int P3K_UpgradeStatus(char*reqparam,char*respParam,char*userdata)
+{
+	//#UPGRADE-STATUS<CR>
+	//~nn@UPGRADE-STATUS ongoing,100,0<CR><LF>
+	DBG_InfoMsg("P3K_UpgradeStatus\n");
+	int s32Ret = 0;
+
+	GetUpgradeStatus(respParam, MAX_PARAM_LEN);
 	return 0;
 }
 static int P3K_SetSerailNum(char*reqparam,char*respParam,char*userdata)
@@ -3112,7 +3137,7 @@ static int P3K_GetEDIDMode(char*reqparam,char*respParam,char*userdata)
 static int P3K_GetEDIDList(char*reqparam,char*respParam,char*userdata)
 {
 	//#EDID-LIST? <CR>
-	//~nn@#EDID-LIST [0,¡°DEFAULT¡±],...<CR><LF>
+	//~nn@#EDID-LIST [0,ï¿½ï¿½DEFAULTï¿½ï¿½],...<CR><LF>
 	DBG_InfoMsg("P3K_GetEDIDList\n");
 	int ret = 0;
 	int i = 0;
@@ -4282,6 +4307,7 @@ int P3K_SilmpleReqCmdProcess(P3K_SimpleCmdInfo_S *cmdreq,P3K_SimpleCmdInfo_S *cm
 									{"LOGOUT",P3K_LogOut},
 									{"VERSION?",P3K_GetVersion},
 									{"UPGRADE",P3K_Upgrade},
+									{"UPGRADE-STATUS?",P3K_UpgradeStatus},
 									{"FCT-MODEL",P3K_SetFCTMODEL},
 									{"MODEL?",P3K_GetFCTMODEL},
 									{"FCT-SN",P3K_SetSerailNum},

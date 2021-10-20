@@ -2731,10 +2731,17 @@ handle_e_p3k_cec()
 handle_e_p3k_upgrade()
 {
 	cd /dev/shm/
-	tar -zxvf ./IP5000-A30_upgrade.tar.gz
-	./flash.sh
-
-	reboot
+	if ! tar -zxvf ./IP5000-A30_upgrade.tar.gz; then
+		echo "err,0,2" > "/www/fw_status.txt"
+		return
+	fi
+	if [ -x flash.sh ]; then
+		./flash.sh
+		sleep 5 # wait client query result
+		reboot
+	else
+		echo "err,0,2" > "/www/fw_status.txt"
+	fi
 }
 
 handle_e_p3k_net_dhcp()

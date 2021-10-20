@@ -1,19 +1,15 @@
 #!/bin/sh
 
 HTML_INFO="/www/update_fw_info.txt"
-HTML_FW_SIZE_REMAIN="/www/fw_size_remain.js"
+HTML_UPGRADE_STATUS="/www/fw_status.txt"
 
 FW_PATH="/dev/shm"
-FW_BOOT="mtdblkboot"
 FW_KERNEL="mtdblkkernel"
 FW_ROOTFS="mtdblkrootfs"
 FW_KERNEL_DEV="mtdblkkernel2"
 FW_ROOTFS_DEV="mtdblkrootfs2"
-FW_LOGO="mtdblklogo"
-FW_EDID="EDID.txt"
-SYSFS_EDID="/sys/devices/platform/videoip/eeprom_content"
-FILE_FLAGS="flags.sh"
 FILE_THIS="flash.sh"
+BLOCKSIZE=65536
 
 cursys=`astparam misc g cursys`
 if [ "$cursys" == "b" ]; then
@@ -29,26 +25,14 @@ echo "FW_ROOTFS_DEV=$FW_ROOTFS_DEV"
 total_fw_size()
 {
 	fsize='0'
-	# if [ -f "$FW_PATH/$FW_BOOT" ]; then
-	# 	set -- `ls -l $FW_PATH/$FW_BOOT`
-	# 	#echo "$FW_BOOT size $5 B"
-	# 	fsize=`expr $fsize + $5`
-	# fi
 	if [ -f "$FW_PATH/$FW_KERNEL" ]; then
 		set -- `ls -l $FW_PATH/$FW_KERNEL`
-		#echo "$FW_KERNEL size $5 B"
 		fsize=`expr $fsize + $5`
 	fi
 	if [ -f "$FW_PATH/$FW_ROOTFS" ]; then
 		set -- `ls -l $FW_PATH/$FW_ROOTFS`
-		#echo "$FW_ROOTFS size $5 B"
 		fsize=`expr $fsize + $5`
 	fi
-	# if [ -f "$FW_PATH/$FW_LOGO" ]; then
-	# 	set -- `ls -l $FW_PATH/$FW_LOGO`
-	# 	#echo "$FW_LOGO size $5 B"
-	# 	fsize=`expr $fsize + $5`
-	# fi
 	echo "$fsize"
 }
 
@@ -57,23 +41,57 @@ html_info()
 	echo "$1" >> $HTML_INFO
 }
 
-html_set_fw_size_remain()
+update_fw_status()
 {
-	#print "Content-type: application/x-javascript\n\n" > $HTML_FW_SIZE_REMAIN
-	echo "FWSizeRemain = $1;" > $HTML_FW_SIZE_REMAIN
+	local _status=$1
+	local _remain_size=$2
+	local _errno=$3
+	local _progress=0
+	if [ $fw_total_size -lt 0 ]; then
+		echo "err,$_progress,2" > $HTML_UPGRADE_STATUS.tmp
+		mv $HTML_UPGRADE_STATUS.tmp $HTML_UPGRADE_STATUS
+		exit 2
+	fi
+	_progress=$(( ($fw_total_size - $_remain_size) * 100 / $fw_total_size))
+	echo "$_status,$_progress,$_errno" > $HTML_UPGRADE_STATUS.tmp
+	mv $HTML_UPGRADE_STATUS.tmp $HTML_UPGRADE_STATUS
 }
 
 fail_out()
 {
+	local _errno=$1
 	# Remove temp files
-	rm -f $FW_PATH/$FW_BOOT 2> /dev/null
 	rm -f $FW_PATH/$FW_KERNEL 2> /dev/null
 	rm -f $FW_PATH/$FW_ROOTFS 2> /dev/null
-	rm -f $FW_PATH/$FILE_FLAGS 2> /dev/null
 	rm -f $FW_PATH/$FILE_THIS 2> /dev/null
 
 	html_info "Programming FAILED!"
+	update_fw_status "err" `total_fw_size` $_errno
 	exit 1
+}
+
+copy_file()
+{
+	# options: if, of, fw_size_remain
+	local if=$1
+	local of=$2
+	local fw_size_remain=$3
+	set -- `ls -l $FW_PATH/$if`
+	local fsize=$5
+	local count=0
+	local total_count=$(( ($fsize + $BLOCKSIZE - 1) / $BLOCKSIZE ))
+	while [ $count -lt $total_count ]; do
+		if ! dd if=$if of=$of bs=$BLOCKSIZE seek=$count skip=$count count=1; then
+			fail_out $?
+		else
+			count=$(($count +1))
+			if [ $count -lt $total_count ]; then
+				# last block maybe not same as $BLOCKSIZE, so update it outside when checking all
+				fw_size_remain=$(($fw_size_remain - $BLOCKSIZE))
+				update_fw_status "ongoing" $fw_size_remain 0
+			fi
+		fi
+	done
 }
 
 _p=`/usr/local/bin/io 0 1e6e207c`
@@ -102,13 +120,13 @@ case "$_p" in
 	;;
 	*)
 		html_info "Error!!! Unknown SoC version? $_p"
-		fail_out
+		fail_out 1
 	;;
 esac
 
 if ! [ "$SOC_VER" = '3' ]; then
 	html_info "Error! SoC version mismatch! ($SOC_VER)"
-	fail_out
+	fail_out 1
 fi
 
 # Check Platform
@@ -120,81 +138,53 @@ case "$AST_PLATFORM" in
 	;;
 	*)
 		html_info "Error! Platform mismatch!"
-		fail_out
+		fail_out 1
 esac
+
+remain_fw_size=`total_fw_size`
+fw_total_size=$remain_fw_size
+# create json file
+update_fw_status "ongoing" $remain_fw_size 0
 
 # ToDo. Check version.
 # Start update
 html_info "Start programming flash..."
-# if [ -f "$FW_BOOT" ]; then
-# 	html_info "programming bootloader..."
-# 	if ! [ -e /dev/"$FW_BOOT" ]; then
-# 		mknod /dev/"$FW_BOOT" b 31 0
-# 	fi
-# 	if ! dd if="$FW_BOOT" of=/dev/"$FW_BOOT" bs=64k; then
-# 		fail_out
-# 	else
-# 		rm -f "$FW_BOOT"
-# 	fi
-# fi
-# html_set_fw_size_remain `total_fw_size`
 if [ -f "$FW_KERNEL" ]; then
 	html_info "programming kernel..."
 	if ! [ -e /dev/"$FW_KERNEL_DEV" ]; then
 		mknod /dev/"$FW_KERNEL_DEV" b 31 1
 	fi
-	if ! dd if="$FW_KERNEL" of=/dev/"$FW_KERNEL_DEV" bs=64k; then
-		fail_out
+
+	if ! copy_file "$FW_KERNEL" /dev/"$FW_KERNEL_DEV" "$remain_fw_size"; then
+		fail_out 255
 	else
 		rm -f "$FW_KERNEL"
 	fi
 fi
-html_set_fw_size_remain `total_fw_size`
+remain_fw_size=`total_fw_size`
+update_fw_status "ongoing" $remain_fw_size 0
 if [ -f "$FW_ROOTFS" ]; then
 	html_info "programming rootfs..."
 	if ! [ -e /dev/"$FW_ROOTFS_DEV" ]; then
 		mknod /dev/"$FW_ROOTFS_DEV" b 31 2
 	fi
-	if ! dd if="$FW_ROOTFS" of=/dev/"$FW_ROOTFS_DEV" bs=64k; then
-		fail_out
+
+	if ! copy_file "$FW_ROOTFS" /dev/"$FW_ROOTFS" "$remain_fw_size"; then
+		fail_out 255
 	else
 		rm -f "$FW_ROOTFS"
 	fi
 fi
-html_set_fw_size_remain `total_fw_size`
-# if [ -f "$FW_LOGO" ]; then
-# 	html_info "programming logo..."
-# 	if ! [ -e /dev/"$FW_LOGO" ]; then
-# 		mknod /dev/"$FW_LOGO" b 31 4
-# 	fi
-# 	if ! dd if="$FW_LOGO" of=/dev/"$FW_LOGO" bs=64k; then
-# 		fail_out
-# 	else
-# 		rm -f "$FW_LOGO"
-# 	fi
-# fi
-# if [ -f "$FILE_FLAGS" ]; then
-# 	html_info "programming parameters..."
-# 	chmod a+x "$FILE_FLAGS"
-# 	./"$FILE_FLAGS"
-# 	rm -f "$FILE_FLAGS"
-# fi
-# if [ -f "$FW_EDID" ]; then
-# 	html_info "programming EDID..."
-# 	if [ -f "$SYSFS_EDID" ]; then
-# 		cat "$FW_EDID" > "$SYSFS_EDID"
-# 		rm -f "$FW_EDID"
-# 	else
-# 		fail_out
-# 	fi
-# fi
-# html_set_fw_size_remain `total_fw_size`
+remain_fw_size=`total_fw_size`
+update_fw_status "ongoing" $remain_fw_size 0
 
 if [ "$cursys" == "b" ]; then
     astparam misc s cursys a
 else
     astparam misc s cursys b
 fi
+
+update_fw_status "ok" `total_fw_size` 0
 
 html_info "Programming completed"
 exit 0;

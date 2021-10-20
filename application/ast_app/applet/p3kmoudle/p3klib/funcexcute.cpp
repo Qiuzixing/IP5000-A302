@@ -4,6 +4,8 @@
 #include <time.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <sys/stat.h>
+
 #include "funcexcute.h"
 #include "ast_send_event.h"
 
@@ -26,6 +28,21 @@ using namespace std;
 #define PORT 5588
 
 static char  sUpInfo[256] = {0};
+
+void trim_string_eol(char* buf)
+{
+	for (int i = strlen(buf); i > 0; i --)
+	{
+		if (isspace(buf[i - 1]))
+		{
+			buf[i - 1] = '\0';
+		}
+		else
+		{
+			break;
+		}
+	}
+}
 
 int mysystem(char* cmdstring, char* buf, int len)
 {
@@ -2689,6 +2706,18 @@ int EX_GetDevVersion(char*version)
 	//strcpy(version,tmp);
 	return 0;
 }
+
+#define EMPTY_FW_STATUS		"ongoing,0,0"
+static void CreateFWStatusFile(void)
+{
+	FILE *pf = fopen("/www/fw_status.txt", "w+");
+	if (NULL != pf)
+	{
+		fwrite(EMPTY_FW_STATUS, 1, strlen(EMPTY_FW_STATUS), pf);
+		fclose(pf);
+	}
+}
+
 int EX_Upgrade(void)
 {
 
@@ -2720,6 +2749,7 @@ int EX_Upgrade(void)
 
 	sleep(2);
 
+	CreateFWStatusFile();
 	ast_send_event(0xFFFFFFFF,"e_p3k_upgrade_fw");
 
 	return 0;
@@ -3034,3 +3064,21 @@ int EX_SetCfgModify(char* cfgName)
 	return 0;
 }
 
+void GetUpgradeStatus(char* info, unsigned int size)
+{
+	FILE *fp;
+
+	memset(info,0,size);
+
+	fp = fopen("/www/fw_status.txt", "r");
+	if (fp == NULL) {
+		DBG_ErrMsg("ERROR! can't open /www/fw_status.txt\n");
+		snprintf(info, size - 1, "err,0,2"); // No such file
+		return;
+	}
+	fgets(info, size, fp);
+	trim_string_eol(info);
+	fclose(fp);
+
+	DBG_InfoMsg("GetUpgradeStatus info:%s end\n",info);
+}
