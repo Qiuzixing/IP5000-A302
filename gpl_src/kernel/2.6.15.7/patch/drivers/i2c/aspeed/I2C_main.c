@@ -1622,7 +1622,7 @@ int SetI2CBlock(u32 DeviceSelect, u32 DeviceAddress, u32 RegisterIndex, const u8
 EXPORT_SYMBOL(SetI2CBlock);
 
 #if 1
-static unsigned int BusNum, DevAddr, Offset = 0, Length = 1,word_offset = 0;
+static unsigned int BusNum, DevAddr, Offset = 0, Length = 1,word_bus_num,word_addr,word_offset = 0;
 #else
 static unsigned int BusNum, DevAddr, Offset, Value;
 #endif
@@ -1807,8 +1807,8 @@ static ssize_t show_io_word(struct device *dev, struct device_attribute *attr, c
 {
 	int i, num = 0;
 	unsigned short int value;
-	
-	if (GetI2CWord(BusNum, DevAddr, word_offset, (u16 *)&value)) {
+
+	if (GetI2CWord(word_bus_num, word_addr, word_offset, (u16 *)&value)) {
 		num += snprintf(buf + num, PAGE_SIZE - num, "read fail\n");
 	}
 	else
@@ -1823,7 +1823,7 @@ static ssize_t store_io_word(struct device *dev, struct device_attribute *attr,
 {
 	unsigned int c, value;
 
-	c = sscanf(buf, "%x %x", &word_offset, &value);
+	c = sscanf(buf, "%x %x %x %x", &word_bus_num, &word_addr, &word_offset, &value);
 	if (c != 0)
 	{
 #if 0 /* WM8903 has odd offset. */
@@ -1833,15 +1833,15 @@ static ssize_t store_io_word(struct device *dev, struct device_attribute *attr,
 			goto out;
 		}
 #endif
-		if (c == 2)
+		if (c == 4)
 		{
 			printk("Write word at Offset:0x%x to Value:0x%04x\n", word_offset, value);
-			if (SetI2CWord(BusNum, DevAddr, word_offset, (u16)value)) {
+			if (SetI2CWord(word_bus_num, word_addr, word_offset, (u16)value)) {
 				printk("Write word at Offset:0x%x FAILED!\n", word_offset);
 				goto out;
 			}
 		}
-		else if (c == 1) {
+		else if (c == 3) {
 			#if 0
 			printk("Read word at Offset:0x%x\n", word_offset);
 			if (GetI2CWord(BusNum, DevAddr, word_offset, (u16 *)&value)) {
@@ -1850,7 +1850,7 @@ static ssize_t store_io_word(struct device *dev, struct device_attribute *attr,
 			}
 			printk("Value:0x%04x\n", value);
 			#endif
-			printk("Offset:0x%x\n", word_offset);
+			printk("i2c_bus:%d\ni2c_addr:0x%x\nOffset:0x%x\n",word_bus_num,word_addr,word_offset);
 		}
 	}
 	else
