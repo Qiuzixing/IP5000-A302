@@ -863,20 +863,25 @@ int Cfg_Init_Version(void)
 
 	sprintf(g_version_info.file_version,"1.0.0");
 
-	char time[16] = "";
-	mysystem("astparam misc g upg_time",time,16);
-
-	char stb_ver[16] = "";
-	mysystem("astparam misc g stb_ver",stb_ver,16);
-
-	strcpy(g_version_info.standby_version,stb_ver);
+	char time[32] = "";
+	mysystem("astparam misc g upg_time",time,32);
 
 	time_t secTime;
 	struct tm *ptime =NULL;
-	secTime = atol(time);
-	ptime = localtime(&secTime);
+	if(strstr(time,"not defined") != 0)
+		secTime = 0;
+	else
+		secTime = atol(time);
 
+	ptime = localtime(&secTime);
 	sprintf(g_version_info.upg_time,"%02d-%02d-%04d,%02d:%02d:%02d",ptime->tm_mon+1,ptime->tm_mday,ptime->tm_year+1900,ptime->tm_hour,ptime->tm_min,ptime->tm_sec);
+
+	char stb_ver[32] = "";
+	mysystem("astparam misc g stb_ver",stb_ver,32);
+	if(strstr(stb_ver,"not defined") != 0)
+		strcpy(g_version_info.standby_version,"0.1.0");
+	else
+		strcpy(g_version_info.standby_version,stb_ver);
 
 //	sprintf(g_version_info.upg_time,"01-01-2020,00:00:00");
 

@@ -269,7 +269,7 @@ extern "C" {
 #define JSON_OSD_CHANNEL			"channel_menu"
 #define JSON_OSD_TIMEOUT			"timeout_sec"
 #define JSON_OSD_POS				"position"
-#define	JSON_OSD_TOP_LEFT			"TopLeft"
+#define	JSON_OSD_TOP_LEFT			"top_left"
 #define JSON_OSD_FONE_SIZE			"font_size"
 #define JSON_OSD_MEDIUM				"medium"
 #define JSON_OSD_MAX_PER_PAGE		"max_channels_per_page"

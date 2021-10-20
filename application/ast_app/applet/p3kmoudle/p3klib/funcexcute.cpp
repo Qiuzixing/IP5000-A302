@@ -586,7 +586,7 @@ int EX_GetVidOutRatio(char*date )
 	if(strlen(buf1) > 1)
 		memcpy(date,buf1,strlen(buf1));
 	else
-		strcpy(date,"NA");
+		strcpy(date,"N/A");
 	return 0;
 }
 
@@ -1274,6 +1274,8 @@ int EX_GetAudParam(PortInfo_S*info,AudioSignalInfo_S*param)
 
 	param->chn = atoi(buf_ch);
 	sscanf(buf_type,"%s (%*s)",param->format);
+	if(strlen(param->format) == 0)
+		sprintf(param->format,"N/A");
 
 	DBG_InfoMsg("EX_GetAudParam param->format %s\n",param->format);
 
@@ -1623,7 +1625,7 @@ int EX_GetHDCPMode(int index,HDCPMode_E *mode)
 }
 int EX_GetHDCPStatus(int io,int index)
 {
-	int status = 1;
+	int status = 0;
 #ifdef CONFIG_P3K_HOST
 	State_E tmp_mode;
 
@@ -1632,10 +1634,10 @@ int EX_GetHDCPStatus(int io,int index)
 
 	mysystem(cmd1,buf1,16);
 
-	if(strstr(buf1,"Off") != 0)
-		status = 0;
-	else
+	if(strstr(buf1,"On") != 0)
 		status = 1;
+	else
+		status = 0;
 #else
 	DBG_WarnMsg(" !!! This is Decoder\n");
 #endif
@@ -2529,7 +2531,9 @@ int EX_GetDNSName(int id,char*name)
 	if(id == 0)
 	{
 		mysystem("astparam g hostname_customized",name,64);
-		//GetBoardInfo(BOARD_HOSTNAME, name, MAX_DEV_NAME_LEN);
+
+		if(strstr(name,"not defined") != 0)
+			GetBoardInfo(BOARD_HOSTNAME, name, MAX_DEV_NAME_LEN);
 	}
 	else if(id == 1)
 	{
