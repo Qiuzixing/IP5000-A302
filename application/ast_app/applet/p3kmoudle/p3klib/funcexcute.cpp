@@ -1157,10 +1157,15 @@ int EX_GetDevStatus(void)
 }
 int EX_GetHWTemp(int  id,int iMode)
 {
-	int iTemp = 0;
-	if(iMode == 0){
-	iTemp = 50;
-		}
+	char buf1[16] = "";
+
+	mysystem("get_temperature",buf1,16);
+
+	int iTemp = atoi(buf1);
+
+	if(iMode == 1)
+		iTemp = 18*iTemp/10 + 32;
+
 	return iTemp;
 }
 
