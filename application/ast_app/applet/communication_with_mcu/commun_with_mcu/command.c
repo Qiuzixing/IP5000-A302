@@ -487,6 +487,18 @@ int APP_Comm_Recv(CmdProtocolParam * param)
             memcpy(&vdo_link, &param->Data, sizeof(vdo_link));
             printf("port[0x%x] connect [0x%x] isHpd [0x%x]\n", vdo_link.port, vdo_link.isConnect,vdo_link.isHpd);
             a30_led_link_control(&vdo_link);
+            if(vdo_link.port == HDMITX2)
+            {
+                if(vdo_link.isHpd == 1)
+                {
+                    system("astparam s tv_access y");
+                }
+                else
+                {
+                    system("astparam s tv_access n");
+                }
+            }
+
             if(auto_av_report_flag == OPEN_REPROT && 0 == socket_msg_struct_conver(&send_socket_msg,vdo_link.port,vdo_link.isConnect,-1))
             {
                 sendEvent(sock_fd,send_socket_msg.type,send_socket_msg.source);
@@ -501,7 +513,17 @@ int APP_Comm_Recv(CmdProtocolParam * param)
             {
                 ipe5000w_led_light_up(&vdo_status);
             }
-
+            if(board_type_flag == IPD5000 && vdo_status.port == HDMIRX2)
+            {
+                if(vdo_status.isStable == 1)
+                {
+                    system("astparam s rx_local_input y");
+                }
+                else
+                {
+                    system("astparam s rx_local_input n");
+                }
+            }
             if(auto_av_report_flag == OPEN_REPROT && 0 == socket_msg_struct_conver(&send_socket_msg,vdo_status.port,-1,vdo_status.isStable))
             {
                 sendEvent(sock_fd,send_socket_msg.type,send_socket_msg.source);
