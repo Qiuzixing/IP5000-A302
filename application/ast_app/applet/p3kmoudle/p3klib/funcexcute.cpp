@@ -2971,11 +2971,119 @@ int EX_GetTimeSyncInfo(TimeSyncConf_S*syncInfo)
 }
 int EX_GetSignalList(char info[][MAX_SIGNALE_LEN],int num)
 {
-	int tmpnum = 2;
+	int tmpnum = 0;
 	char *str ="in.hdmi.1.audio.1";
 	char *str1= "out.hdmi.1.video.1";
 	memcpy(info[0],str,strlen(str));
 	memcpy(info[1],str1,strlen(str1));
+
+	char buf[16] = "";
+
+#ifdef CONFIG_P3K_HOST
+	mysystem("cat /sys/devices/platform/videoip/timing_info", buf, 16);
+
+	if(strstr(buf,"Not Available") != 0)
+	{
+		DBG_WarnMsg("Not Available\n");
+	}
+	else
+	{
+		if((strcmp(g_version_info.model,IPE_P_MODULE) == 0)||(strcmp(g_version_info.model,IPE_W_MODULE) == 0))
+		{
+			memset(buf,0,16);
+			//Get Cuurent hdmi in
+			mysystem("/usr/local/bin/sconfig --show input", buf, 16);
+			if(strstr(buf,"HDMI3") != 0)
+				strcpy(info[0],"in.usb_c.3.video.1");
+			else if(strstr(buf,"HDMI2") != 0)
+			{
+				if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+					strcpy(info[0],"in.hdmi.2.video.1");
+				else
+					strcpy(info[0],"in.usb_c.2.video.1");
+			}
+			else
+				strcpy(info[0],"in.hdmi.1.video.1");
+		}
+		else
+			strcpy(info[0],"in.hdmi.1.video.1");
+
+		strcpy(info[1],"out.stream.1.video.1");
+
+		tmpnum = 2;
+
+		if((strcmp(g_version_info.model,IPE_P_MODULE) == 0)||(strcmp(g_version_info.model,IPE_MODULE) == 0))
+		{
+			mysystem("astparam g tv_access", buf, 16);
+
+			if(strstr(buf,"not defined") != 0)
+			{
+				DBG_WarnMsg("tv_access not defined\n");
+			}
+			else
+			{
+				if(strstr(buf,"y") != 0)
+				{
+					strcpy(info[2],"out.hdmi.1.video.1");
+					tmpnum++;
+				}
+			}
+		}
+	}
+#else
+	int port = g_autoswitch_info.source;
+
+	if((strcmp(g_version_info.model,IPD_MODULE) == 0)&&(port == 1))//Local HDMI
+	{
+		mysystem("astparam g rx_local_input", buf, 16);
+
+		if(strstr(buf,"not defined") != 0)
+		{
+			DBG_WarnMsg("tv_access not defined\n");
+		}
+		else
+		{
+			if(strstr(buf,"y") != 0)
+			{
+				strcpy(info[0],"in.hdmi.1.video.1");
+				tmpnum++;
+			}
+		}
+	}
+	else //stream
+	{
+		mysystem("cat /sys/devices/platform/videoip/timing_info", buf, 16);
+
+		if(strstr(buf,"Not Available") != 0)
+		{
+			DBG_WarnMsg("Not Available\n");
+		}
+		else
+		{
+			strcpy(info[0],"in.stream.1.video.1");
+			tmpnum++;
+		}
+	}
+
+	if(tmpnum == 1)
+	{
+		mysystem("astparam g tv_access", buf, 16);
+
+		if(strstr(buf,"not defined") != 0)
+		{
+			DBG_WarnMsg("tv_access not defined\n");
+		}
+		else
+		{
+			if(strstr(buf,"y") != 0)
+			{
+				strcpy(info[1],"out.hdmi.1.video.1");
+				tmpnum++;
+			}
+		}
+	}
+#endif
+
 	return tmpnum;
 }
 

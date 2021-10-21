@@ -385,7 +385,7 @@ static int P3K_AudioSampleRateToStr(int samplerate,char*data)
 			strcpy(tmpbuf,"8K");
 			break;
 		default:
-			strcpy(tmpbuf,"0K");
+			strcpy(tmpbuf,"N/A");
 			break;
 	}
 	memcpy(data,tmpbuf,strlen(tmpbuf));
@@ -672,8 +672,16 @@ static int P3K_GetAudParam(char*reqparam,char*respParam,char*userdata)
 	 //P3K_AudioTypeToStr(audioInfo.format,audioType);
 
 	 P3K_SignaleTypeToStr(tmpInfo.signal, signal);
-	 sprintf(tmpparam,"%s.%s.%d.%s.%d,%d,%s,%s",direc,format,
+	 if(audioInfo.chn > 0)
+	 {
+	 	sprintf(tmpparam,"%s.%s.%d.%s.%d,%d,%s,%s",direc,format,
 		   tmpInfo.index,signal,tmpInfo.index,audioInfo.chn,sampleRate,audioInfo.format);
+	 }
+	 else
+	 {
+	 	sprintf(tmpparam,"%s.%s.%d.%s.%d,N/A,N/A,N/A",direc,format,
+		   tmpInfo.index,signal,tmpInfo.index);
+	 }
 
 	memcpy(respParam,tmpparam,strlen(tmpparam));
 
