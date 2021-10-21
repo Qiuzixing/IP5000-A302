@@ -150,3 +150,9 @@ aud_error_t ddp_write_device_switch_status_query(uint8_t *ddp_buf, ddp_size_t *d
 aud_error_t ddp_write_device_manufacturer_info(uint8_t *ddp_buf, ddp_size_t *ddp_packet_len, size_t ddp_packet_buf_max, ddp_request_id_t manufacturer_request_id);
 
 #endif // __EXAMPLE_TX_DDP_H__
+
+/**
++* Set the friendly name of Ultimo
++* @return AUD_SUCCESS if the packet was sucessfully created and transmitted, otherwise a value other than AUD_SUCCESS is returned
++*/
+aud_error_t ddp_write_device_identity_request(uint8_t *ddp_buf, ddp_size_t *ddp_packet_len, size_t ddp_packet_buf_max, ddp_request_id_t identity_request_id, const char *friendly_name_string);

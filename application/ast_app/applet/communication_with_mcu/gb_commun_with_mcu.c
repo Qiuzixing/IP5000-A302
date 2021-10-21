@@ -53,6 +53,9 @@ uint8_t file_path_len = 0;
 uint8_t arm_version[30] = "GET VER "; //用于记录版本信息
 uint8_t version_len = 0;
 
+unsigned char dante_cmd_buff[DANTE_UART_BUFFER] = {0};
+int dante_cmd_len = 0;
+char *dante_host_name = NULL;
 uint8_t Send_File_Flag = 0;
 uint8_t Up_Succ_Flag = 0;
 uint8_t Up_Fail_Flag = 0;
@@ -686,8 +689,6 @@ void do_handle_set_audio_insert_extract(uint16_t cmd,char *cmd_param)
 static void do_handle_uart_pass(uint16_t cmd,char *cmd_param)
 {
     char *dante_cmd = strtok(cmd_param,":");
-    unsigned char dante_cmd_buff[DANTE_UART_BUFFER] = {0};
-    int dante_cmd_len = 0;
     int cmd_index = 0;
     int i = 0;
     struct CmdDataUartPassthrough *uart_pass = NULL;
@@ -704,6 +705,14 @@ static void do_handle_uart_pass(uint16_t cmd,char *cmd_param)
     switch(cmd_index)
     {
         case SET_DANTE_HOSTNAME:
+            dante_host_name = strtok(NULL,":");
+            if(dante_host_name == NULL)
+            {
+                printf("warn:Illegal parameter, discard directly\n");
+                return;
+            }
+            __example_main(cmd_index);
+            //dante_cmd_len = dnt_name_packet(dante_cmd_buff);
             break;
         case SET_DANTE_MAC:
             break;

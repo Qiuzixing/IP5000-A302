@@ -18,8 +18,14 @@
 #include "uhip_hostcpu_tx_timer.h"
 #include "hostcpu_transport.h"
 
+enum
+{
+	SET_HOSTNAME = 0,
+	CMD_CNT
+};
+
 int run_flag = 1;
-int __example_main()
+int __example_main(int dante_cmd_index)
 {
 	hostcpu_uhip_common_init();
 
@@ -33,12 +39,21 @@ int __example_main()
 
 	//reset the rx buffers
 	reset_uhip_rx_buffers();
-
+	printf("-------------\n");
 	// NOTE: This example application sends a SINGLE DDP Tx request and prints out the response when it is received
 	// It will also print the contents of any DDP events received while running
 	// only enable ONE FLAG at a time as the host application is required to wait for a response before sending the next Tx request
 	// In a complete application the sending of DDP requests would need to be triggered by an external event such as a push button press or by a periodic timer
-
+	switch(dante_cmd_index)
+	{
+		case SET_HOSTNAME:
+			hostcpu_uhip_set_tx_flag(HOSTCPU_UHIP_TX_DDP_DEVICE_IDENTITY_FLAG);		//send a DDP device manufacture with manf override - see
+			break;
+		default:
+			printf("unknow dante_cmd quit\n");
+			return 0;
+			break;
+	}
 	//hostcpu_uhip_set_tx_flag(HOSTCPU_UHIP_TX_CMC_PB_FLAG);			//send a ConMon packet bridge message - see send_conmon_packetbridge_packet()
 	//hostcpu_uhip_set_tx_flag(HOSTCPU_UHIP_TX_UDP_PB_FLAG);			//send a UDP packet bridge message - see send_udp_packetbridge_packet()
 	//hostcpu_uhip_set_tx_flag(HOSTCPU_UHIP_TX_DDP_NET_IF_QUERY_FLAG);		//send a DDP network interface message - see ddp_write_send_network_interface_query()
@@ -54,12 +69,13 @@ int __example_main()
 	//hostcpu_uhip_set_tx_flag(HOSTCPU_UHIP_TX_DDP_DEVICE_LOCK_UNLOCK_FLAG);	//send a DDP device lock unlock query message - see ddp_write_device_lock_unlock()
 	//hostcpu_uhip_set_tx_flag(HOSTCPU_UHIP_TX_DDP_AUDIO_SIGNAL_PRESENCE_FLAG);	//send a DDP audio signal presence config query message - see ddp_write_enable_audio_signal_presence()
 	//hostcpu_uhip_set_tx_flag(HOSTCPU_UHIP_TX_DDP_DEVICE_DANTE_DOMAIN_FLAG);		//send a DDP device Dante Domain query - see ddp_write_device_dante_domain()
-	hostcpu_uhip_set_tx_flag(HOSTCPU_UHIP_TX_DDP_DEVICE_SWITCH_STATUS_FLAG);		//send a DDP device switch status query - see ddp_write_device_switch_status_query()
+	//hostcpu_uhip_set_tx_flag(HOSTCPU_UHIP_TX_DDP_DEVICE_SWITCH_STATUS_FLAG);		//send a DDP device switch status query - see ddp_write_device_switch_status_query()
 	//hostcpu_uhip_set_tx_flag(HOSTCPU_UHIP_TX_DDP_DEVICE_MANF_OVERRIDE_FLAG);		//send a DDP device manufacture with manf override - see 
-	//set normal state
-	//hostcpu_uhip_set_state(HOSTCPU_UHIP_STATE_NORMAL);
 	
-	while (0 < run_flag && run_flag < 500)
+	//set normal state
+	hostcpu_uhip_set_state(HOSTCPU_UHIP_STATE_NORMAL);
+	handle_uhip_tx();
+/* 	while (0 < run_flag && run_flag < 500)
 	{
 		run_flag ++;
 
@@ -74,7 +90,7 @@ int __example_main()
 
 		usleep(1000);
 
-	}
+	} */
 
 	return 0;
 }

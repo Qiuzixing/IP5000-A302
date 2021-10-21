@@ -618,3 +618,32 @@ aud_error_t ddp_write_device_manufacturer_info(uint8_t *ddp_buf, ddp_size_t *ddp
 
 	return AUD_SUCCESS;
 }
+
+aud_error_t ddp_write_device_identity_request(uint8_t *ddp_buf, ddp_size_t *ddp_packet_len, size_t ddp_packet_buf_max, ddp_request_id_t identity_request_id, const char* friendly_name_string)
+{
+	aud_error_t result;
+	ddp_packet_write_info_t ddp_winfo;
+	ddp_manf_override_values_t overrides = {0};
+
+	*ddp_packet_len = 0;
+
+	AUD_PRINTF("Sending DDP Device manufacturer message\n");
+
+	// Intialize the DDP packet buffer
+	result = ddp_packet_init_write(&ddp_winfo, (uint32_t *)ddp_buf, (ddp_size_t)ddp_packet_buf_max);
+	if (result != AUD_SUCCESS)
+	{
+		return result;
+	}
+
+	result = ddp_add_device_identity_request(&ddp_winfo, identity_request_id, friendly_name_string);
+	if (result != AUD_SUCCESS)
+	{
+		return result;
+	}
+
+	// return ddp packet length.
+	*ddp_packet_len = ddp_packet_write_get_length_bytes(&ddp_winfo);
+
+	return AUD_SUCCESS;
+}

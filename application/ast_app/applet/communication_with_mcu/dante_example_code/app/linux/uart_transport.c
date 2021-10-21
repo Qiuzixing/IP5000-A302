@@ -19,7 +19,9 @@
 #include "hostcpu_transport.h"
 
 #include "uhip_structures.h"
-
+#include "../../gb_commun_with_mcu.h"
+extern unsigned char dante_cmd_buff[DANTE_UART_BUFFER];
+extern int dante_cmd_len;
 #define RX_BUF_SIZE 1024
 #define PC_COM_PORT 10
 
@@ -165,13 +167,7 @@ static void cleanup()
 
 aud_bool_t hostcpu_transport_init(void)
 {
-	h_serial_port = open_uart(g_com_port, g_baud);
 
-	if (h_serial_port < 0)
-	{
-		AUD_PRINTF("Unable to open COM port\n");
-		return AUD_FALSE;
-	}
 	return AUD_TRUE;
 }
 
@@ -183,6 +179,17 @@ aud_bool_t hostcpu_transport_init(void)
 */
 size_t hostcpu_transport_write(uint8_t const * buffer, size_t num_bytes)
 {
+	uint32_t i;
+	if(num_bytes >= DANTE_UART_BUFFER)
+	{
+		return;
+	}
+	for (i = 0; i < num_bytes; i++)
+	{
+		dante_cmd_buff[i] = buffer[i];
+	}
+	dante_cmd_len = num_bytes;
+#if 0
 	uint32_t i;
 	uint32_t chunks = num_bytes / UHIP_CHUNK_SIZE;
 	ssize_t num_bytes_written;
@@ -230,7 +237,7 @@ size_t hostcpu_transport_write(uint8_t const * buffer, size_t num_bytes)
 			AUD_PRINTF("Write but not all data to the serial port\n");
 		}
 	}
-
+#endif
 
 	return num_bytes;
 }

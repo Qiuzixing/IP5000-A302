@@ -20,7 +20,8 @@
 #include "uhip_hostcpu_tx_timer.h"
 #include "example_tx_ddp.h"
 #include "example_tx_pb.h"
-
+#include "../../gb_commun_with_mcu.h"
+extern char *dante_host_name;
 // Use only one this buffer for DDP & UHIP structure wrapping. The Data is COBS encoded in-place before sending it to the Ultimo device. 
 uint8_t tx_buffer[_DMA_CHUNK_ROUND(_COBS_PAD(UHIP_PACKET_SIZE_MAX) + UHIP_PACKET_SIZE_MAX + COBS_ZERO_PAIR_NUM)];
 
@@ -461,6 +462,27 @@ void handle_uhip_tx()
 				//change the state and start the tx timer
 				tx_success();
 			}
+		}
+	}
+	else if (hostcpu_uhip_is_tx_flag_set(HOSTCPU_UHIP_TX_DDP_DEVICE_IDENTITY_FLAG))
+	{
+		ddp_request_id_t device_identity_request_id = 16;
+
+		// build message
+		if (ddp_write_device_identity_request(ddp_tx_buffer_ptr, &ddp_packet_len, ddp_buf_max_len, device_identity_request_id, (const char *)dante_host_name) == AUD_SUCCESS)
+		{
+			// wrap ddp packet in uhip structure & cobs & sending over transport
+			if (prepare_uhip_packet_and_send(tx_buffer, ddp_packet_len) == AUD_SUCCESS)
+			{
+				// remember ddp tx request id
+				hostcpu_uhip_set_ddp_tx_request_id(device_identity_request_id);
+
+				//clear the flag
+				hostcpu_uhip_clear_tx_flag(HOSTCPU_UHIP_TX_DDP_DEVICE_IDENTITY_FLAG);
+
+ 				//change the state and start the tx timer
+ 				tx_success();
+ 			}
 		}
 	}
 }

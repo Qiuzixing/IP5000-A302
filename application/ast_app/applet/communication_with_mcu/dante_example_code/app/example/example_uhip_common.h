@@ -57,6 +57,7 @@ enum hostcpu_uhip_tx_packet
 	HOSTCPU_UHIP_TX_DDP_DEVICE_DANTE_DOMAIN,	/*!< Transmit a DDP Device Dante Domain query request */
 	HOSTCPU_UHIP_TX_DDP_DEVICE_SWITCH_STATUS,	/*!< Transmit a DDP Device switch status query request */
 	HOSTCPU_UHIP_TX_DDP_DEVICE_MANF_OVERRIDE,	/*!< Transmit a DDP Device manufacture request with manufacture info override */
+	HOSTCPU_UHIP_TX_DDP_DEVICE_IDENTITY,		/*!< Transmit a DDP Device identity request with friendly name */
 };
 
 /**
@@ -83,6 +84,7 @@ enum hostcpu_uhip_tx_packet_flags
 	HOSTCPU_UHIP_TX_DDP_DEVICE_DANTE_DOMAIN_FLAG = (1 << HOSTCPU_UHIP_TX_DDP_DEVICE_DANTE_DOMAIN),		/*!< Transmit a DDP Device Dante Domain request */
 	HOSTCPU_UHIP_TX_DDP_DEVICE_SWITCH_STATUS_FLAG = (1 << HOSTCPU_UHIP_TX_DDP_DEVICE_SWITCH_STATUS),	/*!< Transmit a DDP Device switch status request */
 	HOSTCPU_UHIP_TX_DDP_DEVICE_MANF_OVERRIDE_FLAG = (1 << HOSTCPU_UHIP_TX_DDP_DEVICE_MANF_OVERRIDE),	/*!< Transmit a DDP Device manufacture request with manufacture info override */
+	HOSTCPU_UHIP_TX_DDP_DEVICE_IDENTITY_FLAG = (1 << HOSTCPU_UHIP_TX_DDP_DEVICE_IDENTITY),	/*!< Transmit a DDP Device manufacture request with manufacture info override */
 };
 
 /** @cond */
