@@ -1940,7 +1940,7 @@ int EX_SetColorSpaceConvertMode(int index,int convertMode)
 int EX_GetColorSpaceConvertMode(int index,int *convertMode)
 {
 #ifdef CONFIG_P3K_CLIENT
-	Cfg_Get_Video_RGB(*convertMode);
+	Cfg_Get_Video_RGB(convertMode);
 #else
 	DBG_WarnMsg(" !!! This is Encoder\n");
 #endif
@@ -3104,19 +3104,12 @@ int EX_GetSignalList(char info[][MAX_SIGNALE_LEN],int num)
 
 	if(tmpnum == 1)
 	{
-		mysystem("astparam g tv_access", buf, 16);
+		mysystem("cat /sys/devices/platform/SiI9136/tv_access", buf, 16);
 
-		if(strstr(buf,"not defined") != 0)
+		if(strstr(buf,"1") != 0)
 		{
-			DBG_WarnMsg("tv_access not defined\n");
-		}
-		else
-		{
-			if(strstr(buf,"y") != 0)
-			{
-				strcpy(info[1],"out.hdmi.1.video.1");
-				tmpnum++;
-			}
+			strcpy(info[1],"out.hdmi.1.video.1");
+			tmpnum++;
 		}
 	}
 #endif
