@@ -1409,6 +1409,9 @@ int Cfg_Init_Network(void)
 	g_network_info.rs232_vlan = 0;
 	g_network_info.dante_port = 0;
 	g_network_info.dante_vlan = 0;
+	g_network_info.beacon_en = OFF;
+	sprintf(g_network_info.beacon_ip,"224.0.0.250");
+	g_network_info.beacon_port = 50000;
 
 	//Check gateway cfg
 	int nAccessRet = access(path,F_OK | R_OK | W_OK);
@@ -1461,30 +1464,35 @@ int Cfg_Init_Network(void)
 						if(!eth[JSON_NETWORK_IP].empty())
 						{
 							string addr = eth[JSON_NETWORK_IP].asString();
+							memset(g_network_info.eth_info[i].ipAddr,0,MAX_IP_ADDR_LEN);
 							sprintf(g_network_info.eth_info[i].ipAddr,addr.c_str());
 						}
 
 						if(!eth[JSON_NETWORK_MASK].empty())
 						{
 							string addr = eth[JSON_NETWORK_MASK].asString();
+							memset(g_network_info.eth_info[i].mask,0,MAX_IP_ADDR_LEN);
 							sprintf(g_network_info.eth_info[i].mask,addr.c_str());
 						}
 
 						if(!eth[JSON_NETWORK_GW].empty())
 						{
 							string addr = eth[JSON_NETWORK_GW].asString();
+							memset(g_network_info.eth_info[i].gateway,0,MAX_IP_ADDR_LEN);
 							sprintf(g_network_info.eth_info[i].gateway,addr.c_str());
 						}
 
 						if(!eth[JSON_NETWORK_DNS1].empty())
 						{
 							string addr = eth[JSON_NETWORK_DNS1].asString();
+							memset(g_network_info.eth_info[i].dns1,0,MAX_IP_ADDR_LEN);
 							sprintf(g_network_info.eth_info[i].dns1,addr.c_str());
 						}
 
 						if(!eth[JSON_NETWORK_DNS2].empty())
 						{
 							string addr = eth[JSON_NETWORK_DNS2].asString();
+							memset(g_network_info.eth_info[i].dns2,0,MAX_IP_ADDR_LEN);
 							sprintf(g_network_info.eth_info[i].dns2,addr.c_str());
 						}
 					}
@@ -1527,6 +1535,7 @@ int Cfg_Init_Network(void)
 						if(!multi[JSON_NETWORK_GROUP_IP].empty())
 						{
 							string addr = multi[JSON_NETWORK_GROUP_IP].asString();
+							memset(g_network_info.multicast_ip,0,32);
 							sprintf(g_network_info.multicast_ip,addr.c_str());
 						}
 
@@ -1588,6 +1597,33 @@ int Cfg_Init_Network(void)
 					if(!dante_port[JSON_NETWORK_VLAN].empty())
 						g_network_info.rs232_vlan = dante_port[JSON_NETWORK_VLAN].asInt();
 
+				}
+			}
+
+			if(!root[JSON_NETWORK_BEACON_INFO].empty())
+			{
+				Json::Value& beacon_info = root[JSON_NETWORK_BEACON_INFO];
+
+				if(!beacon_info[JSON_NETWORK_BEACON_EN].empty())
+				{
+					string mode =  root[JSON_NETWORK_BEACON_EN].asString();
+
+					if(mode == JSON_PARAM_ON)
+						g_network_info.beacon_en = ON;
+					else
+						g_network_info.beacon_en = OFF;
+				}
+
+				if(!beacon_info[JSON_NETWORK_BEACON_IP].empty())
+				{
+					string addr = beacon_info[JSON_NETWORK_BEACON_IP].asString();
+					memset(g_network_info.beacon_ip,0,MAX_IP_ADDR_LEN);
+					sprintf(g_network_info.beacon_ip,addr.c_str());
+				}
+
+				if(!beacon_info[JSON_NETWORK_BEACON_PORT].empty())
+				{
+					g_network_info.beacon_port = beacon_info[JSON_NETWORK_BEACON_PORT].asInt();
 				}
 			}
 
@@ -3247,6 +3283,19 @@ int Cfg_Update_Network(void)
  	port[JSON_NETWORK_DANTE] = dante;
 
 	root[JSON_NETWORK_PORT_SET] = port;
+
+	Json::Value beacon_info;
+	if(g_network_info.beacon_en == ON)
+		beacon_info[JSON_NETWORK_BEACON_EN] = JSON_PARAM_ON;
+	else
+		beacon_info[JSON_NETWORK_BEACON_EN] = JSON_PARAM_OFF;
+
+
+	beacon_info[JSON_NETWORK_BEACON_IP] = g_network_info.beacon_ip;
+	beacon_info[JSON_NETWORK_BEACON_PORT] = g_network_info.beacon_port;
+
+	root[JSON_NETWORK_BEACON_INFO] = beacon_info;
+
 
 	Json::Value root1;
 	root1[JSON_NETWORK] = root;

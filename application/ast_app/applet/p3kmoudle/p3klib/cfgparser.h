@@ -224,6 +224,11 @@ extern "C" {
 #define JSON_NETWORK_DANTE		"dante"
 #define JSON_NETWORK_PORT		"port"
 #define JSON_NETWORK_VLAN		"vlan_tag"
+#define JSON_NETWORK_BEACON_INFO	"beacon_info"
+#define JSON_NETWORK_BEACON_EN		"beacon_en"
+#define JSON_NETWORK_BEACON_IP		"beacon_ip"
+#define JSON_NETWORK_BEACON_PORT	"beacon_port"
+
 
 #define JSON_TIME_SETTING		"time_setting"
 #define JSON_TIME_ZONE			"time_zone"
@@ -429,6 +434,9 @@ typedef struct   _Network_Info
 	int 		  rs232_vlan;
 	int 		  dante_port;
 	int 		  dante_vlan;
+	State_E		  beacon_en;
+	char 		  beacon_ip[MAX_IP_ADDR_LEN];
+	int 		  beacon_port;
 }Network_Info;
 
 typedef struct   _Log_Info
