@@ -3104,12 +3104,32 @@ int EX_GetSignalList(char info[][MAX_SIGNALE_LEN],int num)
 
 	if(tmpnum == 1)
 	{
-		mysystem("cat /sys/devices/platform/SiI9136/tv_access", buf, 16);
-
-		if(strstr(buf,"1") != 0)
+		if(strcmp(g_version_info.model,IPD_MODULE) == 0)
 		{
-			strcpy(info[1],"out.hdmi.1.video.1");
-			tmpnum++;
+			mysystem("astparam g tv_access", buf, 16);
+
+			if(strstr(buf,"not defined") != 0)
+			{
+				DBG_WarnMsg("tv_access not defined\n");
+			}
+			else
+			{
+				if(strstr(buf,"y") != 0)
+				{
+					strcpy(info[1],"out.hdmi.1.video.1");
+					tmpnum++;
+				}
+			}
+		}
+		else
+		{
+			mysystem("cat /sys/devices/platform/SiI9136/tv_access", buf, 16);
+
+			if(strstr(buf,"1") != 0)
+			{
+				strcpy(info[1],"out.hdmi.1.video.1");
+				tmpnum++;
+			}
 		}
 	}
 #endif
