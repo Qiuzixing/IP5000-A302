@@ -1658,10 +1658,6 @@ handle_e_p3k_audio_switch()
 		e_p3k_audio_src?*)
 			handle_e_p3k_audio_src "$event"
 		;;
-		e_p3k_audio_dante_name::?*)
-			echo "e_p3k_audio_dante_name ($event) received"
-			ipc @m_lm_set s set_dante:0:$_para1
-		;;
 		e_p3k_audio_dst?*)
 			handle_e_p3k_audio_dst "$event"
 		;;
@@ -1859,6 +1855,17 @@ handle_e_p3k_net_hostname()
 	echo "handle_e_p3k_net_hostname."
 }
 
+handle_e_p3k_net_dante_name()
+{
+	echo "handle_e_p3k_net_dante_name."
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	_para1="$1"
+
+	ipc @m_lm_set s set_dante:0:$_para1
+}
+
 handle_e_p3k_fp_lock()
 {
 	case "$event" in
@@ -1941,6 +1948,9 @@ handle_e_p3k_net()
 		;;
 		e_p3k_net_hostname::?*)
 			handle_e_p3k_net_hostname "$event"
+		;;
+		e_p3k_net_dante_name::?*)
+			handle_e_p3k_net_dante_name "$event"
 		;;
 		*)
 		;;
