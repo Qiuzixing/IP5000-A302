@@ -4154,7 +4154,7 @@ int Cfg_Set_Net_Config(int netId,NetWorkInfo_S*netInfo)
 
 	if((netId == 0)||(netId == 1))
 	{
-		memcpy(netInfo,&(g_network_info.eth_info[netId]),sizeof(NetWorkInfo_S));
+		memcpy(&(g_network_info.eth_info[netId]),netInfo,sizeof(NetWorkInfo_S));
 		Cfg_Update(NETWORK_INFO);
 	}
 	else
@@ -4170,7 +4170,7 @@ int Cfg_Get_Net_Config(int netId,NetWorkInfo_S*netInfo)
 
 	if((netId == 0)||(netId == 1))
 	{
-		memcpy(&(g_network_info.eth_info[netId]),netInfo,sizeof(NetWorkInfo_S));
+		memcpy(netInfo,&(g_network_info.eth_info[netId]),sizeof(NetWorkInfo_S));
 	}
 	else
 	{
