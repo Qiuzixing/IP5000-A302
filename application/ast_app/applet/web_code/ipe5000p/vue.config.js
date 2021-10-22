@@ -1,4 +1,4 @@
-const version = 'V1.0.10'
+const version = 'V1.0.11'
 const path = require('path')
 function resolve (dir) {
   return path.join(__dirname, dir)
@@ -33,6 +33,13 @@ module.exports = {
         symbolId: 'icon-[name]'
       })
       .end()
+  },
+  devServer: {
+    before (app) {
+      app.post('/upload/upgradesoftware', function (req, res) {
+        res.json({})
+      })
+    }
   }
 }
 

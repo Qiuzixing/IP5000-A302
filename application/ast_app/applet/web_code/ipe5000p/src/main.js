@@ -24,6 +24,7 @@ import locale from 'element-ui/lib/locale'
 import colorPicker from './components/color-picker'
 if (process.env.NODE_ENV !== 'production') {
   require('./mock/mock.js')
+  webSocket.host = 'ws://' + window.location.hostname + ':18888'
 }
 locale.use(lang)
 Vue.component('colorPicker', colorPicker)
@@ -31,7 +32,6 @@ Vue.component('colorPicker', colorPicker)
 Vue.use(Dialog)
 Vue.use(InputNumber)
 Vue.use(Upload)
-// Vue.use(DatePicker)
 // Vue.use(TimeSelect)
 // Vue.use(TimePicker)
 Vue.use(Slider)

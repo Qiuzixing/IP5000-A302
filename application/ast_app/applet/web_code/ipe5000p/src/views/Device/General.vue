@@ -80,13 +80,16 @@
               style="line-height: 36px;">Firmware Version</span>
         <span style="width: 180px;line-height: 36px;">{{version}}</span>
         <el-upload action="/upload/upgradesoftware"
+                   :before-upload="beforeUpload"
+                   :on-progress="progressEvent"
                    :on-success="upgradeFile"
-                   :file-list="fileList">
+                   :on-error="uploadError"
+                   :show-file-list="false"
+                   ref="upload">
           <button class="btn btn-plain-primary"
                   style="margin-left: 15px;">UPGRADE</button>
 
         </el-upload>
-        <!-- <upload-components :show="false">UPGRADE</upload-components> -->
       </div>
       <div class="setting">
         <span class="setting-title">Last Upgrade Date/Time</span>
@@ -138,6 +141,24 @@
                 @click="dialogVisibleFactory = false">CANCEL</button>
       </span>
     </el-dialog>
+    <el-dialog title="Upgrade Info"
+               :close-on-click-modal="false"
+               :close-on-press-escape="false"
+               :visible.sync="showProgress"
+               width="500px">
+      <div>
+        <p class="upgrade-info"
+           v-if="fileError">(3/3) Firmware upgrading failed. Error code {{errMsg}}.</p>
+        <p class="upgrade-info"
+           v-if="upgradeComplete">(3/3)Firmware upgrading completed. Rebooting...</p>
+        <p class="upgrade-info"
+           v-if="isUpgrade">(2/3) Firmware installing {{upgradeProgress}}%</p>
+        <p class="upgrade-info">(1/3) Firmware uploading {{uploadProgress}}%</p>
+        <!-- <p class="upgrade-info"
+           v-for="(item, index) in upgradeInfo"
+           :key="index">{{item}}</p> -->
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -176,7 +197,16 @@ export default {
       dialogVisibleReset: false,
       dialogVisibleFactory: false,
       autoStandbyTime: 30,
-      fileList: []
+      fileList: [],
+      progress: 0,
+      showProgress: false,
+      upgradeInfo: [],
+      upgradeComplete: false,
+      fileError: false,
+      isUpgrade: false,
+      upgradeProgress: 0,
+      uploadProgress: 0,
+      errMsg: ''
     }
   },
   beforeCreate () {
@@ -242,6 +272,17 @@ export default {
       if (msg.search(/@VERSION /i) !== -1) {
         this.handleVersion(msg)
       }
+      if (msg.search(/@UPGRADE-STATUS /i) !== -1) {
+        this.handleUpgradeProgress(msg)
+        return
+      }
+      if (msg.search(/@UPGRADE /i) !== -1) {
+        this.isUpgrade = true
+        this.$refs.upload.clearFiles()
+        setTimeout(() => {
+          this.$socket.sendMsg('#UPGRADE-STATUS? ')
+        }, 3000)
+      }
     },
     handleHostname (msg) {
       this.hostname = msg.split(',').slice(1).join(',')
@@ -304,7 +345,44 @@ export default {
       this.$socket.sendMsg(`#STANDBY ${val}`)
     },
     upgradeFile () {
+      this.uploadProgress = 100
       this.$socket.sendMsg('#UPGRADE ')
+    },
+    uploadError () {
+      this.$refs.upload.clearFiles()
+      alert('Upload failed, please try again')
+    },
+    beforeUpload () {
+      this.uploadProgress = 0
+      this.upgradeProgress = 0
+      this.isUpgrade = false
+      this.upgradeComplete = false
+      this.fileError = false
+      this.showProgress = true
+    },
+    progressEvent (ev) {
+      this.uploadProgress = parseInt(ev.percent)
+    },
+    handleUpgradeProgress (msg) {
+      const val = msg.split(' ')[1]
+      if (val.indexOf('err') !== -1) {
+        this.fileError = true
+        this.errMsg = val.split(',')[2]
+        return
+      }
+      if (val.indexOf('ok') !== -1) {
+        this.upgradeProgress = 100
+        this.upgradeComplete = true
+        return
+      }
+      if (val.indexOf('ongoing') !== -1) {
+        const progress = parseInt(val.split(',')[1])
+        this.upgradeProgress = progress
+        setTimeout(() => {
+          this.$socket.sendMsg('#UPGRADE-STATUS? ')
+        }, progress > 96 ? 1500 : 3500)
+      }
+      // this.upgradeInfo.unshift('Upload completed')
     }
   }
 }
@@ -313,4 +391,10 @@ export default {
 //.upload-file{
 //  display: none;
 //}
+.upgrade-info {
+  font-family: "open sans semiblold";
+  color: #4d4d4f;
+  font-size: 14px;
+  margin: 10px 0;
+}
 </style>
