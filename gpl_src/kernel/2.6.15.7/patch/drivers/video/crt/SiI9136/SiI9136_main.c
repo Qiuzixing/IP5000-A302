@@ -44,7 +44,7 @@ struct sii9136_drv_data *drv_data;
 static struct sii9136_drv_data *drv_data;
 #endif
 static int debug_level = DEBUG_LEVEL_INFO;
-
+int tv_access_flag = 0;
 void sii9136_debug_level_cfg(int level)
 {
 	if ((level < DEBUG_LEVEL_TRACE) || (level > DEBUG_LEVEL_ERROR))
@@ -1480,6 +1480,14 @@ static ssize_t store_pixel_repetition_by_avi(struct device *dev, struct device_a
 }
 static DEVICE_ATTR(pixel_repetition_by_avi, (S_IRUGO | S_IWUSR), show_pixel_repetition_by_avi, store_pixel_repetition_by_avi);
 
+static ssize_t show_tv_access(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	int num = 0;
+	num += snprintf(buf + num, PAGE_SIZE - num, "%d\n", tv_access_flag);
+	return num;
+}
+
+static DEVICE_ATTR(tv_access, S_IRUGO, show_tv_access, NULL);
 
 static struct attribute *dev_attrs[] = {
 	&dev_attr_registers.attr,
@@ -1495,6 +1503,7 @@ static struct attribute *dev_attrs[] = {
 	&dev_attr_clk_edge_select.attr,
 	&dev_attr_debug_level.attr,
 	&dev_attr_sw_info.attr,
+	&dev_attr_tv_access.attr,
 #if defined(RESET_TEST)
 	&dev_attr_reset_test.attr,
 #endif

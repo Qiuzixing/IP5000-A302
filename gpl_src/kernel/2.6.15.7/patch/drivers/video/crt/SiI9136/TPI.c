@@ -47,7 +47,6 @@
 #include "tpidebug.h"
 #include "edid.h"
 #include "HDCP.h"
-
 #ifdef DEV_SUPPORT_EHDMI  //{
 #include "ehdmi.h"
 #endif //}
@@ -81,7 +80,7 @@ uint8_t g_InterruptStatusImage=0;
 #endif
 
 uint8_t txPowerState;		// Can be referenced externally by chip-specific TX HAL file, so cannot be static.
-
+extern int tv_access_flag;
 
 #if (AST_HDMITX)
 static u32 has_external_hdcp(void)
@@ -624,7 +623,7 @@ void edid_read_retry_version(void)
 static void OnHdmiCableConnected(void)
 {
 	TPI_DEBUG_PRINT((TPI_DEBUG_CHANNEL,"HDMI Connected\n"));
-
+	tv_access_flag = 1;
 #if (AST_HDMITX)
 	SetCableConnected;
 	HDCP_RETRY_COUNTER_RESET;
@@ -681,7 +680,7 @@ static void OnHdmiCableDisconnected(void)
 {
 
 	TPI_DEBUG_PRINT((TPI_DEBUG_CHANNEL,"HDMI Disconnected\n"));
-
+	tv_access_flag = 0;
 #if (AST_HDMITX)
 	ClrCableConnected;
 #endif
