@@ -1940,7 +1940,7 @@ int EX_SetColorSpaceConvertMode(int index,int convertMode)
 int EX_GetColorSpaceConvertMode(int index,int *convertMode)
 {
 #ifdef CONFIG_P3K_CLIENT
-	Cfg_Set_Video_RGB(*convertMode);
+	Cfg_Get_Video_RGB(*convertMode);
 #else
 	DBG_WarnMsg(" !!! This is Encoder\n");
 #endif
@@ -2070,8 +2070,45 @@ char* strGetResolution[] = {
 
 int EX_GetVideoImageScaleMode(int *mode,char*res)
 {
-	*mode = 1;
-	strcpy(res,"16");
+	*mode = 0;
+	strcpy(res,"0");
+
+	char buf[16] = "";
+
+	mysystem("astparam g v_output_timing_convert",buf,16);
+
+	if(strcmp("0",buf) == 0)
+	{
+		*mode = 0;
+		strcpy(res,"0");
+	}
+	else if(strcmp("8000005F",buf) == 0)
+	{
+		*mode = 1;
+		strcpy(res,"74");
+	}
+	else if(strcmp("8000005E",buf) == 0)
+	{
+		*mode = 1;
+		strcpy(res,"73");
+	}
+	else if(strcmp("80000010",buf) == 0)
+	{
+		*mode = 1;
+		strcpy(res,"16");
+	}
+	else if(strcmp("8000001F",buf) == 0)
+	{
+		*mode = 1;
+		strcpy(res,"31");
+	}
+	else if(strcmp("80000004",buf) == 0)
+	{
+		*mode = 1;
+		strcpy(res,"4");
+	}
+
+
 	return 0;
 }
 int EX_GetVideoViewReslotion(int mode, int index, int nativeFlag,int * res)
