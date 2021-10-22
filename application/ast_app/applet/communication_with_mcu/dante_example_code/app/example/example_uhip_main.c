@@ -17,7 +17,7 @@
 #include "uhip_hostcpu_rx_timer.h"
 #include "uhip_hostcpu_tx_timer.h"
 #include "hostcpu_transport.h"
-
+#include "../dante_cmd/dante_cmd_packet.h"
 enum
 {
 	SET_HOSTNAME = 0,
@@ -39,7 +39,6 @@ int __example_main(int dante_cmd_index)
 
 	//reset the rx buffers
 	reset_uhip_rx_buffers();
-	printf("-------------\n");
 	// NOTE: This example application sends a SINGLE DDP Tx request and prints out the response when it is received
 	// It will also print the contents of any DDP events received while running
 	// only enable ONE FLAG at a time as the host application is required to wait for a response before sending the next Tx request
@@ -49,10 +48,12 @@ int __example_main(int dante_cmd_index)
 		case SET_HOSTNAME:
 			hostcpu_uhip_set_tx_flag(HOSTCPU_UHIP_TX_DDP_DEVICE_IDENTITY_FLAG);		//send a DDP device manufacture with manf override - see
 			break;
+		case SET_DANTE_DEFAULT_NAME_GET_IT:
+			hostcpu_uhip_set_tx_flag(HOSTCPU_UHIP_TX_DDP_DEVICE_IDENTITY_FLAG);	//send a DDP device manufacture with manf override - see
+			break;
 		default:
 			printf("unknow dante_cmd quit\n");
-			return 0;
-			break;
+			return -1;
 	}
 	//hostcpu_uhip_set_tx_flag(HOSTCPU_UHIP_TX_CMC_PB_FLAG);			//send a ConMon packet bridge message - see send_conmon_packetbridge_packet()
 	//hostcpu_uhip_set_tx_flag(HOSTCPU_UHIP_TX_UDP_PB_FLAG);			//send a UDP packet bridge message - see send_udp_packetbridge_packet()

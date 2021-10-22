@@ -216,6 +216,7 @@ aud_error_t handle_ddp_device_id(ddp_packet_read_info_t *ddp_rinfo, uint16_t off
 	uint16_t status_flags, process_id;	
 	dante_device_id_t *device_id;
 	dante_device_id_str_t device_id_string_buff;
+	char system_buf[256] = {0};
 	char *default_name, *friendly_name, *domain, *advertised_name;
 
 	result = ddp_read_device_identity_response(ddp_rinfo, offset, &request_id, &status, &status_flags, &process_id, 
@@ -230,9 +231,14 @@ aud_error_t handle_ddp_device_id(ddp_packet_read_info_t *ddp_rinfo, uint16_t off
 	AUD_PRINTF("Dante device ID: 0x%s\n", dante_device_id_to_string(device_id, device_id_string_buff));
 	if (default_name) {
 		AUD_PRINTF("Default name: %s\n", default_name);
+		sprintf(system_buf,"astparam s dante_default_name %s",default_name);
+		system(system_buf);
 	}
 	if (friendly_name) {
+		memset(system_buf,0,sizeof(system_buf));
 		AUD_PRINTF("Friendly name: %s\n", friendly_name);
+		sprintf(system_buf,"astparam s dante_friendly_name %s",friendly_name);
+		system(system_buf);
 	}
 	if (domain) {
 		AUD_PRINTF("Dante domain: %s\n", domain);

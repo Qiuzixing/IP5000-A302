@@ -701,7 +701,6 @@ static void do_handle_uart_pass(uint16_t cmd,char *cmd_param)
         printf("warn:Illegal parameter, discard directly\n");
         return;
     }
-    
     switch(cmd_index)
     {
         case SET_DANTE_HOSTNAME:
@@ -711,17 +710,17 @@ static void do_handle_uart_pass(uint16_t cmd,char *cmd_param)
                 printf("warn:Illegal parameter, discard directly\n");
                 return;
             }
-            __example_main(cmd_index);
-            //dante_cmd_len = dnt_name_packet(dante_cmd_buff);
             break;
-        case SET_DANTE_MAC:
-            break;
-        case SET_DANTE_REBOOT:
-            dante_cmd_len = dnt_reboot_packet(dante_cmd_buff);
+        case SET_DANTE_DEFAULT_NAME_GET_IT:
+            dante_host_name = NULL;
             break;
         default:
-            printf("warn:Illegal parameter, discard directly\n");
             break;
+    }
+
+    if(-1 == __example_main(cmd_index))
+    {
+        return;
     }
 
     uart_pass = (struct CmdDataUartPassthrough *)calloc(dante_cmd_len + 4, sizeof(uint8_t));
