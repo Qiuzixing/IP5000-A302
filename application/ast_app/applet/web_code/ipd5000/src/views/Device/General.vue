@@ -151,7 +151,7 @@
         <p class="upgrade-info"
            v-if="fileError">(3/3) Firmware upgrading failed. Error code {{errMsg}}.</p>
         <p class="upgrade-info"
-           v-if="upgradeComplete">(3/3)Firmware upgrading completed. Rebooting...</p>
+           v-if="upgradeComplete">(3/3) Firmware upgrading completed. Rebooting...</p>
         <p class="upgrade-info"
            v-if="isUpgrade">(2/3) Firmware installing {{upgradeProgress}}%</p>
         <p class="upgrade-info">(1/3) Firmware uploading {{uploadProgress}}%</p>
