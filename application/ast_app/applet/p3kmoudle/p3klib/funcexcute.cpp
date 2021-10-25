@@ -26,6 +26,7 @@ using namespace std;
 
 #define BUFSIZE 128
 #define PORT 5588
+static pthread_t Beacon_id;
 
 static char  sUpInfo[256] = {0};
 
@@ -2685,10 +2686,48 @@ int EX_SetNetPort(char* portType,int portNumber)
 {
 	DBG_InfoMsg("EX_SetNetPort portType= %s portNumber =%d\n",portType,portNumber);
 	if((!strcmp(portType,"udp"))||(!strcmp(portType,"UDP")))
-		Cfg_Set_Net_Port(Net_UDP,portNumber);
+	{
+	    
+        if(portNumber == g_network_info.udp_port)
+        { 
+            printf("new port == old port err\n");
+            return 0;
+        }
+        int old_port = g_network_info.udp_port;
+        Cfg_Set_Net_Port(Net_UDP,portNumber);
+        int sock_fd = socket(AF_INET,SOCK_DGRAM,0);
+        struct sockaddr_in myaddr;
+    	myaddr.sin_family=AF_INET;
+    	myaddr.sin_port = htons(49000);
+    	//inet_pton(AF_INET,"10.36.145.183",&myaddr.sin_addr.s_addr); //服务器的ip
+    	myaddr.sin_addr.s_addr = 0;//通配地址  将所有的地址通通绑定
+    	if(bind(sock_fd,(struct sockaddr*)&myaddr,sizeof(myaddr))<0)
+    		perror("bind");
+        char ip_buf[32] = "";
+    	char* ip_cmd = "ifconfig |grep inet| sed -n '1p'|awk '{print $2}'|awk -F ':' '{print $2}'";
+    	mysystem(ip_cmd, ip_buf, 32);
+        
+    	struct sockaddr_in addr;// ipv4套接字地址结构体 
+    	addr.sin_family =AF_INET;
+    	addr.sin_port = htons(old_port);  //服务器端口
+    	inet_pton(AF_INET,ip_buf,&addr.sin_addr.s_addr); //服务器的ip
+    	struct sockaddr_in server_addr;
+    	socklen_t len = sizeof(server_addr);
+        char buf[24] = "udp_port_change";
+        
+        int ret = sendto(sock_fd,buf,strlen(buf),0, (struct sockaddr*)&addr,sizeof(addr));
+        printf("--[%d]\n",ret);
+        close(sock_fd);
+    }
 	else if((!strcmp(portType,"tcp"))||(!strcmp(portType,"TCP")))
-		Cfg_Set_Net_Port(Net_TCP,portNumber);
-	else
+	{
+	    
+        if(portNumber != g_network_info.tcp_port)
+        {
+            Cfg_Set_Net_Port(Net_TCP,portNumber);
+            system("./restartP3k.sh");}
+	}
+    else
 		printf("EX_SetNetPort portType: %s Error\n",portType);
 
 	return 0;
@@ -2869,14 +2908,20 @@ int EX_SetBeacon(int portNumber,int status,int rateSecond)
 }
 int EX_GetBeaconInfo(int portNumber,BeaconInfo_S*info)
 {
+    char ip_buf[32] = "";
+	char* ip_cmd = "ifconfig |grep inet| sed -n '1p'|awk '{print $2}'|awk -F ':' '{print $2}'";
+	mysystem(ip_cmd, ip_buf, 32);
+    //ip_buf,g_network_info.udp_port,g_network_info.tcp_port,g_device_info.mac_addr,g_version_info.model
 	info->portNumber = portNumber;
-	info->tcpPort = 5000;
-	info->udpPort = 50000;
-	strcpy(info->deviceMod,"dip-20");
-	strcpy(info->deviceName,"room-1");
-	strcpy(info->ipAddr,"192.168.0.10");
-	strcpy(info->macAddr,"11-22-33-44-55-66");
-
+	info->tcpPort = g_network_info.tcp_port;
+	info->udpPort = g_network_info.udp_port;
+	strcpy(info->deviceMod,g_version_info.model);
+    strcpy(info->deviceName,g_device_info.hostname);  
+	strcpy(info->ipAddr,ip_buf);
+	strcpy(info->macAddr,g_device_info.mac_addr);
+    
+    pthread_create(&Beacon_id, NULL, Beacon_cb, NULL);
+    pthread_detach(Beacon_id);
 
 	return 0;
 }
@@ -3222,6 +3267,132 @@ int EX_SetCfgModify(char* cfgName)
 	return 0;
 }
 
+void * Beacon_cb(void * fd)
+{
+    printf("Beacon_cb %d\n",BEACONThread);
+    if(BEACONThread == 1){
+            return 0;}
+    BEACONThread == 1;
+	//int time = *(int *)fd;
+	char  sock_opt = 1;
+	unsigned  char  one = 1;
+    struct ip_mreq mreq;
+	mreq.imr_multiaddr.s_addr = inet_addr(g_network_info.beacon_ip);
+	mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+    printf("multicast_ip[%s]\n",g_network_info.beacon_ip);
+    setsockopt(g_Udp_Socket,IPPROTO_IP,IP_ADD_MEMBERSHIP,&mreq,sizeof(mreq));
+
+	/*if((setsockopt(sockfd, SOL_SOCKET,SO_REUSEADDR, ( void  *) &sock_opt,  sizeof  (sock_opt)))== -1) {
+     }
+    if  ((setsockopt(sockfd, IPPROTO_IP,IP_MULTICAST_LOOP,&one,  sizeof  (unsigned  char ))) == -1){
+    }*/
+
+    char ip_buf[32] = "";
+	char* ip_cmd = "ifconfig |grep inet| sed -n '1p'|awk '{print $2}'|awk -F ':' '{print $2}'";
+	mysystem(ip_cmd, ip_buf, 32);
+    
+	struct sockaddr_in dst_addr;
+	bzero(&dst_addr,sizeof(dst_addr));
+	dst_addr.sin_family = AF_INET;
+	dst_addr.sin_port = htons(g_network_info.beacon_port);
+	//dst_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+			
+	dst_addr.sin_addr.s_addr = inet_addr(g_network_info.beacon_ip);
+	
+	char  cBeaconInfo[1024] = "";
+    //~01@BEACON-INFO 1,192.168.60.2,50000,5000,11-22-33-44-55-66,KDS-EN6,IPE5000
+#ifdef CONFIG_P3K_HOST
+        sprintf(cBeaconInfo,"~01@BEACON-INFO 1,%s,%d,%d,%s,%s,IPE5000\r\n",ip_buf,g_network_info.udp_port,g_network_info.tcp_port,g_device_info.mac_addr,g_version_info.model);
+#else
+		sprintf(cBeaconInfo,"~01@BEACON-INFO 1,%s,%d,%d,%s,%s,IPD5000\r\n",ip_buf,g_network_info.udp_port,g_network_info.tcp_port,g_device_info.mac_addr,g_version_info.model);
+#endif
+	int ret = 0;
+      printf("[%s]\n",cBeaconInfo);
+	while(1){
+		if(g_network_info.beacon_en == ON)
+        {      
+		    ret = sendto(g_Udp_Socket,cBeaconInfo,strlen(cBeaconInfo),0,(struct sockaddr *)&dst_addr,sizeof(dst_addr));
+		}
+        else{
+            break;
+        }
+		sleep(g_network_info.BEACON_time);
+	}
+	return 0;
+}
+
+int EX_Beacon(int iPort_Id,int iStatus,int iTime)
+{
+    if(iPort_Id == 1)
+    {
+    	
+        if(iStatus == 1)
+        {
+            g_network_info.beacon_en  = ON;
+            
+            printf("[%d]\n",iTime);
+        	
+        }
+        else
+        {
+            g_network_info.beacon_en  = OFF;
+        }
+    }
+    Cfg_Update(NETWORK_INFO);
+    g_network_info.BEACON_time = iTime;
+	return 0;
+}
+//g_network_info
+int EX_Discovery(char*ip,int iPort)
+{
+    char ip_buf[32] = "";
+	char mask_buf[32] = "";
+	char gw_buf[32] = "";
+    char Send_buf[128] = "";
+	char* ip_cmd = "ifconfig |grep inet| sed -n '1p'|awk '{print $2}'|awk -F ':' '{print $2}'";
+	char* mask_cmd = "ifconfig |grep inet| sed -n '1p'|awk '{print $4}'|awk -F ':' '{print $2}'";
+	char* gw_cmd = "route -n | grep eth0 | grep UG | awk '{print $2}'";
+
+	mysystem(ip_cmd, ip_buf, 32);
+	mysystem(mask_cmd, mask_buf, 32);
+	mysystem(gw_cmd, gw_buf, 32);
+
+    sprintf(Send_buf,"~01@NET-CONFIG %s,%s,%s\r\n",ip_buf,mask_buf,gw_buf);
+
+	struct sockaddr_in addr;// ipv4套接字地址结构体 
+	addr.sin_family =AF_INET;
+	addr.sin_port = htons(50000);// iPort //服务器端口  固定发送给广播来源的50000端口
+	inet_pton(AF_INET,ip,&addr.sin_addr.s_addr); //服务器的ip
+	struct sockaddr_in server_addr;
+	socklen_t len = sizeof(server_addr);
+
+    int ret = sendto(g_Udp_Socket,Send_buf,strlen(Send_buf),0, (struct sockaddr*)&addr,sizeof(addr));
+    printf("sendto ip:%s,port:%d [%d]\n",ip,50000,ret);
+	return 0;
+}
+
+int EX_ConfBeaconInfo(char *muticastIP,int port)
+{
+    memcpy(g_network_info.beacon_ip,muticastIP,strlen(muticastIP));
+    g_network_info.beacon_port = port;
+    //Cfg_Set_Net_Port(Net_UDP,port);
+    //Cfg_Set_Net_Multicast(muticastIP,0);
+    Cfg_Update(NETWORK_INFO);
+    if(g_network_info.beacon_en == ON)
+    {
+        BEACONThread = 0;
+        //g_network_info.beacon_en = OFF;
+        pthread_cancel(Beacon_id);
+        pthread_create(&Beacon_id, NULL, Beacon_cb, NULL);
+        pthread_detach(Beacon_id);
+    }
+    
+    return 0;
+}
+
+
+
+
 void GetUpgradeStatus(char* info, unsigned int size)
 {
 	FILE *fp;
@@ -3240,3 +3411,6 @@ void GetUpgradeStatus(char* info, unsigned int size)
 
 	DBG_InfoMsg("GetUpgradeStatus info:%s end\n",info);
 }
+
+
+

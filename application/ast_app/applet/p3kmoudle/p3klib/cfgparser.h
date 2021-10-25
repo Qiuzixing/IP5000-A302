@@ -434,7 +434,9 @@ typedef struct   _Network_Info
 	int 		  rs232_vlan;
 	int 		  dante_port;
 	int 		  dante_vlan;
-	State_E		  beacon_en;
+    State_E       beacon_en;
+    int           BEACON;
+    int           BEACON_time;
 	char 		  beacon_ip[MAX_IP_ADDR_LEN];
 	int 		  beacon_port;
 }Network_Info;
@@ -459,6 +461,8 @@ extern VideoWall_Info		g_videowall_info;
 extern Gateway_Info			g_gateway_info;
 extern Network_Info			g_network_info;
 extern Log_Info				g_log_info;
+
+extern int                  g_Udp_Socket;     
 
 typedef enum _SyncInfoType_E
 {

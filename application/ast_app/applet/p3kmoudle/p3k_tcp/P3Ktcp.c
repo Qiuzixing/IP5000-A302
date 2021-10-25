@@ -8,7 +8,7 @@
 
 #include "../p3klib/cfgparser.h"
 SocketWorkInfo_S gs_netHandle = {0};
-
+SocketWorkInfo_S gs_netHandle1 = {0};
 
 int flagS =0;
 typedef struct _TimeOut_S
@@ -39,6 +39,13 @@ typedef struct _TcpCliMng_S
 	TcpCliP3KInfo_S info;
 	HandleList_S listHandleHead;
 }TcpCliMng_S;
+
+static SocketWorkInfo_S*Tcp_NetGetNetReristHandle1()
+{
+
+	return &gs_netHandle1;
+}
+
 
 static TcpCliMng_S gs_cliHandleMng = {0};
 static SocketWorkInfo_S*Tcp_NetGetNetReristHandle()
@@ -410,6 +417,14 @@ int Tcp_NetInit(int port)
 //	handle->getNetCabInfo = Tcp_NetGetNetCab;
 	SOCKET_CreateTcpServer(handle);
 
+    if(g_network_info.tcp_port != 5000)
+    {
+        SocketWorkInfo_S*handle1 = Tcp_NetGetNetReristHandle1();
+    	handle1->readcb =Tcp_NetRecvMsg;
+    	handle1->closecb = Tcp_NetClose;
+    	handle1->serverport = 5000;
+    	SOCKET_CreateTcpServer(handle1);
+    }
 	//P3K_ApiRegistHandle(& handle);
 	return 0;
 }
@@ -421,9 +436,13 @@ int Tcp_NetUnInit()
 	P3K_APIUnInit();
 	return 0;
 }
+
+
 int main (int argc, char const *argv[])
 {
-	
+   
+    Cfg_Init_Network();
+    int portNumber;
 	if(argc == 3)
 	{
 		if(!memcmp(argv[2],"-l",strlen("-l")))
@@ -433,8 +452,9 @@ int main (int argc, char const *argv[])
 		Tcp_NetInit(atoi(argv[1]));
 	}
 	else
-	{
-		Tcp_NetInit(5000);
+	{   
+	    printf("P3k TCP port[%d]\n",g_network_info.tcp_port);
+		Tcp_NetInit(g_network_info.tcp_port);
 		sTcpLogin.iFlag = 0;
 		flagS = 1;
 	}

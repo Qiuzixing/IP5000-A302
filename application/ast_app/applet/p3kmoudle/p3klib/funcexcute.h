@@ -9,6 +9,9 @@ extern "C"{
 #define KDS_VSRSION_FILE	"/etc/version"
 #define KDS_HOSTNAME_FILE	"/etc/hostname"
 
+#define BEACON_OFF 0
+#define BEACON_ON 1
+
 #define MAX_CHAN_NAME_LEN 32
 #define MAX_CHAN_IP_LEN 64
 #define CEC_MAX_CMD_NAME_LEN 32
@@ -27,6 +30,11 @@ extern "C"{
 #define MAX_PARAM_LEN 256
 #define BUFSIZE 128
 #define PORT 5588
+
+static int i_BEACON = BEACON_OFF;//BEACON标志位ON 为打开，OFF关闭
+static int BEACONThread = 0;
+
+
 typedef enum _AudioInputMode_E
 {
 	AUDIO_IN_HDMI = 0,
@@ -345,9 +353,9 @@ typedef struct _BeaconInfo_S
 }BeaconInfo_S;
 typedef struct _TimeSyncConf_S
 {
-	int enable; //ʹ��
-	int  syncInerval; //ͬ��ʱ����
-	char serverIp[MAX_IP_ADDR_LEN]; //������IP
+	int enable; //使能
+	int  syncInerval; //同步时间间隔
+	char serverIp[MAX_IP_ADDR_LEN]; //服务器IP
 }TimeSyncConf_S;
 
 typedef struct _EDIDPortInfo_S
@@ -570,11 +578,15 @@ int EX_GetVideoWallStretch(int  index);
 int EX_AutomaticReporting(char * info);
 int EX_GetCECGateWayMode(void);
 int EX_SetCfgModify(char* cfgName);
+int EX_Discovery(char *ip,int iPort);
+int EX_Beacon(int iPort_Id,int iStatus,int iTime);
+int EX_ConfBeaconInfo(char *muticastIP,int port);
 void GetUpgradeStatus(char *info, unsigned int size);
 
 int mysystem(char* cmdstring, char* buf, int len);
 
 int Clear_Re(void);
+void * Beacon_cb(void * fd);
 
 int classTest(int a,int b);
 #ifdef __cplusplus

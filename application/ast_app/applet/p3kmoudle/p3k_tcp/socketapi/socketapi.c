@@ -19,6 +19,8 @@
 
 #include "socketapi.h"
 #include "debugtool.h"
+#include "../../p3klib/cfgparser.h"
+
 #define DF_NET_MSGBUFLEN  20*1024
 
 
@@ -209,8 +211,15 @@ READ_ERROR:
 	memset(&server_addr,0,sizeof(server_addr));
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_port = htons(port);
-	//server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	server_addr.sin_addr.s_addr = inet_addr("0.0.0.0");
+    if(g_network_info.tcp_port == port)
+    {
+	    server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    }
+    else if(g_network_info.tcp_port != 5000 && port == 5000)
+    {
+        server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    }
+	//server_addr.sin_addr.s_addr = inet_addr("0.0.0.0");
 	sockfd = socket(AF_INET,SOCK_STREAM,0);
 	if(sockfd < 0)
 	{

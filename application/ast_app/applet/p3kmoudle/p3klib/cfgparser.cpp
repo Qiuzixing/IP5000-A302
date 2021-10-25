@@ -27,6 +27,9 @@ Gateway_Info		g_gateway_info;
 Network_Info		g_network_info;
 Log_Info			g_log_info;
 
+int                 g_Udp_Socket;
+
+
 using namespace std;
 
 char g_module[32] = "kds-7";
@@ -1422,6 +1425,7 @@ int Cfg_Init_Network(void)
 	g_network_info.dante_port = 0;
 	g_network_info.dante_vlan = 0;
 	g_network_info.beacon_en = OFF;
+    g_network_info.BEACON_time = 5;
 	sprintf(g_network_info.beacon_ip,"224.0.0.250");
 	g_network_info.beacon_port = 50000;
 

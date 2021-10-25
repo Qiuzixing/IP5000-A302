@@ -4223,6 +4223,67 @@ static int P3K_SetCfgModify(char*reqparam,char*respParam,char*userdata)
 	return 0;
 }
 
+static int P3K_Discovery(char*reqparam,char*respParam,char*userdata)
+{
+	DBG_InfoMsg("P3K_Discovery\n");
+	int count = 0;
+	char iIP[24] = "";
+	int iport = 0;
+	int u32ret = 0;
+	char tmpparam[MAX_PARAM_LEN] = {0};
+	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
+
+	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
+	memcpy(iIP,str[0],strlen(str[0]));
+    iport = atoi(str[1]);
+	u32ret = EX_Discovery(iIP,iport);
+	return 0;
+}
+static int P3K_BEACON(char*reqparam,char*respParam,char*userdata)
+{
+	DBG_InfoMsg("P3K_BEACON\n");
+	int count = 0;
+	int iport_id = 0;
+    int istatus = 0;
+    int irate = 0;
+	int u32ret = 0;
+	char tmpparam[MAX_PARAM_LEN] = {0};
+	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
+
+	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
+    iport_id = atoi(str[0]);
+    istatus = atoi(str[1]);
+    irate = atoi(str[2]);
+    printf("[%d,%d,%d]",iport_id,istatus,irate);
+	u32ret = EX_Beacon(iport_id,istatus,irate);
+	return 0;
+}
+
+static int P3K_ConfBeaconInfo(char*reqparam,char*respParam,char*userdata)
+{
+	DBG_InfoMsg("P3K_ConfBeaconInfo\n");
+	int s32Ret = 0;
+	int count = 0;
+	char muticastIP[64] = "";
+	int port = 0;
+	char tmpparam[MAX_PARAM_LEN] = {0};
+	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
+
+	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
+	memcpy(muticastIP,str[0],strlen(str[0]));
+	port = atoi(str[1]);
+    printf("[%s,%d]\n",muticastIP,port);
+	s32Ret =  EX_ConfBeaconInfo(muticastIP,port);
+	if(s32Ret)
+	{
+		DBG_ErrMsg("EX_ConfBeaconInfo err\n");
+	}
+	memcpy(respParam,reqparam,strlen(reqparam));
+	return 0;
+}
+
+
+
 
 /*   P3K_SetIRGateway  */
 /*
@@ -4327,7 +4388,7 @@ int P3K_SilmpleReqCmdProcess(P3K_SimpleCmdInfo_S *cmdreq,P3K_SimpleCmdInfo_S *cm
 									{"STANDBY?",P3K_GetStandByMode},
 									{"RESET",P3K_DoReset},
 									{"FACTORY",P3K_DoFactory},
-									{"BEACON-EN",P3K_SetBeaconEn},
+									{"BEACON-EN",P3K_BEACON},
 									{"BEACON-INFO?",P3K_GetBeaconInfo},
 									{"BUILD-DATE?",P3K_GetBuildTime},
 									{"TIME",P3K_SetTime},
@@ -4396,6 +4457,8 @@ int P3K_SilmpleReqCmdProcess(P3K_SimpleCmdInfo_S *cmdreq,P3K_SimpleCmdInfo_S *cm
 									{"WND-STRETCH",P3K_SetVideoWallStretch},
 									{"WND-STRETCH?",P3K_GetVideoWallStretch},
 									{"KDS-CFG-MODIFY",P3K_SetCfgModify},
+									{"UDPNET-CONFIG?",P3K_Discovery},
+									{"BEACON-CONF",P3K_ConfBeaconInfo},
 									{NULL,NULL}
 	};
 

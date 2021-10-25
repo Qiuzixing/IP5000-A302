@@ -12,6 +12,9 @@
 #include "debugtool.h"
 #include "ldfw.h"
 #include "cfgparser.h"
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 
 //#include "funcexcute.h"
 #define MAX_HANDLE 10
@@ -311,6 +314,65 @@ static int  P3K_PhraserIDParam(char *param,int len,	char str[][MAX_PARAM_LEN] )
 
 }
 
+//启动udp监听50000端口
+void * P3K_UdpServer()
+{
+    int old_Udp_port;
+    old_Udp_port = g_network_info.udp_port;
+RESET_Udp:
+    
+	g_Udp_Socket= socket(AF_INET,SOCK_DGRAM,0);
+	struct sockaddr_in myaddr;
+	myaddr.sin_family=AF_INET;
+	myaddr.sin_port = htons(g_network_info.udp_port);
+	myaddr.sin_addr.s_addr = 0;//通配地址  将所有的地址绑定
+	int opt = 1;  
+    // sockfd为需要端口复用的套接字  
+    setsockopt(g_Udp_Socket,SOL_SOCKET,SO_REUSEADDR, (const void *)&opt, sizeof(opt));
+	if(bind(g_Udp_Socket,(struct sockaddr*)&myaddr,sizeof(myaddr))<0)
+		DBG_ErrMsg("Udp bind err");
+	char recvBuf[1500] = "";
+    char aSendp3k[1500] = "";
+    P3K_SimpleCmdInfo_S Sendp3k;
+    P3K_SimpleCmdInfo_S respCmdInfo;
+    char userDefine[MAX_USR_STR_LEN+1] = {0};
+	struct sockaddr_in client;
+         socklen_t len = sizeof(client);  
+	while(1)
+	{
+	    if(old_Udp_port != g_network_info.udp_port)
+        {
+            old_Udp_port = g_network_info.udp_port;
+            printf("udp_port_change\n");
+            close(g_Udp_Socket);
+            goto RESET_Udp;
+        }   
+		memset(recvBuf,0,sizeof(recvBuf));
+		int s = recvfrom(g_Udp_Socket, recvBuf, sizeof(recvBuf)-1,0,(struct sockaddr*)&client,&len);
+		if(s > 0)
+		{
+			//printf("Udp Recv Msg\n");
+            
+            if(!memcmp(recvBuf,"#NET-CONFIG?",strlen("#NET-CONFIG?")))
+            {
+                memset(&respCmdInfo,0,sizeof(P3K_SimpleCmdInfo_S));
+		        memset(userDefine,0,MAX_USR_STR_LEN);
+                sprintf(aSendp3k,"%s,%d",inet_ntoa(client.sin_addr),ntohs(client.sin_port));
+                memcpy(Sendp3k.command,"UDPNET-CONFIG?",strlen("UDPNET-CONFIG?"));
+                memcpy(Sendp3k.param,aSendp3k,strlen(aSendp3k));
+                printf("[%s:%s]\n",Sendp3k.command,Sendp3k.param);
+                P3K_SilmpleReqCmdProcess(&Sendp3k,&respCmdInfo,userDefine);
+            }
+		}
+        else
+        {
+            usleep(20*100);
+        }
+	}
+    return;
+}
+
+
 static void * P3K_DataExcuteProc(void*arg)
 {
 	P3KMsgQueueMember_S pmsg;
@@ -325,8 +387,18 @@ static void * P3K_DataExcuteProc(void*arg)
 	prctl(PR_SET_NAME, (unsigned long)"P3K_DataExcuteProc", 0,0,0);
 	//printf("child thread lwpid = %u\n", syscall(SYS_gettid));
         //printf("child thread tid = %u\n", pthread_self());
-
-	Cfg_Init();
+    Cfg_Init();
+	//g_network_info
+	int i_Udps32Ret = 0;
+	pthread_t tUdpserver;
+	i_Udps32Ret = pthread_create(&tUdpserver, NULL, P3K_UdpServer, NULL);
+	if(i_Udps32Ret)
+	{
+		DBG_ErrMsg("Udp Server Start Error\n");
+	}
+	else{
+        printf("Udp Server Start\n");}
+    pthread_detach(tUdpserver);
 	while(1)//P3K_GetApiInitFlag())
 	{
 		memset(&pmsg,0,sizeof(P3KMsgQueueMember_S));

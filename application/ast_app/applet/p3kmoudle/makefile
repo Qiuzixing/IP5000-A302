@@ -16,6 +16,8 @@ default: build
 build : p3ktcp
 	mkdir -p $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/ 
 	cp -f $(P3KTCP)p3ktcp $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
+	chmod 777 restartP3k.sh
+	cp -f restartP3k.sh $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 	
 p3ktcp:
 	make -C $(P3KTCP)
