@@ -152,6 +152,14 @@ int Cfg_Init_Channel(void)
 	return 0;
 }
 
+int Get_dante_name()
+{
+	system("ipc @m_lm_set s set_dante:1");
+	usleep(1000*1000);
+
+	mysystem("astparam g dante_friendly_name", g_audio_info.dante_name,32);
+	return 0;
+}
 int Cfg_Init_Audio(void)
 {
 	DBG_InfoMsg("Cfg_Init_Audio\n");
@@ -181,6 +189,10 @@ int Cfg_Init_Audio(void)
 	if(0 > nAccessRet)
 	{
 		printf("nAccessRet %s Failed\n",path);
+
+		//get dante name
+		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+			Get_dante_name();
 
 		//create autoswitch cfg from default value
 		Cfg_Update(AUDIO_INFO);
