@@ -278,6 +278,7 @@ export default {
         return
       }
       if (msg.search(/@UPGRADE /i) !== -1) {
+        this.isUpgrade = true
         this.$refs.upload.clearFiles()
         setTimeout(() => {
           this.$socket.sendMsg('#UPGRADE-STATUS? ')
