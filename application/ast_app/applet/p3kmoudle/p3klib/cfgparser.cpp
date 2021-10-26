@@ -857,7 +857,10 @@ int Cfg_Init_Device(void)
 			}
 		}
 	}
-
+    if(g_network_info.beacon_en == ON)
+    {
+         EX_Beacon(1,1,g_network_info.beacon_time);
+    }
 	fclose(fp);
 
 	Cfg_Update(DEVICE_INFO);
@@ -1622,7 +1625,7 @@ int Cfg_Init_Network(void)
 
 				if(!beacon_info[JSON_NETWORK_BEACON_EN].empty())
 				{
-					string mode =  root[JSON_NETWORK_BEACON_EN].asString();
+					string mode =  beacon_info[JSON_NETWORK_BEACON_EN].asString();
 
 					if(mode == JSON_PARAM_ON)
 						g_network_info.beacon_en = ON;

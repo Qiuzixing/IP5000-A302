@@ -13,6 +13,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include "classsum.h"
+#include <unistd.h> 
 
 #include "json/json.h"
 #include <iostream>
@@ -3298,7 +3299,8 @@ void * Beacon_cb(void * fd)
 	
 	char  cBeaconInfo[1024] = "";
     //~01@BEACON-INFO 1,192.168.60.2,50000,5000,11-22-33-44-55-66,KDS-EN6,IPE5000
-        sprintf(cBeaconInfo,"~01@BEACON-INFO 1,%s,%d,%d,%s,%s,%s\r\n",ip_buf,g_network_info.udp_port,g_network_info.tcp_port,g_device_info.mac_addr,g_version_info.model,g_device_info.hostname);
+    sprintf(cBeaconInfo,"~01@BEACON-INFO 1,%s,%d,%d,%s,%s,%s\r\n",ip_buf,g_network_info.udp_port,g_network_info.tcp_port,g_device_info.mac_addr,g_version_info.model,g_device_info.hostname);
+
 	int ret = 0;
       printf("[%s]\n",cBeaconInfo);
 	while(1){
@@ -3309,7 +3311,7 @@ void * Beacon_cb(void * fd)
         else{
             break;
         }
-		sleep(g_network_info.beacon_time);
+		usleep(g_network_info.beacon_time * 1000000 - 260 * 1000);
 	}
 	return 0;
 }
