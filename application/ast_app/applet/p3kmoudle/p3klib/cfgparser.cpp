@@ -1646,7 +1646,15 @@ int Cfg_Init_Network(void)
 				}
                 if(!beacon_info[JSON_NETWORK_BEACON_TIME].empty())
 				{
-					g_network_info.beacon_time = beacon_info[JSON_NETWORK_BEACON_TIME].asInt();
+					int time = beacon_info[JSON_NETWORK_BEACON_TIME].asInt();
+                    if(1 <= time && time <= 1800)
+                    {
+                        g_network_info.beacon_time = time;
+                    }
+                    else
+                    {
+                        g_network_info.beacon_time = 10;
+                    }
 				}
 			}
 

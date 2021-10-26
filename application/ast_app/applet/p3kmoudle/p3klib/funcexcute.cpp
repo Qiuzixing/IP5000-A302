@@ -3334,7 +3334,14 @@ int EX_Beacon(int iPort_Id,int iStatus,int iTime)
             g_network_info.beacon_en  = OFF;
         }
     }
-    g_network_info.beacon_time = iTime;
+    if(1 <= iTime && iTime <= 1800)
+    {
+        g_network_info.beacon_time = iTime;
+    }
+    else
+    {
+        g_network_info.beacon_time = 10;
+    }
     Cfg_Update(NETWORK_INFO);
 	return 0;
 }
