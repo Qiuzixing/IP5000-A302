@@ -228,6 +228,7 @@ extern "C" {
 #define JSON_NETWORK_BEACON_EN		"beacon_en"
 #define JSON_NETWORK_BEACON_IP		"beacon_ip"
 #define JSON_NETWORK_BEACON_PORT	"beacon_port"
+#define JSON_NETWORK_BEACON_TIME	"beacon_time"
 
 
 #define JSON_TIME_SETTING		"time_setting"
@@ -436,7 +437,7 @@ typedef struct   _Network_Info
 	int 		  dante_vlan;
     State_E       beacon_en;
     int           BEACON;
-    int           BEACON_time;
+    int           beacon_time;
 	char 		  beacon_ip[MAX_IP_ADDR_LEN];
 	int 		  beacon_port;
 }Network_Info;

@@ -1425,7 +1425,7 @@ int Cfg_Init_Network(void)
 	g_network_info.dante_port = 0;
 	g_network_info.dante_vlan = 0;
 	g_network_info.beacon_en = OFF;
-    g_network_info.BEACON_time = 5;
+    g_network_info.beacon_time = 10;
 	sprintf(g_network_info.beacon_ip,"224.0.0.250");
 	g_network_info.beacon_port = 50000;
 
@@ -1640,6 +1640,10 @@ int Cfg_Init_Network(void)
 				if(!beacon_info[JSON_NETWORK_BEACON_PORT].empty())
 				{
 					g_network_info.beacon_port = beacon_info[JSON_NETWORK_BEACON_PORT].asInt();
+				}
+                if(!beacon_info[JSON_NETWORK_BEACON_TIME].empty())
+				{
+					g_network_info.beacon_time = beacon_info[JSON_NETWORK_BEACON_TIME].asInt();
 				}
 			}
 
@@ -3309,7 +3313,7 @@ int Cfg_Update_Network(void)
 
 	beacon_info[JSON_NETWORK_BEACON_IP] = g_network_info.beacon_ip;
 	beacon_info[JSON_NETWORK_BEACON_PORT] = g_network_info.beacon_port;
-
+    beacon_info[JSON_NETWORK_BEACON_TIME] = g_network_info.beacon_time;
 	root[JSON_NETWORK_BEACON_INFO] = beacon_info;
 
 

@@ -581,6 +581,9 @@ int EX_SetCfgModify(char* cfgName);
 int EX_Discovery(char *ip,int iPort);
 int EX_Beacon(int iPort_Id,int iStatus,int iTime);
 int EX_ConfBeaconInfo(char *muticastIP,int port);
+int EX_GetBeaconConf(char *muticastIP,int *port);
+int EX_GetBeacon(int *iPort_Id,int *iStatus,int *iTime);
+
 void GetUpgradeStatus(char *info, unsigned int size);
 
 int mysystem(char* cmdstring, char* buf, int len);

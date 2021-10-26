@@ -4256,6 +4256,11 @@ static int P3K_BEACON(char*reqparam,char*respParam,char*userdata)
     irate = atoi(str[2]);
     printf("[%d,%d,%d]",iport_id,istatus,irate);
 	u32ret = EX_Beacon(iport_id,istatus,irate);
+    if(u32ret)
+	{
+		DBG_ErrMsg("EX_Beacon err\n");
+	}
+    memcpy(respParam,reqparam,strlen(reqparam));
 	return 0;
 }
 
@@ -4282,11 +4287,50 @@ static int P3K_ConfBeaconInfo(char*reqparam,char*respParam,char*userdata)
 	return 0;
 }
 
+static int P3K_GetBeaconConf(char*reqparam,char*respParam,char*userdata)
+{
+	DBG_InfoMsg("P3K_GetBeaconConf\n");
+	int s32Ret = 0;
+	char iMode = 0;
+	char muticastIP[64] = "";
+	int port = 0;
+	char tmpparam[MAX_PARAM_LEN] = {0};
+	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
 
+
+	s32Ret = EX_GetBeaconConf(muticastIP,&port);
+    if(s32Ret)
+	{
+		DBG_ErrMsg("EX_GetBeaconConf err\n");
+	}
+	sprintf(tmpparam,"%s,%d",muticastIP,port);
+	memcpy(respParam,tmpparam,strlen(tmpparam));
+	return 0;
+}
+
+static int P3K_GetBEACON(char*reqparam,char*respParam,char*userdata)
+{
+	DBG_InfoMsg("P3K_GetBEACON\n");
+	int s32Ret = 0;
+	int port = 0;
+	int status = 0;
+    int rate = 0;
+	char tmpparam[MAX_PARAM_LEN] = {0};
+	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
+
+	s32Ret = EX_GetBeacon(&port,&status,&rate);
+    if(s32Ret)
+	{
+		DBG_ErrMsg("EX_GetBeacon err\n");
+	}
+	sprintf(tmpparam,"%d,%d,%d",port,status,rate);
+	memcpy(respParam,tmpparam,strlen(tmpparam));
+	return 0;
+}
 
 
 /*   P3K_SetIRGateway  */
-/*
+/*P3K_GetBEACON
 int P3K_SilmpleSpecReqCmdProcess(P3K_SimpleSpecCmdInfo_S * cmdreq, P3K_SimpleSpecCmdInfo_S * cmdresp)
 {
 	static P3K_SpecPhraserToExecute_S cliSpecialFunc[] = {
@@ -4389,6 +4433,7 @@ int P3K_SilmpleReqCmdProcess(P3K_SimpleCmdInfo_S *cmdreq,P3K_SimpleCmdInfo_S *cm
 									{"RESET",P3K_DoReset},
 									{"FACTORY",P3K_DoFactory},
 									{"BEACON-EN",P3K_BEACON},
+									{"BEACON-EN?",P3K_GetBEACON},
 									{"BEACON-INFO?",P3K_GetBeaconInfo},
 									{"BUILD-DATE?",P3K_GetBuildTime},
 									{"TIME",P3K_SetTime},
@@ -4459,6 +4504,7 @@ int P3K_SilmpleReqCmdProcess(P3K_SimpleCmdInfo_S *cmdreq,P3K_SimpleCmdInfo_S *cm
 									{"KDS-CFG-MODIFY",P3K_SetCfgModify},
 									{"UDPNET-CONFIG?",P3K_Discovery},
 									{"BEACON-CONF",P3K_ConfBeaconInfo},
+									{"BEACON-CONF?",P3K_GetBeaconConf},
 									{NULL,NULL}
 	};
 
