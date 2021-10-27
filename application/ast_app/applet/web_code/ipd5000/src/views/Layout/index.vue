@@ -6,10 +6,7 @@
       <div class="main-content">
         <setting-header-bar></setting-header-bar>
         <setting-nav></setting-nav>
-        <transition name="fade"
-                    mode="out-in">
-          <router-view />
-        </transition>
+        <router-view v-show="show" />
       </div>
     </section>
   </div>
@@ -28,6 +25,40 @@ export default {
     sliderModel,
     settingHeaderBar,
     settingNav
+  },
+  data () {
+    return {
+      show: false
+    }
+  },
+  created () {
+    const loading = this.$loading({
+      lock: true,
+      text: 'Loading',
+      spinner: 'el-icon-loading',
+      background: 'rgba(0, 0, 0, 0.1)'
+    })
+    setTimeout(() => {
+      loading.close()
+      this.show = true
+    }, 1500)
+  },
+  watch: {
+    $route: {
+      handler: function (route) {
+        this.show = false
+        const loading = this.$loading({
+          lock: true,
+          text: 'Loading',
+          spinner: 'el-icon-loading',
+          background: 'rgba(0, 0, 0, 0.1)'
+        })
+        setTimeout(() => {
+          loading.close()
+          this.show = true
+        }, 1500)
+      }
+    }
   }
 }
 </script>

@@ -175,7 +175,7 @@
         </div>
       </div>
     </div>
-    <div class="setting">
+    <!-- <div class="setting">
       <span class="setting-title">IP Multicast Address</span>
       <div class="setting-title">
         <input type="text"
@@ -183,7 +183,7 @@
                class="setting-text"
                :disabled="castMode == '1'">
       </div>
-    </div>
+    </div> -->
     <div class="setting">
       <span class="setting-title">TTL</span>
       <div class="setting-title">
@@ -246,7 +246,7 @@ export default {
       serverTcpPort: 5000,
       udp: 50000,
       castMode: '1',
-      multicastAddress: '',
+      multicastAddress: '0,0,0,0',
       ttl: 64,
       danteTag1: 1,
       danteTag2: 1,
@@ -356,8 +356,8 @@ export default {
       }
     },
     setTcpUDP () {
-      this.$socket.sendMsg('#ETH-PORT? TCP,' + this.tcp)
-      this.$socket.sendMsg('#ETH-PORT? UDP,' + this.udp)
+      this.$socket.sendMsg('#ETH-PORT TCP,' + this.tcp)
+      this.$socket.sendMsg('#ETH-PORT UDP,' + this.udp)
     },
     setIp () {
       if (this.ipMode0 !== '1') {

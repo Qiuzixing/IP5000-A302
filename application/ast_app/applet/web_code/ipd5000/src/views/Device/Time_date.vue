@@ -37,11 +37,15 @@
       </div> -->
       <div class="setting">
         <span class="setting-title">NTP Time Server Usage</span>
-        <v-switch v-model="ntpMode"
-                  open-text="Yes"
-                  close-text="No"
-                  active-value="1"
-                  inactive-value="0"></v-switch>
+        <div style="width:180px;flex-shrink:0;">
+          <v-switch v-model="ntpMode"
+                    style="width:120px;"
+                    open-text="Yes"
+                    close-text="No"
+                    active-value="1"
+                    inactive-value="0"></v-switch>
+        </div>
+        <p style="margin:0;flex-shrink:0;padding:0"><span style="font-family: 'open sans bold';">WARNING:</span> Recommend to use time server. <br>Defined time will not be saved upon reboot.</p>
       </div>
       <div class="setting">
         <span class="setting-title">NTP Time Server Address</span>
