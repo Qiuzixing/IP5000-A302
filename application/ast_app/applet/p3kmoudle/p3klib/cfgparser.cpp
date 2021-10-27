@@ -27,6 +27,7 @@ Gateway_Info		g_gateway_info;
 Network_Info		g_network_info;
 Log_Info			g_log_info;
 
+State_E				g_osd_enable;
 int                 g_Udp_Socket;
 
 
@@ -79,6 +80,7 @@ int Cfg_Init(void)
 	Cfg_Init_Gateway();
 	Cfg_Init_Network();
 	Cfg_Init_Log();
+	Cfg_Init_OSD();
 	return 0;
 }
 
@@ -1730,12 +1732,60 @@ int Cfg_Init_Log(void)
 	return 0;
 }
 
+int Cfg_Init_OSD(void)
+{
+	DBG_InfoMsg("Cfg_Init_OSD\n");
+#ifdef CONFIG_P3K_HOST
+		DBG_InfoMsg("This is Encoder\n");
+		return 0;
+#endif
+
+	char path[128] = "";
+	sprintf(path,"%s%s%s",CONF_PATH,g_module,OSD_FILE);
+
+	g_osd_enable = OFF;
+
+	//Read  Log cfg
+	Json::Reader reader;
+	Json::Value root1;
+	char pBuf[1024] = "";
+	FILE *fp;
+	fp = fopen(path, "r");
+	if (fp == NULL) {
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
+		return -1;
+	}
+
+	fread(pBuf,1,sizeof(pBuf),fp);
+
+	if(reader.parse(pBuf, root1))
+	{
+		if(!root1[JSON_OSD_DEVICE_INFO].empty())
+		{
+			Json::Value& root = root1[JSON_OSD_DEVICE_INFO];
+
+			//init g_channel_info
+			if(!root[JSON_OSD_DEVICE_INFO_EN].empty())
+			{
+				string mode = root[JSON_OSD_DEVICE_INFO_EN].asString();
+				if(mode == JSON_PARAM_ON)
+					g_osd_enable = ON;
+				else
+					g_osd_enable = OFF;
+			}
+		}
+	}
+
+	fclose(fp);
+	return 0;}
+
 int Cfg_Create_DefaultFile(void)
 {
 	Cfg_Create_AutoswitchDelay();
 	Cfg_Create_AVSignal();
 	Cfg_Create_DisplaySleep();
 	Cfg_Create_OsdSetting();
+	Cfg_Create_OverlaySetting();
 	Cfg_Create_SecuritySetting();
 	Cfg_Create_KVMSetting();
 	Cfg_Create_Channel();
@@ -1944,8 +1994,13 @@ int Cfg_Create_OsdSetting(void)
 	root[JSON_OSD_MAX_PER_PAGE] = 5;
 	root[JSON_OSD_MAX_CHANNEL] = 999;
 
+	Json::Value root_dev;
+	root_dev[JSON_OSD_DEVICE_INFO_EN] = JSON_PARAM_OFF;
+	root_dev[JSON_OSD_DEVICE_INFO_TIME] = 2;
+
 	Json::Value root1;
 	root1[JSON_OSD_CHANNEL] = root;
+	root1[JSON_OSD_DEVICE_INFO] = root_dev;
 
 	memset(path,0,128);
 	sprintf(path,"%s%s%s",CONF_PATH,g_module,OSD_PATH);
@@ -1974,6 +2029,33 @@ int Cfg_Create_OsdSetting(void)
 	fflush(fp);
 	return 0;
 }
+
+// /edid/edid_list.json
+int Cfg_Create_OverlaySetting(void)
+{
+	DBG_InfoMsg("Cfg_Create_OverlaySetting\n");
+
+#ifdef CONFIG_P3K_HOST
+	DBG_InfoMsg("This is Encoder\n");
+	return 0;
+#endif
+
+	char path[128] = "";
+	sprintf(path,"%s%s%s",CONF_PATH,g_module,OVERLAY_PATH);
+
+	//Check overlay
+	int nAccessRet = access(path,F_OK | R_OK | W_OK);
+	if(0 == nAccessRet)
+	{
+		//printf("nAccessRet %s Suceess\n",path);
+		return 0;
+	}
+
+	system("cp -rf /share/overlay /data/configs/kds-7/");
+
+	return 0;
+}
+
 
 // /secure/security_setting.json
 int Cfg_Create_SecuritySetting(void)
@@ -3406,6 +3488,97 @@ int Cfg_Update_Log(void)
 	return 0;
 }
 
+int Cfg_Update_OSD(void)
+{
+	DBG_InfoMsg("Cfg_Update_OSD\n");
+#ifdef CONFIG_P3K_HOST
+	DBG_InfoMsg("This is Encoder\n");
+	return 0;
+#endif
+
+	char path[128] = "";
+	sprintf(path,"%s%s%s",CONF_PATH,g_module,OSD_FILE);
+
+	Json::Reader reader;
+	Json::Value root1;
+	char pBuf[1024] = "";
+
+	//Check OSD cfg
+	int nAccessRet = access(path,F_OK | R_OK | W_OK);
+	if(0 > nAccessRet)
+	{
+		printf("nAccessRet %s Failed\n",path);
+	}
+	else
+	{
+		//Read  OSD setting cfg
+		FILE *fp;
+		fp = fopen(path, "r");
+		if (fp == NULL) {
+			DBG_ErrMsg("ERROR! can't open %s\n",path);
+			return -1;
+		}
+
+		fread(pBuf,1,sizeof(pBuf),fp);
+
+		if(reader.parse(pBuf, root1))
+		{
+			DBG_InfoMsg("open %s Success !!!\n",path);
+		}
+
+		fclose(fp);
+	}
+
+	if(!root1[JSON_OSD_DEVICE_INFO].empty())
+	{
+		Json::Value& root = root1[JSON_OSD_DEVICE_INFO];
+
+		if(g_osd_enable == OFF)
+			root[JSON_OSD_DEVICE_INFO_EN] = JSON_PARAM_OFF;
+		else
+			root[JSON_OSD_DEVICE_INFO_EN] = JSON_PARAM_ON;
+	}
+	else
+	{
+		Json::Value root;
+		if(g_osd_enable == OFF)
+			root[JSON_OSD_DEVICE_INFO_EN] = JSON_PARAM_OFF;
+		else
+			root[JSON_OSD_DEVICE_INFO_EN] = JSON_PARAM_ON;
+
+
+		root1[JSON_OSD_DEVICE_INFO] = root;
+	}
+
+	memset(path,0,128);
+	sprintf(path,"%s%s%s",CONF_PATH,g_module,OSD_PATH);
+	int s32AccessRet = access(path, F_OK);
+	if(s32AccessRet != 0)
+	{
+		char cmd[256] = "";
+		sprintf(cmd,"mkdir -p %s",path);
+
+		system(cmd);
+	}
+
+	memset(path,0,128);
+	sprintf(path,"%s%s%s",CONF_PATH,g_module,OSD_FILE);
+	FILE *fp2;
+	fp2 = fopen(path, "w");
+	if (fp2 == NULL) {
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
+		return -1;
+	}
+
+	string strOSDsetting = root1.toStyledString();
+	fwrite(strOSDsetting.c_str(),1,strOSDsetting.size(),fp2);
+
+	fclose(fp2);
+	fflush(fp2);
+	return 0;
+
+}
+
 int Cfg_Set_EncChannel_ID(int id)
 {
 	DBG_InfoMsg("Cfg_Set_EncChannel_ID\n");
@@ -4413,6 +4586,8 @@ int Cfg_Get_Net_GW_Vlan(NetGWType_E type, int* vlan)
 
 int Cfg_Set_OSD_Diaplay(State_E mode)
 {
+	g_osd_enable = mode;
+	Cfg_Update_OSD();
 	return 0;
 }
 int Cfg_Get_OSD_Diaplay(State_E* mode)

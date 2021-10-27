@@ -280,6 +280,11 @@ extern "C" {
 #define JSON_OSD_MEDIUM				"medium"
 #define JSON_OSD_MAX_PER_PAGE		"max_channels_per_page"
 #define	JSON_OSD_MAX_CHANNEL		"max_channels"
+#define JSON_OSD_DEVICE_INFO		"device_info"
+#define JSON_OSD_DEVICE_INFO_EN		"enabled"
+#define JSON_OSD_DEVICE_INFO_TIME   "timeout"
+
+
 
 #define JSON_SECUR_SETTING			"security_setting"
 #define JSON_SECUR_802_1X_MODE		"802.1x_mode"
@@ -462,6 +467,7 @@ extern VideoWall_Info		g_videowall_info;
 extern Gateway_Info			g_gateway_info;
 extern Network_Info			g_network_info;
 extern Log_Info				g_log_info;
+extern State_E				g_osd_enable;
 
 extern int                  g_Udp_Socket;     
 
@@ -500,6 +506,7 @@ int Cfg_Init_VideoWall(void);
 int Cfg_Init_Gateway(void);
 int Cfg_Init_Network(void);
 int Cfg_Init_Log(void);
+int Cfg_Init_OSD(void);
 
 //Create Config file from default param
 int Cfg_Create_DefaultFile(void);
@@ -507,6 +514,7 @@ int Cfg_Create_AutoswitchDelay(void);
 int Cfg_Create_AVSignal(void);
 int Cfg_Create_DisplaySleep(void);
 int Cfg_Create_OsdSetting(void);
+int Cfg_Create_OverlaySetting(void);
 int Cfg_Create_SecuritySetting(void);
 int Cfg_Create_KVMSetting(void);
 int Cfg_Create_EDIDList(void);
@@ -528,6 +536,7 @@ int Cfg_Update_VideoWall(void);
 int Cfg_Update_Gateway(void);
 int Cfg_Update_Network(void);
 int Cfg_Update_Log(void);
+int Cfg_Update_OSD(void);
 
 
 int Cfg_Set_EncChannel_ID(int id);

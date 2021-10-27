@@ -26,7 +26,7 @@
 using namespace std;
 
 #define BUFSIZE 128
-#define PORT 5588
+#define PORT 6003
 static pthread_t Beacon_id;
 
 static char  sUpInfo[256] = {0};
@@ -222,7 +222,7 @@ int classTest(int a,int b)
 int sendCmdtoGUI(const char *buf)
 {
 	DBG_InfoMsg("sendCmdtoGUI \n");
-	return 0;
+	//return 0;
 
 	//
 	char sendbuf[BUFSIZE] = {0};
@@ -244,7 +244,7 @@ int sendCmdtoGUI(const char *buf)
 
 	int mode = 0;
 	int len = sizeof(sockaddr_dest);
-	if(strncmp(sendbuf,"GET",3) == 0)
+/*	if(strncmp(sendbuf,"GET",3) == 0)
 	{
 		int ret = sendto(fd,sendbuf,sizeof(sendbuf),0,(struct sockaddr*)&sockaddr_dest,len);
 		//DBG_InfoMsg("ret: %d\n",ret);
@@ -261,7 +261,7 @@ int sendCmdtoGUI(const char *buf)
 		//DBG_InfoMsg("mode: %d\n",mode);
 	}
 	else
-	{
+*/	{
 		int ret = sendto(fd,sendbuf,sizeof(sendbuf),0,(struct sockaddr*)&sockaddr_dest,len);
 		//DBG_InfoMsg("ret: %d\n",ret);
 		//DBG_InfoMsg("send finished \n");
@@ -966,8 +966,21 @@ int EX_GetMethod(void)
 	return (int)mode;
 }
 
-int EX_SetOsdDisplay(int  mode )
+int EX_SetOsdDisplay(int    mode )
 {
+	State_E osd_mode = OFF;
+	if(mode == 0)
+		osd_mode = OFF;
+	else if((mode == 1)||(mode == 2))
+		osd_mode = ON;
+	else
+	{
+		DBG_ErrMsg(">>mode Err %d\n",mode);
+		return -1;
+	}
+
+	Cfg_Set_OSD_Diaplay(osd_mode);
+
 	char setOSDDisplayCmd[BUFSIZE] = {0};
 	char * str = "SET_OSD_DISPLAY";
 	sprintf(setOSDDisplayCmd,"%s %d",str,mode);
@@ -978,10 +991,8 @@ int EX_SetOsdDisplay(int  mode )
 }
 int EX_GetOsdDisplay(void)
 {
-	char getOSDDispalyCmd[BUFSIZE] = {"GET_OSD_DISPALY"};
-	int mode = 0;
-	mode = sendCmdtoGUI(getOSDDispalyCmd);
-	//int mode =1;
+//	char getOSDDispalyCmd[BUFSIZE] = {"GET_OSD_DISPALY"};
+	int mode = g_osd_enable;
 
 	return mode;
 }
