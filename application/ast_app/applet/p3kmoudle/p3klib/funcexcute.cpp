@@ -2726,7 +2726,8 @@ int EX_SetNetPort(char* portType,int portNumber)
         if(portNumber != g_network_info.tcp_port)
         {
             Cfg_Set_Net_Port(Net_TCP,portNumber);
-            system("./restartP3k.sh");}
+            //system("./restartP3k.sh");
+        }
 	}
     else
 		printf("EX_SetNetPort portType: %s Error\n",portType);

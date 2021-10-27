@@ -46,6 +46,8 @@ typedef struct _SocketWorkInfo_S
 
 //server
 int SOCKET_CreateTcpServer(SocketWorkInfo_S*serverhandle);
+int SOCKET_CreateTcp_NServer(SocketWorkInfo_S*serverhandle);
+
 
 int  SOCKET_DestroyTcpServer(SocketWorkInfo_S*serverhandle);
 

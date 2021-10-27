@@ -5,7 +5,7 @@
 #include "p3kapi.h"
 #include "handlelist.h"
 #include "debugtool.h"
-
+#include "P3Ktcp.h"
 #include "../p3klib/cfgparser.h"
 SocketWorkInfo_S gs_netHandle = {0};
 SocketWorkInfo_S gs_netHandle1 = {0};
@@ -406,36 +406,64 @@ int Tcp_NetGetNetCab(NetCab_T *cab)
 	return 0;
 }
 
+void * TcpCmd_cb(void * fd)
+{
+    SocketWorkInfo_S*handle = (SocketWorkInfo_S*)fd;
+    while(1)
+    {
+        //printf("11\n");
+        if(handle->serverport == g_network_info.tcp_port)
+        {
+            usleep(50*1000);
+        }
+        else
+        {
+            SOCKET_DestroyTcpServer(Tcp_NetGetNetReristHandle());
+            Tcp_NetInit(g_network_info.tcp_port);
+        }
+    }
+    return;
+}
+
 int Tcp_NetInit(int port)
 {
 	Create_TimeHead(&sTimeOut);
 	P3K_ApiInit();
-	SocketWorkInfo_S*handle = Tcp_NetGetNetReristHandle();
+	SocketWorkInfo_S * handle = Tcp_NetGetNetReristHandle();
 	handle->readcb =Tcp_NetRecvMsg;
 	handle->closecb = Tcp_NetClose;
 	handle->serverport = port;
 //	handle->getNetCabInfo = Tcp_NetGetNetCab;
-	SOCKET_CreateTcpServer(handle);
+	
+    pthread_t TcpCmd;
+	pthread_create(&TcpCmd, NULL, TcpCmd_cb, handle);
+    pthread_detach(TcpCmd);
+    SOCKET_CreateTcpServer(handle);
+    
 
-    if(g_network_info.tcp_port != 5000)
-    {
-        SocketWorkInfo_S*handle1 = Tcp_NetGetNetReristHandle1();
-    	handle1->readcb =Tcp_NetRecvMsg;
-    	handle1->closecb = Tcp_NetClose;
-    	handle1->serverport = 5000;
-    	SOCKET_CreateTcpServer(handle1);
-    }
-	//P3K_ApiRegistHandle(& handle);
 	return 0;
 }
+
+int Tcp_NNetInit()
+{
+//绑定127.0.0.1:6001端口用于内部通信
+    SocketWorkInfo_S*handle1 = Tcp_NetGetNetReristHandle1();
+    handle1->readcb =Tcp_NetRecvMsg;
+    handle1->closecb = Tcp_NetClose;
+    handle1->serverport = 6001;
+    SOCKET_CreateTcp_NServer(handle1);
+}
+
 int Tcp_NetUnInit()
 {
 	Distory_TimeHead(sTimeOut);
 	SOCKET_DestroyTcpServer(Tcp_NetGetNetReristHandle());
+    SOCKET_DestroyTcpServer(Tcp_NetGetNetReristHandle1());
 	Tcp_P3KHandleListUnInit();
 	P3K_APIUnInit();
 	return 0;
 }
+
 
 
 int main (int argc, char const *argv[])
@@ -443,6 +471,7 @@ int main (int argc, char const *argv[])
    
     Cfg_Init_Network();
     int portNumber;
+
 	if(argc == 3)
 	{
 		if(!memcmp(argv[2],"-l",strlen("-l")))
@@ -458,6 +487,7 @@ int main (int argc, char const *argv[])
 		sTcpLogin.iFlag = 0;
 		flagS = 1;
 	}
+    Tcp_NNetInit();
 	char ch =0;
 	while(1)
 	{

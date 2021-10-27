@@ -199,6 +199,47 @@ READ_ERROR:
 	return 0;
 }
 
+ static int Tcp_NServerSocketInit(int  serverport)
+ {
+     unsigned short port = serverport;
+     int connfd = 0,bindfd = 0;
+     int listenfd = 0;
+     int sockfd = 0;
+     int opt = 1;
+ 
+     struct sockaddr_in server_addr;
+     memset(&server_addr,0,sizeof(server_addr));
+     server_addr.sin_family = AF_INET;
+     server_addr.sin_port = htons(port);
+     server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+     //server_addr.sin_addr.s_addr = inet_addr("0.0.0.0");
+     sockfd = socket(AF_INET,SOCK_STREAM,0);
+     if(sockfd < 0)
+     {
+         DBG_ErrMsg("tcp server init ERR\n ");
+         return -1;
+     }
+     //设置端口复用
+     setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (const void *)&opt, sizeof(opt));
+     bindfd = bind(sockfd,(struct sockaddr *)&server_addr,sizeof(struct sockaddr));
+     if(bindfd != 0)
+     {
+         perror("bind");
+         close(sockfd);
+         return 0;
+     }
+ 
+     listenfd = listen(sockfd,LISTEN_MAX_FD);
+     if(listenfd != 0)
+     {
+         close(sockfd);
+         return 0;
+     }
+     printf("inside tcp server init  with socketfd %d \n",sockfd);
+     return sockfd;
+ }
+
+
  static int TcpServerSocketInit(int  serverport)
 {
 	unsigned short port = serverport;
@@ -211,14 +252,7 @@ READ_ERROR:
 	memset(&server_addr,0,sizeof(server_addr));
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_port = htons(port);
-    if(g_network_info.tcp_port == port)
-    {
-	    server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    }
-    else if(g_network_info.tcp_port != 5000 && port == 5000)
-    {
-        server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
-    }
+	server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	//server_addr.sin_addr.s_addr = inet_addr("0.0.0.0");
 	sockfd = socket(AF_INET,SOCK_STREAM,0);
 	if(sockfd < 0)
@@ -231,7 +265,7 @@ READ_ERROR:
 	bindfd = bind(sockfd,(struct sockaddr *)&server_addr,sizeof(struct sockaddr));
 	if(bindfd != 0)
 	{
-
+        perror("bind");
 		close(sockfd);
 		return 0;
 	}
@@ -242,7 +276,7 @@ READ_ERROR:
 		close(sockfd);
 		return 0;
 	}
-	DBG_InfoMsg(" tcp server init  with socketfd %d \n",sockfd);
+	printf(" tcp server init  with socketfd %d \n",sockfd);
 	return sockfd;
 }
  void *TcpServerThead(void *arg)
@@ -335,6 +369,28 @@ READ_ERROR:
 		}
 		usleep(20*1000);//程序空跑 CPU不至于100%
 	}
+}
+
+int SOCKET_CreateTcp_NServer(SocketWorkInfo_S*serverhandle)
+{
+	pthread_t pthid;
+	NetServerParam_S *param;
+       bTsockFlag= 1;
+
+	param = (NetServerParam_S *)malloc(sizeof(NetServerParam_S));
+	param->mainSockfd = Tcp_NServerSocketInit(serverhandle->serverport);
+	param->readcb = serverhandle->readcb;
+	param->closecb = serverhandle->closecb;
+	if(param->mainSockfd <= 0){
+		free(param);
+		return -1;
+	}
+	printf("--------P3K Inside TCP Start----------\n");
+	serverhandle->sockfd = param->mainSockfd;
+	pthread_create(&pthid, NULL, TcpServerThead, (void *)param);
+        pthread_detach(pthid);
+	return 0;
+
 }
 
 
