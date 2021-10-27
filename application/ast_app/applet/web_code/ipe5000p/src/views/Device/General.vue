@@ -176,10 +176,10 @@ export default {
       exportAndImport: {
         val: 'all',
         param: [
-          { value: 'all', label: 'All' },
-          { value: 'ip', label: 'Without IP' },
+          { value: 'ip', label: 'All Without IP' },
           { value: 'stream', label: 'Streams' },
-          { value: 'av', label: 'AV Settings Only' }
+          { value: 'av', label: 'AV Settings only' },
+          { value: 'all', label: 'All including IP' }
         ]
       },
       displayOverlay: 'off',
@@ -352,7 +352,11 @@ export default {
       this.$refs.upload.clearFiles()
       alert('Upload failed, please try again')
     },
-    beforeUpload () {
+    beforeUpload (file) {
+      if (!file.name.endsWith('.bin')) {
+        alert('Please choose the correct file!')
+        return false
+      }
       this.uploadProgress = 0
       this.upgradeProgress = 0
       this.isUpgrade = false

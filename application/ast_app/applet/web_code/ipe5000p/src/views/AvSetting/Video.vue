@@ -77,9 +77,6 @@
                      accept="image/jpeg"
                      ref="upload"
                      style="display: none;">
-              <br>
-              <button class="btn btn-plain-primary"
-                      style="margin-top: 15px;margin-bottom: 15px;">SLEEP</button>
             </div>
           </div>
         </div>

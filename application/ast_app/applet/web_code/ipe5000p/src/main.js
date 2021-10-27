@@ -17,7 +17,8 @@ import {
   // DatePicker,
   // TimeSelect,
   // TimePicker,
-  Slider
+  Slider,
+  Loading
 } from 'element-ui'
 import lang from 'element-ui/lib/locale/lang/en'
 import locale from 'element-ui/lib/locale'
@@ -37,6 +38,7 @@ Vue.use(Upload)
 Vue.use(Slider)
 Vue.component('multiselect', Multiselect)
 Vue.use(vSwitch)
+Vue.prototype.$loading = Loading.service
 Vue.prototype.$socket = webSocket
 Vue.prototype.$http = Axios
 Vue.prototype.$global = {
