@@ -220,7 +220,7 @@ int get_current_VIDEO_OUT_info_D()
 void save_display_info_D()
 {
 	
-	init_p3k_client("127.0.0.1", 5000);
+	init_p3k_client("127.0.0.1", 6001);
 	
 	save_LAN_info_D();
 	save_VIDEO_SELECT_info_D();

@@ -322,7 +322,7 @@ int save_DEVICE_STATUS_info_P()
 
 int save_display_info_P()
 {
-	init_p3k_client("127.0.0.1", 5000);
+	init_p3k_client("127.0.0.1", 6001);
 	save_LAN_info_P();
 	save_EDID_info_P();
 	save_FIREWARE_info_P();

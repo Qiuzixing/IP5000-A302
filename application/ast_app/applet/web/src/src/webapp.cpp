@@ -1221,12 +1221,12 @@ void *CWeb::P3kCommunicationThread(void *arg)
 	// 初始化sockaddr结构体
     memset(&tServerAddr, 0, sizeof(tServerAddr));
     tServerAddr.sin_family = AF_INET;
-    tServerAddr.sin_port = htons(5000);
+    tServerAddr.sin_port = htons(6001);
     tServerAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
     memset(&tClientAddr, 0, sizeof(tClientAddr));
     tClientAddr.sin_family = AF_INET;
-    tClientAddr.sin_port = htons(5001);
+    tClientAddr.sin_port = htons(6002);
     tClientAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
 	// 创建套接字
