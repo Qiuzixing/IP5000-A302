@@ -1,5 +1,5 @@
 #include <QtGui/QApplication>
-//#include "dialog.h"
+#include "dialog.h"
 //#include "mainwindow.h"
 #include "frame/mainwidget.h"
 #include <QtPlugin>
@@ -37,7 +37,7 @@ void getResolutionFromTiming()
 
     qDebug() << "strResult:" << strResult;
     QString NoSignals = "Not Available";
-    if(strResult.startsWith("Not"))
+    if(strResult.startsWith("Not") || strResult.isEmpty())
     {
         // 当前没有输出，重启软件进入休眠模式，设定OSD软件分辨率为720P
         g_bDeviceSleepMode = true;
@@ -112,6 +112,7 @@ int main(int argc, char *argv[])
 
     // Dialog w;
     MainWidget w;
+    w.p3kconnected();
 
     //QFont fnt(QApplication::font());
     //fnt.setPointSize(8);

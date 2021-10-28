@@ -21,42 +21,7 @@ class QTimer;
 class QLabel;
 class OSDMeun;
 class UdpRecvThread;
-
-struct info_hdr {
-    unsigned int type;
-    unsigned int data_len;
-    char data[];
-};
-
-struct static_info {
-    char IP[STR_BUF_SIZE];
-    char FW[STR_BUF_SIZE];
-    char RemoteIP[STR_BUF_SIZE];
-    char ID[STR_BUF_SIZE];
-};
-
-struct rinfo_hidden {
-    int     hidden;  // 1:hide,0:not hide
-};
-
-struct runtime_info {
-    char str[STR_BUF_SIZE];
-};
-
-struct gui_show_info {
-    unsigned int show_text;		//1: show, 0: hide
-    char picture_name[STR_BUF_SIZE];
-};
-
-struct gui_action_info {
-  unsigned int action_type;
-  union {
-    char buf[STR_BUF_SIZE];
-    unsigned int show_dialog; //1: show, 0: hide
-    unsigned int refresh_node; //1: refresh, 0: no refresh
-    struct gui_show_info show_info;
-  } ub;
-};
+class Dialog;
 
 
 class MainWidget : public QWidget
@@ -77,6 +42,8 @@ public:
 
     void switchOSDMeun();
 
+    void getResolutionFromTiming();
+    bool p3kconnected();
 public slots:
     void hideOsdMeun();
     void showOsdMeun();
@@ -88,7 +55,8 @@ public slots:
 
     void isNoSignal();
 
-    void startSleepMode(ModulePanel *panel);
+    void startSleepMode();
+    void handleKvmMsg(bool enable);
 
     void syncConfig(QString);
 
@@ -102,10 +70,6 @@ public slots:
 
     void parseOverlayJson(QString jsonpath);
 
-    void connectedMsgD();
-    void readMsgD();
-    void disconnectedMsgD();
-    void displayMsgDErr(QAbstractSocket::SocketError socketError);
 protected:
     virtual void keyPressEvent(QKeyEvent *e);
     virtual void focusOutEvent(QFocusEvent *e);
@@ -117,17 +81,10 @@ protected:
 private:
     void initOsdMeun();
     void initPanelStack();
-    void initOverlayLabelConnect(OSDLabel *label);
-    void StartMsgDConnection();
-    void initInfoLandIndoR();
-    void parseMsg(QByteArray &data, unsigned int type);
-    void updateInfoR();
-    void updateInfoL();
-    void updateGUI();
 
 private:
     QStackedWidget  *m_panelStack;
-    SleepPanel *m_sleepPanel;
+    Dialog          *m_sleepPanel;
 
     QLabel *imageLabel;
     OSDMeun *m_osdMeun;
@@ -151,13 +108,6 @@ private:
 
     UdpRecvThread* UdpRecv;
     P3ktcp *m_p3kTcp;
-
-    struct static_info sInfo;
-    struct info_hdr hdr;
-    struct runtime_info rInfo;
-    struct rinfo_hidden rinfoHidden;
-    struct gui_action_info guiActionInfo;
-    bool bRinfoDlgHidden;
 
     QTcpSocket *m_tcpSocket;
     bool m_bKvmMode;

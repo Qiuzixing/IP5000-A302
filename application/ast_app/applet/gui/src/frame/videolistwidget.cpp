@@ -32,6 +32,7 @@ OSDMeun::OSDMeun(QWidget *parent)
     :QWidget(parent)
     ,m_currentPage(1)
     ,m_onSreachMode(false)
+    ,m_displayStatus(false)
 {
     // 解析菜单参数
     parseMeunJson(MENUINFO_PATH);
@@ -94,67 +95,35 @@ void OSDMeun::keyPressEvent(QKeyEvent *e)
 
 void OSDMeun::initPageNumList()
 {
-    pageNumList = new QMenu(this);
-    pageNumList->setFixedSize(g_nButtonWidth * g_fScaleScreen,g_nButtonHeight * g_fScaleScreen);
+    pageNumList = new QMenu();
+    pageNumList->setFixedWidth(g_nButtonWidth * g_fScaleScreen);
 
-    QWidgetAction *action_1 = new QWidgetAction(pageNumList);
-    QWidgetAction *action_2 = new QWidgetAction(pageNumList);
-    QWidgetAction *action_3 = new QWidgetAction(pageNumList);
-
-
-    action_1->setText("5");
-    action_2->setText("6");
-    action_3->setText("7");
-
-
-    QLabel *label_1 = new QLabel("5");
-    QLabel *label_2 = new QLabel("6");
-    QLabel *label_3 = new QLabel("7");
-
-
-    label_1->setAlignment(Qt::AlignCenter);
-    label_2->setAlignment(Qt::AlignCenter);
-    label_3->setAlignment(Qt::AlignCenter);
-
-
-    action_1->setDefaultWidget(label_1);
-    action_2->setDefaultWidget(label_2);
-    action_3->setDefaultWidget(label_3);
-
-
-
-    pageNumList->addAction(action_1);
-    pageNumList->addAction(action_2);
-    pageNumList->addAction(action_3);
-
+    QAction *act_1 = new QAction("5",pageNumList);
+    QAction *act_2 = new QAction("6",pageNumList);
+    QAction *act_3 = new QAction("7",pageNumList);
+    QAction *act_4 = new QAction("8",pageNumList);
+    QAction *act_5 = new QAction("9",pageNumList);
+    QAction *act_6 = new QAction("10",pageNumList);
 
     if(g_nScreenWidth < 3840)
     {
-        QWidgetAction *action_4 = new QWidgetAction(pageNumList);
-        QWidgetAction *action_5 = new QWidgetAction(pageNumList);
-        QWidgetAction *action_6 = new QWidgetAction(pageNumList);
+        list.append(act_1);
+        list.append(act_2);
+        list.append(act_3);
 
-        action_4->setText("5");
-        action_5->setText("6");
-        action_6->setText("7");
-
-        QLabel *label_4 = new QLabel("8");
-        QLabel *label_5 = new QLabel("9");
-        QLabel *label_6 = new QLabel("10");
-
-        label_4->setAlignment(Qt::AlignCenter);
-        label_5->setAlignment(Qt::AlignCenter);
-        label_6->setAlignment(Qt::AlignCenter);
-
-        action_4->setDefaultWidget(label_4);
-        action_5->setDefaultWidget(label_5);
-        action_6->setDefaultWidget(label_6);
-
-
-        pageNumList->addAction(action_4);
-        pageNumList->addAction(action_5);
-        pageNumList->addAction(action_6);
+        list.append(act_4);
+        list.append(act_5);
+        list.append(act_6);
     }
+    else
+    {
+        list.append(act_1);
+        list.append(act_2);
+        list.append(act_3);
+    }
+
+    pageNumList->addActions(list);
+    pageNumList->addSeparator();
 
     connect(pageNumList,SIGNAL(triggered(QAction *)),this,SLOT(setPageChannels(QAction *)));
 }
@@ -179,11 +148,8 @@ void OSDMeun::initLayout()
     m_Exit = new QPushButton("Exit",this);
     m_Exit->setFixedSize(g_nButtonWidth * g_fScaleScreen,g_nButtonHeight * g_fScaleScreen);
 
-
-
     m_inputEdit = new QLineEdit(this);
     m_inputEdit->setFixedSize(g_nButtonWidth * g_fScaleScreen,g_nButtonHeight * g_fScaleScreen);
-
 
     m_listWidget = new QListWidget(this);
     m_listWidget->setFixedSize(g_nOsdMenuWidth * g_fScaleScreen,(m_pageChannels * g_nItemRowHeight) * g_fScaleScreen);
@@ -192,8 +158,7 @@ void OSDMeun::initLayout()
     m_listWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     // 设置字体大小
-    m_font = loadFontSize();
-    m_listWidget->setFont(m_font);
+    setMeunFont();
 
     // 初始化设置页面频道数
     initPageNumList();
@@ -201,9 +166,7 @@ void OSDMeun::initLayout()
     // 初始化界面大小
     initButtonStyle();
 
-
     m_Search->setMenu(pageNumList);
-
 
     QHBoxLayout *layout = new QHBoxLayout();
     layout->setContentsMargins(0,0,0,0);
@@ -227,6 +190,12 @@ void OSDMeun::initLayout()
 
     this->setLayout(m_mainLayout);
     qDebug() << "setLayout  finished";
+}
+
+void OSDMeun::setMeunFont()
+{
+    m_font = loadFontSize();
+    m_listWidget->setFont(m_font);
 }
 
 void OSDMeun::styleSheetControl(QPushButton *button)
@@ -258,7 +227,7 @@ void OSDMeun::initConnect()
     connect(&osdOverTimer,SIGNAL(timeout()),this,SLOT(exitClicked()));
 
     connect(m_Exit,SIGNAL(clicked()),this,SLOT(exitClicked()));
-    qDebug() << "connect   finished";
+    connect(m_Apply,SIGNAL(clicked()),this,SLOT(applyClicked()));
 }
 
 
@@ -422,6 +391,19 @@ void OSDMeun::parseMeunJson(QString jsonpath)
         int channelnum = root["channel_menu"]["max_channels_per_page"].asInt();
         int maxchannelnum = root["channel_menu"]["max_channels"].asInt();
 
+        string enabled = root["device_info"]["enabled"].asString();
+        int device_timeout = root["device_info"]["timeout"].asInt();
+        QString EnabledStr = enabled.c_str();
+
+        if(EnabledStr.compare("on") == 0)
+        {
+            m_displayStatus = true;
+        }
+        else if(EnabledStr.compare("off") == 0)
+        {
+            m_displayStatus = false;
+        }
+
         cout << "size:" << size << endl;
 
         QString str = size.c_str();
@@ -459,6 +441,10 @@ void OSDMeun::parseMeunJson(QString jsonpath)
                 m_pageChannels = 7;
             else
                 m_pageChannels = channelnum;
+        }
+        else if(m_pageChannels == 0)
+        {
+            m_pageChannels = 5;
         }
         else
         {
@@ -535,6 +521,10 @@ void OSDMeun::parseChannelJson()
 
     int channelId = 0;
     string channelName;
+
+    // 重新解析前先清空
+    channelMap.clear();
+    m_channelList.clear();
 
     if(reader.parse(in,root))
     {
@@ -669,7 +659,7 @@ void OSDMeun::loadChannel(QStringList channelList)
         item->setTextColor(Qt::white);
         m_listWidget->insertItem(rowIndex,item);      
     }
-   // m_listWidget->setFont(m_font);
+//    m_listWidget->setFont(m_font);
     qDebug() << "load_4" <<  m_listWidget->count();
 }
 
@@ -697,8 +687,10 @@ void OSDMeun::completeText(const QModelIndex &index)
     g_nChannelId = m_channelID;
 
     // 获取了点击的频道id, 设置频道切换或发送信号
-    QString strCmd = QString("#KDS-CHANNEL-SELECT %1\r").arg(m_channelID);
+    QString strCmd = QString("#KDS-CHANNEL-SELECT video,%1\r").arg(m_channelID);
     QByteArray byteCmd = strCmd.toLatin1();
+
+    qDebug() << "channel_byteCmd:" << byteCmd;
     if(m_p3ktcp->sendCmdToP3k(byteCmd))
     {
         qDebug("Set ChannelID YES");
@@ -740,12 +732,22 @@ void OSDMeun::exitClicked()
     emit hideOsdMenu();
 }
 
+void OSDMeun::applyClicked()
+{
+
+}
+
 void OSDMeun::setPageChannels(QAction *action)
 {
     int nums = action->text().toInt();
     qDebug() << "pagenums:" << nums;
     m_pageChannels = nums;
 
+    setListWidgetHeight();
+}
+
+void OSDMeun::setListWidgetHeight()
+{
     if(m_onSreachMode)
     {
         loadChannel(m_sreachList);
@@ -756,6 +758,7 @@ void OSDMeun::setPageChannels(QAction *action)
     }
 
     m_listWidget->setFixedHeight(g_nItemRowHeight * g_fScaleScreen * m_pageChannels);
+
     //  发送信号通知更新菜单高度
     emit updateOsdMenu();
 }
@@ -763,4 +766,9 @@ void OSDMeun::setPageChannels(QAction *action)
  int OSDMeun::getOSDMeunHeight()
  {
      return g_nButtonHeight*4 + g_nItemRowHeight * m_pageChannels;
+ }
+
+ void OSDMeun::hideSettingPage()
+ {
+     pageNumList->hide();
  }

@@ -23,7 +23,7 @@ include (json/json.pri)
 SOURCES += \
 		main.cpp \
 	
-FORMS    +=
+FORMS    += dialog.ui
 QTPLUGIN += qjpeg
 #DEPLOYMENT_PLUGIN += qjpeg
 RESOURCES += resource.qrc

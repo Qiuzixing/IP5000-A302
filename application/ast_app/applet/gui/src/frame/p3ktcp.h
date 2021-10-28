@@ -23,6 +23,7 @@ public:
     ~P3ktcp();
     // 发送指令到P3K
     bool sendCmdToP3k(const char *lpBuf);
+    bool p3kConnect();
 
 signals:
     void tcpRcvMsg(QByteArray msg);
@@ -33,7 +34,6 @@ public slots:
 
 protected:
     // 连接or关闭
-    void p3kConnect(QHostAddress ip,int port);
     void closeP3kConnect();
 
     // 检测连接

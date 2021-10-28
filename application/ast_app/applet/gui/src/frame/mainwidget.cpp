@@ -4,6 +4,7 @@
 #include "common/global.h"
 #include "common/scale_global.h"
 #include "p3ktcp.h"
+#include "dialog.h"
 
 #include "json/json.h"
 #include <string>
@@ -24,11 +25,16 @@
 #include <QImageReader>
 
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <QProcess>
 
 #define RESOLUTION_CONFIG   "/sys/devices/platform/videoip/timing_info"
-#define SLEEP_IMAGE_PATH    "/data/configs/kds-7|/logo/sleep_image.png"
+//#define SLEEP_IMAGE_PATH  "/data/configs/kds-7/logo/sleep_image.png"
+#define SLEEP_IMAGE_PATH    "/share/default.jpg"
+
+#define MENUINFO_PATH      "/data/configs/kds-7/osd/osd.json"
+#define CHANNELS_LIST_PATH "/data/configs/kds-7/channel/channel_map.json"
 
 using namespace std;
 
@@ -39,6 +45,7 @@ MainWidget::MainWidget(QWidget *parent) : QWidget(parent)
     ,m_imageOverlay(NULL)
     ,m_textOverlay(NULL)
     ,m_CmdOuttime(-1)
+    ,m_bKvmMode(false)
 {
     // 鼠标跟踪
     setMouseTracking(true);
@@ -56,8 +63,12 @@ MainWidget::MainWidget(QWidget *parent) : QWidget(parent)
 
     // 添加文件监控
     QStringList paths ;
+
     paths << RESOLUTION_CONFIG;
-//    paths << SLEEP_IMAGE_PATH;
+    paths << SLEEP_IMAGE_PATH;
+    paths << MENUINFO_PATH;
+    paths << CHANNELS_LIST_PATH;
+
     watch = new QFileSystemWatcher;
     watch->addPaths(paths);
     connect(watch, SIGNAL(fileChanged(QString)), this, SLOT(syncConfig(QString)));
@@ -70,18 +81,16 @@ MainWidget::MainWidget(QWidget *parent) : QWidget(parent)
     // 初始化页面切换
     initPanelStack();
 
+    connect(m_sleepPanel,SIGNAL(sigStartSleepMode()),this,SLOT(startSleepMode()));
+    connect(m_sleepPanel,SIGNAL(sigStartKVM(bool)),this,SLOT(handleKvmMsg(bool)));
+
     // 正常工作状态
     if(!g_bDeviceSleepMode)
     {
-        m_panelStack->close();
-        m_sleepPanel->close();
-    //connect(&getInfoTimer,SIGNAL(timeout()),this,SLOT(isNoSignal()));
-    //this->getInfoTimer.start(1000);
-    }
-    else
-    {
-         qDebug() << "main_0_2";
-         startSleepMode(m_sleepPanel);
+        //    m_panelStack->close();
+        m_sleepPanel->setVisible(false);
+        //    connect(&getInfoTimer,SIGNAL(timeout()),this,SLOT(isNoSignal()));
+        //    this->getInfoTimer.start(1000);
     }
 
     qDebug() << "main_4";
@@ -93,88 +102,39 @@ MainWidget::MainWidget(QWidget *parent) : QWidget(parent)
     //    m_sleepPanel->setGuideImage("./orderCut.png");
     //    startSleepMode(m_sleepPanel);
 
-    bRinfoDlgHidden = false;
-
-    // 初始化sInfo结构体
-    //    const char src[64] = "Unknown";
-    //    memcpy(sInfo.FW,src,sizeof(src));
-    //    memcpy(sInfo.IP,src,sizeof(src));
-    //    memcpy(sInfo.RemoteIP,src,sizeof(src));
-    //    memcpy(sInfo.ID,src,sizeof(src));
-
-    strcpy((char*)sInfo.FW, "Unknown");
-    strcpy((char*)sInfo.IP, "Unknown");
-    strcpy((char*)sInfo.RemoteIP, "Unknown");
-    strcpy((char*)sInfo.ID, "Unknown");
-
-    // 设备连接
-    StartMsgDConnection();
-
-    // 创建显示信息
-    initInfoLandIndoR();
-
     // 处理p3k命令
     UdpRecv = UdpRecvThread::getInstance();
     UdpRecv->start();
 
     connect(UdpRecv,SIGNAL(RecvData(QByteArray)),this,SLOT(onRecvData(QByteArray)));
 
-    m_p3kTcp = P3ktcp::getInstance();
-    connect(m_p3kTcp,SIGNAL(tcpRcvMsg(QByteArray)),this,SLOT(parseCmdResult(QByteArray)));
+    // 测试OSD菜单显示
+    // showOsdMeun();
+
+    // 测试overlay显示
+    //  QString filename = "overlay2_setting.json";
+    //  parseOverlayJson(filename);
 }
 
 MainWidget::~MainWidget()
 {
-    m_tcpSocket->close();
-    m_tcpSocket = 0;
-    m_tcpSocket ->deleteLater();
+
 }
 
-void MainWidget::initInfoLandIndoR()
+
+bool MainWidget::p3kconnected()
 {
-    QString str = QString("Initializing transmitter search...");
-
-    infoL = new  QLabel(str,this);
-    infoR = new QLabel(str,this);
-
-    if (bRinfoDlgHidden == true)
+    m_p3kTcp = P3ktcp::getInstance();
+    while(!m_p3kTcp->p3kConnect())
     {
-        infoR->setText(QString("FW: %1\nLocal IP: %2\nRemote IP: %3")
-                .arg((char*)sInfo.FW)
-                .arg((char*)sInfo.IP)
-                .arg((char*)sInfo.RemoteIP));
-    }
-    else
-    {
-        infoR->setText(QString("FW: %1\nLocal IP: %2\nRemote IP: %3\nID: %4")
-                .arg((char*)sInfo.FW)
-                .arg((char*)sInfo.IP)
-                .arg((char*)sInfo.RemoteIP)
-                .arg((char*)sInfo.ID));
+        usleep(1000 * 1000);
     }
 
-    infoL->setStyleSheet("color:white");
-    infoR->setStyleSheet("color:white");
+    connect(m_p3kTcp,SIGNAL(tcpRcvMsg(QByteArray)),this,SLOT(parseCmdResult(QByteArray)));
 
-    infoL->setVisible(true);
-    infoR->setVisible(true);
-
-    infoL->adjustSize();
-    infoR->adjustSize();
-
-    int xpos = 100;
-    int ypos = g_nframebufferHeight-infoL->height() - 50;
-    infoL->move(xpos,ypos);
-
-    qDebug() << "infoR->width():" << infoR->width() << "infoR->height():" << infoR->height();
-
-    xpos = g_nframebufferWidth-infoR->width() - 100;
-    ypos = g_nframebufferHeight-infoR->height() - 50;
-    infoR->move(xpos,ypos);
-
-    moveFramebuffer(CENTER);
+    qDebug() << "connected P3K OK";
+    return true;
 }
-
 
 void MainWidget::parseCmdResult(QByteArray datagram)
 {
@@ -272,16 +232,18 @@ void MainWidget::onRecvData(QByteArray data)
 
         QString path = "/data/configs/kds-7/vw/video_wall_test_pattern.png";
         segmentationPic(path);
-        m_sleepPanel->setGuideImage("./orderCut.png");
-        startSleepMode(m_sleepPanel);
+
+        QString orderPath("./orderCut.png");
+        m_sleepPanel->setSleepPicture(orderPath.toLatin1().data());
+        startSleepMode();
         update();
     }
     else if(datagram.contains("CLOSE"))
     {
         qDebug() << "CLOSE VIDEOWALL";
-        QString path = "/logo/sleep_image.png";
-        m_sleepPanel->setGuideImage(path);
-        startSleepMode(m_sleepPanel);
+        QString path = "/share/default.jpg";
+        m_sleepPanel->setSleepPicture(path.toLatin1().data());
+        startSleepMode();
         update();
     }
 }
@@ -301,6 +263,16 @@ void MainWidget::focusOutEvent(QFocusEvent *e)
 
 void MainWidget::keyPressEvent(QKeyEvent *e)
 {
+    int key = e->key();
+    if(Qt::Key_M == key)
+    {
+       showOsdMeun();
+    }
+    else if(Qt::Key_O == key)
+    {
+         QString filename = "overlay2_setting.json";
+         parseOverlayJson(filename);
+    }
     QWidget::keyPressEvent(e);
 }
 
@@ -315,6 +287,9 @@ void MainWidget::getKMControl()
         delete p;
         qDebug() << "getKMControl finished";
     }
+
+    // 显示光标
+    this->setCursor(Qt::ArrowCursor);
 }
 
 void MainWidget::freeKMControl()
@@ -328,246 +303,9 @@ void MainWidget::freeKMControl()
         delete p;
         qDebug() << "freeKMControl finished";
     }
-}
 
-void MainWidget::StartMsgDConnection()
-{
-    m_tcpSocket = new QTcpSocket(this);
-
-    connect(m_tcpSocket, SIGNAL(readyRead()), this, SLOT(readMsgD()));
-    connect(m_tcpSocket, SIGNAL(connected()), this, SLOT(connectedMsgD()));
-    connect(m_tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)),
-            this, SLOT(displayMsgDErr(QAbstractSocket::SocketError)));
-    connect(m_tcpSocket, SIGNAL(disconnected()), this, SLOT(disconnectedMsgD()));
-
-    hdr.data_len = 0;
-    m_tcpSocket->abort();
-    m_tcpSocket->connectToHost(QString(MSGD_IP), MSGD_FE_PORT);
-}
-
-
-void MainWidget::connectedMsgD()
-{
-    qDebug() << "Connected MSGD Finished!!!";
-}
-
-void MainWidget::readMsgD()
-{
-    //qDebug() << "Recv Device Msg";
-    qint64 r = 0;
-
-    if (hdr.data_len == 0) {
-
-        if (m_tcpSocket->bytesAvailable() < (int)sizeof(struct info_hdr))
-            return;
-
-        r = m_tcpSocket->read((char*)&hdr, sizeof(struct info_hdr));
-        if (r <= 0) {
-            qDebug() << "Msg format err";
-            return;
-        }
-
-        qDebug() << "TYPE:" << hdr.type;
-
-        if (hdr.type != INFOTYPE_RT
-         && hdr.type != INFOTYPE_ST
-         && hdr.type != INFOTYPE_OSD
-         && hdr.type != INFOTYPE_GUI_ACTION
-         && hdr.type != INFOTYPE_RINFO_HIDDEN)
-        {
-            qDebug() << "Err Type";
-            //BruceToDo.
-        }
-    }
-
-    if (m_tcpSocket->bytesAvailable() < hdr.data_len)
-    {
-        return;
-    }
-
-    QByteArray d(hdr.data_len, '\0');
-    r = m_tcpSocket->read(d.data(), hdr.data_len);
-    //reset hdr.data_len
-    hdr.data_len = 0;
-    if (r <= 0) {
-        return;
-    }
-
-    //qDebug() << "Recv Client Msg:" << d.constData();
-    QString str(d.constData());
-    //  qDebug() << "str:" << str;
-
-       if(str.isEmpty())
-           return;
-
-       if(str.compare("Hotkey3") == 0)
-       {
-           m_bKvmMode = false;
-           showOsdMeun();
-       }
-       else if(str.compare("Hotkey4") == 0)
-       {
-           m_bKvmMode = true;
-           hideOsdMeun();
-       }
-
-    parseMsg(d,hdr.type);
-
-    if (m_tcpSocket->bytesAvailable()) {
-        readMsgD();
-    }
-}
-
-void MainWidget::parseMsg(QByteArray &data, unsigned int type)
-{
-    unsigned int s = 0;
-
-    switch (type) {
-    case INFOTYPE_RT:
-        s = (data.size()<MAX_STR_LEN)?(data.size()):(MAX_STR_LEN);
-        memset(rInfo.str, '\0', MAX_STR_LEN);
-        memcpy(rInfo.str, data.constData(), s);
-        updateInfoL();
-        break;
-    case INFOTYPE_ST:
-        qDebug() << "data.constData()::" << data.constData();
-        memcpy(&sInfo, data.constData(), data.size());
-        updateInfoR();
-        break;
-    case INFOTYPE_OSD:
-//        memcpy(&osdInfo, data.constData(), data.size());
-//        updateInfoOSD();
-//        dbgMsg(tr("OSD done"));
-        break;
-    case INFOTYPE_GUI_ACTION:
-        //memcpy(&guiActionInfo, data.constData(), data.size());
-        memcpy(&guiActionInfo, data.constData(), sizeof(guiActionInfo));
-        updateGUI();
-        break;
-    case INFOTYPE_RINFO_HIDDEN:
-        memcpy(&rinfoHidden, data.constData(), data.size());
-        if (rinfoHidden.hidden == 1)
-        {
-            bRinfoDlgHidden = true;
-        }
-        else
-        {
-            bRinfoDlgHidden = false;
-        }
-        updateInfoR();
-        qDebug() <<"rinfo hidden done";
-        break;
-    default:
-        qDebug() <<"wrong type?!";
-    }
-
-}
-
-void MainWidget::updateInfoR()
-{
-//    qDebug() << "updateInfoR_FW:" << (char*)sInfo.FW;
-//    qDebug() << "updateInfoR_IP:" << (char*)sInfo.IP;
-//    qDebug() << "updateInfoR_RemoteIP:" << (char*)sInfo.RemoteIP;
-//    qDebug() << "updateInfoR_RemoteID:" << (char*)sInfo.ID;
-
-    QString fwStr((char*)sInfo.FW);
-    fwStr = fwStr.replace('\n',' ');
-
-    QString ipStr((char*)sInfo.IP);
-    QString remoteipStr((char*)sInfo.RemoteIP);
-    QString idStr((char*)sInfo.ID);
-
-//    qDebug() << "updateInfoR_FW:" << fwStr;
-//    qDebug() << "updateInfoR_IP:" << ipStr;
-//    qDebug() << "updateInfoR_RemoteIP:" << remoteipStr;
-//    qDebug() << "updateInfoR_ID:" << idStr;
-
-    if (bRinfoDlgHidden == true)
-    {
-        infoR->setText(QString("FW: %1\nLocal IP: %2\nRemote IP: %3\n")
-                .arg(fwStr)
-                .arg(ipStr)
-                .arg(remoteipStr));
-
-        infoR->adjustSize();
-    }
-    else
-    {
-        infoR->setText(QString("FW: %1\nLocal IP: %2\nRemote IP: %3\nID: %4")
-                .arg(fwStr)
-                .arg(ipStr)
-                .arg(remoteipStr)
-                .arg(idStr));
-
-        infoR->adjustSize();
-    }
-
-    if(g_bDeviceSleepMode)
-        infoR->setVisible(true);
-    else
-        infoR->setVisible(false);
-}
-
-void MainWidget::updateInfoL()
-{
-//    qDebug() << "updateInfoL_STR:" << (char*)rInfo.str;
-
-    if(strlen((char*)rInfo.str) < 5)
-        return;
-
-    infoL->setText(QString("%1").arg((char*)rInfo.str));
-    infoL->adjustSize();
-
-    if(g_bDeviceSleepMode)
-        infoL->setVisible(true);
-    else
-        infoL->setVisible(false);
-}
-
-void MainWidget::updateGUI()
-{
-    if(guiActionInfo.action_type == ACTION_GUI_SHOW_PICTURE)
-    {
-        if(guiActionInfo.ub.show_info.show_text == GUI_SHOW_TEXT)
-        {
-            infoL->setVisible(true);
-            infoR->setVisible(true);
-        }
-        else
-        {
-            infoL->setVisible(false);
-            infoR->setVisible(false);
-        }
-        // 显示休眠界面，更新
-        startSleepMode(m_sleepPanel);
-        update();
-    }
-}
-
-void MainWidget::disconnectedMsgD()
-{
-    qDebug() << "MSGD Disconnected!!!";
-}
-
-void  MainWidget::displayMsgDErr(QAbstractSocket::SocketError socketError)
-{
-    switch (socketError) {
-    case QAbstractSocket::RemoteHostClosedError:
-        qDebug() << "MsgD disconnected";
-        break;
-    case QAbstractSocket::HostNotFoundError:
-        qDebug() << "The host was not found. Please check the \n"
-                       "host name and port settings.\n";
-        break;
-    case QAbstractSocket::ConnectionRefusedError:
-        qDebug() << "The connection was refused by the peer. \n"
-                       "Make sure the MsgD is running, \n"
-                       "and check that the host name and port \n"
-                       "settings are correct.\n";
-        break;
-    default:
-        qDebug() << "The following error occurred: ";
-    }
+    // 隐藏光标
+    this->setCursor(Qt::BlankCursor);
 }
 
 void MainWidget::paintEvent(QPaintEvent *event)
@@ -578,6 +316,7 @@ void MainWidget::paintEvent(QPaintEvent *event)
 void MainWidget::resizeEvent(QResizeEvent *event)
 {
     qDebug() << "RESEIZE";
+
 //    if(m_osdMeun != NULL)
 //    showOsdMeun(m_osdMeun->getShowPosition());
 }
@@ -587,10 +326,54 @@ void MainWidget::mouseDoubleClickEvent(QMouseEvent *event)
     QWidget::mouseDoubleClickEvent(event);
 }
 
-void MainWidget::syncConfig(QString)
+void MainWidget::syncConfig(QString path)
 {
     //qApp->exit(RESTART_APP);
+    if(path.compare(RESOLUTION_CONFIG) == 0)
+    {
+        // 分辨率文件发生改变
+        getResolutionFromTiming();
+    }
+    else if(path.compare(SLEEP_IMAGE_PATH) == 0)
+    {
+        // 休眠图片发生改变
+        if(m_sleepPanel != NULL)
+            m_sleepPanel->setSleepPicture(path.toLatin1().data());
+    }
+    else if(path.compare(MENUINFO_PATH) == 0)
+    {
+        // osd.json发生改变
+        m_osdMeun->parseMeunJson(MENUINFO_PATH);
+        m_osdMeun->setListWidgetHeight();
+        m_osdMeun->setMeunFont();
 
+        if(m_osdMeun->getdisplayStatus())
+        {
+            showOsdMeun();
+        }
+        else
+        {
+            hideOsdMeun();
+        }
+    }
+    else if(path.compare(CHANNELS_LIST_PATH) == 0)
+    {
+        // channel.json发生改变
+        m_osdMeun->parseChannelJson();
+
+        if(m_osdMeun->getdisplayStatus())
+        {
+            showOsdMeun();
+        }
+        else
+        {
+            hideOsdMeun();
+        }
+    }
+}
+
+void MainWidget::getResolutionFromTiming()
+{
     QString strCmd = "cat /sys/devices/platform/videoip/timing_info";
     QProcess p;
     p.start("bash", QStringList() <<"-c" << strCmd);
@@ -655,10 +438,15 @@ void MainWidget::syncConfig(QString)
             g_nScreenWidth = width;
             g_nScreenHeight = height;
 
-            setFixedSize(g_nScreenWidth,g_nScreenHeight);
+            resize(g_nScreenWidth,g_nScreenHeight);
 
-            m_osdMeun->deleteLater();
-            initOsdMeun();
+            //m_osdMeun->deleteLater();
+            if(m_osdMeun != NULL)
+            {
+                //delete m_osdMeun;
+                m_osdMeun->deleteLater();
+                initOsdMeun();
+            }
 
             g_bDeviceSleepMode = false;
             update();
@@ -673,7 +461,7 @@ void MainWidget::syncConfig(QString)
         else
         {
             // 显示休眠界面，更新
-            startSleepMode(m_sleepPanel);
+            startSleepMode();
             update();
 
             g_bDeviceSleepMode = true;
@@ -696,21 +484,39 @@ void MainWidget::isNoSignal()
 //    }
 }
 
-void MainWidget::startSleepMode(ModulePanel *panel)
+void MainWidget::handleKvmMsg(bool enable)
+{
+    if(!enable)
+    {
+        if(m_osdMeun->getdisplayStatus())
+        {
+            m_bKvmMode = false;
+            showOsdMeun();
+        }
+        freeKMControl();
+    }
+    else
+    {
+         m_bKvmMode = true;
+         hideOsdMeun();
+    }
+}
+
+void MainWidget::startSleepMode()
 {
     qDebug() << "main_0_3";
-    QPointer<ModulePanel> p(panel);
-    if (p.isNull())
+
+    if(m_sleepPanel != NULL)
     {
-        return;
+        m_panelStack->setCurrentWidget(m_sleepPanel);
+        m_sleepPanel->setVisible(true);
     }
+
      qDebug() << "main_0_4";
 
     // 隐藏 osd&overlay
     // hideOsdMeun();
     qDebug() << "main_0_5";
-
-    m_panelStack->setCurrentWidget(panel);
    // showOsdMeun(m_osdMeun->getShowPosition());
 }
 
@@ -733,14 +539,26 @@ void MainWidget::initPanelStack()
     mainLayout->addWidget(m_panelStack);
 
     // 初始化OSD菜单，添加菜单页面
-//    initOsdMeun();
-//    m_panelStack->addWidget(m_osdMeun);
+    //    initOsdMeun();
+    //    m_panelStack->addWidget(m_osdMeun);
 
     // 添加休眠页面
     QString path = "/share/default.jpg";
-//    QString path = "/data/configs/kds-7/logo/sleep_image.png";
-    m_sleepPanel = new SleepPanel(path);
+    //    QString path = "/data/configs/kds-7/logo/sleep_image.png";
+    m_sleepPanel = new Dialog();
+
+    QBrush brush;
+    QPalette palette = m_sleepPanel->palette();
+    palette.setBrush(QPalette::Window, brush);
+    palette.setColor(QPalette::WindowText, QColor(QString("white")));
+    m_sleepPanel->setPalette(palette);
+
+    QFont fnt;
+    fnt.setPointSize(8);
+    m_sleepPanel->setFont(fnt);
+
     m_panelStack->addWidget(m_sleepPanel);
+    m_panelStack->setCurrentWidget(m_sleepPanel);
 }
 
 void MainWidget::initOsdMeun()
@@ -807,6 +625,16 @@ void MainWidget::showOsdMeun()
 
     m_osdMeun->resize(m_osdMeun->width(),height());
     m_osdMeun->setVisible(true);
+
+    if(m_bKvmMode)
+    {
+        getKMControl();
+    }
+
+    // 防遮挡，显示在最顶层
+    m_osdMeun->activateWindow();
+    m_osdMeun->raise();
+
     moveOsdMeun(m_osdMeun->getShowPosition());
 }
 
@@ -873,7 +701,7 @@ void MainWidget::moveOsdMeun(int position)
         }
         case RIGHT_MID:
         {
-            xpos = (g_nframebufferWidth-m_osdMeun->width())/2 - OSD_XPOS;
+            xpos = g_nframebufferWidth-m_osdMeun->width() - OSD_XPOS;
             ypos = (g_nframebufferHeight-m_osdMeun->height())/2;
             break;
         }
@@ -894,8 +722,8 @@ void MainWidget::updateOsdMenu()
     qDebug() << "updateMENU";
     int menuHeight = m_osdMeun->getOSDMeunHeight();
     m_osdMeun->setFixedHeight(menuHeight * g_fScaleScreen);
-    moveOsdMeun(m_osdMeun->getShowPosition());
-    //update();
+    // moveOsdMeun(m_osdMeun->getShowPosition());
+    update();
 }
 
 void MainWidget::showLongDisplay()
@@ -991,7 +819,7 @@ void MainWidget::showOverlay(OSDLabel *overlay,int position)
          }
          case RIGHT_MID:
          {
-             xpos = (g_nframebufferWidth-text->width())/2 - OSD_XPOS;
+             xpos = g_nframebufferWidth-text->width() - OSD_XPOS;
              ypos = (g_nframebufferHeight-text->height())/2;
              break;
          }

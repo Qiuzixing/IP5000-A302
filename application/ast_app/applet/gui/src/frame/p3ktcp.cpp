@@ -22,14 +22,11 @@ P3ktcp::P3ktcp(QObject *parent)
 {
     m_TcpConn = new QTcpSocket();
 
-    // 端口为5000
-    m_Port = 5000;
+    // 端口为6001
+    m_Port = 6001;
 
     // 本地环回IP
     m_IP = QHostAddress::LocalHost;
-
-    // 链接
-    p3kConnect(m_IP,m_Port);
 
     connect(m_TcpConn, SIGNAL(readyRead()), this, SLOT(onReadPendingDatagrams()));
 }
@@ -44,13 +41,15 @@ P3ktcp::~P3ktcp()
     }
 }
 
-void P3ktcp::p3kConnect(QHostAddress ip,int port)
+bool P3ktcp::p3kConnect()
 {
     if(m_TcpConn == NULL)
-        return;
+        return false;
 
-    qDebug() << "IP:" << ip;
-    m_TcpConn->connectToHost(ip,port);
+    qDebug() << "IP:" << m_IP;
+    qDebug() << "m_Port:" << m_Port;
+
+    m_TcpConn->connectToHost(m_IP,m_Port);
     if(m_TcpConn->waitForConnected(3000))
     {
         qDebug() << "P3K Connected";
@@ -59,9 +58,11 @@ void P3ktcp::p3kConnect(QHostAddress ip,int port)
         QString strCmd = "#LOGIN admin,admin\r";
         QByteArray byteCmd = strCmd.toLatin1();
         sendCmdToP3k(byteCmd);
+        return true;
     }
     else
     {
+        return false;
         qDebug("P3K Connect failed");
     }
 }
@@ -110,7 +111,7 @@ void P3ktcp::onReadPendingDatagrams()
     emit tcpRcvMsg(datagrams);
 }
 
-#define UDP_PORT 5588
+#define UDP_PORT 6003
 
 UdpRecvThread *UdpRecvThread::UdpRecv=NULL;
 
@@ -135,7 +136,6 @@ void UdpRecvThread::run()
         return;
     }
 
-    printf("UDP SOCKET: %d\n",UdpRecv_fd);
     qDebug() << "UDP SOCKET:" << UdpRecv_fd;
 
     // 初始化地址端口

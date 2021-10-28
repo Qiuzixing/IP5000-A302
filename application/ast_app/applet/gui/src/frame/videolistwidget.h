@@ -35,12 +35,22 @@ public:
 
     int getCurrentPage(){return m_currentPage;}
     int getShowPosition(){return m_showPosition;}
+    int getdisplayStatus(){return m_displayStatus;}
 
     void startTimer(){osdOverTimer.start(m_overTime);};
     void stopTimer(){osdOverTimer.stop();}
 
     int getOSDMeunHeight();
     int parseOSDPos(QString positon);
+
+    // 解析频道json文件
+    void  parseChannelJson();
+    void  parseMeunJson(QString jsonpath);
+
+    void setListWidgetHeight();
+    void setMeunFont();
+
+     void hideSettingPage();
 
 signals:
     void selectItem(const QString &text);
@@ -56,15 +66,12 @@ public slots:
     void pageUpClicked();
     void pageDownClicked();
     void exitClicked();
+    void applyClicked();
 
     void setPageChannels(QAction *action);
     int getPageChannels(){return m_pageChannels;}
 
     void setOverTime(int msec){m_overTime = msec;}
-
-    // 解析频道json文件
-    void  parseChannelJson();
-    void  parseMeunJson(QString jsonpath);
 
     QString restoreString();
 
@@ -102,6 +109,8 @@ private:
     int m_currentPage;
     int m_maxChannels;
     int m_channelID;
+    bool m_displayStatus;
+    int m_deviceTimeout;
 
     int m_showPosition;
     int m_FontSize;
@@ -109,6 +118,7 @@ private:
     QFont m_font;
 
     QMenu *pageNumList;
+    QList<QAction*> list;
 
     QPushButton *m_Select;
     QPushButton *m_Search;
