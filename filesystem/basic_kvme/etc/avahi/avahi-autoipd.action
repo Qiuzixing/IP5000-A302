@@ -36,13 +36,13 @@ if [ -x /bin/ip -o -x /sbin/ip ] ; then
 
     case "$1" in
         BIND)
-            ip addr add "$3"/16 brd 169.254.255.255 label "$2:avahi" scope link dev "$2"
+            ip addr add "$3"/16 brd 192.168.255.255 label "$2:avahi" scope link dev "$2"
             /usr/local/bin/ast_send_event -1 "e_ip_got::$3"
             #/usr/local/bin/astparam s asthostip "$3"
             ;;
 
         CONFLICT|UNBIND|STOP)
-            ip addr del "$3"/16 brd 169.254.255.255 label "$2:avahi" scope link dev "$2"
+            ip addr del "$3"/16 brd 192.168.255.255 label "$2:avahi" scope link dev "$2"
             /usr/local/bin/ast_send_event -1 "e_ip_del::$3"
             ;;
 
@@ -58,7 +58,7 @@ elif [ -x /bin/ifconfig -o -x /sbin/ifconfig ] ; then
 
     case "$1" in
         BIND)
-            ifconfig "$2:3" inet "$3" netmask 255.255.0.0 broadcast 169.254.255.255 up
+            ifconfig "$2:3" inet "$3" netmask 255.255.0.0 broadcast 192.168.255.255 up
             /usr/local/bin/ast_send_event -1 "e_ip_got::$3"
             #/usr/local/bin/astparam s asthostip "$3"
             ;;
