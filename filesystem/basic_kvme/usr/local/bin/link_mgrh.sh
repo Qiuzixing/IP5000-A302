@@ -1753,23 +1753,74 @@ handle_e_p3k_ir()
 	esac
 }
 
+handle_ce_gw()
+{
+	local _para1=$1
+	case "$MODEL_NUMBER" in
+		KDS-EN7)
+			case $1 in
+				it6802)
+					ipc @m_lm_set s set_gpio_val:1:68:1
+				;;
+				hdmi_out)
+					ipc @m_lm_set s set_gpio_val:1:68:0
+				;;
+				*)
+				;;
+			esac
+		;;
+		KDS-SW3-EN7)
+			case $1 in
+				it6802_hdmi1)
+					ipc @m_lm_set s set_gpio_val:3:67:1:68:0:69:0
+				;;
+				it6802_hdmi2)
+					ipc @m_lm_set s set_gpio_val:3:67:1:68:1:69:0
+				;;
+				it6802_hdmi3)
+					ipc @m_lm_set s set_gpio_val:3:67:1:68:0:69:1
+				;;
+				hdmiout_hdmi1)
+					ipc @m_lm_set s set_gpio_val:3:67:0:68:0:69:0
+				;;
+				hdmiout_hdmi2)
+					ipc @m_lm_set s set_gpio_val:3:67:0:68:1:69:0
+				;;
+				hdmiout_hdmi3)
+					ipc @m_lm_set s set_gpio_val:3:67:0:68:0:69:1
+				;;
+				*)
+				;;
+			esac
+		;;
+		*)
+		;;
+	esac
+
+	echo "handle_ce_gw.($_para1)" 
+}
+
+handle_ce_send()
+{
+	echo "$1"
+	local _para1=$1
+	cec_send $1
+	echo "handle_ce_send.($_para1)" 
+}
+
 handle_e_p3k_cec()
 {
 	echo "handle_e_p3k_cec."
 	local _para1
 
-	#e_p3k_ir_dir::dir
-	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
-
-	shift 2
-	_para1="$1"
+	_para1=${event#*::}
 
 	case "$event" in
 		e_p3k_cec_gw::?*)
-			ipc @c_lm_set s ce_gw:$_para1
+			handle_ce_gw $_para1
 		;;
 		e_p3k_cec_send::?*)
-			ipc @c_lm_set s ce_send:$_para1
+			handle_ce_send $_para1
 		;;
 		*)
 		;;
@@ -2587,8 +2638,9 @@ if [ $UGP_FLAG = 'success' ];then
 			#set i2s_sel(72) pin to default to 6802;0:ast1520 ; 1:it6802
 			#set lcd_power(65) pin to default to no useful,it is useful in ast1520
 			#set type_b or type_c(66) pin to default to type_b;0:type_c ; 1:type_b
-			ipc @m_lm_set s set_gpio_config:3:70:1:65:1:72:1
-			ipc @m_lm_set s set_gpio_val:3:70:0:65:0:72:1
+			#set cec_sel(68) pin to default to it6802;0:hdmi_out-hdmi_in; 1:it6802-hdmi_in
+			ipc @m_lm_set s set_gpio_config:4:70:1:65:1:72:1:68:1
+			ipc @m_lm_set s set_gpio_val:4:70:0:65:0:72:1:68:1
 		;;
 		KDS-SW3-EN7)
 			#set lineio_sel pin to default to line_out;0:line_out;1:line_in
@@ -2596,6 +2648,10 @@ if [ $UGP_FLAG = 'success' ];then
 			ipc @m_lm_set s set_gpio_val:3:70:0:65:0:66:0
 			ipc @m_lm_set s set_gpio_config:9:15:1:35:1:8:1:36:1:37:1:32:1:33:1:11:1:12:1
 			ipc @m_lm_set s set_gpio_val:9:15:1:35:1:8:1:36:1:37:1:32:1:33:1:11:1:12:1
+			#set cec_switch2(67) pin to default to it6802_cec;0:hdmiout-hdmi_in;1:it6802-hdmi_in
+			#cec_switch0(68) and cec_swicth1(69):0/0 - hdmi1;1/0 - hdmi2;0/1 - typec 
+			ipc @m_lm_set s set_gpio_config:3:67:1:68:1:69:1
+			ipc @m_lm_set s set_gpio_val:3:67:1:68:0:69:0
 		;;
 		WP-SW2-EN7)
 			#enable led_display	set_lcd_control--cmd;0--led_type 1--lcd_type;1--enable  0--disenable;
