@@ -271,7 +271,8 @@ export default {
         index: 0,
         name: '',
         id: ''
-      }
+      },
+      osdJson: {}
     }
   },
   computed: {
@@ -304,6 +305,7 @@ export default {
     getOsdJson () {
       this.$http.get('/device/json?path=/osd/osd.json&t=' + Math.random()).then(msg => {
         if (msg.data.channel_menu) {
+          this.osdJson = msg.data
           this.osdConfig = msg.data.channel_menu
         }
       })
@@ -416,11 +418,13 @@ export default {
       this.osdInfo = msg.split(' ')[1] !== '0' ? '1' : '0'
     },
     save () {
+      this.osdJson.channel_menu = this.osdConfig
+      if (this.osdJson?.device_info) {
+        this.osdJson.device_info.enabled = this.osdInfo === '1' ? 'on' : 'off'
+      }
       this.$http.post('/device/json', {
         path: '/osd/osd.json',
-        info: {
-          channel_menu: this.osdConfig
-        }
+        info: this.osdJson
       })
       this.$http.post('/device/json', {
         path: '/channel/channel_map.json',
