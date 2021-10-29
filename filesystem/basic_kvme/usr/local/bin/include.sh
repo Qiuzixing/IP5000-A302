@@ -58,6 +58,8 @@ WATCHDOG_AVAILABLE='n'
 DEVICE_STATUS_FILE="/var/ast_device_status"
 OSD_FROM_GUI='y'
 JUMBO_MTU='8000'
+IEEE8021X_PATH='/data/configs/kds-7/secure'
+IEEE8021X_JSON_PATH="$IEEE8021X_PATH/ieee802_1x_setting.json"
 
 #. ip_mapping.sh
 . bash/utilities.sh
@@ -1689,55 +1691,19 @@ _map_mcip_srv_map()
 	#echo "MCIP_SRV_MAP_U=$MCIP_SRV_MAP_U"
 }
 
-init_802_1x_params()
+refresh_ieee802_1x_params()
 {
-	IEEE802_1X_ENABLE=`astparam g ieee802_1x_enable`
-	if echo "$IEEE802_1X_ENABLE" | grep -q "not defined" ; then
-		IEEE802_1X_ENABLE=`astparam r ieee802_1x_enable`
-		if echo "$IEEE802_1X_ENABLE" | grep -q "not defined" ; then
-			IEEE802_1X_ENABLE='n'
-		fi
-	fi
+	IEEE802_1X_MODE=$(jq -r .ieee802_1x_setting.mode $IEEE8021X_JSON_PATH | tr A-Z a-z)
+	IEEE802_1X_AUTH_METHOD=$(jq -r .ieee802_1x_setting.default_authentication $IEEE8021X_JSON_PATH | tr A-Z a-z)
 
-	IEEE802_1X_MODE=`astparam g ieee802_1x_mode`
-	if echo "$IEEE802_1X_MODE" | grep -q "not defined" ; then
-		IEEE802_1X_MODE=`astparam r ieee802_1x_mode`
-		if echo "$IEEE802_1X_MODE" | grep -q "not defined" ; then
-			IEEE802_1X_MODE='mschapv2'
-		fi
-	fi
+	IEEE802_1X_MSCHAPV2_USER=$(jq -r .ieee802_1x_setting.eap_mschap_setting.mschap_usarname $IEEE8021X_JSON_PATH | tr A-Z a-z)
+	IEEE802_1X_MSCHAPV2_PASSWORD=$(jq -r .ieee802_1x_setting.eap_mschap_setting.mschap_password $IEEE8021X_JSON_PATH | tr A-Z a-z)
 
-	IEEE802_1X_MSCHAPV2_USER=`astparam g ieee802_1x_mschapv2_user`
-	if echo "$IEEE802_1X_MSCHAPV2_USER" | grep -q "not defined" ; then
-		IEEE802_1X_MSCHAPV2_USER=`astparam r ieee802_1x_mschapv2_user`
-		if echo "$IEEE802_1X_MSCHAPV2_USER" | grep -q "not defined" ; then
-			IEEE802_1X_MSCHAPV2_USER='none'
-		fi
-	fi
-
-	IEEE802_1X_MSCHAPV2_PASSWORD=`astparam g ieee802_1x_mschapv2_password`
-	if echo "$IEEE802_1X_MSCHAPV2_PASSWORD" | grep -q "not defined" ; then
-		IEEE802_1X_MSCHAPV2_PASSWORD=`astparam r ieee802_1x_mschapv2_password`
-		if echo "$IEEE802_1X_MSCHAPV2_PASSWORD" | grep -q "not defined" ; then
-			IEEE802_1X_MSCHAPV2_PASSWORD='none'
-		fi
-	fi
-
-	IEEE802_1X_TLS_USER=`astparam g ieee802_1x_tls_user`
-	if echo "$IEEE802_1X_TLS_USER" | grep -q "not defined" ; then
-		IEEE802_1X_TLS_USER=`astparam r ieee802_1x_tls_user`
-		if echo "$IEEE802_1X_TLS_USER" | grep -q "not defined" ; then
-			IEEE802_1X_TLS_USER='none'
-		fi
-	fi
-
-	IEEE802_1X_TLS_PRIVATE_KEY_PASSWORD=`astparam g ieee802_1x_tls_private_key_password`
-	if echo "$IEEE802_1X_TLS_PRIVATE_KEY_PASSWORD" | grep -q "not defined" ; then
-		IEEE802_1X_TLS_PRIVATE_KEY_PASSWORD=`astparam r ieee802_1x_tls_private_key_password`
-		if echo "$IEEE802_1X_TLS_PRIVATE_KEY_PASSWORD" | grep -q "not defined" ; then
-			IEEE802_1X_TLS_PRIVATE_KEY_PASSWORD='none'
-		fi
-	fi
+	IEEE802_1X_TLS_USER=$(jq -r .ieee802_1x_setting.eap_tls_setting.tls_usarname $IEEE8021X_JSON_PATH | tr A-Z a-z)
+	IEEE802_1X_TLS_CA_CERT_PATH="$IEEE8021X_PATH/tls_ca_certificate/$(jq -r .ieee802_1x_setting.eap_tls_setting.tls_ca_certificate $IEEE8021X_JSON_PATH | tr A-Z a-z)"
+	IEEE802_1X_TLS_CLIENT_CERT_PATH="$IEEE8021X_PATH/tls_client_certificate/$(jq -r .ieee802_1x_setting.eap_tls_setting.tls_client_certificate $IEEE8021X_JSON_PATH | tr A-Z a-z)"
+	IEEE802_1X_TLS_PRIVATE_KEY_PATH="$IEEE8021X_PATH/tls_private_key/$(jq -r .ieee802_1x_setting.eap_tls_setting.tls_private_key $IEEE8021X_JSON_PATH | tr A-Z a-z)"
+	IEEE802_1X_TLS_PRIVATE_KEY_PASSWORD=$(jq -r .ieee802_1x_setting.eap_tls_setting.tls_private_password $IEEE8021X_JSON_PATH | tr A-Z a-z)
 }
 
 init_ldap_params()
@@ -4131,9 +4097,8 @@ handle_e_ldap() {
 }
 
 handle_e_802_1x() {
-	init_802_1x_params
-	pkill -9 ieee802dot1x
-	pkill -9 wpa
+	refresh_ieee802_1x_params
+	stop_ieee802dot1x_daemon
 	start_ieee802dot1x_daemon
 }
 
@@ -4152,17 +4117,58 @@ start_ldap_daemon()
 	fi
 }
 
+stop_ieee802dot1x_daemon()
+{
+	pkill -9 wpa_supplicant
+}
+
+init_wpa_supplicant_conf_eap_tls()
+{
+	local EAP_METOHD
+	cat > /etc/wpa_supplicant.conf << EOF
+ctrl_interface=/var/run/wpa_supplicant
+network={
+	key_mgmt=IEEE8021X
+	eap=TLS
+	identity="$IEEE802_1X_TLS_USER"
+	ca_cert="$IEEE802_1X_TLS_CA_CERT_PATH"
+	client_cert="$IEEE802_1X_TLS_CLIENT_CERT_PATH"
+	private_key="$IEEE802_1X_TLS_PRIVATE_KEY_PATH"
+	private_key_passwd="$IEEE802_1X_TLS_PRIVATE_KEY_PASSWORD"
+}
+EOF
+}
+
+init_wpa_supplicant_conf_eap_mschapv2()
+{
+	cat > /etc/wpa_supplicant.conf << EOF
+ctrl_interface=/var/run/wpa_supplicant
+network={
+	key_mgmt=IEEE8021X
+	eap=PEAP
+	identity="$IEEE802_1X_MSCHAPV2_USER"
+	password="$IEEE802_1X_MSCHAPV2_PASSWORD"
+	phase2="auth=MSCHAPV2"
+}
+EOF
+}
+
 start_ieee802dot1x_daemon()
 {
-	if [ '$IEEE802_1X_ENABLE' = 'y' ]; then
-		case "$IEEE802_1X_MODE" in
-			mschapv2)
-				ieee802dot1x -u $IEEE802_1X_MSCHAPV2_USER -p $IEEE802_1X_MSCHAPV2_PASSWORD -d /usr/local/bin/ -m peap_mschapv2 &
+	if [ "$IEEE802_1X_MODE" = "on" ]; then
+		case "$IEEE802_1X_AUTH_METHOD" in
+			eap_mschapv2|eap_mschap)
+				init_wpa_supplicant_conf_eap_mschapv2
 				;;
-			tls)
-				ieee802dot1x -c /data/802_ca.pem -t /data/802_client.pem  -k /data/802_client.key -d /usr/local/bin/ -m tls &
+			eap_tls)
+				init_wpa_supplicant_conf_eap_tls
+				;;
+			*)
+				echo "#ERROR: not support the 8021x authentication method: $IEEE802_1X_AUTH_METHOD"
+				return
 				;;
 		esac
+		wpa_supplicant_802_1x -B -i eth0 -c /etc/wpa_supplicant.conf -D wired
 	fi
 }
 
