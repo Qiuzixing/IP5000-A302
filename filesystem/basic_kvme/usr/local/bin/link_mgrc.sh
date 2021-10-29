@@ -2705,23 +2705,50 @@ handle_e_p3k_ir()
 	esac
 }
 
+handle_ce_gw()
+{
+	local _para1=$1
+	case "$MODEL_NUMBER" in
+		KDS-DEC7)
+			case $1 in
+				sii9136)
+					ipc @m_lm_set s set_gpio_val:1:68:1
+				;;
+				hdmi_in)
+					ipc @m_lm_set s set_gpio_val:1:68:0
+				;;
+				*)
+				;;
+			esac
+		;;
+		*)
+		;;
+	esac
+
+	echo "handle_ce_gw.($_para1)" 
+}
+
+handle_ce_send()
+{
+	echo "$1"
+	local _para1=$1
+	cec_send $1
+	echo "handle_ce_send.($_para1)" 
+}
+
 handle_e_p3k_cec()
 {
 	echo "handle_e_p3k_cec."
 	local _para1
 
-	#e_p3k_ir_dir::dir
-	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
-
-	shift 2
-	_para1="$1"
+	_para1=${event#*::}
 
 	case "$event" in
 		e_p3k_cec_gw::?*)
-			ipc @c_lm_set s ce_gw:$_para1
+			handle_ce_gw $_para1
 		;;
 		e_p3k_cec_send::?*)
-			ipc @c_lm_set s ce_send:$_para1
+			handle_ce_send $_para1
 		;;
 		*)
 		;;
@@ -3553,8 +3580,9 @@ if [ $UGP_FLAG = 'success' ];then
 	case "$MODEL_NUMBER" in
 		KDS-DEC7)
 			#set lineio_sel pin to default to line_out;0:line_out;1:line_in
-			ipc @m_lm_set s set_gpio_config:2:65:1:70:1
-			ipc @m_lm_set s set_gpio_val:2:70:0:65:0
+			#set cec_sel pin(68) to default to sii9316;1:sii9136-hdmi_out;0:hdmi_in-hdmi_out
+			ipc @m_lm_set s set_gpio_config:3:65:1:70:1:68:1
+			ipc @m_lm_set s set_gpio_val:3:70:0:65:0:68:1
 			if [ $P3KCFG_SWITCH_IN = 'hdmi_in1' ];then
 				ipc @m_lm_set s set_input_source:16:1
 			fi
