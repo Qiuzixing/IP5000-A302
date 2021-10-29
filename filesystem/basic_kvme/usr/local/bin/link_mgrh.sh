@@ -1797,6 +1797,18 @@ handle_ce_gw()
 				;;
 			esac
 		;;
+		WP-SW2-EN7)
+			case $1 in
+				it6802_hdmi1)
+					ipc @m_lm_set s set_gpio_val:1:77:0
+				;;
+				it6802_hdmi2)
+					ipc @m_lm_set s set_gpio_val:1:77:1
+				;;
+				*)
+				;;
+			esac
+		;;
 		*)
 		;;
 	esac
@@ -2659,6 +2671,9 @@ if [ $UGP_FLAG = 'success' ];then
 		;;
 		WP-SW2-EN7)
 			#enable led_display	set_lcd_control--cmd;0--led_type 1--lcd_type;1--enable  0--disenable;
+			#set cec_switch(77) pin to default to hdmi_in;0:hdmi_in - it6802;typec - it6802;
+			ipc @m_lm_set s set_gpio_config:1:77:1
+			ipc @m_lm_set s set_gpio_val:1:77:0
 			ipc @m_lm_set s set_lcd_control:0:1
 			led_display_num
 		;;

@@ -120,6 +120,16 @@ int main(int argc, char *argv[])
 	FILE *lock_file = NULL;
     ipc_relay_msg buffer;
 
+    if(0 == strcmp(argv[1],"get_edid:16") || 0 == strcmp(argv[1],"get_edid:17"))
+    {
+
+    }
+    else
+    {
+        printf("param error\n");
+        return 0;
+    }
+    
 	set_signal();
     memset(&buffer, 0, sizeof(buffer));
 
