@@ -2126,6 +2126,15 @@ handle_e_ipe5000w_led_chose()
 	esac
 }
 
+handle_e_set_ttl()
+{
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	#After modifying this value, ping our IP TTL will change to our modified value
+	echo $1 > /proc/sys/net/ipv4/ip_default_ttl
+}
+
 state_machine()
 {
 	# Bruce160308. Try to ignore all TERM signals.
@@ -2211,6 +2220,9 @@ state_machine()
 			;;
 			e_ipe5000w_led*)
 				handle_e_ipe5000w_led_chose "$event"
+			;;
+			e_set_ttl*)
+				handle_e_set_ttl "$event"
 			;;
 			e_?*)
 				tickle_watchdog

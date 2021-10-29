@@ -3094,6 +3094,15 @@ handle_e_hdcp()
 	esac
 }
 
+handle_e_set_ttl()
+{
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	#After modifying this value, ping our IP TTL will change to our modified value
+	echo $1 > /proc/sys/net/ipv4/ip_default_ttl
+}
+
 # Worst case 0.05s message loop without handling any event.
 state_machine()
 {
@@ -3196,6 +3205,9 @@ state_machine()
 			;;
 			e_chg_hostname*)
 				handle_e_chg_hostname "$event"
+			;;
+			e_set_ttl*)
+				handle_e_set_ttl "$event"
 			;;
 			e_?*)
 				tickle_watchdog
