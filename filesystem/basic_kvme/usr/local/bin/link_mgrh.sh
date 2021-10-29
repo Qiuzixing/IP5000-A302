@@ -1899,6 +1899,25 @@ handle_e_p3k_net_daisychain()
 
 handle_e_p3k_net_method()
 {
+	local _para1
+
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	_para1="$1"
+
+	case "$_para1" in
+		1)
+			astparam s multicast_on n
+		;;
+		2)
+			astparam s multicast_on y
+		;;
+		*)
+		;;
+	esac
+
+	astparam save
 	echo "handle_e_p3k_net_method."
 }
 

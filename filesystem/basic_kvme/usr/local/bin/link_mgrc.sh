@@ -2848,11 +2848,6 @@ handle_e_p3k_net_multicast()
 	astparam save
 }
 
-handle_e_p3k_net_ttl()
-{
-	echo "handle_e_p3k_net_ttl."
-}
-
 handle_e_p3k_net_vlan()
 {
 	echo "handle_e_p3k_net_vlan."
@@ -2893,9 +2888,6 @@ handle_e_p3k_net()
 		e_p3k_net_multicast::?*)
 			handle_e_p3k_net_multicast "$event"
 		;;
-		e_p3k_net_ttl::?*)
-			handle_e_p3k_net_ttl "$event"
-		;;
 		e_p3k_net_vlan::?*)
 			handle_e_p3k_net_vlan "$event"
 		;;
@@ -2904,9 +2896,6 @@ handle_e_p3k_net()
 		;;
 		e_p3k_net_hostname::?*)
 			handle_e_p3k_net_hostname "$event"
-		;;
-		e_p3k_net_dante_hostname::?*)
-			handle_e_p3k_net_dante_hostname "$event"
 		;;
 		*)
 		;;

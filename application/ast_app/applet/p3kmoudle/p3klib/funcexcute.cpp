@@ -817,7 +817,7 @@ int EX_SetMulticastStatus(char * ip,int ttl )
 		ast_send_event(0xFFFFFFFF,sCmd);
 
 		memset(sCmd,0,64);
-		sprintf(sCmd,"e_p3k_net_ttl::%d",ttl);
+		sprintf(sCmd,"e_set_ttl::%d",ttl);
 		//DBG_InfoMsg("ast_send_event %s\n",sCmd);
 		ast_send_event(0xFFFFFFFF,sCmd);
 	}
