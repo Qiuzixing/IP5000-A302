@@ -734,8 +734,9 @@ start_vlm()
 		esac
 	fi
 
-	if [ $P3KCFG_EDID_MODE = 'passthru' ];then
+	if [ $P3KCFG_EDID_MODE = 'passthrough' ];then
 		handle_edid -c $P3KCFG_EDID_NET_SRC -t $rx_tcp_port -m 1
+		handle_edid -c $P3KCFG_EDID_NET_SRC -t $rx_tcp_port &
 	elif [ $P3KCFG_EDID_MODE = 'custom' ];then
 		handle_edid -s custom -i $P3KCFG_EDID_ACTIVE
 	elif [ $P3KCFG_EDID_MODE = 'default' ];then

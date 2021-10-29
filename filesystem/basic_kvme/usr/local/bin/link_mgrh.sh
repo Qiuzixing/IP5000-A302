@@ -1473,16 +1473,20 @@ handle_e_p3k_edid()
 			_para1="$1"
 			handle_edid -d -i $_para1
 		;;
-		e_p3k_video_edid_default?*)
+		e_p3k_video_edid_default)
+			kill_process handle_edid
 			handle_edid -s default
 		;;
 		e_p3k_video_edid_passthru::?*)
 			echo "e_p3k_video_edid_passthru ($event) received"
 			shift 2
 			_para1="$1"
-			handle_edid -c $_para1
+			kill_process handle_edid
+			handle_edid -c $_para1 -t $rx_tcp_port -m 1
+			handle_edid -c $_para1 -t $rx_tcp_port &
 		;;
 		e_p3k_video_edid_custom::?*)
+			kill_process handle_edid
 			echo "e_p3k_video_edid_custom ($event) received"
 			shift 2
 			_para1="$1"
