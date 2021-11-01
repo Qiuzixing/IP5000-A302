@@ -1062,7 +1062,7 @@ int Cfg_Init_User(void)
 	sprintf(g_user_info.password, "admin");
 	g_user_info.user_role = 1;	//admin
 	g_user_info.logout_time = 10;
-	g_user_info.seurity_status = ON;
+	g_user_info.seurity_status = OFF;
 
 	//Check user cfg
 	int nAccessRet = access(path,F_OK | R_OK | W_OK);
