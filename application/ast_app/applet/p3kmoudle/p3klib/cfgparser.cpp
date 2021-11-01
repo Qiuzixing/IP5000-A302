@@ -4501,16 +4501,16 @@ int Cfg_Set_Net_Multicast(char * ip,int ttl) //type:udp;tcp
 int Cfg_Get_Net_Multicast(char * ip,int* ttl)
 {
 	DBG_InfoMsg("Cfg_Set_Net_Method\n");
-	if(g_network_info.method == Net_MULTICAST)
+//	if(g_network_info.method == Net_MULTICAST)
+//	{
+//		*ttl = g_network_info.multicast_ttl;
+//		strcpy(ip,g_network_info.multicast_ip);
+//	}
+//	else
 	{
 		*ttl = g_network_info.multicast_ttl;
-		strcpy(ip,g_network_info.multicast_ip);
-	}
-	else
-	{
-		*ttl = 0;
 		strcpy(ip,"0.0.0.0");
-		DBG_WarnMsg("Cfg_Get_Net_Multicast method:%d is Wrong!!!\n",g_network_info.method);
+//		DBG_WarnMsg("Cfg_Get_Net_Multicast method:%d is Wrong!!!\n",g_network_info.method);
 	}
 	return 0;
 }

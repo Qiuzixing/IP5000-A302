@@ -808,15 +808,15 @@ int EX_GetIRGateway(void)
 int EX_SetMulticastStatus(char * ip,int ttl )
 {
 	//DBG_InfoMsg("ip=%s\n",ip);
-	if(g_network_info.method == Net_MULTICAST)
+//	if(g_network_info.method == Net_MULTICAST)
 	{
-		Cfg_Set_Net_Multicast(ip,ttl);
+		Cfg_Set_Net_Multicast("0.0.0.0",ttl);
 		char sCmd[64] = "";
-		sprintf(sCmd,"e_p3k_net_multicast::%s",ip);
+//		sprintf(sCmd,"e_p3k_net_multicast::%s",ip);
 		//DBG_InfoMsg("ast_send_event %s\n",sCmd);
-		ast_send_event(0xFFFFFFFF,sCmd);
+//		ast_send_event(0xFFFFFFFF,sCmd);
 
-		memset(sCmd,0,64);
+//		memset(sCmd,0,64);
 		sprintf(sCmd,"e_set_ttl::%d",ttl);
 		//DBG_InfoMsg("ast_send_event %s\n",sCmd);
 		ast_send_event(0xFFFFFFFF,sCmd);
