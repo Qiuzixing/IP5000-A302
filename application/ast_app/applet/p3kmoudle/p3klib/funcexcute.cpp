@@ -2963,31 +2963,33 @@ int EX_SetTimeAndDate(char*weekDay,char*date,char*hms)
 {
 	DBG_InfoMsg("week:%s date:%s hms:%s\n",weekDay,date,hms);
 
-	int year=0,mon=0,day=0,hh=0,mm=0,ss=0;
-	struct tm set_tm;
-	struct timeval set_tv;
-	time_t timep;
-
-	sscanf(date,"%d-%d-%d",&mon,&day,&year);
-	sscanf(hms,"%d:%d:%d",&hh,&mm,&ss);
-
-	set_tm.tm_year 	= year - 1900;
-	set_tm.tm_mon 	= mon -1;
-	set_tm.tm_mday 	= day;
-	set_tm.tm_hour	= hh;
-	set_tm.tm_min	= mm;
-	set_tm.tm_sec	= ss;
-
-	timep = mktime(&set_tm);
-
-	set_tv.tv_sec = timep;
-	set_tv.tv_usec = 0;
-
-	if(settimeofday(&set_tv,(struct timezone*)0) < 0)
+	if(g_time_info.ntp_mode == OFF)
 	{
-		printf("set time error");
-	}
+		int year=0,mon=0,day=0,hh=0,mm=0,ss=0;
+		struct tm set_tm;
+		struct timeval set_tv;
+		time_t timep;
 
+		sscanf(date,"%d-%d-%d",&mon,&day,&year);
+		sscanf(hms,"%d:%d:%d",&hh,&mm,&ss);
+
+		set_tm.tm_year 	= year - 1900;
+		set_tm.tm_mon 	= mon -1;
+		set_tm.tm_mday 	= day;
+		set_tm.tm_hour	= hh;
+		set_tm.tm_min	= mm;
+		set_tm.tm_sec	= ss;
+
+		timep = mktime(&set_tm);
+
+		set_tv.tv_sec = timep;
+		set_tv.tv_usec = 0;
+
+		if(settimeofday(&set_tv,(struct timezone*)0) < 0)
+		{
+			printf("set time error");
+		}
+	}
 
 	return 0;
 }
@@ -2997,6 +2999,16 @@ int EX_GetTimeAndDate(char*weekDay,char*date,char*hms)
 	struct tm *ptime =NULL;
 	char *str[] = {"sun","mon","tue","wed","thu","fri","sat"};
 	secTime = time(NULL);
+
+	if(g_time_info.ntp_mode == ON)
+	{
+		DBG_InfoMsg("NTP ON; time_zone = %d\n",g_time_info.time_zone);
+		secTime += g_time_info.time_zone * 3600;
+	}
+
+	if(secTime < 0)
+		secTime = 0;
+
 	ptime = localtime(&secTime);
 
 	sprintf(weekDay,"%s",str[ptime->tm_wday]);
