@@ -57,7 +57,15 @@
 int init_p3k_client(char *ip, int port)
 {
 	int err;
-	err = tcp_client_init(ip, port);
+	int i = 0;
+	for(i = 0;i < 5; i++)
+	{
+		err = tcp_client_init(ip, port);
+		if(tcp_client_init == 0)
+			break;
+		else
+			usleep(200*1000);
+	}
 	return err;
 }
 
