@@ -2063,61 +2063,95 @@ int Cfg_Create_SecuritySetting(void)
 	DBG_InfoMsg("Cfg_Create_SecuritySetting\n");
 
 	char path[128] = "";
-	sprintf(path,"%s%s%s",CONF_PATH,g_module,SECURITY_FILE);
+	sprintf(path,"%s%s%s",CONF_PATH,g_module,SECURITY_HTTPS_FILE);
 
 	//Check Video cfg
 	int nAccessRet = access(path,F_OK | R_OK | W_OK);
-	if(0 == nAccessRet)
+	if(0 != nAccessRet)
+	{
+		Json::Value root;
+
+		root[JSON_HTTPS_MODE] = JSON_PARAM_ON;
+		root[JSON_HTTPS_CERTS] = "kramer_tls.pem";
+		root[JSON_HTTPS_KEY] = "123456";
+
+		Json::Value root1;
+		root1[JSON_HTTPS_SETTING] = root;
+
+		memset(path,0,128);
+		sprintf(path,"%s%s%s",CONF_PATH,g_module,SECURITY_PATH);
+		int s32AccessRet = access(path, F_OK);
+		if(s32AccessRet != 0)
+		{
+			char cmd[256] = "";
+			sprintf(cmd,"mkdir -p %s",path);
+
+			system(cmd);
+		}
+
+		memset(path,0,128);
+		sprintf(path,"%s%s%s",CONF_PATH,g_module,SECURITY_HTTPS_FILE);
+		FILE *fp;
+		fp = fopen(path, "w");
+		if (fp == NULL) {
+			DBG_ErrMsg("ERROR! can't open %s\n",path);
+			return -1;
+		}
+
+		string str8021X = root1.toStyledString();
+		fwrite(str8021X.c_str(),1,str8021X.size(),fp);
+
+		fclose(fp);
+		fflush(fp);
+	}
+
+	sprintf(path,"%s%s%s",CONF_PATH,g_module,SECURITY_8021X_FILE);
+
+	//Check Video cfg
+	nAccessRet = access(path,F_OK | R_OK | W_OK);
+	if(0 != nAccessRet)
 	{
 		//printf("nAccessRet %s Suceess\n",path);
-		return 0;
+		Json::Value root;
+
+		root[JSON_8021X_MODE] = JSON_PARAM_OFF;
+		root[JSON_SECUR_DEFAULT_AUTH] = JSON_SECUR_EAP_TLS;
+
+		Json::Value JsonTls;
+		JsonTls[JSON_TLS_USER]= "";
+		JsonTls[JSON_TLS_CA]= "";
+		JsonTls[JSON_TLS_CLIENT]= "";
+		JsonTls[JSON_TLS_KEY]= "";
+		JsonTls[JSON_TLS_PASS]= "";
+
+		root[JSON_TLS_SETTING] = JsonTls;
+
+		Json::Value JsonMschap;
+		JsonMschap[JSON_MSCHAP_USER]= "";
+		JsonMschap[JSON_MSCHAP_PASS]= "";
+
+
+		root[JSON_MSCHAP_SETTING] = JsonMschap;
+
+		Json::Value root1;
+		root1[JSON_8021X_SETTING] = root;
+
+		memset(path,0,128);
+		sprintf(path,"%s%s%s",CONF_PATH,g_module,SECURITY_8021X_FILE);
+		FILE *fp;
+		fp = fopen(path, "w");
+		if (fp == NULL) {
+			DBG_ErrMsg("ERROR! can't open %s\n",path);
+			return -1;
+		}
+
+		string str8021X = root1.toStyledString();
+		fwrite(str8021X.c_str(),1,str8021X.size(),fp);
+
+		fclose(fp);
+		fflush(fp);
 	}
 
-	Json::Value root;
-
-	root[JSON_SECUR_802_1X_MODE] = JSON_PARAM_ON;
-
-	Json::Value JsonCAArray;
-	JsonCAArray.resize(1);
-	Json::Value JsonCA = JsonCAArray[0];
-	JsonCA[JSON_SECUR_CA] = "NULL";
-	root[JSON_SECUR_CERTS] = JsonCAArray;
-
-
-	root[JSON_SECUR_DEFAULT_AUTH] = JSON_SECUR_EAP_TLS;
-	root[JSON_SECUR_EAP_TLS_CERT] = "NULL";
-	root[JSON_SECUR_HTTPS_ON] = "yes";
-	root[JSON_SECUR_HTTPS_CERT] = "NULL";
-	root[JSON_SECUR_DEFAULT_HTTPS_CERT] = "NULL";
-
-	Json::Value root1;
-	root1[JSON_SECUR_SETTING] = root;
-
-	memset(path,0,128);
-	sprintf(path,"%s%s%s",CONF_PATH,g_module,SECURITY_PATH);
-	int s32AccessRet = access(path, F_OK);
-	if(s32AccessRet != 0)
-	{
-		char cmd[256] = "";
-		sprintf(cmd,"mkdir -p %s",path);
-
-		system(cmd);
-	}
-
-	memset(path,0,128);
-	sprintf(path,"%s%s%s",CONF_PATH,g_module,SECURITY_FILE);
-	FILE *fp;
-	fp = fopen(path, "w");
-	if (fp == NULL) {
-		DBG_ErrMsg("ERROR! can't open %s\n",path);
-		return -1;
-	}
-
-	string strSecurity = root1.toStyledString();
-	fwrite(strSecurity.c_str(),1,strSecurity.size(),fp);
-
-	fclose(fp);
-	fflush(fp);
 	return 0;
 }
 
