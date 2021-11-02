@@ -2816,6 +2816,16 @@ int EX_Upgrade(void)
 	time_t secTime;
 	struct tm *ptime =NULL;
 	secTime = time(NULL);
+
+	if(g_time_info.ntp_mode == ON)
+	{
+		DBG_InfoMsg("NTP ON; time_zone = %d\n",g_time_info.time_zone);
+		secTime += g_time_info.time_zone * 3600;
+	}
+
+	if(secTime < 0)
+		secTime = 0;
+
 	ptime = localtime(&secTime);
 
 	sprintf(g_version_info.upg_time,"%02d-%02d-%04d,%02d:%02d:%02d",ptime->tm_mon+1,ptime->tm_mday,ptime->tm_year+1900,ptime->tm_hour,ptime->tm_min,ptime->tm_sec);
