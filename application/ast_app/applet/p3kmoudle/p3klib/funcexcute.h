@@ -578,7 +578,7 @@ int EX_GetVideoWallStretch(int  index);
 int EX_AutomaticReporting(char * info);
 int EX_GetCECGateWayMode(void);
 int EX_SetCfgModify(char* cfgName);
-int EX_Discovery(char *ip,int iPort);
+int EX_Discovery(char* aflag,char*ip,int iPort);
 int EX_Beacon(int iPort_Id,int iStatus,int iTime);
 int EX_ConfBeaconInfo(char *muticastIP,int port);
 int EX_GetBeaconConf(char *muticastIP,int *port);

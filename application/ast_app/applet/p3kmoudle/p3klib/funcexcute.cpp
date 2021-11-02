@@ -3380,7 +3380,7 @@ int EX_Beacon(int iPort_Id,int iStatus,int iTime)
 	return 0;
 }
 //g_network_info
-int EX_Discovery(char*ip,int iPort)
+int EX_Discovery(char *aflag,char*ip,int iPort)
 {
     char ip_buf[32] = "";
 	char mask_buf[32] = "";
@@ -3394,8 +3394,24 @@ int EX_Discovery(char*ip,int iPort)
 	mysystem(mask_cmd, mask_buf, 32);
 	mysystem(gw_cmd, gw_buf, 32);
 
-    sprintf(Send_buf,"~01@NET-CONFIG %s,%s,%s\r\n",ip_buf,mask_buf,gw_buf);
-
+    //sprintf(Send_buf,"~01@NET-IP %s,%s,%s\r\n",ip_buf,mask_buf,gw_buf);
+   
+    if(!memcmp(aflag,"TCP",strlen("TCP")))
+    {
+        sprintf(Send_buf,"~01@ETH-PORT TCP,%d\r\n",g_network_info.tcp_port);
+    }
+    else if(!memcmp(aflag,"UDP",strlen("UDP")))
+    {
+        sprintf(Send_buf,"~01@ETH-PORT UDP,%d\r\n",g_network_info.udp_port);
+    }
+    else if(!memcmp(aflag,"CONFIG",strlen("CONFIG")))
+    {
+        sprintf(Send_buf,"~01@NET-CONFIG %s,%s,%s\r\n",ip_buf,mask_buf,gw_buf);
+    }
+    else
+    {
+        sprintf(Send_buf,"~01@NET-IP %s\r\n",ip_buf);
+    }
 	struct sockaddr_in addr;// ipv4套接字地址结构体 
 	addr.sin_family =AF_INET;
 	addr.sin_port = htons(iPort);// iPort //服务器端口  
@@ -3404,7 +3420,7 @@ int EX_Discovery(char*ip,int iPort)
 	socklen_t len = sizeof(server_addr);
 
     int ret = sendto(g_Udp_Socket,Send_buf,strlen(Send_buf),0, (struct sockaddr*)&addr,sizeof(addr));
-    printf("sendto ip:%s,port:%d [%d]\n",ip,iPort,ret);
+    printf("sendto ip:%s,port:%d [%d]{%s}\n",ip,iPort,ret,Send_buf);
 	return 0;
 }
 

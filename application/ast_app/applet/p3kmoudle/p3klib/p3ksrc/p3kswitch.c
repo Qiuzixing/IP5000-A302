@@ -1925,14 +1925,27 @@ static int P3K_GetMacAddr(char*reqparam,char*respParam,char*userdata)
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
 
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
-	netId = atoi(str[0]);
-
+    if(count == -1)
+    {   
+	    netId = 0;
+    }
+    else
+    {
+    	netId = atoi(str[0]);
+    }
 	s32Ret = EX_GetMacAddr(netId,mac);
 	if(s32Ret)
 	{
 		DBG_ErrMsg("EX_GetMacAddr err\n");
 	}
-	sprintf(tmpparam,"%d,%s",netId,mac);
+    if(count == -1)
+    {   
+	    sprintf(tmpparam,"%s",mac);
+    }
+    else
+    {
+    	sprintf(tmpparam,"%d,%s",netId,mac);
+    }
 	memcpy(respParam,tmpparam,strlen(tmpparam));
 	return 0;
 }
@@ -1969,13 +1982,28 @@ static int P3K_GetDNSName(char*reqparam,char*respParam,char*userdata)
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
 
 	int count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
-	id = atoi(str[0]);
+	//id = atoi(str[0]);
+	if(count == -1)
+    {   
+	    id = 0;
+    }
+    else
+    {
+        id = atoi(str[0]);
+    }
 	s32Ret = EX_GetDNSName(id,name);
 	if(s32Ret)
 	{
 		DBG_ErrMsg("EX_GetDNSName err\n");
 	}
-	sprintf(tmpparam,"%d,%s",id,name);
+    if(count == -1)
+    {   
+	    sprintf(tmpparam,"%s",name);
+    }
+    else
+    {
+        sprintf(tmpparam,"%d,%s",id,name);
+    }
 	memcpy(respParam,tmpparam,strlen(tmpparam));
 	return 0;
 }
@@ -4229,14 +4257,16 @@ static int P3K_Discovery(char*reqparam,char*respParam,char*userdata)
 	int count = 0;
 	char iIP[24] = "";
 	int iport = 0;
+    char aflag[12] = "";
 	int u32ret = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
 
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
-	memcpy(iIP,str[0],strlen(str[0]));
-    iport = atoi(str[1]);
-	u32ret = EX_Discovery(iIP,iport);
+    memcpy(aflag,str[0],strlen(str[0]));
+	memcpy(iIP,str[1],strlen(str[1]));
+    iport = atoi(str[2]);
+	u32ret = EX_Discovery(aflag,iIP,iport);
 	return 0;
 }
 static int P3K_BEACON(char*reqparam,char*respParam,char*userdata)

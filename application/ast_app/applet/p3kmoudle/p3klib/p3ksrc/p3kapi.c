@@ -333,6 +333,7 @@ RESET_Udp:
 		DBG_ErrMsg("Udp bind err");
 	char recvBuf[1500] = "";
     char aSendp3k[1500] = "";
+    char aflag[12] = "";
     P3K_SimpleCmdInfo_S Sendp3k;
     P3K_SimpleCmdInfo_S respCmdInfo;
     char userDefine[MAX_USR_STR_LEN+1] = {0};
@@ -351,17 +352,38 @@ RESET_Udp:
 		int s = recvfrom(g_Udp_Socket, recvBuf, sizeof(recvBuf)-1,0,(struct sockaddr*)&client,&len);
 		if(s > 0)
 		{
-			//printf("Udp Recv Msg\n");
+			printf("Udp Recv Msg{%s}\n",recvBuf);
             
-            if(!memcmp(recvBuf,"#NET-CONFIG?",strlen("#NET-CONFIG?")))
+            if(!memcmp(recvBuf,"#NET-IP?",strlen("#NET-IP?")) || !memcmp(recvBuf,"#ETH-PORT?",strlen("#ETH-PORT?")) || !memcmp(recvBuf,"#NET-CONFIG?",strlen("#NET-CONFIG?")))
             {
                 memset(&respCmdInfo,0,sizeof(P3K_SimpleCmdInfo_S));
 		        memset(userDefine,0,MAX_USR_STR_LEN);
-                sprintf(aSendp3k,"%s,%d",inet_ntoa(client.sin_addr),ntohs(client.sin_port));
-                memcpy(Sendp3k.command,"UDPNET-CONFIG?",strlen("UDPNET-CONFIG?"));
-                memcpy(Sendp3k.param,aSendp3k,strlen(aSendp3k));
-                printf("[%s:%s]\n",Sendp3k.command,Sendp3k.param);
-                P3K_SilmpleReqCmdProcess(&Sendp3k,&respCmdInfo,userDefine);
+                if(strlen(recvBuf) == strlen("#NET-IP?"))
+                {
+                    sprintf(aSendp3k,"IP,%s,%d",inet_ntoa(client.sin_addr),ntohs(client.sin_port));
+                    memcpy(Sendp3k.command,"UDPNET-CONFIG?",strlen("UDPNET-CONFIG?"));
+                    memcpy(Sendp3k.param,aSendp3k,strlen(aSendp3k));
+                    printf("[%s:%s]\n",Sendp3k.command,Sendp3k.param);
+                    P3K_SilmpleReqCmdProcess(&Sendp3k,&respCmdInfo,userDefine);
+                }
+                else if(strlen(recvBuf) == strlen("#NET-CONFIG?"))
+                {
+                    sprintf(aSendp3k,"CONFIG,%s,%d",inet_ntoa(client.sin_addr),ntohs(client.sin_port));
+                    memcpy(Sendp3k.command,"UDPNET-CONFIG?",strlen("UDPNET-CONFIG?"));
+                    memcpy(Sendp3k.param,aSendp3k,strlen(aSendp3k));
+                    printf("[%s:%s]\n",Sendp3k.command,Sendp3k.param);
+                    P3K_SilmpleReqCmdProcess(&Sendp3k,&respCmdInfo,userDefine);
+                }
+                else
+                {
+                    memcpy(aflag,recvBuf+11,3);
+                    printf("[.%s.]{%s}\n",recvBuf,aflag);
+                    sprintf(aSendp3k,"%s,%s,%d",aflag,inet_ntoa(client.sin_addr),ntohs(client.sin_port));
+                    memcpy(Sendp3k.command,"UDPNET-CONFIG?",strlen("UDPNET-CONFIG?"));
+                    memcpy(Sendp3k.param,aSendp3k,strlen(aSendp3k));
+                    printf("[%s:%s]\n",Sendp3k.command,Sendp3k.param);
+                    P3K_SilmpleReqCmdProcess(&Sendp3k,&respCmdInfo,userDefine);
+                }
             }
 		}
         else
