@@ -1696,19 +1696,9 @@ handle_e_p3k_audio()
 			case "$_para1" in
 				in)
 					ipc @m_lm_set s set_gpio_val:1:70:1
-					case "$MODEL_NUMBER" in
-						KDS-EN7)
-							ipc @m_lm_set s set_gpio_val:1:72:0
-						;;
-					esac
 				;;
 				out)
 					ipc @m_lm_set s set_gpio_val:1:70:0
-					case "$MODEL_NUMBER" in
-						KDS-EN7)
-							ipc @m_lm_set s set_gpio_val:1:72:1
-						;;
-					esac
 				;;
 				*)
 				;;
