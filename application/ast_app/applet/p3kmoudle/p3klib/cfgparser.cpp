@@ -2074,6 +2074,7 @@ int Cfg_Create_SecuritySetting(void)
 		root[JSON_HTTPS_MODE] = JSON_PARAM_ON;
 		root[JSON_HTTPS_CERTS] = "kramer_tls.pem";
 		root[JSON_HTTPS_KEY] = "123456";
+		root[JSON_HTTPS_METHOD] = "in";
 
 		Json::Value root1;
 		root1[JSON_HTTPS_SETTING] = root;

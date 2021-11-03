@@ -290,6 +290,7 @@ extern "C" {
 #define JSON_HTTPS_MODE				"mode"
 #define JSON_HTTPS_CERTS			"certificate_file_name"
 #define JSON_HTTPS_KEY				"private_key_password"
+#define JSON_HTTPS_METHOD			"method"
 
 #define JSON_8021X_SETTING			"ieee802_1x_setting"
 #define JSON_8021X_MODE				"mode"
