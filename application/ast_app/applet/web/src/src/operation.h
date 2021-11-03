@@ -16,7 +16,7 @@ using namespace std;
 // 文件传输文件默认路径
 #define DEFAULT_FILE_PATH       "/data/configs/kds-7"
 #define CHANNEL_FILE_PATH       "/channel/channel_map.json"
-#define SLEEPIMAGE_FILE_PATH    "/display/sleep_image.png"
+#define SLEEPIMAGE_FILE_PATH    "/display/sleep_image.jpg"
 #define EDID_FILE_PATH          "/edid/custom_edid.bin"
 #define LOG_FILE_PATH           "/log/log_file.txt"
 #define OVERLAY_FILE_PATH       "/osd/overlay_image.png"

@@ -30,7 +30,7 @@
 #include <QProcess>
 
 #define RESOLUTION_CONFIG   "/sys/devices/platform/videoip/timing_info"
-//#define SLEEP_IMAGE_PATH  "/data/configs/kds-7/logo/sleep_image.png"
+//#define SLEEP_IMAGE_PATH  "/data/configs/kds-7/logo/sleep_image.jpg"
 #define SLEEP_IMAGE_PATH    "/share/default.jpg"
 
 #define MENUINFO_PATH      "/data/configs/kds-7/osd/osd.json"
@@ -544,7 +544,7 @@ void MainWidget::initPanelStack()
 
     // 添加休眠页面
     QString path = "/share/default.jpg";
-    //    QString path = "/data/configs/kds-7/logo/sleep_image.png";
+    //    QString path = "/data/configs/kds-7/logo/sleep_image.jpg";
     m_sleepPanel = new Dialog();
 
     QBrush brush;

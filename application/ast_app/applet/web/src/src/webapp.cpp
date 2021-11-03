@@ -313,7 +313,7 @@ int CWeb::ShowSleepImageHandle(struct mg_connection *conn, void *cbdata)
 int CWeb::UpdateSleepImageHandle(struct mg_connection *conn, void *cbdata)
 {
     struct T_FromInfo tFrom;
-    if(!SaveUploadFile(conn, DEFAULT_FILE_PATH "/display", "sleep_image.png", &tFrom))
+    if(!SaveUploadFile(conn, DEFAULT_FILE_PATH "/display", "sleep_image.jpg", &tFrom))
     {
         BC_INFO_LOG("UpdateSleepImageHandle upload file error");
         send_http_error_rsp(conn);

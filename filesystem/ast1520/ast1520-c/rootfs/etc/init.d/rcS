@@ -38,6 +38,10 @@ e2fsck -p /dev/mtdblkdata
 e2fsck -y /dev/mtdblkdata
 mount /dev/mtdblkdata /data
 
+if [ -f /data/configs/kds-7/display/sleep_image.jpg ]; then
+	cp -f /data/configs/kds-7/display/sleep_image.jpg /share/default.jpg
+fi
+
 if [ -f "/share/sysinit.sh" ]; then
 	chmod a+x /share/sysinit.sh
 	/share/sysinit.sh
