@@ -1696,10 +1696,10 @@ refresh_ieee802_1x_params()
 	IEEE802_1X_MODE=$(jq -r .ieee802_1x_setting.mode $IEEE8021X_JSON_PATH | tr A-Z a-z)
 	IEEE802_1X_AUTH_METHOD=$(jq -r .ieee802_1x_setting.default_authentication $IEEE8021X_JSON_PATH | tr A-Z a-z)
 
-	IEEE802_1X_MSCHAPV2_USER=$(jq -r .ieee802_1x_setting.eap_mschap_setting.mschap_usarname $IEEE8021X_JSON_PATH | tr A-Z a-z)
+	IEEE802_1X_MSCHAPV2_USER=$(jq -r .ieee802_1x_setting.eap_mschap_setting.mschap_username $IEEE8021X_JSON_PATH | tr A-Z a-z)
 	IEEE802_1X_MSCHAPV2_PASSWORD=$(jq -r .ieee802_1x_setting.eap_mschap_setting.mschap_password $IEEE8021X_JSON_PATH | tr A-Z a-z)
 
-	IEEE802_1X_TLS_USER=$(jq -r .ieee802_1x_setting.eap_tls_setting.tls_usarname $IEEE8021X_JSON_PATH | tr A-Z a-z)
+	IEEE802_1X_TLS_USER=$(jq -r .ieee802_1x_setting.eap_tls_setting.tls_username $IEEE8021X_JSON_PATH | tr A-Z a-z)
 	IEEE802_1X_TLS_CA_CERT_PATH="$IEEE8021X_PATH/tls_ca_certificate/$(jq -r .ieee802_1x_setting.eap_tls_setting.tls_ca_certificate $IEEE8021X_JSON_PATH | tr A-Z a-z)"
 	IEEE802_1X_TLS_CLIENT_CERT_PATH="$IEEE8021X_PATH/tls_client_certificate/$(jq -r .ieee802_1x_setting.eap_tls_setting.tls_client_certificate $IEEE8021X_JSON_PATH | tr A-Z a-z)"
 	IEEE802_1X_TLS_PRIVATE_KEY_PATH="$IEEE8021X_PATH/tls_private_key/$(jq -r .ieee802_1x_setting.eap_tls_setting.tls_private_key $IEEE8021X_JSON_PATH | tr A-Z a-z)"
