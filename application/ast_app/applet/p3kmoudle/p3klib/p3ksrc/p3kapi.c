@@ -74,6 +74,37 @@ static int P3K_SetLDFWStatus(P3KLDFWStatus_S *gs_LDFWStatus, int handleId)
 	return 0;
 }*/
 
+char* MyatoA( char *pDest )    
+{    
+     //assert( nullptr != pDest ); 
+     char *i = pDest;
+     for( ; *i != '\0'; ++i )    
+     {    
+         if( *i < 'a' || *i > 'z' )    
+         {    
+             continue;    
+         }    
+         *i -= 'a' - 'A';    
+     }    
+     return pDest;    
+ }
+
+char* MyAtoa( char *pDest )    
+{    
+     //assert( nullptr != pDest ); 
+     char *i = pDest;
+     for( ; *i != '\0'; ++i )    
+     {    
+         if( *i < 'A' || *i > 'Z' )    
+         {    
+             continue;    
+         }    
+         *i += 'a' - 'A';    
+     }    
+     return pDest;    
+ }
+
+
 static const unsigned char crcTableH[] = {
 
     0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41,
@@ -352,8 +383,8 @@ RESET_Udp:
 		int s = recvfrom(g_Udp_Socket, recvBuf, sizeof(recvBuf)-1,0,(struct sockaddr*)&client,&len);
 		if(s > 0)
 		{
-			printf("Udp Recv Msg{%s}\n",recvBuf);
-            
+			printf("Udp Recv Msg:%s\n",recvBuf);
+            MyatoA(recvBuf);
             if(!memcmp(recvBuf,"#NET-IP?",strlen("#NET-IP?")) || !memcmp(recvBuf,"#ETH-PORT?",strlen("#ETH-PORT?")) || !memcmp(recvBuf,"#NET-CONFIG?",strlen("#NET-CONFIG?")))
             {
                 memset(&respCmdInfo,0,sizeof(P3K_SimpleCmdInfo_S));

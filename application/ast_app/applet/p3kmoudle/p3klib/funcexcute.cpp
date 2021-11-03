@@ -5,6 +5,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <strings.h>
 
 #include "funcexcute.h"
 #include "ast_send_event.h"
@@ -3396,13 +3397,13 @@ int EX_Discovery(char *aflag,char*ip,int iPort)
 
     //sprintf(Send_buf,"~01@NET-IP %s,%s,%s\r\n",ip_buf,mask_buf,gw_buf);
    
-    if(!memcmp(aflag,"TCP",strlen("TCP")))
+    if(!strcasecmp(aflag,"TCP"))
     {
-        sprintf(Send_buf,"~01@ETH-PORT TCP,%d\r\n",g_network_info.tcp_port);
+        sprintf(Send_buf,"~01@ETH-PORT %s,%d\r\n",aflag,g_network_info.tcp_port);
     }
-    else if(!memcmp(aflag,"UDP",strlen("UDP")))
+    else if(!strcasecmp(aflag,"UDP"))
     {
-        sprintf(Send_buf,"~01@ETH-PORT UDP,%d\r\n",g_network_info.udp_port);
+        sprintf(Send_buf,"~01@ETH-PORT %s,%d\r\n",aflag,g_network_info.udp_port);
     }
     else if(!memcmp(aflag,"CONFIG",strlen("CONFIG")))
     {

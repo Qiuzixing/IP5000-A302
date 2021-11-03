@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <sys/stat.h>
 #include "debugtool.h"
 #include "p3kswitch.h"
@@ -77,11 +78,11 @@ static int P3K_CheckEdidMode(char*data)
 	//char *tmp = data;
 
 
-	if((!strcmp(data,"PASSTHRU"))||(!strcmp(data,"passthru")))
+	if((!strcasecmp(data,"PASSTHRU"))||(!strcmp(data,"passthru")))
 		{tmpDirec = PASSTHRU;}
-	else if((!strcmp(data,"CUSTOM"))||(!strcmp(data,"custom")))
+	else if((!strcasecmp(data,"CUSTOM"))||(!strcmp(data,"custom")))
 		{tmpDirec = CUSTOM;}
-	else if((!strcmp(data,"DEFAULT"))||(!strcmp(data,"default")))
+	else if((!strcasecmp(data,"DEFAULT"))||(!strcmp(data,"default")))
 		{tmpDirec = DEFAULT;}
 	return tmpDirec;
 }
@@ -116,11 +117,11 @@ static int P3K_CheckPortDirection(char*data)
 	//char *tmp = data;
 
 
-	if(!strcmp(data,"in") || !strcmp(data,"[in"))
+	if(!strcasecmp(data,"in") || !strcasecmp(data,"[in"))
 		{tmpDirec = DIRECTION_IN;}
-	else	if(!strcmp(data,"out") || !strcmp(data,"[out"))
+	else	if(!strcasecmp(data,"out") || !strcasecmp(data,"[out"))
 		{tmpDirec = DIRECTION_OUT;}
-	else	if(!strcmp(data,"both") || !strcmp(data,"[both"))
+	else	if(!strcasecmp(data,"both") || !strcasecmp(data,"[both"))
 		{tmpDirec = DIRECTION_BOTH;}
 	return tmpDirec;
 }
@@ -154,42 +155,42 @@ static int P3K_CheckPortFormat(char*data)
 	int tmpFormat = PORT_HDMI;
 	//char *tmp = data;
 
-	if(!strcmp(data,"hdmi"))
+	if(!strcasecmp(data,"hdmi"))
 		{tmpFormat = PORT_HDMI;}
 
-	else if(!strcmp(data,"analog_audio"))
+	else if(!strcasecmp(data,"analog_audio"))
 		{tmpFormat = PORT_ANALOG_AUDIO;}
 
-	else if(!strcmp(data,"analog"))
+	else if(!strcasecmp(data,"analog"))
 		{tmpFormat = PORT_ANALOG_AUDIO;}
 
-	else if(!strcmp(data,"rs232"))
+	else if(!strcasecmp(data,"rs232"))
 		{tmpFormat = PORT_RS232;}
 
-	else if(!strcmp(data,"ir"))
+	else if(!strcasecmp(data,"ir"))
 		{tmpFormat = PORT_IR;}
 
-	else if(!strcmp(data,"usb_a"))
+	else if(!strcasecmp(data,"usb_a"))
 		{tmpFormat = PORT_USB_A;}
 
-	else if(!strcmp(data,"usb_b"))
+	else if(!strcasecmp(data,"usb_b"))
 		{tmpFormat = PORT_USB_B;}
 
-	else if(!strcmp(data,"usb_c"))
+	else if(!strcasecmp(data,"usb_c"))
 		{tmpFormat = PORT_USB_C;}
-	else if(!strcmp(data,"dante"))
+	else if(!strcasecmp(data,"dante"))
 		{tmpFormat = PORT_DANTE;}
-	else if(!strcmp(data,"hdbt"))
+	else if(!strcasecmp(data,"hdbt"))
 		{tmpFormat = PORT_HDBT;}
-	else if(!strcmp(data,"amplified_audio"))
+	else if(!strcasecmp(data,"amplified_audio"))
 		{tmpFormat = PORT_AMPLIFIED_AUDIO;}
-	else if(!strcmp(data,"tos"))
+	else if(!strcasecmp(data,"tos"))
 		{tmpFormat = PORT_TOS;}
-	else if(!strcmp(data,"spdif"))
+	else if(!strcasecmp(data,"spdif"))
 		{tmpFormat = PORT_SPDIF;}
-	else if(!strcmp(data,"mic"))
+	else if(!strcasecmp(data,"mic"))
 		{tmpFormat = PORT_MIC;}
-	else if(!strcmp(data,"stream"))
+	else if(!strcasecmp(data,"stream"))
 		{tmpFormat = PORT_STREAM;}
 	return tmpFormat;
 }
@@ -277,19 +278,19 @@ static int P3K_CheckSignalType(char*data)
 {
 	int tmpFormat = SIGNAL_VIDEO;
 	//char *tmp = data;
-	if(!strcmp(data,"audio"))
+	if(!strcasecmp(data,"audio"))
 	{	tmpFormat = SIGNAL_AUDIO;}
-	else if(!strcmp(data,"video"))
+	else if(!strcasecmp(data,"video"))
 	{	tmpFormat = SIGNAL_VIDEO;}
-	else if(!strcmp(data,"ir"))
+	else if(!strcasecmp(data,"ir"))
 	{	tmpFormat = SIGNAL_IR;}
-	else if(!strcmp(data,"usb"))
+	else if(!strcasecmp(data,"usb"))
 	{	tmpFormat = SIGNAL_USB;}
-	else if(!strcmp(data,"arc"))
+	else if(!strcasecmp(data,"arc"))
 	{	tmpFormat = SIGNAL_ARC;}
-	else if(!strcmp(data,"rs232"))
+	else if(!strcasecmp(data,"rs232"))
 	{	tmpFormat = SIGNAL_RS232;}
-	else if(!strcmp(data,"av_test_pattern"))
+	else if(!strcasecmp(data,"av_test_pattern"))
 	{   tmpFormat = SIGNAL_TEST;}
 	return tmpFormat;
 }
@@ -298,9 +299,9 @@ static int P3K_CheckStateType(char*data)
 {
 	int tmpFormat = OFF;
 	//char *tmp = data;
-	if(!strcmp(data,"off"))
+	if(!strcasecmp(data,"off"))
 	{	tmpFormat = OFF;}
-	else if(!strcmp(data,"on"))
+	else if(!strcasecmp(data,"on"))
 	{	tmpFormat = ON;}
 
 
@@ -345,17 +346,17 @@ static int P3K_CheckAudioSampleRate(char*data)
 {
 	int tmpRate = SAMPLE_RATE_44100;
 	char *tmp = data;
-		if(!strcmp(tmp,"44.1K"))
+		if(!strcasecmp(tmp,"44.1K"))
 			{tmpRate = SAMPLE_RATE_44100;}
-		else if(!strcmp(tmp,"48K"))
+		else if(!strcasecmp(tmp,"48K"))
 			{tmpRate = SAMPLE_RATE_48000;}
-		else if(!strcmp(tmp,"32K"))
+		else if(!strcasecmp(tmp,"32K"))
 			{tmpRate = SAMPLE_RATE_32000;}
-		else if(!strcmp(tmp,"22.5K"))
+		else if(!strcasecmp(tmp,"22.5K"))
 			{tmpRate = SAMPLE_RATE_22500;}
-		else if(!strcmp(tmp,"16K"))
+		else if(!strcasecmp(tmp,"16K"))
 			{tmpRate = SAMPLE_RATE_16000;}
-		else if(!strcmp(tmp,"8K"))
+		else if(!strcasecmp(tmp,"8K"))
 			{tmpRate = SAMPLE_RATE_8000;}
 	return tmpRate;
 
@@ -396,7 +397,7 @@ static int P3K_CheckAudioType(char*data)
 {
 	int tmpType= AUDIO_FORMAT_PCM;
 	//char *tmp = data;
-	if(!strcmp(data,"PCM"))
+	if(!strcasecmp(data,"PCM"))
 	{tmpType = AUDIO_FORMAT_PCM;}
 
 	return tmpType;
@@ -424,15 +425,15 @@ static int P3K_CheckUartParity(char*data)
 {
 	int tmpType= AUDIO_FORMAT_PCM;
 	//char *tmp = data;
-	if(!strcmp(data,"none"))
+	if(!strcasecmp(data,"none"))
 	{tmpType = PARITY_NONE;}
-	else if(!strcmp(data,"odd"))
+	else if(!strcasecmp(data,"odd"))
 	{tmpType = PARITY_ODD;}
-	else if(!strcmp(data,"even"))
+	else if(!strcasecmp(data,"even"))
 	{tmpType = PARITY_EVEN;}
-	else if(!strcmp(data,"mark"))
+	else if(!strcasecmp(data,"mark"))
 	{tmpType = PARITY_MARK;}
-	else if(!strcmp(data,"space"))
+	else if(!strcasecmp(data,"space"))
 	{tmpType = PARITY_SPACE;}
 
 	return tmpType;
@@ -4553,7 +4554,7 @@ int P3K_SilmpleReqCmdProcess(P3K_SimpleCmdInfo_S *cmdreq,P3K_SimpleCmdInfo_S *cm
 			memcpy(cmdresp->param,"err001",strlen("err001"));
 			return 0;
 		}
-		if(strcmp(cliFunc[i].cmd,cmdreq->command) == 0)
+		if(strcasecmp(cliFunc[i].cmd,cmdreq->command) == 0)
 		{
 			if(cliFunc[i].ParamPhraser != NULL)
 			{
@@ -4585,7 +4586,7 @@ int P3K_CheckedSpeciCmd(char*cmd)
 		{
 			break;
 		}
-		if(strcmp(specCmd[i],cmd) == 0)
+		if(strcasecmp(specCmd[i],cmd) == 0)
 		{
 			return 1;
 		}
