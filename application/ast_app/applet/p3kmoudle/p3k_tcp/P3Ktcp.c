@@ -468,7 +468,13 @@ int Tcp_NetUnInit()
 
 int main (int argc, char const *argv[])
 {
-   
+	if((argc == 2)&&(!memcmp(argv[1],"-c",strlen("-c"))))
+	{
+		printf("P3k TCP only init cfg\n");
+		Cfg_Init();
+		return 0;
+	}
+
     Cfg_Init_Network();
     int portNumber;
 
