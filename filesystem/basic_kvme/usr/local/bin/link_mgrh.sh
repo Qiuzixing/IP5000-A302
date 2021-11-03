@@ -2604,7 +2604,7 @@ case "$MODEL_NUMBER" in
 		fi
 	;;
 	*)
-		if communication_with_mcu -u; then
+		if communication_with_mcu -u -b 5; then
 			UGP_FLAG="success"
 		else
 			UGP_FLAG="fail"
