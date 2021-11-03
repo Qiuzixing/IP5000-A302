@@ -1103,7 +1103,8 @@ select_audio_input()
 	local _type="$1"
 
 	if [ -f "$I2S_SYS_PATH/io_select" ]; then
-		echo "$_type" > $I2S_SYS_PATH/io_select
+		#echo "$_type" > $I2S_SYS_PATH/io_select
+		echo "no switch"
 	fi
 }
 
