@@ -326,6 +326,15 @@ err:
 	return ret;
 }
 
+static void trim_right(char* iostr)
+{
+	int len = 0;
+	for (len = strlen(iostr); len > 0 && (iostr[len - 1] == '\r' || iostr[len - 1] == '\n'); len--)
+	{
+		iostr[len - 1] = '\0';
+	}
+}
+
 static void update_sinfo_fw()
 {
 #define MAX_SIZE 256
@@ -333,7 +342,6 @@ static void update_sinfo_fw()
 	char name[MAX_SIZE];
 	char ver[MAX_SIZE];
 	char date[MAX_SIZE];
-	int lver = 0;
 	
 	fp = fopen("/etc/version", "r");
 	if (fp == NULL) {
@@ -344,11 +352,10 @@ static void update_sinfo_fw()
 	fgets(ver, MAX_SIZE, fp);
 	fgets(date, MAX_SIZE, fp);
 
-	for (lver = strlen(ver); lver > 0 && (ver[lver - 1] == '\r' || ver[lver - 1] == '\n'); lver--)
-	{
-		ver[lver - 1] = '\0';
-	}
-	
+	// trim_right(name);
+	trim_right(ver);
+	trim_right(date);
+
 	snprintf(sinfo.FW, MAX_STR_LEN, "%s %s", date, ver);
 	err("%s\n", sinfo.FW);
 	
