@@ -589,7 +589,7 @@ int Cfg_Init_AVSetting(void)
 	char path[128] = "";
 	sprintf(path,"%s%s%s",CONF_PATH,g_module,AV_SETTING_FILE);
 
-	g_avsetting_info.volume = 100;
+	g_avsetting_info.volume = 80;
 	g_avsetting_info.mute_mode = OFF;
 	g_avsetting_info.action = CODEC_ACTION_PLAY;
 	g_avsetting_info.hdcp_mode[0] = ON;
