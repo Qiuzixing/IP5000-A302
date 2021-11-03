@@ -2766,6 +2766,14 @@ int EX_SetSecurityStatus(int status)
 	}
 	return 0;
 }
+
+int EX_GetSecurityStatus(int* status)
+{
+	DBG_InfoMsg("EX_GetSecurityStatus\n");
+	Cfg_Get_User_Secur((State_E*)status);
+	return 0;
+}
+
 int EX_Login(char*name,char*password)
 {
 	DBG_InfoMsg("EX_Login name= %s password =%s\n",name,password);

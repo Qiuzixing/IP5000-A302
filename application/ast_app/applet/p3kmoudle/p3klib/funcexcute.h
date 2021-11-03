@@ -485,6 +485,8 @@ int EX_GetNetWorkConf(int netId,NetWorkInfo_S*netInfo);
 int EX_SetNetPort(char* portType,int portNumber);
 int EX_GetNetPort(char*portType,int *portNumber);
 int EX_SetSecurityStatus(int status);
+int EX_GetSecurityStatus(int* status);
+
 int EX_Login(char*name,char*password);
 int EX_GetLoginInfo(char*name,char*password);
 int EX_Logout(void);

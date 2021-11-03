@@ -2250,6 +2250,26 @@ static int P3K_SetSecurity(char*reqparam,char*respParam,char*userdata)
 	memcpy(respParam,reqparam,strlen(reqparam));
 	return 0;
 }
+
+static int P3K_GetSecurity(char*reqparam,char*respParam,char*userdata)
+{
+	//#SECUR? <CR>
+	//~nn@SECUR security_state<CR><LF>
+	DBG_InfoMsg("P3K_GetSecurity\n");
+	int s32Ret = 0;
+	int status = 0;
+	int count = 0;
+	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
+
+	s32Ret = EX_GetSecurityStatus(&status);
+	if(s32Ret)
+	{
+		DBG_ErrMsg("EX_GetSecurityStatus err\n");
+	}
+	sprintf(respParam,"%d",status);
+	return 0;
+}
+
 static int P3K_SetLogin(char*reqparam,char*respParam,char*userdata)
 {
 	//#LOGIN login_level,password<CR>
@@ -4446,6 +4466,7 @@ int P3K_SilmpleReqCmdProcess(P3K_SimpleCmdInfo_S *cmdreq,P3K_SimpleCmdInfo_S *cm
 									{"ETH-PORT",P3K_SetEthPort},
 									{"ETH-PORT?",P3K_GetEthPort},
 									{"SECUR",P3K_SetSecurity},
+									{"SECUR?",P3K_GetSecurity},
 									{"LOGIN",P3K_SetLogin},
 									{"LOGIN?",P3K_GetLogin},
 									{"LOGOUT",P3K_LogOut},
