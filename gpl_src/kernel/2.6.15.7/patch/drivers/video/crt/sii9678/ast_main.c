@@ -8,7 +8,7 @@
 **
 */
 #include <asm/arch/drivers/board_def.h>
-
+#include <asm/arch/ast-scu.h>
 #if defined(CONFIG_AST1500_SII9678)
 #include <linux/module.h>
 #include <linux/fs.h>
@@ -1003,6 +1003,12 @@ static int drv_probe(struct platform_device *pdev)
 	dev_t	dev;
 
 	uinfo("Hello probe!\n");
+
+	/* Only IPD5000W has a sii9678 chip */
+	if(ast_scu.astparam.model_number != A30_IPD5000W)
+	{
+		return ret;
+	}
 
 	/* HW init */
 	hw_init();
