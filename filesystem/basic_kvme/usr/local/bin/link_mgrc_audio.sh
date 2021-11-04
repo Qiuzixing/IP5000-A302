@@ -445,9 +445,9 @@ handle_ae_mute()
 	echo "handle_ae_mute.($_para1)"
 
 	if [ $_para1 != '1' ]; then
-	    echo 0 > /sys/class/leds/lineout_mute/brightness
-	else
 	    echo 1 > /sys/class/leds/lineout_mute/brightness
+	else
+	    echo 0 > /sys/class/leds/lineout_mute/brightness
 	fi
 }
 
