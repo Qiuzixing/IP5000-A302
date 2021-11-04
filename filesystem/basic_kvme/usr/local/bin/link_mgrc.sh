@@ -472,7 +472,7 @@ handle_e_sys_init_ok()
 		#U_USBIP_STATE='off' #use ulmparam g U_USBIP_STATE instead.
 
 		# A7 disable watchdog after sys_init_ok
-                disable_watchdog
+                #disable_watchdog
 
 		# Bruce170427. Already done in astparam init. No need here.
 		# Refresh 4-bits dip switch here, so that ch_select get updated under cases like "e_reconnect"
@@ -3492,7 +3492,9 @@ if [ -f ./patch_lmc.sh ]; then
 	. ./patch_lmc.sh
 fi
 
-init_watchdog
+#qzx 2021.11.4:It's useless to turn off the watchdog. If the MCU needs to be upgraded, it will lead to restart
+#init_watchdog
+echo no > /sys/devices/platform/watchdog/enable
 
 mknod $PIPE_INFO_LOCAL p
 mknod $PIPE_INFO_REMOTE p

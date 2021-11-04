@@ -232,7 +232,7 @@ handle_e_sys_init_ok()
 		V_LOOPBACK_ENABLED=$LOOPBACK_DEFAULT_ON
 
 		# A7 disable watchdog after sys_init_ok
-		disable_watchdog
+		#disable_watchdog
 
 		# Export LM params to /var/lm. So that sub-LM can import.
 		handle_e_var
@@ -2552,8 +2552,9 @@ if [ -f ./patch_lmh.sh ]; then
 	. ./patch_lmh.sh
 fi
 
-init_watchdog
-
+#qzx 2021.11.4:It's useless to turn off the watchdog. If the MCU needs to be upgraded, it will lead to restart
+#init_watchdog
+echo no > /sys/devices/platform/watchdog/enable
 #mknod $PIPE_INFO_LOCAL p    TBD
 #mknod $PIPE_INFO_REMOTE p   TBD
 
