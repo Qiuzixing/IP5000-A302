@@ -169,7 +169,7 @@ if [ -f "$FW_ROOTFS" ]; then
 		mknod /dev/"$FW_ROOTFS_DEV" b 31 2
 	fi
 
-	if ! copy_file "$FW_ROOTFS" /dev/"$FW_ROOTFS" "$remain_fw_size"; then
+	if ! copy_file "$FW_ROOTFS" /dev/"$FW_ROOTFS_DEV" "$remain_fw_size"; then
 		fail_out 255
 	else
 		rm -f "$FW_ROOTFS"
