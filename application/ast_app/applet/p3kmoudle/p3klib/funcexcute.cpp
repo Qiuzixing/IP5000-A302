@@ -2534,6 +2534,30 @@ int EX_GetMulticastInfo(char*ip,int *ttl)
 int EX_SetMacAddr(int netid,char*macAddr)
 {
 	DBG_InfoMsg("EX_SetMacAddr mac =%s\n",macAddr);
+
+	int nMac[6];
+	if(macAddr != NULL)
+	{
+		char cmd[128] = "";
+
+		int ret = sscanf(macAddr,"%02x-%02x-%02x-%02x-%02x-%02x",&nMac[0],&nMac[1],&nMac[2],&nMac[3],&nMac[4],&nMac[5]);
+
+		if(ret == 6)
+		{
+			DBG_WarnMsg("ret = %d\n",ret);
+			sprintf(cmd,"astparam w ethaddr %02x:%02x:%02x:%02x:%02x:%02x;astparam save ro",nMac[0],nMac[1],nMac[2],nMac[3],nMac[4],nMac[5]);
+			system(cmd);
+		}
+		else
+		{
+			return -1;
+		}
+	}
+	else
+	{
+		DBG_WarnMsg("macAddr == NULL\n");
+	}
+
 	return 0;
 }
 int EX_GetMacAddr(int netid,char*macAddr)
@@ -2865,6 +2889,18 @@ int EX_Upgrade(void)
 int EX_SetDeviceNameModel(char*mod)
 {
 	DBG_InfoMsg("EX_SetDeviceNameModel %s\n",mod);
+
+	if((mod != NULL)&&(strlen(mod) > 0)&&(strlen(mod) <= 19))
+	{
+		char cmd[128] = "";
+
+		sprintf(cmd,"astparam w model_number %s;astparam save ro",mod);
+		system(cmd);
+	}
+	else
+	{
+		DBG_WarnMsg("model Err,strlen(mod)=%d\n",strlen(mod));
+	}
 	return 0;
 }
 int EX_GetDeviceNameModel(char*mod)
@@ -2879,6 +2915,24 @@ int EX_GetDeviceNameModel(char*mod)
 int EX_SetSerialNumber(char*data)
 {
 	DBG_InfoMsg("EX_SetSerialNumber %s\n",data);
+	if((data != NULL)&&(strlen(data) == 14))
+	{
+		if(strspn(data, "0123456789")==14)
+		{
+			char cmd[128] = "";
+			sprintf(cmd,"astparam w serial_number %s;astparam save ro",data);
+			system(cmd);
+		}
+		else
+		{
+			DBG_WarnMsg("strspn(data)== %d\n",strspn(data, "0123456789"));
+		}
+	}
+	else
+	{
+		DBG_WarnMsg("data Err!\n",strspn(data, "0123456789"));
+	}
+
 	return 0;
 }
 int EX_GetSerialNumber(char*data)
