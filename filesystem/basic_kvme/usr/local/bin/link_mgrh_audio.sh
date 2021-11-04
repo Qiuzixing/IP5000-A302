@@ -441,21 +441,21 @@ start_alm()
 	event_loop &
 
 	if [ $UGP_FLAG = 'success' ];then
+		ipc @m_lm_set s open_report
 		#set lineio_sel pin to default to line_out;0:line_out;1:line_in
 		case "$MODEL_NUMBER" in
 			KDS-EN7)
-				ipc @m_lm_set s open_report
+				audioswitch &
 				echo out_analog > /sys/devices/platform/1500_i2s/io_select
 			;;
 			KDS-SW3-EN7)
-				ipc @m_lm_set s open_report
+				audioswitch &
 				ipc @m_lm_set s audio_out:0:1:2:3
 				ipc @m_lm_set s get_link_status:0
 				ipc @m_lm_set s get_link_status:1
 				ipc @m_lm_set s get_link_status:2
 			;;
 			WP-SW2-EN7)
-				ipc @m_lm_set s open_report
 				ipc @m_lm_set s get_link_status:0
 				ipc @m_lm_set s get_link_status:1
 			;;

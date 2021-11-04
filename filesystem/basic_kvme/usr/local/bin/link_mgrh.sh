@@ -2614,25 +2614,6 @@ case "$MODEL_NUMBER" in
 esac
 
 if [ $UGP_FLAG = 'success' ];then
-	echo "mainswitch start."
-	case "$MODEL_NUMBER" in
-		KDS-EN7)
-			audioswitch &
-		;;
-		KDS-SW3-EN7)
-			mainswitch &
-			audioswitch &
-		;;
-		WP-SW2-EN7)
-			mainswitch &
-		;;
-		*)
-		;;
-	esac
-
-fi
-
-if [ $UGP_FLAG = 'success' ];then
 	echo "lock file for @m_lm_query" > /var/lock/@m_lm_query.lck
 	ipc_server_listen_one @m_lm_set @m_lm_get @m_lm_query @m_lm_reply &
 	usleep 1000
@@ -2666,6 +2647,19 @@ if [ $UGP_FLAG = 'success' ];then
 	if [ -f "/tmp/socket_ready" ];then
 		rm /tmp/socket_ready
 	fi
+fi
+
+if [ $UGP_FLAG = 'success' ];then
+	case "$MODEL_NUMBER" in
+		KDS-SW3-EN7)
+			mainswitch &
+		;;
+		WP-SW2-EN7)
+			mainswitch &
+		;;
+		*)
+		;;
+	esac
 fi
 
 #configure the default configuration of MCU pin
