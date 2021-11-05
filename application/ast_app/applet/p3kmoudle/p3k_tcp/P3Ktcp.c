@@ -6,7 +6,15 @@
 #include "handlelist.h"
 #include "debugtool.h"
 #include "P3Ktcp.h"
-#include "../p3klib/cfgparser.h"
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <assert.h>
+#include <errno.h>
+#include <net/if.h>       /* ifreq struct */
+#include <net/if_arp.h>
 SocketWorkInfo_S gs_netHandle = {0};
 SocketWorkInfo_S gs_netHandle1 = {0};
 
@@ -58,6 +66,89 @@ static HandleList_S* Tcp_NetGetMngHandleHead()
 
 	return &(gs_cliHandleMng.listHandleHead);
 }
+
+void Create_LinkList(ConnectionList_S *list)
+{
+    Connection_Info *p_head = malloc(sizeof(Connection_Info));
+    strcpy(p_head->ip,"0");
+    p_head->port = 0;
+    p_head->next = NULL;
+    p_head->pre = NULL;
+
+    list->head = p_head;
+    list->tail = p_head;
+    list->size = 0;
+}
+void HeadInsert_LinkList(ConnectionList_S * list, Connection_Info *pnew)
+{
+    if (list == NULL || pnew == NULL || list->head == NULL)
+		return;
+	Connection_Info *head = list->head;
+	if (head->next == NULL)
+		list->tail = pnew;
+
+	pnew->next = head->next;
+	pnew->pre = head;
+	if(head->next != NULL)
+		head->next->pre = pnew;
+	head->next = pnew;
+	list->size++;
+	return 0;  
+}
+void Print_LinkList(ConnectionList_S *list)
+{}
+void DeleteById_LinkList(ConnectionList_S *list, int socket)
+{
+    if (list == NULL || list->head == NULL || list->head->next == NULL)
+		return;
+	Connection_Info *pcur = list->head->next;
+	Connection_Info *tmp = NULL;
+    struct sockaddr_in sa;
+    int len1 = sizeof(sa);
+    getpeername(socket,(struct sockaddr *)&sa,&len1);
+    int delport = ntohs(sa.sin_port);
+    char delip[24] = "";
+    strcpy(delip,inet_ntoa(sa.sin_addr));
+	while (pcur != NULL)
+	{
+		if (pcur->port == delport && !memcmp(pcur->ip,delip,strlen(delip)))
+		{
+
+			pcur->pre->next = pcur->next;//pcur的前一个的next指向pcur的后一个
+			if(pcur->next !=NULL)
+				pcur->next->pre = pcur->pre;//pcur的下一个的pre指向pcur的前一个
+	
+			if (pcur == list->tail)//pcur当前节点等于尾节点
+				list->tail = pcur->pre;//更新尾节点
+
+			tmp = pcur->next;//tmp保存了pcur的下一个节点的地址
+			free(pcur);//释放当前节点
+			pcur = tmp;//pcur向后指
+			list->size--;//更新size
+		}
+		else
+		{
+			pcur = pcur->next;
+		}
+	
+	}
+}
+
+void Destroy_LinkList(ConnectionList_S *list)
+{
+    if (list == NULL)
+		return;
+	Connection_Info *head = list->head;
+	Connection_Info *tmp=NULL;
+	while (head != NULL)
+	{
+		tmp = head->next;
+		free(head);
+		head = tmp;
+	}
+	free(list);
+}
+
 static TcpCliP3KInfo_S* Tcp_NetGetHandleMsgByID(int sockFd)//通过ID获取Handle
 {
 	TcpCliP3KInfo_S *handle = NULL;
@@ -116,6 +207,12 @@ int Tcp_NetSenddata(int userId,char*data,int len)
 	{
 		return -1;
 	}
+    struct sockaddr_in sa;
+    int len1 = sizeof(sa);
+    if(!getpeername(info->sockfd,(struct sockaddr *)&sa,&len1))
+    {
+        printf("对方ip:%s port:%d\n",inet_ntoa(sa.sin_addr),ntohs(sa.sin_port));
+    }
 	SOCKET_TcpSendMessage(info->sockfd,data,len);
 	return 0;
 }
@@ -255,6 +352,7 @@ void Delete_TcpLink(TimeOut_S * head,int socket)
 			//DBG_ErrMsg("timeout\n");
 			//Tcp_NetClose(*(int *)fd);
 			//close(*(int *)fd);
+			DeleteById_LinkList(g_connectionlist_info,socket);
 			rec->next = tmp->next;
 			free(tmp);
 			break;
@@ -343,6 +441,14 @@ int Tcp_NetRecvMsg(NetCliInfo_T *cli)
 			pnew->soket = cli->recvSocket;
 			pnew->next = NULL;
 			HeadInsert(sTimeOut,pnew);
+            
+            Connection_Info * pnewconnection = (Connection_Info *)malloc(sizeof(Connection_Info));
+            pnewconnection->port = cli->fromPort;
+            strcpy(pnewconnection->ip,cli->fromIP);
+            pnewconnection->next = NULL;
+            pnewconnection->pre = NULL;
+            HeadInsert_LinkList(g_connectionlist_info,pnewconnection);
+            
 			pthread_t pth_time;
 			pthread_create(&pth_time, NULL, LoginTimtOut, &cli->recvSocket);
 		}
@@ -494,6 +600,8 @@ int main (int argc, char const *argv[])
 		flagS = 1;
 	}
     Tcp_NNetInit();
+    g_connectionlist_info = malloc(sizeof(ConnectionList_S));
+    Create_LinkList(g_connectionlist_info);
 	char ch =0;
 	while(1)
 	{
@@ -504,6 +612,7 @@ int main (int argc, char const *argv[])
 		}
 		usleep(2000000);
 	}
+    Destroy_LinkList(g_connectionlist_info);
 	Tcp_NetUnInit();
 	return 0;
 }

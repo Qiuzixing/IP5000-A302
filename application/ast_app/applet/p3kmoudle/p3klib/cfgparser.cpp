@@ -29,6 +29,8 @@ Log_Info			g_log_info;
 
 State_E				g_osd_enable;
 int                 g_Udp_Socket;
+int                 g_Udp_Inside_Socket;
+ConnectionList_S    *g_connectionlist_info;
 
 
 using namespace std;

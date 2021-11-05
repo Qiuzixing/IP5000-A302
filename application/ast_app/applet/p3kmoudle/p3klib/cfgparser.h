@@ -462,6 +462,20 @@ typedef struct   _Log_Info
 	int 	period; // 2:daily; 3: weekly
 }Log_Info;
 
+typedef struct _Connection_Info{
+    char                        ip[24];
+	int                         port;
+	struct _Connection_Info	    *next;
+	struct _Connection_Info	    *pre;
+}Connection_Info;
+
+typedef struct _ConnectionList_S{
+	int                         size;
+    Connection_Info            *head;
+    Connection_Info            *tail;
+}ConnectionList_S;
+
+
 extern Channel_Info 		g_channel_info;
 extern Audio_Info			g_audio_info;
 extern Video_Info			g_video_info;
@@ -479,7 +493,8 @@ extern Log_Info				g_log_info;
 extern State_E				g_osd_enable;
 
 extern int                  g_Udp_Socket;     
-
+extern int                  g_Udp_Inside_Socket;
+extern ConnectionList_S     *g_connectionlist_info;
 typedef enum _SyncInfoType_E
 {
 	CHANNEL_INFO = 0,

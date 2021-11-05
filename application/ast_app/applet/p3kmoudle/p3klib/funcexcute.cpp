@@ -3279,16 +3279,26 @@ int EX_GetSignalList(char info[][MAX_SIGNALE_LEN],int num)
 
 int EX_GetConnectionList(char info[][MAX_SIGNALE_LEN],int num)
 {
-	int tmpnum = 4;
-	char *str ="[(TCP:80,0.0.0.0:0),LISTEN]";
-	char *str1= "[(TCP:5000,0.0.0.0:0),LISTEN]";
-	char *str2= "[(TCP:80,192.168.114.3:52400),ESTABLISHED]";
-	char *str3= "[(TCP:5000,192.168.1.100:51647),ESTABLISHED]";
-	memcpy(info[0],str,strlen(str));
-	memcpy(info[1],str1,strlen(str1));
-	memcpy(info[2],str2,strlen(str2));
-	memcpy(info[3],str3,strlen(str3));
-	return tmpnum;
+    char str[64] = "";
+    int i = 0;
+    char strtcp[64]= "";
+    char strudp[64]= "";
+    sprintf(strtcp,"[(TCP:%d,0.0.0.0:0),LISTEN]",g_network_info.tcp_port);
+    sprintf(strudp,"[(UDP:%d,0.0.0.0:0),LISTEN]",g_network_info.udp_port);
+    memcpy(info[i],strtcp,strlen(strtcp));
+    i++;
+    Connection_Info *pcur = g_connectionlist_info->head->next;//pcur指向首节点
+	while (pcur != NULL)
+	{
+		memset(str,0,sizeof(str));
+        sprintf(str,"[(TCP:%d,%s:%d),ESTABLISHED]",g_network_info.tcp_port,pcur->ip,pcur->port);
+        memcpy(info[i],str,strlen(str));
+		pcur = pcur->next;
+        i++;
+	}
+    memcpy(info[i],strudp,strlen(strudp));
+    i++;
+	return i;
 }
 
 int EX_GetPortList(char info[][MAX_PORT_LEN],int num)
