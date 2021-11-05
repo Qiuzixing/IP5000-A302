@@ -2414,8 +2414,6 @@ init_param_from_flash()
 	astparam s repeat_board_lighting_flag 0
 	# Print the final parameters
 	echo_parameters
-
-	init_param_from_p3k_cfg
 }
 
 init_param_from_p3k_cfg()
@@ -2585,6 +2583,8 @@ while [ -n "$1" ]; do
 done
 init_version_file
 init_info_file
+init_p3k_cfg_file
+init_param_from_p3k_cfg
 
 # $AST_PLATFORM = ast1500hv4 or ptv1500hv2 or pce1500hv3
 echo ""

@@ -3402,7 +3402,6 @@ init_param_from_flash()
 	# Print the final parameters
 	echo_parameters
 
-	init_param_from_p3k_cfg
 }
 
 init_param_from_p3k_cfg()
@@ -3534,6 +3533,8 @@ done
 
 init_version_file
 init_info_file
+init_p3k_cfg_file
+init_param_from_p3k_cfg
 
 # $AST_PLATFORM = ast1500cv4 or ptv1500cv2 or pce1500cv3
 echo ""

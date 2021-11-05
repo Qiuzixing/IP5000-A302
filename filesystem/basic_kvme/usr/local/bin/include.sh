@@ -4090,6 +4090,11 @@ init_info_file() {
 	echo "}" >> /etc/board_info.json
 }
 
+init_p3k_cfg_file() {
+	echo "init_p3k_cfg_file"
+	p3ktcp -c
+}
+
 handle_e_ldap() {
 	init_ldap_params
 	pkill -9 ldap_daemon
