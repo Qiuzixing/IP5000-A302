@@ -4092,6 +4092,20 @@ init_info_file() {
 
 init_p3k_cfg_file() {
 	echo "init_p3k_cfg_file"
+
+	# The $HOSTNAME_ID is now decided in init_share_param_from_flash()
+	if [ -z "$HOSTNAME_CUSTOMIZED" ]; then
+		HOSTNAME="${MODEL_NUMBER}-${HOSTNAME_ID}"
+	else
+		HOSTNAME="$HOSTNAME_CUSTOMIZED"
+	fi
+
+	echo "HOSTNAME=$HOSTNAME"
+	astsetname $HOSTNAME
+	echo "${MODEL_NUMBER}-${HOSTNAME_ID}" > /etc/device_name
+	echo $HOSTNAME > /etc/hostname
+	hostname -F /etc/hostname
+
 	p3ktcp -c
 }
 
