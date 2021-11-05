@@ -184,9 +184,9 @@ int Cfg_Init_Audio(void)
 	g_audio_info.input_pri[0] = AUDIO_IN_HDMI;
 	g_audio_info.input_pri[1] = AUDIO_IN_ANALOG;
 	g_audio_info.input_pri[2] = AUDIO_IN_DANTE;
-	g_audio_info.dst_port[0] = PORT_NONE;
-	g_audio_info.dst_port[1] = PORT_NONE;
-	g_audio_info.dst_port[2] = PORT_NONE;
+	g_audio_info.dst_port[0] = PORT_STREAM;
+	g_audio_info.dst_port[1] = PORT_HDMI;
+	g_audio_info.dst_port[2] = PORT_DANTE;
 	g_audio_info.dst_port[3] = PORT_NONE;
 	g_audio_info.source = AUDIO_IN_HDMI;
 	sprintf(g_audio_info.dante_name,"dante");

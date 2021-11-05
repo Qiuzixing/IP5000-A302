@@ -211,7 +211,7 @@ int Tcp_NetSenddata(int userId,char*data,int len)
     int len1 = sizeof(sa);
     if(!getpeername(info->sockfd,(struct sockaddr *)&sa,&len1))
     {
-        printf("¶Ô·½ip:%s port:%d\n",inet_ntoa(sa.sin_addr),ntohs(sa.sin_port));
+        printf("Dest ip:%s port:%d\n",inet_ntoa(sa.sin_addr),ntohs(sa.sin_port));
     }
 	SOCKET_TcpSendMessage(info->sockfd,data,len);
 	return 0;
