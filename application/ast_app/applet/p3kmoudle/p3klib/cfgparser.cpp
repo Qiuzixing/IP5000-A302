@@ -60,6 +60,37 @@ int Cfg_InitModule(void)
 	return 0;
 }
 
+int Cfg_Check_File(char * path)
+{
+	int nAccessRet = access(path,F_OK | R_OK | W_OK);
+	if(0 > nAccessRet)
+	{
+		DBG_ErrMsg("nAccessRet %s Failed\n",path);
+		return -1;
+	}
+
+	Json::Reader reader;
+	Json::Value root1;
+	char pBuf[1024] = "";
+	FILE *fp;
+	fp = fopen(path, "r");
+	if (fp == NULL) {
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
+		return -1;
+	}
+
+	fread(pBuf,1,sizeof(pBuf),fp);
+
+	if(reader.parse(pBuf, root1)== false)
+	{
+		DBG_ErrMsg("ERROR! %s is not json\n",path);
+		fclose(fp);
+		return -1;
+	}
+
+	fclose(fp);
+	return 0;
+}
 int Cfg_Init(void)
 {
 	DBG_InfoMsg("Cfg_Init\n");
@@ -103,14 +134,14 @@ int Cfg_Init_Channel(void)
 	char path[128] = "";
 	sprintf(path,"%s%s%s",CONF_PATH,g_module,CHANNEL_DEF_FILE);
 
-	g_channel_info.channel_id = 0;
-	strcpy(g_channel_info.channel_Name,"CH_00");
+	g_channel_info.channel_id = 1;
+	strcpy(g_channel_info.channel_Name,"CH_01");
 
 	//Check Channel cfg
-	int nAccessRet = access(path,F_OK | R_OK | W_OK);
+	int nAccessRet = Cfg_Check_File(path);
 	if(0 > nAccessRet)
 	{
-		printf("nAccessRet %s Failed\n",path);
+		DBG_ErrMsg("Cfg_Check_File %s Failed\n",path);
 
 		//create channel cfg from default value
 		Cfg_Update(CHANNEL_INFO);
@@ -192,10 +223,10 @@ int Cfg_Init_Audio(void)
 	sprintf(g_audio_info.dante_name,"dante");
 
 	//Check autoswitch cfg
-	int nAccessRet = access(path,F_OK | R_OK | W_OK);
+	int nAccessRet = Cfg_Check_File(path);
 	if(0 > nAccessRet)
 	{
-		printf("nAccessRet %s Failed\n",path);
+		DBG_ErrMsg("Cfg_Check_File %s Failed\n",path);
 
 		//get dante name
 		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
@@ -360,10 +391,10 @@ int Cfg_Init_Video(void)
 	g_video_info.force_rgb = 1;
 
 	//Check Video cfg
-	int nAccessRet = access(path,F_OK | R_OK | W_OK);
+	int nAccessRet = Cfg_Check_File(path);
 	if(0 > nAccessRet)
 	{
-		printf("nAccessRet %s Failed\n",path);
+		DBG_ErrMsg("Cfg_Check_File %s Failed\n",path);
 
 		//create autoswitch cfg from default value
 		Cfg_Update(VIDEO_INFO);
@@ -429,10 +460,10 @@ int Cfg_Init_AutoSwitch(void)
 	g_autoswitch_info.source = 2;
 #endif
 	//Check autoswitch cfg
-	int nAccessRet = access(path,F_OK | R_OK | W_OK);
+	int nAccessRet = Cfg_Check_File(path);
 	if(0 > nAccessRet)
 	{
-		printf("nAccessRet %s Failed\n",path);
+		DBG_ErrMsg("Cfg_Check_File %s Failed\n",path);
 
 		//create autoswitch cfg from default value
 		Cfg_Update(AUTOSWITCH_INFO);
@@ -599,10 +630,10 @@ int Cfg_Init_AVSetting(void)
 	g_avsetting_info.hdcp_mode[2] = ON;
 
 	//Check autoswitch cfg
-	int nAccessRet = access(path,F_OK | R_OK | W_OK);
+	int nAccessRet = Cfg_Check_File(path);
 	if(0 > nAccessRet)
 	{
-		printf("nAccessRet %s Failed\n",path);
+		DBG_ErrMsg("Cfg_Check_File %s Failed\n",path);
 
 		//create autoswitch cfg from default value
 		Cfg_Update(AV_SETTING);
@@ -728,10 +759,10 @@ int Cfg_Init_EDID(void)
 	g_edid_info.active_id = 0;
 
 	//Check log cfg
-	int nAccessRet = access(path,F_OK | R_OK | W_OK);
+	int nAccessRet = Cfg_Check_File(path);
 	if(0 > nAccessRet)
 	{
-		printf("nAccessRet %s Failed\n",path);
+		DBG_ErrMsg("Cfg_Check_File %s Failed\n",path);
 
 		//create channel cfg from default value
 		Cfg_Update(EDID_INFO);
@@ -811,10 +842,10 @@ int Cfg_Init_Device(void)
 	GetBoardInfo(BOARD_SN, g_device_info.sn, 32);
 
 	//Check log cfg
-	int nAccessRet = access(path,F_OK | R_OK | W_OK);
+	int nAccessRet = Cfg_Check_File(path);
 	if(0 > nAccessRet)
 	{
-		printf("nAccessRet %s Failed\n",path);
+		DBG_ErrMsg("Cfg_Check_File %s Failed\n",path);
 
 		//create channel cfg from default value
 		Cfg_Update(DEVICE_INFO);
@@ -909,10 +940,10 @@ int Cfg_Init_Version(void)
 
 
 	//Check version cfg
-	int nAccessRet = access(path,F_OK | R_OK | W_OK);
+	int nAccessRet = Cfg_Check_File(path);
 	if(0 > nAccessRet)
 	{
-		printf("nAccessRet %s Failed\n",path);
+		DBG_ErrMsg("Cfg_Check_File %s Failed\n",path);
 
 		//create channel cfg from default value
 		Cfg_Update(VERSION_INFO);
@@ -979,10 +1010,10 @@ int Cfg_Init_Time(void)
 	sprintf(g_time_info.ntp_server,"0.0.0.0");
 
 	//Check time cfg
-	int nAccessRet = access(path,F_OK | R_OK | W_OK);
+	int nAccessRet = Cfg_Check_File(path);
 	if(0 > nAccessRet)
 	{
-		printf("nAccessRet %s Failed\n",path);
+		DBG_ErrMsg("Cfg_Check_File %s Failed\n",path);
 
 		//create channel cfg from default value
 		Cfg_Update(TIME_INFO);
@@ -1067,10 +1098,10 @@ int Cfg_Init_User(void)
 	g_user_info.seurity_status = OFF;
 
 	//Check user cfg
-	int nAccessRet = access(path,F_OK | R_OK | W_OK);
+	int nAccessRet = Cfg_Check_File(path);
 	if(0 > nAccessRet)
 	{
-		printf("nAccessRet %s Failed\n",path);
+		DBG_ErrMsg("Cfg_Check_File %s Failed\n",path);
 
 		//create channel cfg from default value
 		Cfg_Update(USER_INFO);
@@ -1169,10 +1200,10 @@ int Cfg_Init_VideoWall(void)
 	g_videowall_info.bezel_vertical_offset = 0;
 
 	//Check user cfg
-	int nAccessRet = access(path,F_OK | R_OK | W_OK);
+	int nAccessRet = Cfg_Check_File(path);
 	if(0 > nAccessRet)
 	{
-		printf("nAccessRet %s Failed\n",path);
+		DBG_ErrMsg("Cfg_Check_File %s Failed\n",path);
 
 		//create channel cfg from default value
 		Cfg_Update(VIDEOWALL_INFO);
@@ -1256,10 +1287,10 @@ int Cfg_Init_Gateway(void)
 	g_gateway_info.ir_direction = DIRECTION_OUT;
 
 	//Check gateway cfg
-	int nAccessRet = access(path,F_OK | R_OK | W_OK);
+	int nAccessRet = Cfg_Check_File(path);
 	if(0 > nAccessRet)
 	{
-		printf("nAccessRet %s Failed\n",path);
+		DBG_ErrMsg("Cfg_Check_File %s Failed\n",path);
 
 		//create autoswitch cfg from default value
 		Cfg_Update(GATEWAY_INFO);
@@ -1437,10 +1468,10 @@ int Cfg_Init_Network(void)
 	g_network_info.beacon_port = 50000;
 
 	//Check gateway cfg
-	int nAccessRet = access(path,F_OK | R_OK | W_OK);
+	int nAccessRet = Cfg_Check_File(path);
 	if(0 > nAccessRet)
 	{
-		printf("nAccessRet %s Failed\n",path);
+		DBG_ErrMsg("Cfg_Check_File %s Failed\n",path);
 
 		//create autoswitch cfg from default value
 		Cfg_Update(NETWORK_INFO);
@@ -1679,10 +1710,10 @@ int Cfg_Init_Log(void)
 	g_log_info.period = 3;
 
 	//Check log cfg
-	int nAccessRet = access(path,F_OK | R_OK | W_OK);
+	int nAccessRet = Cfg_Check_File(path);
 	if(0 > nAccessRet)
 	{
-		printf("nAccessRet %s Failed\n",path);
+		DBG_ErrMsg("Cfg_Check_File %s Failed\n",path);
 
 		//create channel cfg from default value
 		Cfg_Update(LOG_INFO);
@@ -1809,9 +1840,11 @@ int Cfg_Create_AutoswitchDelay(void)
 	sprintf(path,"%s%s%s",CONF_PATH,g_module,AUTOSWITCH_DELAY_FILE);
 
 	//Check Video cfg
-	int nAccessRet = access(path,F_OK | R_OK | W_OK);
+	int nAccessRet = Cfg_Check_File(path);
 	if(0 == nAccessRet)
 	{
+		DBG_InfoMsg("Cfg_Check_File %s Suceess\n",path);
+
 		//printf("nAccessRet %s Suceess\n",path);
 		return 0;
 	}
@@ -1866,9 +1899,10 @@ int Cfg_Create_AVSignal(void)
 	sprintf(path,"%s%s%s",CONF_PATH,g_module,AV_SIGNAL_FILE);
 
 	//Check Video cfg
-	int nAccessRet = access(path,F_OK | R_OK | W_OK);
+	int nAccessRet = Cfg_Check_File(path);
 	if(0 == nAccessRet)
 	{
+		DBG_InfoMsg("Cfg_Check_File %s Suceess\n",path);
 		//printf("nAccessRet %s Suceess\n",path);
 		return 0;
 	}
@@ -1923,9 +1957,10 @@ int Cfg_Create_DisplaySleep(void)
 	sprintf(path,"%s%s%s",CONF_PATH,g_module,DISPLAY_SLEEP_FILE);
 
 	//Check Video cfg
-	int nAccessRet = access(path,F_OK | R_OK | W_OK);
+	int nAccessRet = Cfg_Check_File(path);
 	if(0 == nAccessRet)
 	{
+		DBG_InfoMsg("Cfg_Check_File %s Suceess\n",path);
 		//printf("nAccessRet %s Suceess\n",path);
 		return 0;
 	}
@@ -1981,9 +2016,10 @@ int Cfg_Create_OsdSetting(void)
 	sprintf(path,"%s%s%s",CONF_PATH,g_module,OSD_FILE);
 
 	//Check Video cfg
-	int nAccessRet = access(path,F_OK | R_OK | W_OK);
+	int nAccessRet = Cfg_Check_File(path);
 	if(0 == nAccessRet)
 	{
+		DBG_InfoMsg("Cfg_Check_File %s Suceess\n",path);
 		//printf("nAccessRet %s Suceess\n",path);
 		return 0;
 	}
@@ -2046,9 +2082,10 @@ int Cfg_Create_OverlaySetting(void)
 	sprintf(path,"%s%s%s",CONF_PATH,g_module,OVERLAY_PATH);
 
 	//Check overlay
-	int nAccessRet = access(path,F_OK | R_OK | W_OK);
+	int nAccessRet = Cfg_Check_File(path);
 	if(0 == nAccessRet)
 	{
+		DBG_InfoMsg("Cfg_Check_File %s Suceess\n",path);
 		//printf("nAccessRet %s Suceess\n",path);
 		return 0;
 	}
@@ -2068,7 +2105,7 @@ int Cfg_Create_SecuritySetting(void)
 	sprintf(path,"%s%s%s",CONF_PATH,g_module,SECURITY_HTTPS_FILE);
 
 	//Check Video cfg
-	int nAccessRet = access(path,F_OK | R_OK | W_OK);
+	int nAccessRet = Cfg_Check_File(path);
 	if(0 != nAccessRet)
 	{
 		Json::Value root;
@@ -2111,9 +2148,12 @@ int Cfg_Create_SecuritySetting(void)
 	sprintf(path,"%s%s%s",CONF_PATH,g_module,SECURITY_8021X_FILE);
 
 	//Check Video cfg
-	nAccessRet = access(path,F_OK | R_OK | W_OK);
+
+	nAccessRet = Cfg_Check_File(path);
 	if(0 != nAccessRet)
 	{
+		DBG_InfoMsg("Cfg_Check_File %s Failed\n",path);
+
 		//printf("nAccessRet %s Suceess\n",path);
 		Json::Value root;
 
@@ -2172,9 +2212,11 @@ int Cfg_Create_KVMSetting(void)
 	sprintf(path,"%s%s%s",CONF_PATH,g_module,KVM_FILE);
 
 	//Check Video cfg
-	int nAccessRet = access(path,F_OK | R_OK | W_OK);
+
+	int nAccessRet = Cfg_Check_File(path);
 	if(0 == nAccessRet)
 	{
+		DBG_InfoMsg("Cfg_Check_File %s Suceess\n",path);
 		//printf("nAccessRet %s Suceess\n",path);
 		return 0;
 	}
@@ -2242,56 +2284,15 @@ int Cfg_Create_EDIDList(void)
 	sprintf(path,"%s%s%s",CONF_PATH,g_module,EDID_LIST_FILE);
 
 	//Check EDID
-	int nAccessRet = access(path,F_OK | R_OK | W_OK);
+	int nAccessRet = Cfg_Check_File(path);
 	if(0 == nAccessRet)
 	{
 		//printf("nAccessRet %s Suceess\n",path);
 		return 0;
 	}
-#if 1
+
 	system("cp -rf /share/edid /data/configs/kds-7/");
 
-#else
-	Json::Value root;
-
-	root["0"] = JSON_EDID_DEFAULT;
-	root["1"] = "";
-	root["2"] = "";
-	root["3"] = "";
-	root["4"] = "";
-	root["5"] = "";
-	root["6"] = "";
-	root["7"] = "";
-
-	Json::Value root1;
-	root1[JSON_EDID_LIST] = root;
-
-	memset(path,0,128);
-	sprintf(path,"%s%s%s",CONF_PATH,g_module,EDID_PATH);
-	int s32AccessRet = access(path, F_OK);
-	if(s32AccessRet != 0)
-	{
-		char cmd[256] = "";
-		sprintf(cmd,"mkdir -p %s",path);
-
-		system(cmd);
-	}
-
-	memset(path,0,128);
-	sprintf(path,"%s%s%s",CONF_PATH,g_module,EDID_LIST_FILE);
-	FILE *fp;
-	fp = fopen(path, "w");
-	if (fp == NULL) {
-		DBG_ErrMsg("ERROR! can't open %s\n",path);
-		return -1;
-	}
-
-	string strEDIDList = root1.toStyledString();
-	fwrite(strEDIDList.c_str(),1,strEDIDList.size(),fp);
-
-	fclose(fp);
-	fflush(fp);
-#endif
 	return 0;
 }
 
@@ -2316,7 +2317,7 @@ int Cfg_Create_Channel(void)
 	sprintf(path,"%s%s%s",CONF_PATH,g_module,CHANNEL_MAP_FILE);
 
 	//Check Video cfg
-	int nAccessRet = access(path,F_OK | R_OK | W_OK);
+	int nAccessRet = Cfg_Check_File(path);
 	if(0 == nAccessRet)
 	{
 		//printf("nAccessRet %s Suceess\n",path);
@@ -2639,7 +2640,7 @@ int Cfg_Update_Video(void)
 	char pBuf[1024] = "";
 
 	//Check Video cfg
-	int nAccessRet = access(path,F_OK | R_OK | W_OK);
+	int nAccessRet = Cfg_Check_File(path);
 	if(0 > nAccessRet)
 	{
 		printf("nAccessRet %s Failed\n",path);
@@ -3541,7 +3542,7 @@ int Cfg_Update_OSD(void)
 	char pBuf[1024] = "";
 
 	//Check OSD cfg
-	int nAccessRet = access(path,F_OK | R_OK | W_OK);
+	int nAccessRet = Cfg_Check_File(path);
 	if(0 > nAccessRet)
 	{
 		printf("nAccessRet %s Failed\n",path);
