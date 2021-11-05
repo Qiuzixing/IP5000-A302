@@ -599,9 +599,9 @@ int EX_GetVidOutRatio(char*date )
 	//memcpy(date,value,strlen(value));
 
 	char* cmd1 = "cat /sys/devices/platform/videoip/timing_info | sed -rn 's#^.*Signal Type: HDMI (.*).*$#\\1#gp'";
-	char buf1[16] = "";
+	char buf1[32] = "";
 
-	mysystem(cmd1,buf1,16);
+	mysystem(cmd1,buf1,32);
 
 	if(strlen(buf1) > 1)
 		memcpy(date,buf1,strlen(buf1));
@@ -729,7 +729,7 @@ int EX_SetRollback(char * type)
 	char* cmd1 = "astparam misc g cursys";
 	char buf1[64] = "";
 
-	mysystem(cmd1,buf1,16);
+	mysystem(cmd1,buf1,64);
 
 	if(strstr(buf1,"not defined") != 0)
 	{
@@ -1875,7 +1875,7 @@ int EX_GetDecoderAVChannelId(ChSelect_S * id)
 	char* cmd1 = "astparam g ch_select_v";
 	char buf1[64] = "";
 
-	mysystem(cmd1,buf1,16);
+	mysystem(cmd1,buf1,64);
 
 	if(strstr(buf1,"not defined") != 0)
 	{
@@ -2087,11 +2087,15 @@ int EX_GetVideoImageScaleMode(int *mode,char*res)
 	*mode = 0;
 	strcpy(res,"0");
 
-	char buf[16] = "";
+	char buf[64] = "";
 
-	mysystem("astparam g v_output_timing_convert",buf,16);
-
-	if(strcmp("0",buf) == 0)
+	mysystem("astparam g v_output_timing_convert",buf,64);
+	if(strstr(buf,"not defined") != 0)
+	{
+		*mode = 0;
+		strcpy(res,"0");
+	}
+	else if(strcmp("0",buf) == 0)
 	{
 		*mode = 0;
 		strcpy(res,"0");
@@ -3154,10 +3158,10 @@ int EX_GetSignalList(char info[][MAX_SIGNALE_LEN],int num)
 	memcpy(info[0],str,strlen(str));
 	memcpy(info[1],str1,strlen(str1));
 
-	char buf[16] = "";
+	char buf[64] = "";
 
 #ifdef CONFIG_P3K_HOST
-	mysystem("cat /sys/devices/platform/videoip/timing_info", buf, 16);
+	mysystem("cat /sys/devices/platform/videoip/timing_info", buf, 64);
 
 	if(strstr(buf,"Not Available") != 0)
 	{
@@ -3167,9 +3171,9 @@ int EX_GetSignalList(char info[][MAX_SIGNALE_LEN],int num)
 	{
 		if((strcmp(g_version_info.model,IPE_P_MODULE) == 0)||(strcmp(g_version_info.model,IPE_W_MODULE) == 0))
 		{
-			memset(buf,0,16);
+			memset(buf,0,64);
 			//Get Cuurent hdmi in
-			mysystem("/usr/local/bin/sconfig --show input", buf, 16);
+			mysystem("/usr/local/bin/sconfig --show input", buf, 64);
 			if(strstr(buf,"HDMI3") != 0)
 				strcpy(info[0],"in.usb_c.3.video.1");
 			else if(strstr(buf,"HDMI2") != 0)
@@ -3191,7 +3195,7 @@ int EX_GetSignalList(char info[][MAX_SIGNALE_LEN],int num)
 
 		if((strcmp(g_version_info.model,IPE_P_MODULE) == 0)||(strcmp(g_version_info.model,IPE_MODULE) == 0))
 		{
-			mysystem("astparam g tv_access", buf, 16);
+			mysystem("astparam g tv_access", buf, 64);
 
 			if(strstr(buf,"not defined") != 0)
 			{
@@ -3212,7 +3216,7 @@ int EX_GetSignalList(char info[][MAX_SIGNALE_LEN],int num)
 
 	if((strcmp(g_version_info.model,IPD_MODULE) == 0)&&(port == 1))//Local HDMI
 	{
-		mysystem("astparam g rx_local_input", buf, 16);
+		mysystem("astparam g rx_local_input", buf, 64);
 
 		if(strstr(buf,"not defined") != 0)
 		{
@@ -3229,7 +3233,7 @@ int EX_GetSignalList(char info[][MAX_SIGNALE_LEN],int num)
 	}
 	else //stream
 	{
-		mysystem("cat /sys/devices/platform/videoip/timing_info", buf, 16);
+		mysystem("cat /sys/devices/platform/videoip/timing_info", buf, 64);
 
 		if(strstr(buf,"Not Available") != 0)
 		{
@@ -3246,7 +3250,7 @@ int EX_GetSignalList(char info[][MAX_SIGNALE_LEN],int num)
 	{
 		if(strcmp(g_version_info.model,IPD_MODULE) == 0)
 		{
-			mysystem("astparam g tv_access", buf, 16);
+			mysystem("astparam g tv_access", buf, 64);
 
 			if(strstr(buf,"not defined") != 0)
 			{
@@ -3263,7 +3267,7 @@ int EX_GetSignalList(char info[][MAX_SIGNALE_LEN],int num)
 		}
 		else
 		{
-			mysystem("cat /sys/devices/platform/SiI9136/tv_access", buf, 16);
+			mysystem("cat /sys/devices/platform/SiI9136/tv_access", buf, 64);
 
 			if(strstr(buf,"1") != 0)
 			{
