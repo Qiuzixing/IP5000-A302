@@ -1885,8 +1885,8 @@ int Cfg_Create_AutoswitchDelay(void)
 	string strAutoSwitchSetting = root1.toStyledString();
 	fwrite(strAutoSwitchSetting.c_str(),1,strAutoSwitchSetting.size(),fp);
 
-	fclose(fp);
 	fflush(fp);
+	fclose(fp);
 	return 0;
 }
 
@@ -1943,8 +1943,8 @@ int Cfg_Create_AVSignal(void)
 	string strAVSignal = root1.toStyledString();
 	fwrite(strAVSignal.c_str(),1,strAVSignal.size(),fp);
 
-	fclose(fp);
 	fflush(fp);
+	fclose(fp);
 	return 0;
 }
 
@@ -1997,8 +1997,9 @@ int Cfg_Create_DisplaySleep(void)
 	string strDispDelay = root1.toStyledString();
 	fwrite(strDispDelay.c_str(),1,strDispDelay.size(),fp);
 
-	fclose(fp);
 	fflush(fp);
+	fclose(fp);
+
 	return 0;
 }
 
@@ -2063,8 +2064,8 @@ int Cfg_Create_OsdSetting(void)
 	string strOSD = root1.toStyledString();
 	fwrite(strOSD.c_str(),1,strOSD.size(),fp);
 
-	fclose(fp);
 	fflush(fp);
+	fclose(fp);
 	return 0;
 }
 
@@ -2141,8 +2142,8 @@ int Cfg_Create_SecuritySetting(void)
 		string str8021X = root1.toStyledString();
 		fwrite(str8021X.c_str(),1,str8021X.size(),fp);
 
-		fclose(fp);
 		fflush(fp);
+		fclose(fp);
 	}
 
 	sprintf(path,"%s%s%s",CONF_PATH,g_module,SECURITY_8021X_FILE);
@@ -2191,8 +2192,8 @@ int Cfg_Create_SecuritySetting(void)
 		string str8021X = root1.toStyledString();
 		fwrite(str8021X.c_str(),1,str8021X.size(),fp);
 
-		fclose(fp);
 		fflush(fp);
+		fclose(fp);
 	}
 
 	return 0;
@@ -2265,8 +2266,8 @@ int Cfg_Create_KVMSetting(void)
 	string strKvm = root1.toStyledString();
 	fwrite(strKvm.c_str(),1,strKvm.size(),fp);
 
-	fclose(fp);
 	fflush(fp);
+	fclose(fp);
 	return 0;
 }
 
@@ -2366,8 +2367,8 @@ int Cfg_Create_Channel(void)
 	string strChanList = root1.toStyledString();
 	fwrite(strChanList.c_str(),1,strChanList.size(),fp);
 
-	fclose(fp);
 	fflush(fp);
+	fclose(fp);
 #endif
 	return 0;
 }
@@ -2469,8 +2470,8 @@ int Cfg_Update_Channel(void)
 	string strChannelDef = root1.toStyledString();
 	fwrite(strChannelDef.c_str(),1,strChannelDef.size(),fp);
 
-	fclose(fp);
 	fflush(fp);
+	fclose(fp);
 	return 0;
 }
 
@@ -2624,8 +2625,8 @@ int Cfg_Update_Audio(void)
 	string strAutoSwitch = root1.toStyledString();
 	fwrite(strAutoSwitch.c_str(),1,strAutoSwitch.size(),fp);
 
-	fclose(fp);
 	fflush(fp);
+	fclose(fp);
 	return 0;
 }
 
@@ -2708,8 +2709,8 @@ int Cfg_Update_Video(void)
 	string strAVsetting = root1.toStyledString();
 	fwrite(strAVsetting.c_str(),1,strAVsetting.size(),fp2);
 
-	fclose(fp2);
 	fflush(fp2);
+	fclose(fp2);
 	return 0;
 }
 
@@ -2821,8 +2822,8 @@ int Cfg_Update_AutoSwitch(void)
 	string strAutoSwitch = root1.toStyledString();
 	fwrite(strAutoSwitch.c_str(),1,strAutoSwitch.size(),fp);
 
-	fclose(fp);
 	fflush(fp);
+	fclose(fp);
 
 	return 0;
 }
@@ -2906,8 +2907,9 @@ int Cfg_Update_AVSetting(void)
 	string strAVSetting = root1.toStyledString();
 	fwrite(strAVSetting.c_str(),1,strAVSetting.size(),fp);
 
+	fflush(fp);
 	fclose(fp);
-	fflush(fp);		return 0;
+			return 0;
 }
 
 int Cfg_Update_EDID(void)
@@ -2965,8 +2967,8 @@ int Cfg_Update_EDID(void)
 	string strEDIDSetting = root1.toStyledString();
 	fwrite(strEDIDSetting.c_str(),1,strEDIDSetting.size(),fp);
 
-	fclose(fp);
 	fflush(fp);
+	fclose(fp);
 	return 0;
 }
 
@@ -3013,8 +3015,8 @@ int Cfg_Update_Device(void)
 	string strDeviceSetting = root1.toStyledString();
 	fwrite(strDeviceSetting.c_str(),1,strDeviceSetting.size(),fp);
 
-	fclose(fp);
 	fflush(fp);
+	fclose(fp);
 	return 0;
 }
 
@@ -3063,8 +3065,8 @@ int Cfg_Update_Version(void)
 	string strVersionSetting = root1.toStyledString();
 	fwrite(strVersionSetting.c_str(),1,strVersionSetting.size(),fp);
 
-	fclose(fp);
 	fflush(fp);
+	fclose(fp);
 	return 0;
 }
 
@@ -3119,8 +3121,8 @@ int Cfg_Update_Time(void)
 	string strTimeSetting = root1.toStyledString();
 	fwrite(strTimeSetting.c_str(),1,strTimeSetting.size(),fp);
 
-	fclose(fp);
 	fflush(fp);
+	fclose(fp);
 	return 0;
 }
 
@@ -3170,8 +3172,8 @@ int Cfg_Update_User(void)
 	string strUSerSetting = root1.toStyledString();
 	fwrite(strUSerSetting.c_str(),1,strUSerSetting.size(),fp);
 
-	fclose(fp);
 	fflush(fp);
+	fclose(fp);
 	return 0;
 }
 
@@ -3232,8 +3234,8 @@ int Cfg_Update_VideoWall(void)
 	string strVideowallSetting = root1.toStyledString();
 	fwrite(strVideowallSetting.c_str(),1,strVideowallSetting.size(),fp);
 
-	fclose(fp);
 	fflush(fp);
+	fclose(fp);
 
 	return 0;
 }
@@ -3351,8 +3353,8 @@ int Cfg_Update_Gateway(void)
 	string strGateway = root1.toStyledString();
 	fwrite(strGateway.c_str(),1,strGateway.size(),fp);
 
-	fclose(fp);
 	fflush(fp);
+	fclose(fp);
 
 	return 0;
 }
@@ -3474,8 +3476,9 @@ int Cfg_Update_Network(void)
 	string strNetwork = root1.toStyledString();
 	fwrite(strNetwork.c_str(),1,strNetwork.size(),fp);
 
-	fclose(fp);
 	fflush(fp);
+	fclose(fp);
+
 	return 0;
 }
 
@@ -3521,8 +3524,8 @@ int Cfg_Update_Log(void)
 	string strLogSetting = root1.toStyledString();
 	fwrite(strLogSetting.c_str(),1,strLogSetting.size(),fp);
 
-	fclose(fp);
 	fflush(fp);
+	fclose(fp);
 	return 0;
 }
 
@@ -3611,8 +3614,8 @@ int Cfg_Update_OSD(void)
 	string strOSDsetting = root1.toStyledString();
 	fwrite(strOSDsetting.c_str(),1,strOSDsetting.size(),fp2);
 
-	fclose(fp2);
 	fflush(fp2);
+	fclose(fp2);
 	return 0;
 
 }
