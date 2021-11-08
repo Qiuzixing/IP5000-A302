@@ -92,7 +92,7 @@ int GetBoardInfo(BoardInfoType_E type, char* info, unsigned int size)
 	{
 		fp = fopen(KDS_VSRSION_FILE, "r");
 		if (fp == NULL) {
-			DBG_ErrMsg("ERROR! can't open hostname\n");
+			DBG_ErrMsg("ERROR! can't open version\n");
 			return -1;
 		}
 
@@ -311,7 +311,23 @@ int  EX_SetAudSrcMode(int mode)
 }
 int  EX_GetAudSrcMode(int *mode)
 {
-	Cfg_Get_Autoswitch_Source(SIGNAL_AUDIO,mode);
+	*mode = 0; //default is hdmi
+	char buf[64] = "";
+	memset(buf,0,64);
+
+	//Get Cuurent hdmi in
+	mysystem("/usr/local/bin/sconfig --show audio-input", buf, 64);
+	if(strstr(buf,"hdmi") != 0)
+		*mode = 0;
+	else if(strstr(buf,"analog") != 0)
+		*mode = 1;
+	else if(strstr(buf,"dante") != 0)
+	{
+		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+		 *mode = 4;
+	}
+
+//	Cfg_Get_Autoswitch_Source(SIGNAL_AUDIO,mode);
 	return 0;
 }
 
@@ -2435,6 +2451,33 @@ int EX_GetRouteMatch(PortInfo_S*inPortInfo,PortInfo_S*matchPortInfo)
 	else
 		matchPortInfo->portFormat = PORT_STREAM;
 #endif
+	}
+	else if((inPortInfo->signal == SIGNAL_AUDIO)
+		&&(inPortInfo->direction == DIRECTION_OUT))
+	{
+		DBG_InfoMsg("EX_GetRouteMatch AUDIO\n");
+		matchPortInfo->signal = SIGNAL_AUDIO;
+
+		matchPortInfo->direction = DIRECTION_IN;
+		matchPortInfo->portFormat = PORT_HDMI;
+		matchPortInfo->portIndex = 1;
+		matchPortInfo->index = 1;
+
+		char buf[64] = "";
+		memset(buf,0,64);
+
+		//Get Cuurent hdmi in
+		mysystem("/usr/local/bin/sconfig --show audio-input", buf, 64);
+		if(strstr(buf,"hdmi") != 0)
+			matchPortInfo->portFormat = PORT_HDMI;
+		else if(strstr(buf,"analog") != 0)
+			matchPortInfo->portFormat = PORT_ANALOG_AUDIO;
+		else if(strstr(buf,"dante") != 0)
+		{
+			if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+			 matchPortInfo->portFormat = PORT_DANTE;
+		}
+
 	}
 	else
 	{
