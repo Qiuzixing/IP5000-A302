@@ -2195,14 +2195,78 @@ int EX_SendCECMsg(CECMessageInfo_S*info)
 {
 	int sendStatus = 0;
 	char sCmd[128] = "";
-	if((info->hexByte > 0)&&(info->hexByte <= 16))
+
+	DBG_InfoMsg("EX_SendCECMsg\n");
+
+	if(g_gateway_info.cec_mode == OFF)
 	{
-		sprintf(sCmd,"e_p3k_cec_send::%s",info->cmdComent);
+		DBG_WarnMsg("CEC Gateway Disable\n");
+		sendStatus = 1;
+		return 1;
 	}
 	else
 	{
-		DBG_WarnMsg(" !!! Error para info->hexByte:%d\n",info->hexByte);
-		return 0;
+		//check port
+		if((strcmp(g_version_info.model,IPE_P_MODULE) == 0)||(strcmp(g_version_info.model,IPE_W_MODULE) == 0))
+		{
+			//get current input
+			char buf[16] = "";
+			memset(buf,0,16);
+
+			int cur_port = 1;
+
+			//Get Cuurent hdmi in
+			mysystem("/usr/local/bin/sconfig --show input", buf, 16);
+			if(strstr(buf,"HDMI1") != 0)
+				cur_port = 1;
+			else if(strstr(buf,"HDMI2") != 0)
+				cur_port = 2;
+			else if(strstr(buf,"HDMI3") != 0)
+			{
+				if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+					cur_port = 3;
+			}
+
+			if(info->portId != cur_port)
+			{
+				DBG_WarnMsg("cec param Err info->portId = %d cur_port =%d\n",info->portId,cur_port);
+				return 4;
+			}
+
+		}
+		else
+		{
+			if(info->portId != 1)
+			{
+				DBG_WarnMsg("cec param Err info->portId = %d\n",info->portId);
+				return 4;
+			}
+		}
+
+		if((info->hexByte > 0)&&(info->hexByte <= 16))
+		{
+			//check command valid
+			if(strlen(info->cmdComent) != (info->hexByte * 2))
+			{
+				DBG_WarnMsg("cec param Err info->hexByte = %d , info->cmdComent = %s\n",info->hexByte,info->cmdComent);
+				return 4;
+			}
+
+			if(strspn(info->cmdComent, "0123456789abcdefABCDEF")!=strlen(info->cmdComent))
+			{
+				DBG_WarnMsg("cec cmd Err %s\n",info->cmdComent);
+				return 6;
+			}
+
+			sprintf(sCmd,"e_p3k_cec_send:");
+			for(int i=0;i<info->hexByte;i++)
+				sprintf(sCmd,"%s:%c%c",sCmd,info->cmdComent[2*i],info->cmdComent[2*i+1]);
+		}
+		else
+		{
+			DBG_WarnMsg(" !!! Error para info->hexByte:%d\n",info->hexByte);
+			return 4;
+		}
 	}
 	DBG_InfoMsg("ast_send_event %s\n",sCmd);
 	ast_send_event(0xFFFFFFFF,sCmd);
@@ -2222,7 +2286,39 @@ int EX_SetCECGateWayMode(int mode)
 	char sCmd[64] = "";
 	if((mode >= 0)&&(mode<=3))
 	{
-		sprintf(sCmd,"e_p3k_cec_gw::%d",mode);
+#ifdef CONFIG_P3K_HOST
+		if((strcmp(g_version_info.model,IPE_W_MODULE) == 0)
+			&&((mode == 2)||(mode == 3)))
+		{
+			DBG_WarnMsg(" !!! IPE_W_MODULE, Error para mode:%d\n",mode);
+			return -1;
+		}
+
+		if(mode == 0)
+			sprintf(sCmd,"e_p3k_cec_gw::it6802");
+		else if(mode == 1) //in
+			sprintf(sCmd,"e_p3k_cec_gw::it6802");
+		else if(mode == 2) //out
+			sprintf(sCmd,"e_p3k_cec_gw::hdmi_out");
+		else //loop == 2
+			sprintf(sCmd,"e_p3k_cec_gw::hdmi_out");
+#else
+		if((strcmp(g_version_info.model,IPD_W_MODULE) == 0)
+			&&((mode == 1)||(mode == 3)))
+		{
+			DBG_WarnMsg(" !!! IPD_W_MODULE, Error para mode:%d\n",mode);
+			return -1;
+		}
+
+		if(mode == 0)
+			sprintf(sCmd,"e_p3k_cec_gw::sii9136");
+		else if(mode == 1) //in
+			sprintf(sCmd,"e_p3k_cec_gw::hdmi_in");
+		else if(mode == 2) //out
+			sprintf(sCmd,"e_p3k_cec_gw::sii9136");
+		else //loop == 1
+			sprintf(sCmd,"e_p3k_cec_gw::hdmi_in");
+#endif
 		DBG_InfoMsg("ast_send_event %s\n",sCmd);
 		ast_send_event(0xFFFFFFFF,sCmd);
 
