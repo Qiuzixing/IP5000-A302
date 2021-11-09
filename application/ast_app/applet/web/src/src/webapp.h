@@ -23,7 +23,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-// 暂时(套接字相关)
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -52,6 +51,19 @@ typedef struct conn_state
     unsigned int last_mjpeg_seq;
 }conn_state;
 
+typedef struct T_FromInfo
+{
+    char filename[KEY_VALUE_SIZE];
+    char filepath[KEY_VALUE_SIZE];
+    long long  filesize;
+}T_FromInfo;
+
+typedef struct T_SecureInfo
+{
+    string strSecureFile;
+    Json::Value jsonData;
+}T_SecureInfo;
+
 enum {
     request_default = 0,
     request_fast_cgi,
@@ -76,12 +88,16 @@ public:
 	static int 			file_found(const char *key,const char *filename,char *path,size_t pathlen,void *user_data);
 	static int 			file_get(const char *key,const char *value,size_t valuelen,void *user_data);
 	static int 			file_store(const char *path, long long file_size, void *user_data);
-    // 指定下载文件存储位置，以及别名
+    static int          SecureFileFound(const char *key,const char *filename,char *path,size_t pathlen,void *user_data);
+    static int          SecureFileGet(const char *key,const char *value,size_t valuelen,void *user_data);
+    static int          SecureFileGetStore(const char *path, long long file_size, void *user_data);
+    static bool         SaveSecureFile(struct mg_connection *conn, const char *i_pJsonFile, T_SecureInfo *o_tInfo);
+    // 指定下载文件存储位置，以及别�?
     static bool         SaveUploadFile(struct mg_connection *conn, const char *i_pPath, const char *i_pFileNmae, struct T_FromInfo *o_tFrominfo);
 
-    static int          UploadCertificateHandle(struct mg_connection *conn, void *cbdata);
-    static int          SetCertificateHandle(struct mg_connection *conn, void *cbdata);
-
+    // security
+    static int          SecureHttpsSetHanndle(struct mg_connection *conn, void *cbdata);
+    static int          Secure802XSetHanndle(struct mg_connection *conn, void *cbdata);
 
     // 文件传输方面
     static int         UploadChannelMapHandle(struct mg_connection *conn, void *cbdata);
@@ -107,7 +123,7 @@ public:
     static void *      P3kCommunicationThread(void *arg);
     static void        CloseP3kSocket(void);
 
-    // 原5000
+    // �?000
     static int         ActionReqHandler(struct mg_connection *conn, void *cbdata);
     static int         StreamReqHandler(struct mg_connection *conn, void *cbdata);
     static int         UploadLogoReqHandler(struct mg_connection *conn, void *cbdata);

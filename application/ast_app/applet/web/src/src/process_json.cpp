@@ -225,7 +225,7 @@ bool GetConfParamfromJson(const char * i_jsonfile,ConfInfoParam * i_webparam)
 
 		#endif
 		flag = true;
-
+#if 1
 		{
 			cout << "root:" << root << endl;
 			cout << "webconf:" << webconf << endl;
@@ -240,9 +240,8 @@ bool GetConfParamfromJson(const char * i_jsonfile,ConfInfoParam * i_webparam)
 			cout << "i_webparam->log_confpath:" << i_webparam->log_confpath << endl;
 			cout << "i_webparam->auth_mode:" << i_webparam->auth_mode << endl;
 		}
+#endif
 	}
-
-
 
 
 	is.close();
@@ -257,7 +256,6 @@ bool UpdateWebToConfigfile(const char * i_jsonfile, const char *i_option, string
 	Json::Reader reader;
 	Json::Value root;
 	std::ifstream in;
-	//cout << "aaaaa1"  << endl;
 	in.open (i_jsonfile, std::ios::binary );
 	if (!in.is_open())
 	{
@@ -267,7 +265,6 @@ bool UpdateWebToConfigfile(const char * i_jsonfile, const char *i_option, string
 	bool flag = false;
 	if (reader.parse(in, root))
 	{
-		cout << "aaaaa2"  << endl;
 		if (root["webconfig"].isNull())
 		{
 		  	cout <<  "can't find webconfig" << endl;
@@ -278,8 +275,7 @@ bool UpdateWebToConfigfile(const char * i_jsonfile, const char *i_option, string
 	}
 	in.close();
 
-    #if 1
-	//cout << "aaaaa3"  << endl;
+#if 1
 	std::ofstream ou;
 	ou.open (i_jsonfile, std::ios::trunc );
 	if (!ou.is_open())
@@ -288,8 +284,8 @@ bool UpdateWebToConfigfile(const char * i_jsonfile, const char *i_option, string
 		return false;
 	}
 	ou << root << endl;
-	cout << "root:" << root << endl;
-    #endif
+	//cout << "root:" << root << endl;
+#endif
 
 	return true;
 }

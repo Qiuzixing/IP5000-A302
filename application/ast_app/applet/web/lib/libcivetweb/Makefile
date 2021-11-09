@@ -27,7 +27,7 @@ clean:
 	rm -f $(LIB_CIVETWEB)/$(CIVETWEB_LIB)
 unpack:
 	@echo "unpacking" ; tar -xf $(NAME).tar.gz
-
+	patch -N -p0 < $(NAME).patch
 dopatch:
 	@echo "dopatch" ;
 

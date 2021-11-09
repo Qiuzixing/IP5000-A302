@@ -52,6 +52,19 @@ int COperation::StringToFile(const char *i_pStrBuff, const char *i_pOutFileath)
 	return 	nRet ;
 }
 
+int COperation::AssertDirExists(const char *i_pDir)
+{
+    if(access(i_pDir, 0) == -1)
+    {
+        char szCmd[128] = {0};
+        sprintf(szCmd, "mkdir -p %s", i_pDir);
+        return My_System(szCmd);
+    }
+
+    return 0;
+}
+
+
 bool  COperation::FileRename(const char *i_pFileName, const char *i_pFilePath, string &o_strRename)
 {
     bool bFlag = false;
@@ -117,16 +130,7 @@ bool  COperation::FileRename(const char *i_pFileName, const char *i_pFilePath, s
 bool COperation::SetWebSecurityMode(const char *i_pMode)
 {
     string strTmp = i_pMode;
-    char szCmdStr[1024] = {0};
-
-    snprintf(szCmdStr, sizeof(szCmdStr)-1, "./restart.sh web");
-    int ret = system(szCmdStr);
-    if(ret < 0)
-    {
-        return false;
-    }
-
-    if(UpdateWebToConfigfile(WEB_CONFIG_FILE, "StartMode", strTmp))
+    if(UpdateWebToConfigfile(DEFAULT_WEB_CONFIG_FILE, "StartMode", strTmp))
     {
         return true;
     }
@@ -139,17 +143,7 @@ bool COperation::SetWebSecurityMode(const char *i_pMode)
 bool COperation::SetCertificate(const char *i_pCert)
 {
     string strTmp = i_pCert;
-    char szCmdStr[1024] = {0};
-
-    snprintf(szCmdStr, sizeof(szCmdStr)-1, "./restart.sh web");
-    printf("------------%s\n", szCmdStr);
-    int ret = system(szCmdStr);
-    if(ret < 0)
-    {
-        return false;
-    }
-
-    if(UpdateWebToConfigfile(WEB_CONFIG_FILE, "CERM", strTmp))
+    if(UpdateWebToConfigfile(DEFAULT_WEB_CONFIG_FILE, "CERM", strTmp))
     {
         return true;
     }

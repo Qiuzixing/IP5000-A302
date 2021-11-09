@@ -77,7 +77,7 @@ int GetConfFile(int argc, char **argv)
 	if(webconfig.xmlfile.empty())
 		webconfig.xmlfile.append("./gbwebserver.xml");
 	if(webconfig.jsonfile.empty())
-		webconfig.jsonfile.append(WEB_CONFIG_FILE);
+        webconfig.jsonfile.append(DEFAULT_WEB_CONFIG_FILE);
 	if(webconfig.StartMode.empty())
         ;
 		//webconfig.StartMode.append("http");
@@ -87,9 +87,45 @@ int GetConfFile(int argc, char **argv)
 	return 0;
 }
 
+void WebConfInit(void)
+{
+    // 初始化web config文件
+    if(access(DEFAULT_WEB_CONFIG_FILE, F_OK) != 0)
+    {
+        if(COperation::AssertDirExists("/data/configs/kds-7/secure/webconfig") >= 0)
+        {
+            char szCmd[MAX_CMD_STR] = {0};
+            sprintf(szCmd, "cp -f %s %s", WEB_CONFIG_FILE, DEFAULT_WEB_CONFIG_FILE);
+            int ret = system(szCmd);
+            if(ret < 0)
+            {
+                BC_ERROR_LOG("Init web config file failed!");
+                exit(0);
+            }
+        }
+    }
+
+    // https证书文件
+    if(access(DEFAULT_HTTPS_CERT, F_OK) != 0)
+    {
+        if(COperation::AssertDirExists("/data/configs/kds-7/secure/certificate_file_name") >= 0)
+        {
+            char szCmd[MAX_CMD_STR] = {0};
+            sprintf(szCmd, "cp -f %s %s", HTTPS_CERT, DEFAULT_HTTPS_CERT);
+            int ret = system(szCmd);
+            if(ret < 0)
+            {
+                BC_ERROR_LOG("Init https cert file failed!");
+            }
+        }
+    }
+}
+
 int main(int argc, char *argv[])
 {
 	GetConfFile(argc,argv);
+
+    WebConfInit();
 	ConfInfoParam p_webparam;
 	bool getparamres = GetConfParamfromJson(webconfig.jsonfile.c_str(),&p_webparam);
 	if(!getparamres)

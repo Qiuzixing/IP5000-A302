@@ -10,28 +10,62 @@
 #define WEB_NOT_FOUND               404
 #define SERVICE_UNAVAILABLE_CODE    503
 
-#define CAPTURE_BMP_FILE    "/www/capture.bmp"
-#define CAPTURE_JPG_FILE    "/www/capture.jpg"
-#define MJPEG_TMP_BMP_FILE  "/www/tmp.bmp"
-#define MJPEG_TMP_JPG_FILE  "/www/tmp.jpg"
+#define CAPTURE_BMP_FILE        "/www/capture.bmp"
+#define CAPTURE_JPG_FILE        "/www/capture.jpg"
+#define MJPEG_TMP_BMP_FILE      "/www/tmp.bmp"
+#define MJPEG_TMP_JPG_FILE      "/www/tmp.jpg"
 
 
-#define UP_CHANNEL_URL      "/upload/channel"
-#define UP_EDID_URL         "/upload/edid"
-#define UP_SLEEPIMAGE_URL   "/upload/sleepimage"
-#define UP_OVERLAY_URL      "/upload/overlay_image"
-#define UP_SECURE_URL       "/upload/secure"
-#define UP_TESTPATTERN_URL  "/upload/testpattern"
-#define UP_UPGRADESOFTWARE  "/upload/upgradesoftware"
+#define UP_CHANNEL_URL          "/upload/channel"
+#define UP_EDID_URL             "/upload/edid"
+#define UP_SLEEPIMAGE_URL       "/upload/sleepimage"
+#define UP_OVERLAY_URL          "/upload/overlay_image"
+#define UP_SECURE_URL           "/upload/secure"
+#define UP_TESTPATTERN_URL      "/upload/testpattern"
+#define UP_UPGRADESOFTWARE      "/upload/upgradesoftware"
+//#define UP_SECURITY           "/upload_security"
 
-#define DOWN_LOGFILE_URL    "/log"
-#define DOWN_CHANNEL_URL    "/channel/channel_map"
-#define DOWN_SECURE_URL     "/secure"
-#define DOWN_TESTPATTERN_URL "/vw/video_wall_test_pattern"
+#define DOWN_LOGFILE_URL        "/log"
+#define DOWN_CHANNEL_URL        "/channel/channel_map"
+#define DOWN_SECURE_URL         "/secure"
+#define DOWN_TESTPATTERN_URL    "/vw/video_wall_test_pattern"
+
+// security
+#define SECURE_HTTPS_URL        "/security/https"
+#define SECURE_HTTPS_JSON_FILE  "/data/configs/kds-7/secure/https_setting.json"
+#define STR_HTTPS_SET           "https_setting"
+#define KEY_HTTPS_CERT          "certificate"
+#define KEY_HTTPS_MODE          "mode"
+#define KEY_HTTPS_METH          "method"
+#define KEY_HTTPS_PASSWD        "password"
+#define JSON_HTTPS_CERT         "certificate_file_name"
+#define JSON_HTTPS_MODE         "mode"
+#define JSON_HTTPS_METH         "method"
+#define JSON_HTTPS_PASSWD       "private_key_password"
+#define SECURE_HTTPS_PATH       "/secure/certificate_file_name"
+
+#define SECURE_802X_URL         "/security/802_1x"
+#define SECURE_802X_JSON_FILE   "/data/configs/kds-7/secure/ieee802_1x_setting.json"
+#define STR_802X_SET            "ieee802_1x_setting"
+#define STR_802X_EAP_TLS        "eap_tls_setting"
+#define STR_802X_MSCHAP_TLS     "eap_mschap_setting"
+#define KEY_802X_CA             "tls_ca_certificate"
+#define KEY_802X_CLI_PEM        "tls_client_certificate"
+#define KEY_802X_CLI_KEY        "tls_private_key"
+#define KEY_802X_MODE           "mode"
+#define KEY_802X_DEFUT_AUTH     "default_authentication"
+#define KEY_802X_USRNAME        "tls_username"
+#define KEY_802X_PASSWD         "tls_private_password"
+#define KEY_802X_MSCHAP_USER    "mschap_username"
+#define KEY_802X_MSCHAP_PASSWD  "mschap_password"
+#define CA_802X_PATH            "/secure/tls_ca_certificate"
+#define CLI_PEM_802X_PATH       "/secure/tls_client_certificate"
+#define CLI_KEY_802X_PATH       "/secure/tls_private_key"
+
 
 // json文件传输
-#define JSON_URL            "/device/json"
-#define JSON_PATH_PARAM     "path"
+#define JSON_URL                "/device/json"
+#define JSON_PATH_PARAM         "path"
 
 // 原5000功能
 #define CMD_TYPE_STR            "cmdtype"
@@ -42,14 +76,6 @@
 #define VERIFY_PASSWD_STR       "verifypasswd"
 #define PASSWD_STR              "passwd"
 #define USRNAME_STR             "username"
-
-
-typedef struct T_FromInfo
-{
-    char filename[KEY_VALUE_SIZE];
-    char filepath[KEY_VALUE_SIZE];
-    long long  filesize;
-}T_FromInfo;
 
 CMutex CWeb::s_p3kmutex;
 CCond  CWeb::s_p3kcond;
@@ -119,7 +145,7 @@ bool CWeb::Start(ConfInfoParam * p_webparam,string Server_mode)
     }
 
 	//pStart_Mode = Server_Start_Mode_all;
-	printf("pStart_Mode = %d\n", pStart_Mode);
+	//printf("pStart_Mode = %d\n", pStart_Mode);
 	ctx = ServerStart(&options,pStart_Mode,NULL);
 	if(NULL == ctx)
 	{
@@ -146,8 +172,6 @@ void CWeb::HttpRun()
 	/*uri handler list demon*/
 	struct uri_list UriHandleList[] =
 	{
-        //{"/setcert$", SetCertificateHandle, NULL},
-        //{"/update$", UploadCertificateHandle, NULL},
         {UP_CHANNEL_URL, UploadChannelMapHandle, NULL},
         {DOWN_CHANNEL_URL, DownChannelMapHandle, NULL},
         {"/preview", ShowSleepImageHandle, NULL}, // 暂时
@@ -167,6 +191,8 @@ void CWeb::HttpRun()
         {"/upload_bg", UploadBgReqHandler, NULL},
         {"/capture.bmp", CapturebmpReqHandler, NULL},
         {"/capture.jpg", CapturejpgReqHandler, NULL},
+        {SECURE_HTTPS_URL, SecureHttpsSetHanndle, NULL},
+        {SECURE_802X_URL, Secure802XSetHanndle, NULL},
 	};
 	AddURIProcessHandler(ctx,UriHandleList,ARRAY_SIZE(UriHandleList));
 }
@@ -238,38 +264,212 @@ bool CWeb::SaveUploadFile(struct mg_connection *conn, const char *i_pPath, const
     return true;
 }
 
-
-int CWeb::UploadCertificateHandle(struct mg_connection *conn, void *cbdata)
+int CWeb::SecureFileFound(const char *key,const char *filename,char *path,size_t pathlen,void *user_data)
 {
-    struct mg_form_data_handler fdh = {file_found, file_get, file_store, 0};
-    fdh.user_data = (void *)conn;
-    int ret = mg_handle_form_request(conn, &fdh);
+    //BC_INFO_LOG("SecureFileFound key is <%s>  the filename is <%s>",key,filename);
+    struct mg_connection *conn = (struct mg_connection *)user_data;
+    T_SecureInfo *pSecure = (T_SecureInfo *)mg_get_user_connection_data(conn);
 
-    string strFileName = (char *)mg_get_user_connection_data(conn);
-    printf("UploadCertificateHandle strFileName is <%s>\n", strFileName.c_str());
-
-    send_http_ok_rsp(conn);
-    return 1;
-}
-
-int CWeb::SetCertificateHandle(struct mg_connection *conn, void *cbdata)
-{
-    if(!COperation::SetCertificate(SECURE_FILE_PATH))
+    if (filename && *filename)
     {
-       printf("set error");
+        if(strncmp(key, KEY_HTTPS_CERT, strlen(KEY_HTTPS_CERT)) == 0)
+        {
+            pSecure->jsonData[STR_HTTPS_SET][JSON_HTTPS_CERT] = filename;
+            snprintf(path, pathlen, "%s%s/%s", DEFAULT_FILE_PATH, SECURE_HTTPS_PATH, filename);
+        }
+        else if(strncmp(key, KEY_802X_CA, strlen(KEY_802X_CA)) == 0)
+        {
+            pSecure->jsonData[STR_802X_SET][STR_802X_EAP_TLS][KEY_802X_CA] = filename;
+            snprintf(path, pathlen, "%s%s/%s", DEFAULT_FILE_PATH, CA_802X_PATH, filename);
+        }
+        else if(strncmp(key, KEY_802X_CLI_PEM, strlen(KEY_802X_CLI_PEM)) == 0)
+        {
+            pSecure->jsonData[STR_802X_SET][STR_802X_EAP_TLS][KEY_802X_CLI_PEM] = filename;
+            snprintf(path, pathlen, "%s%s/%s", DEFAULT_FILE_PATH, CLI_PEM_802X_PATH, filename);
+        }
+        else if(strncmp(key, KEY_802X_CLI_KEY, strlen(KEY_802X_CLI_KEY)) == 0)
+        {
+            pSecure->jsonData[STR_802X_SET][STR_802X_EAP_TLS][KEY_802X_CLI_KEY] = filename;
+            snprintf(path, pathlen, "%s%s/%s", DEFAULT_FILE_PATH, CLI_KEY_802X_PATH, filename);
+        }
+        BC_INFO_LOG("SecureFileFound file path is <%s>", path);
+        mg_set_user_connection_data(conn, (void*)pSecure);
+
+        return MG_FORM_FIELD_STORAGE_STORE;
     }
 
-    send_http_ok_rsp(conn);
+    return MG_FORM_FIELD_STORAGE_GET;
+}
+
+int CWeb::SecureFileGet(const char *key,const char *value,size_t valuelen,void *user_data)
+{
+	struct mg_connection *conn = (struct mg_connection *)user_data;
+    T_SecureInfo *pSecure = (T_SecureInfo *)mg_get_user_connection_data(conn);
+
+    string strValue(value, valuelen);
+    BC_INFO_LOG("SecureFileGet key is <%s> value is <%s>", key, strValue.c_str());
+    if(pSecure->strSecureFile == SECURE_HTTPS_JSON_FILE)
+    {
+        string strTmp;
+        if(strncmp(key, KEY_HTTPS_MODE, strlen(KEY_HTTPS_MODE)) == 0)
+        {
+            strTmp = JSON_HTTPS_MODE;
+        }
+        else if(strncmp(key, KEY_HTTPS_METH, strlen(KEY_HTTPS_METH)) == 0)
+        {
+            strTmp = JSON_HTTPS_METH;
+        }
+        else if(strncmp(key, KEY_HTTPS_PASSWD, strlen(KEY_HTTPS_PASSWD)) == 0)
+        {
+            strTmp = JSON_HTTPS_PASSWD;
+        }
+        pSecure->jsonData[STR_HTTPS_SET][strTmp.c_str()] = strValue.c_str();
+    }
+    else if(pSecure->strSecureFile == SECURE_802X_JSON_FILE)
+    {
+        if(strncmp(key, KEY_802X_MODE, strlen(KEY_802X_MODE)) == 0
+          || strncmp(key, KEY_802X_DEFUT_AUTH, strlen(KEY_802X_DEFUT_AUTH)) == 0)
+        {
+            pSecure->jsonData[STR_802X_SET][key] = strValue.c_str();
+        }
+        else if(strncmp(key, "mschap", strlen("mschap")) == 0)
+        {
+            pSecure->jsonData[STR_802X_SET][STR_802X_MSCHAP_TLS][key] = strValue.c_str();
+        }
+        else
+        {
+            pSecure->jsonData[STR_802X_SET][STR_802X_EAP_TLS][key] = strValue.c_str();
+        }
+    }
+    mg_set_user_connection_data(conn, (void*)pSecure);
+}
+
+int CWeb::SecureFileGetStore(const char *path, long long file_size, void *user_data)
+{
+	My_System("sync");
+    BC_INFO_LOG("field_stored path %s  file_size  %lld ", path, file_size);
+
+    return 0;
+}
+
+bool CWeb::SaveSecureFile(struct mg_connection *conn, const char *i_pJsonFile, T_SecureInfo *o_tInfo)
+{
+    string strConfigInfo = "";
+    o_tInfo->strSecureFile = i_pJsonFile;
+    if(COperation::GetJsonFile(i_pJsonFile, strConfigInfo))
+    {
+        Json::Reader reader;
+        if(!reader.parse(strConfigInfo, o_tInfo->jsonData))
+        {
+           BC_INFO_LOG("JsonDataHandle POST json parse failed");
+           send_http_error_rsp(conn);
+           return false;
+        }
+    }
+    mg_set_user_connection_data(conn,(void *)o_tInfo);
+
+    struct mg_form_data_handler fdh = {SecureFileFound, SecureFileGet, SecureFileGetStore, 0};
+    fdh.user_data = (void *)conn;
+
+    int ret = Set_Formdata_Handler(conn, &fdh);
+    if(ret < 0)
+    {
+        BC_ERROR_LOG("CWeb::SaveSecureFile result <%d>", ret);
+        return false;
+    }
+
+    return true;
+}
+
+int CWeb::SecureHttpsSetHanndle(struct mg_connection *conn, void *cbdata)
+{
+    string strFile = DEFAULT_FILE_PATH;
+    strFile += SECURE_HTTPS_PATH;
+    strFile += "/";
+    T_SecureInfo tHttpsInfo;
+
+    if(SaveSecureFile(conn, SECURE_HTTPS_JSON_FILE, &tHttpsInfo))
+    {
+        // https启动配置
+        string strHttps = "http";
+        if(tHttpsInfo.jsonData[STR_HTTPS_SET][JSON_HTTPS_MODE].asString() == "on")
+        {
+            strHttps = "https";
+        }
+
+        if(!COperation::SetWebSecurityMode(strHttps.c_str()))
+        {
+            BC_INFO_LOG("SetWebSecurityMode failed!");
+        }
+
+        if(!tHttpsInfo.jsonData[STR_HTTPS_SET][JSON_HTTPS_CERT].empty())
+        {
+            strFile += tHttpsInfo.jsonData[STR_HTTPS_SET][JSON_HTTPS_CERT].asCString();
+            if(!COperation::SetCertificate(strFile.c_str()))
+            {
+                BC_INFO_LOG("SetCertificate failed!");
+            }
+        }
+
+        Json::FastWriter fastwiter;
+        string strConfInfo = "";
+        strConfInfo = fastwiter.write(tHttpsInfo.jsonData);
+        if(!COperation::SetJsonFile(strConfInfo.c_str(), SECURE_HTTPS_JSON_FILE))
+        {
+            send_http_error_rsp(conn);
+            return 1;
+        }
+
+        BC_INFO_LOG("SecureHttpsSetHanndle upload file OK");
+        send_http_ok_rsp(conn);
+		
+		// reboot
+        if(My_System("reboot") < 0)
+        {
+            BC_INFO_LOG("SecureHttpsSetHanndle reboot failed!");
+        }
+    }
+    else
+    {
+        BC_INFO_LOG("SecureHttpsSetHanndle upload file error");
+        send_http_error_rsp(conn);
+    }
+
     return 1;
 }
 
+int CWeb::Secure802XSetHanndle(struct mg_connection *conn, void *cbdata)
+{
+    T_SecureInfo t802XInfo;
+
+    if(SaveSecureFile(conn, SECURE_802X_JSON_FILE, &t802XInfo))
+    {
+        Json::FastWriter fastwiter;
+        string strConfInfo = "";
+        strConfInfo = fastwiter.write(t802XInfo.jsonData);
+        if(!COperation::SetJsonFile(strConfInfo.c_str(), SECURE_802X_JSON_FILE))
+        {
+            send_http_error_rsp(conn);
+            return 1;
+        }
+
+        BC_INFO_LOG("Secure802XSetHanndle upload file OK");
+        send_http_ok_rsp(conn);
+    }
+    else
+    {
+        BC_INFO_LOG("Secure802XSetHanndle upload file error");
+        send_http_error_rsp(conn);
+    }
+
+    return 1;
+}
 
 // 文件传输
 int CWeb::UploadChannelMapHandle(struct mg_connection *conn, void *cbdata)
 {
     struct T_FromInfo tFrom;
     if(!SaveUploadFile(conn, DEFAULT_FILE_PATH "/channel", "channel_map.json", &tFrom))
-    //if(!SaveUploadFile(conn, "/home", NULL, &tFrom))
     {
         BC_INFO_LOG("TransmitChannelMapHandle upload file error");
     }
@@ -291,7 +491,6 @@ int CWeb::DownChannelMapHandle(struct mg_connection *conn, void *cbdata)
     if(strcmp(pRequest->request_method, "GET") == 0)
     {
         send_chunk_file(conn, CHANNEL_FILE_PATH, "channel_map.json");
-        //send_chunk_file(conn, "/home/1.txt", "1.txt");
     }
     else
     {
@@ -432,7 +631,7 @@ int CWeb::TransmitPresetsFileHandle(struct mg_connection *conn, void *cbdata)
 int CWeb::UploadSecurHandle(struct mg_connection *conn, void *cbdata)
 {
     struct T_FromInfo tFrom;
-    if(!SaveUploadFile(conn, "/secure", "server.pem", &tFrom))
+    if(!SaveUploadFile(conn, DEFAULT_FILE_PATH "/secure", NULL, &tFrom))
     {
         BC_INFO_LOG("TransmitSecurHandle upload file error");
         send_http_error_rsp(conn);
@@ -480,7 +679,6 @@ int CWeb::DownVideoWallHandle(struct mg_connection *conn, void *cbdata)
 int CWeb::UploadUpgradeHandle(struct mg_connection *conn, void *cbdata)
 {
     struct T_FromInfo tFrom;
-    //if(!SaveUploadFile(conn, UPGRADE_FILE_PATH, NULL, &tFrom))
     if(!SaveUploadFile(conn, UPGRADE_FILE_PATH, "IP5000-A30_upgrade.tar.gz", &tFrom))
     {
         BC_INFO_LOG("UploadUpgradeHandle upload file error");

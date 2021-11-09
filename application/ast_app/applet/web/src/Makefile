@@ -44,7 +44,7 @@ CFILES = src/bmp2jpg.c
 
 
 CPPFLAGS = -I$(PREFIX)/include/civetweb -I./src -I$(LOG_INC) -I$(INCPATH) \
-		  $(COPT) -DUSE_WEBSOCKET
+		  $(COPT) -DUSE_WEBSOCKET -DNO_CACHING
 CFLAGS = -I$(JPG_INCLUDE)
 
 
@@ -75,10 +75,8 @@ install:
 	mkdir -p $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 	cp -f ./bin/bmp2jpg $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 	cp -f ./bin/web $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
-	cp -f ./bin/gbwebserver.json $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 	mkdir -p $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/www/
 	cp -f ./bin/log4cpp.conf $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/www/
-	cp -f ./bin/server.pem $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/www/
 	
 .PHONY: default clean build install
 #.PHONY: all

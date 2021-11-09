@@ -238,7 +238,7 @@ static void Get_User_Provide_Port(web_options*i_weboptions,Server_Start_Mode i_m
 	}
 	else if(Server_Start_Mode_Https == i_mode && https_port_exist)//https 模式，只取https端口
 	{
-#if 0
+#if 1
 		if(http_port_exist)
 		{
 			o_port = p_http_port_num + "r,";

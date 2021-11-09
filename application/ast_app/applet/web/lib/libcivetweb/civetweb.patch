@@ -1,0 +1,16 @@
+diff -uNr civetweb/src/civetweb.c civetweb_bak/src/civetweb.c
+--- civetweb/src/civetweb.c	2020-09-22 11:42:57.000000000 +0800
++++ civetweb_bak/src/civetweb.c	2021-11-05 11:01:50.593387357 +0800
+@@ -13193,8 +13193,10 @@
+ 	if (conn->host) {
+ 
+ 		/* Use "308 Permanent Redirect" */
+-		int redirect_code = 308;
+-
++		//int redirect_code = 308;
++		/* Use "302 Found" */
++		int redirect_code = 302;
++		
+ 		/* Create target URL */
+ 		mg_snprintf(
+ 		    conn,
