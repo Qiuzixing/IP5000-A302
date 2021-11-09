@@ -2296,7 +2296,10 @@ static int tx_data_udp(struct socket *tx_data_socket)
 				return 0;
 			}
 		}
-
+#if defined(CONFIG_ARCH_AST1500_CLIENT)
+		//qzx 2021.11.09:When an audio change is detected, mute audio_out first,Prevent pop sound
+		gpio_direction_output(AST1500_GPF1,0);
+#endif
 		I2S_info("audio chg!\n");
 		src_stable_timeout = 0;
 		current_sender = i2s_tx_hdr_buf.from;

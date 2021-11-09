@@ -578,18 +578,23 @@ int alc5640_CodecExist(void)
 ** From Bruce's understanding, program 5640 as single-end input works better under both
 ** single-end and differencial MIC input.
 */
+#define A_MAX_PAYLOAD 1024
 int alc5640_SetupCodec(unsigned int enable_adc, unsigned int enable_dac,
 	unsigned int input_paths, unsigned int output_paths)
 {
+	char msg[A_MAX_PAYLOAD];
 	printk("set up ALC5640\n");
-
 	alc5640_multi_func_pin();
 	if (enable_dac)
 		alc5640_hp_control();
 	alc5640_pll();
 	alc5640_power(enable_adc, enable_dac);
 	alc5640_mixer(enable_adc, enable_dac);
-
+#if defined(CONFIG_ARCH_AST1500_CLIENT)
+	//qzx 2021.11.09:Before mute, the voice has to be untied. Mute has the final say from the application level
+	snprintf(msg, A_MAX_PAYLOAD, "e_%s", "set_up_alc5640");
+	ast_notify_user(msg);
+#endif
 	return ALC5640_OK;
 }
 

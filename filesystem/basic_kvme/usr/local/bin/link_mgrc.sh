@@ -2617,7 +2617,14 @@ handle_e_p3k_audio()
 			ipc @a_lm_set s ae_dir:$_para1
 		;;
 		e_p3k_audio_mute::?*)
-			ipc @a_lm_set s ae_mute:$_para1
+			#ipc @a_lm_set s ae_mute:$_para1
+			if [ $_para1 != '1' ]; then
+				echo 1 > /sys/class/leds/lineout_mute/brightness
+				P3KCFG_AV_MUTE='off'
+			else
+				echo 0 > /sys/class/leds/lineout_mute/brightness
+				P3KCFG_AV_MUTE='on'
+			fi
 		;;
 		*)
 		echo "ERROR!!!! Invalid event ($event) received"
@@ -3091,6 +3098,15 @@ handle_e_set_ttl()
 	echo $1 > /proc/sys/net/ipv4/ip_default_ttl
 }
 
+handle_set_up_alc5640()
+{
+	if [ $P3KCFG_AV_MUTE = 'off' ];then
+		echo 1 > /sys/class/leds/lineout_mute/brightness
+	else
+		echo 0 > /sys/class/leds/lineout_mute/brightness
+	fi
+}
+
 # Worst case 0.05s message loop without handling any event.
 state_machine()
 {
@@ -3196,6 +3212,9 @@ state_machine()
 			;;
 			e_set_ttl*)
 				handle_e_set_ttl "$event"
+			;;
+			e_set_up_alc5640*)
+				handle_set_up_alc5640 "$event"
 			;;
 			e_?*)
 				tickle_watchdog
