@@ -788,7 +788,7 @@ int EX_SetIRGateway(int  iIr_mode)
 	Cfg_Set_GW_IR_Mode((State_E)iIr_mode);
 
 #if 1
-	if(iIr_mode == 1)
+/*	if(iIr_mode == 1)
 	{
 		system("astparam s ir_guest_on y;");
 		system("astparam s ir_sw_decode_on y;astparam save");
@@ -798,6 +798,7 @@ int EX_SetIRGateway(int  iIr_mode)
 		system("astparam s ir_guest_on n;");
 		system("astparam s ir_sw_decode_on n;astparam save");
 	}
+*/
 #else
 	char sCmd[64] = "";
 	if((iIr_mode == 0)||(iIr_mode == 1))
@@ -2344,12 +2345,31 @@ int EX_GetCECGateWayMode(void)
 int EX_SendIRmessage(IRMessageInfo_S*info)
 {
 	DBG_InfoMsg("EX_SendIRmessage cmdname =%s cmdcomment =%s\n",info->cmdName,info->cmdComent);
-	char sCmd[128] = "";
 
-	sprintf(sCmd,"e_p3k_ir_send::%s",info->cmdComent);
+	if((g_gateway_info.ir_mode == OFF)||(g_gateway_info.ir_direction == DIRECTION_IN))
+	{
+		DBG_ErrMsg("SendIR Err! g_gateway_info.ir_mode = %d, g_gateway_info.ir_direction = %d\n",g_gateway_info.ir_mode,g_gateway_info.ir_direction);
+		return 8;
+	}
 
-	DBG_InfoMsg("ast_send_event %s\n",sCmd);
-	ast_send_event(0xFFFFFFFF,sCmd);	return 0;
+	char sCmd[512] = "";
+
+	if(strspn(info->cmdComent, "0123456789abcdefABCDEF")!=strlen(info->cmdComent))
+	{
+		DBG_WarnMsg("IR cmd Err %s\n",info->cmdComent);
+		return 4;
+	}
+
+	sprintf(sCmd,"irs");
+	int len = strlen(info->cmdComent) /4;
+	for(int i=0;i<len;i++)
+		sprintf(sCmd,"%s %c%c%c%c",sCmd,info->cmdComent[4*i],info->cmdComent[4*i+1],info->cmdComent[4*i+2],info->cmdComent[4*i+3]);
+
+	system(sCmd);
+
+	DBG_InfoMsg("system %s\n",sCmd);
+
+	return 0;
 }
 int EX_SendIRStop(int irId,int serialNumb,char*command)
 {
