@@ -40,15 +40,19 @@
         <div class="overlay-setting">
           <div class="overlay-setting-item overlay-img">
             <span class="file-name"
-                  style="display: inline-block;">sleep.png</span>
+                  style="display: inline-block;overflow: hidden;">{{imgName}}</span>
             <span class="upload-icon"
                   @click="clickUpload">
               <icon-svg icon-class="upload_img" />
             </span>
             <input type="file"
                    accept="image/jpeg"
+                   @change="browseImg"
                    ref="upload"
                    style="display: none;">
+            <span class="range-alert"
+                  v-if="imgError"
+                  style="white-space: nowrap;">The image format must be JPEG (1280 x 720)</span>
           </div>
         </div>
       </div>
@@ -87,6 +91,7 @@ export default {
   },
   data () {
     return {
+      imgName: '',
       showColorDepth: false,
       forceRGB: '0',
       value: 50,
@@ -145,7 +150,8 @@ export default {
         sleep_delay_on_signal_loss_sec: 5,
         shutdown_delay_on_signal_loss_sec: 10,
         wake_up_delay_on_signal_detection_sec: 10
-      }
+      },
+      imgError: false
       // avSignal: {
       // }
     }
@@ -226,6 +232,45 @@ export default {
       this.setDisplayDelay()
       // this.setAVSingle()
       this.$socket.sendMsg(`#CS-CONVERT 1,${this.forceRGB}`)
+    },
+    browseImg (event) {
+      this.imgName = event.target.files[0]?.name || ''
+      if (this.imgName) {
+        const file = event.target.files[0]
+        if (file.type !== 'image/jpeg') {
+          this.imgError = true
+          return
+        }
+        const reader = new FileReader()
+        reader.onload = e => {
+          const data = e.target.result
+          // 加载图片获取图片真实宽度和高度
+          const image = new Image()
+          image.onload = () => {
+            const width = image.width
+            const height = image.height
+            console.log(width, height)
+            if (!(width === 1280 && height === 720)) {
+              this.imgError = true
+            } else {
+              const xhr = new XMLHttpRequest()
+              const formData = new FormData()
+              formData.append('file', file)
+              xhr.open('POST', '/upload/sleepimage')
+              xhr.onload = oevent => {
+                if (xhr.status === 200) {
+                  this.imgName = ''
+                }
+              }
+              xhr.send(formData)
+            }
+          }
+          image.src = data
+        }
+        reader.readAsDataURL(file)
+      } else {
+        this.imgError = false
+      }
     }
   }
 }

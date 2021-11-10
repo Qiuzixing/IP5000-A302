@@ -3,26 +3,25 @@
     <div class="setting-model">
       <div class="setting">
         <span class="setting-title">Date</span>
-        <span>{{date}}</span>
-        <!-- <el-date-picker
-          style="width: 180px;"
-          v-model="date"
-          type="date"
-          format="MM-dd-yyyy"
-          >
-        </el-date-picker> -->
+        <el-date-picker :disabled="ntpMode== '1'"
+                        style="width: 180px;"
+                        v-model="date"
+                        type="date"
+                        value-format="MM-dd-yyyy"
+                        format="MM-dd-yyyy">
+        </el-date-picker>
         <!--        <VueCtkDateTimePicker id="sys-date" color="#35ACF8" v-model="dateTime" format="MM/DD/YYYY" formatted="MM/DD/YYYY" :no-clear-button="true" :no-label="true" style="width: 160px;margin: 0" :only-date="true" />-->
       </div>
       <div class="setting">
         <span class="setting-title">Time</span>
-        <span>{{time}}</span>
-        <!-- <el-time-picker
-          style="width: 180px;"
-          v-model="time"
-          :picker-options="{
+        <el-time-picker :disabled="ntpMode== '1'"
+                        style="width: 180px;"
+                        v-model="time"
+                        value-format="HH:mm:ss"
+                        :picker-options="{
             selectableRange: '00:00:00 - 23:59:59'
           }">
-        </el-time-picker> -->
+        </el-time-picker>
         <!--        <VueCtkDateTimePicker id="sys-time" color="#35ACF8" v-model="time" format="hh:mm a" formatted="hh:mm a" :no-clear-button="true" :no-label="true" style="width: 160px;margin: 0" :only-time="true" />-->
       </div>
       <div class="setting">
@@ -242,14 +241,8 @@ export default {
     },
     setDateTime () {
       const weekday = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
-      const week = weekday[this.date.getDay()]
-      const month = this.formatTime(this.date.getMonth() + 1)
-      const day = this.formatTime(this.date.getDate())
-      const year = this.date.getFullYear()
-      const hour = this.formatTime(this.time.getHours())
-      const min = this.formatTime(this.time.getMinutes())
-      const seconds = this.formatTime(this.time.getSeconds())
-      this.$socket.sendMsg('#TIME ' + week + ',' + month + '-' + day + '-' + year + ',' + hour + ':' + min + ':' + seconds)
+      const week = weekday[new Date(this.date).getDay()]
+      this.$socket.sendMsg('#TIME ' + week + ',' + this.date + ',' + this.time)
     },
     formatTime (time) {
       return time < 9 ? '0' + time : time.toString()
@@ -261,9 +254,11 @@ export default {
       this.$socket.sendMsg(`#TIME-SRV ${this.ntpMode},${this.ntpServer},${this.ntpDailySync}`)
     },
     save: debounce(function () {
-      // this.setDateTime()
       this.setDaylight()
       this.setNTP()
+      if (this.ntpMode === '0') {
+        this.setDateTime()
+      }
     }, 2000, {
       leading: true,
       trailing: true

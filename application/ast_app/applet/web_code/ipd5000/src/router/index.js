@@ -2,6 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Layout from '../views/Layout/index.vue'
 import Login from '../views/Login'
+import Loading from '../views/Refresh'
 Vue.use(VueRouter)
 
 const routes = [
@@ -9,6 +10,11 @@ const routes = [
     path: '/',
     name: 'login',
     component: Login
+  },
+  {
+    path: '/loading',
+    name: 'loading',
+    component: Loading
   },
   {
     path: '/main',
@@ -171,7 +177,8 @@ const routes = [
         meta: { title: 'General Info', desc: 'About', icon: 'about' }
       }
     ]
-  }
+  },
+  { path: '*', redirect: '/' }
 ]
 
 const router = new VueRouter({
@@ -180,12 +187,20 @@ const router = new VueRouter({
 router.beforeEach((to, from, next) => {
   if (to.name && to.name === 'login') {
     next()
+  } else if (to.name && to.name === 'loading' && sessionStorage.getItem('login')) {
+    next()
   } else {
     // 拦截未登录 => main.js Vue.prototype.$global = {}
     if (!Vue.prototype.$global.isLogin) {
-      next({
-        path: '/'
-      })
+      if (sessionStorage.getItem('login')) {
+        next({
+          path: '/loading?redirect=' + to.fullPath
+        })
+      } else {
+        next({
+          path: '/'
+        })
+      }
     } else {
       next()
     }

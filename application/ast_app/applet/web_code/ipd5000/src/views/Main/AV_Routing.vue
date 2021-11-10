@@ -13,9 +13,9 @@
          v-if="inputSelect.val === 'stream'">
       <span class="setting-title">Preview</span>
       <span class="setting-title"
-            style="width: 180px;">Channel</span>
+            style="width: 180px;">Channel ID</span>
       <span class="setting-title"
-            style="width: 180px;">Name</span>
+            style="width: 180px;">Channel Name</span>
       <!-- <span class="setting-title"
             style="width: 180px;">IP Address</span> -->
     </div>
@@ -47,7 +47,7 @@
     </div>
     <div class="setting"
          style="margin-bottom: 36px">
-      <span class="setting-title">Volume (dB)</span>
+      <span class="setting-title">Volume</span>
       <el-slider @change="setVolume"
                  style="width: 200px"
                  :min="0"

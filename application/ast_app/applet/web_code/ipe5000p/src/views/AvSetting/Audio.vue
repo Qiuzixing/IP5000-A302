@@ -227,6 +227,20 @@ export default {
             { value: '4', label: 'Dante' }
           ]
         }
+      } else {
+        if (this.direction === 'out') {
+          this.audioSource.encoderParam = [
+            { value: '0', label: 'HDMI' },
+            { value: '1', label: 'Analog', $isDisabled: true },
+            { value: '2', label: 'None' }
+          ]
+        } else {
+          this.audioSource.encoderParam = [
+            { value: '0', label: 'HDMI' },
+            { value: '1', label: 'Analog' },
+            { value: '2', label: 'None' }
+          ]
+        }
       }
     },
     audioSwitchMode (msg) {
@@ -313,8 +327,8 @@ export default {
       trailing: true
     }),
     changeAudioDirection (val) {
+      this.checkAudioSocuceSelect()
       if (this.$global.deviceType) {
-        this.checkAudioSocuceSelect()
         if (val === 'out') {
           this.lists.indexOf('in.analog_audio.1.audio') !== -1 && this.lists.splice(this.lists.indexOf('in.analog_audio.1.audio'), 1)
         } else {

@@ -2,6 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Layout from '../views/Layout/index.vue'
 import Login from '../views/Login'
+import Loading from '../views/Refresh'
 Vue.use(VueRouter)
 
 const routes = [
@@ -9,6 +10,11 @@ const routes = [
     path: '/',
     name: 'login',
     component: Login
+  },
+  {
+    path: '/loading',
+    name: 'loading',
+    component: Loading
   },
   {
     path: '/main',
@@ -21,30 +27,6 @@ const routes = [
         name: 'av_routing',
         meta: { title: 'AV Routing', desc: 'Main > AV Routing', icon: 'setting' }
       }
-      // {
-      //   path: 'overlay',
-      //   component: () => import('../views/Main/Overlay.vue'),
-      //   name: 'overlay',
-      //   meta: { title: 'Overlay', desc: 'Main > Overlay', icon: 'overlay' }
-      // }
-      // {
-      //   path: 'osd',
-      //   component: () => import('../views/Main/Overlay.vue'),
-      //   name: 'osd',
-      //   meta: { title: 'OSD', desc: 'Main > OSD', icon: 'list' }
-      // },
-      // {
-      //   path: 'kvm-usb',
-      //   component: () => import('../views/Main/AutoSwitch.vue'),
-      //   name: 'kvm-usb',
-      //   meta: { title: 'KVM/USB', desc: 'Main > KVM/USB', icon: 'usb' }
-      // },
-      // {
-      //   path: 'video-wall',
-      //   component: () => import('../views/Main/AutoSwitch.vue'),
-      //   name: 'video-wall',
-      //   meta: { title: 'Video Wall', desc: 'Main > Video Wall', icon: 'grid' }
-      // },
     ]
   },
   {
@@ -186,12 +168,20 @@ const router = new VueRouter({
 router.beforeEach((to, from, next) => {
   if (to.name && to.name === 'login') {
     next()
+  } else if (to.name && to.name === 'loading' && sessionStorage.getItem('login')) {
+    next()
   } else {
     // 拦截未登录 => main.js Vue.prototype.$global = {}
     if (!Vue.prototype.$global.isLogin) {
-      next({
-        path: '/'
-      })
+      if (sessionStorage.getItem('login')) {
+        next({
+          path: '/loading?redirect=' + to.fullPath
+        })
+      } else {
+        next({
+          path: '/'
+        })
+      }
     } else {
       next()
     }

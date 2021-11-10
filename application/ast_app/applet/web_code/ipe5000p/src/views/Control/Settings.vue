@@ -67,37 +67,32 @@
       </div>
       <div class="setting">
         <span class="setting-title">Baud Rate </span>
-        <multiselect :disabled="!rs232GW"
-                     :options="baudRateParam"
+        <multiselect :options="baudRateParam"
                      v-model="baudRate"></multiselect>
-        <button :disabled="!rs232GW"
-                class="btn btn-plain-primary"
-                style="margin-left: 25px"
-                @click="saveBaudRate">SAVE</button>
+
       </div>
       <div class="setting">
         <span class="setting-title">Data Bits </span>
-        <multiselect :disabled="!rs232GW"
-                     :options="dataBitsParam"
+        <multiselect :options="dataBitsParam"
                      v-model="dataBits"></multiselect>
       </div>
       <div class="setting">
         <span class="setting-title">Parity </span>
-        <multiselect :disabled="!rs232GW"
-                     :options="parityParam"
+        <multiselect :options="parityParam"
                      v-model="parity"></multiselect>
       </div>
       <div class="setting">
         <span class="setting-title">Stop Bits </span>
-        <multiselect :disabled="!rs232GW"
-                     :options="stopBitsParam"
+        <multiselect :options="stopBitsParam"
                      v-model="stopBits"></multiselect>
       </div>
-      <div class="radio-setting">
+      <div class="setting">
         <span class="setting-title">Connection</span>
         <button :disabled="!rs232GW"
                 class="btn btn-plain-primary">CHECK</button>
       </div>
+      <button class="btn btn-primary"
+              @click="saveBaudRate">SAVE</button>
     </div>
     <div class="setting-model"
          v-if="this.$global.deviceType !== 2">
@@ -198,14 +193,6 @@ export default {
         {
           value: 'even',
           label: 'Even'
-        },
-        {
-          value: 'mark',
-          label: 'Mark'
-        },
-        {
-          value: 'space',
-          label: 'Space'
         }
       ],
       stopBits: '2',
@@ -296,7 +283,7 @@ export default {
     },
     sendCECCmd () {
       if (this.checkHex(this.cecCmd)) {
-        this.$socket.sendMsg(`#CEC-SND 1,1,1,${this.cecCmd / 2},${this.cecCmd}`)
+        this.$socket.sendMsg(`#CEC-SND 1,1,1,${this.cecCmd.length / 2},${this.cecCmd}`)
       }
     },
     handleCECResponse (msg) {

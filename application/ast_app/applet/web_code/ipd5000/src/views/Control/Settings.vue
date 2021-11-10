@@ -14,7 +14,7 @@
       <div class="setting">
         <span class="setting-title">Gateway HDMI Port</span>
         <multiselect :disabled="cecGateWay === '0'"
-                     :options="[{value: '1', label: 'HDMI Input'}, {value: '3', label: 'HDMI Loop Through'}]"
+                     :options="[{value: '1', label: 'HDMI Output'}, {value: '3', label: 'HDMI Loop Through'}]"
                      v-model="cecGateWayPort"
                      @input="setCECPort"></multiselect>
       </div>
@@ -62,42 +62,36 @@
                          v-model="rs232Port"
                          controls-position="right"
                          :max="65535"
-                         :min="5000"
-                         @change="setRs232GW"></el-input-number>
+                         :min="5000"></el-input-number>
       </div>
       <div class="setting">
         <span class="setting-title">Baud Rate </span>
-        <multiselect :disabled="!rs232GW"
-                     :options="baudRateParam"
+        <multiselect :options="baudRateParam"
                      v-model="baudRate"></multiselect>
-        <button :disabled="!rs232GW"
-                class="btn btn-plain-primary"
-                style="margin-left: 25px"
-                @click="saveBaudRate">SAVE</button>
       </div>
       <div class="setting">
         <span class="setting-title">Data Bits </span>
-        <multiselect :disabled="!rs232GW"
-                     :options="dataBitsParam"
+        <multiselect :options="dataBitsParam"
                      v-model="dataBits"></multiselect>
       </div>
       <div class="setting">
         <span class="setting-title">Parity </span>
-        <multiselect :disabled="!rs232GW"
-                     :options="parityParam"
+        <multiselect :options="parityParam"
                      v-model="parity"></multiselect>
       </div>
       <div class="setting">
         <span class="setting-title">Stop Bits </span>
-        <multiselect :disabled="!rs232GW"
-                     :options="stopBitsParam"
+        <multiselect :options="stopBitsParam"
                      v-model="stopBits"></multiselect>
       </div>
-      <div class="radio-setting">
+      <div class="setting">
         <span class="setting-title">Connection</span>
         <button :disabled="!rs232GW"
                 class="btn btn-plain-primary">CHECK</button>
       </div>
+      <button class="btn btn-primary"
+              @click="saveBaudRate">SAVE</button>
+
     </div>
     <div class="setting-model"
          v-if="this.$global.deviceType">
@@ -198,14 +192,6 @@ export default {
         {
           value: 'even',
           label: 'Even'
-        },
-        {
-          value: 'mark',
-          label: 'Mark'
-        },
-        {
-          value: 'space',
-          label: 'Space'
         }
       ],
       stopBits: '2',
@@ -235,7 +221,7 @@ export default {
         7: 'Timeout',
         8: 'Error'
       },
-      rs232Port: 5000,
+      rs232Port: 5001,
       irDirection: 'in',
       rs232GW: false,
       irGW: '0'
@@ -324,7 +310,7 @@ export default {
       }
     },
     saveBaudRate () {
-      if (this.rs232Port) {
+      if (this.rs232GW) {
         this.$socket.sendMsg(`#COM-ROUTE-ADD 1,1,${this.rs232Port},1,1`)
       }
       this.$socket.sendMsg(`#UART 1,${this.baudRate},${this.dataBits},${this.parity},${this.stopBits}`)

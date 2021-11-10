@@ -13,9 +13,9 @@ import './theme-chalk/input-number.css'
 import InputNumber from './components/input-number'
 import {
   Dialog,
-  // DatePicker,
-  // TimeSelect,
-  // TimePicker,
+  DatePicker,
+  TimeSelect,
+  TimePicker,
   Upload,
   Popover,
   Popconfirm,
@@ -36,9 +36,9 @@ Vue.use(InputNumber)
 Vue.use(Upload)
 Vue.use(Popover)
 Vue.use(Popconfirm)
-// Vue.use(DatePicker)
-// Vue.use(TimeSelect)
-// Vue.use(TimePicker)
+Vue.use(DatePicker)
+Vue.use(TimeSelect)
+Vue.use(TimePicker)
 Vue.use(Slider)
 Vue.component('multiselect', Multiselect)
 Vue.use(vSwitch)

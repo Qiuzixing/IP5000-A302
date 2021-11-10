@@ -14,9 +14,9 @@ import InputNumber from './components/input-number'
 import {
   Dialog,
   Upload,
-  // DatePicker,
-  // TimeSelect,
-  // TimePicker,
+  DatePicker,
+  TimeSelect,
+  TimePicker,
   Slider,
   Loading
 } from 'element-ui'
@@ -33,8 +33,9 @@ Vue.component('colorPicker', colorPicker)
 Vue.use(Dialog)
 Vue.use(InputNumber)
 Vue.use(Upload)
-// Vue.use(TimeSelect)
-// Vue.use(TimePicker)
+Vue.use(DatePicker)
+Vue.use(TimeSelect)
+Vue.use(TimePicker)
 Vue.use(Slider)
 Vue.component('multiselect', Multiselect)
 Vue.use(vSwitch)

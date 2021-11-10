@@ -20,7 +20,8 @@
       <!--        <span class="setting-title">Active per Request</span>-->
       <!--        <v-switch open-text="Enable" close-text="Disable"></v-switch>-->
       <!--      </div>-->
-      <div class="setting">
+      <div class="setting"
+           v-if="kvmMode === 'km'">
         <span class="setting-title">Request Time Out (min)</span>
         <el-input-number v-model="timeout"
                          controls-position="right"
@@ -30,14 +31,15 @@
       </div>
       <div class="radio-setting"
            v-if="kvmMode === 'km'">
-        <span class="setting-title">Roaming Master/Slaves</span>
+        <span class="setting-title">Roaming Master/Slave</span>
         <div>
           <radio-component v-model="roaming"
                            label="1"
+                           @change="resetCoord"
                            :disabled="castMode === '1'">Master</radio-component>
           <radio-component v-model="roaming"
                            label="0"
-                           :disabled="castMode === '1'">Slaves</radio-component>
+                           :disabled="castMode === '1'">Slave</radio-component>
         </div>
       </div>
       <div class="kvm-view"
@@ -77,11 +79,15 @@
                                  :label="kvmMap[y][x].h + ',' + kvmMap[y][x].v"
                                  style="margin-bottom: 5px;">Master</radio-component>
                 <span style="display: block; margin: 5px 0 0">MAC Address:</span>
-                <input type="text"
-                       :disabled="master===kvmMap[y][x].h+ ','+kvmMap[y][x].v"
-                       v-model="kvmMap[y][x].mac"
-                       class="setting-text"
-                       style="width: 130px;font-size: 14px;text-align: center" />
+                <div style="position: relative;">
+                  <input type="text"
+                         :disabled="master===kvmMap[y][x].h+ ','+kvmMap[y][x].v"
+                         v-model="kvmMap[y][x].mac"
+                         class="setting-text"
+                         style="width: 130px;font-size: 14px;text-align: center" />
+                  <span class="range-alert"
+                        v-if="macError === (rowItem-1)*row + colItem">MAC address error</span>
+                </div>
               </div>
             </div>
           </div>
@@ -118,6 +124,7 @@ export default {
       }]],
       mac: '',
       kvm: {},
+      macError: -1,
       castMode: '0' // 2: Multicast才可以设置KVM
     }
   },
@@ -147,8 +154,35 @@ export default {
     handleIpCastMode (msg) {
       this.castMode = msg.split(' ')[1]
     },
+    checkMAC (data) {
+      for (let i = 0; i < data.length; i++) {
+        for (let j = 0; j < data[i].length; j++) {
+          if (data[i][j].mac && !data[i][j].mac.match(/^[a-f0-9]{12}$/i)) {
+            return data[i].length * i + j + 1
+          }
+        }
+      }
+      return -1
+    },
+    checkSameMac (data) {
+      let count = 0
+      for (let i = 0; i < data.length; i++) {
+        for (let j = 0; j < data[i].length; j++) {
+          if (data[i][j].mac === this.mac) {
+            count++
+          }
+        }
+      }
+      return count
+    },
     save () {
       if (this.roaming === '1' && this.col * this.row > 16) return
+      this.macError = this.checkMAC(this.kvmMap)
+      if (this.macError !== -1) return
+      if (this.checkSameMac(this.kvmMap) > 1) {
+        alert('You can not define the same MAC as a Master and a slave')
+        return
+      }
       this.kvm.kvm_timeout_sec = this.timeout
       this.kvm.kvm_usb_mode = this.kvmMode
       this.kvm.kvm_col = this.col
@@ -200,6 +234,7 @@ export default {
       }
     },
     handleRowKvmMap (currentVal, oldVal) {
+      this.macError = -1
       // 非法值到有效值时检查，5 x 4 => 4 * 4
       if (currentVal > oldVal) {
         const v = this.kvmMap[this.kvmMap.length - 1][0].v - 1
@@ -222,6 +257,7 @@ export default {
       this.checkMasterExist()
     },
     handleColKvmMap (currentVal, oldVal) {
+      this.macError = -1
       // 非法值到有效值时检查，4 x 5 => 4 * 4
       if (currentVal === this.kvmMap[0].length) return
       if (currentVal > oldVal) {

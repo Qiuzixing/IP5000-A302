@@ -6,6 +6,8 @@
         <div class="setting">
           <span class="setting-title">Security Status</span>
           <v-switch v-model="showPwdStatus"
+                    active-value="1"
+                    inactive-value="0"
                     @change="switchPwdStatus"></v-switch>
         </div>
         <!-- <div class="setting">
@@ -16,7 +18,7 @@
         </div> -->
         <div class="setting">
           <span class="setting-title">New Password</span>
-          <input :type="showPassword ? 'text' : 'password'"
+          <input type="password"
                  v-model="newPwd"
                  class="setting-text">
           <button class="btn btn-plain-primary"
@@ -25,7 +27,7 @@
         </div>
         <div class="setting">
           <span class="setting-title">Confirm Password</span>
-          <input :type="showPassword ? 'text' : 'password'"
+          <input type="password"
                  v-model="confirmPwd"
                  class="setting-text">
         </div>
@@ -54,9 +56,9 @@
       <span slot="footer"
             class="dialog-footer">
         <button class="btn btn-primary"
-                @click="verifyShowPwdDialog = false, showPassword = true">PROCEED</button>
+                @click="verifyShowPwdDialog = false, setSecurity('1') ">PROCEED</button>
         <button class="btn btn-primary"
-                @click="verifyShowPwdDialog = false, showPwdStatus = false">CANCEL</button>
+                @click="verifyShowPwdDialog = false,showPwdStatus = '0'">CANCEL</button>
       </span>
     </el-dialog>
   </div>
@@ -70,7 +72,7 @@ export default {
     return {
       logoutTime: 0,
       showPassword: false,
-      showPwdStatus: false,
+      showPwdStatus: '0',
       verifyShowPwdDialog: false,
       pwd: '',
       newPwd: '',
@@ -83,6 +85,7 @@ export default {
     }
   },
   created () {
+    this.$socket.sendMsg('#SECUR? ')
     this.$socket.sendMsg('#LOGOUT-TIMEOUT? ')
   },
   methods: {
@@ -94,13 +97,17 @@ export default {
       }
       if (msg.search(/@PASS /i) !== -1) {
         this.handlePwd(msg)
+        return
+      }
+      if (msg.search(/@SECUR /i) !== -1) {
+        this.showPwdStatus = msg.trim().split(' ')[1]
       }
     },
     switchPwdStatus (val) {
-      if (val) {
+      if (val === '1') {
         this.verifyShowPwdDialog = true
       } else {
-        this.showPassword = false
+        this.setSecurity('0')
       }
     },
     handleLogout (msg) {
@@ -112,6 +119,9 @@ export default {
     setPassword () {
       if (this.confirmPwd.length === 0 || this.confirmPwd !== this.newPwd) return
       this.$socket.sendMsg(`#PASS admin,${this.newPwd}`)
+    },
+    setSecurity (ctrl) {
+      this.$socket.sendMsg('#SECUR ' + ctrl)
     },
     handlePwd (msg) {
       if (msg.toLowerCase().endsWith('ok')) {

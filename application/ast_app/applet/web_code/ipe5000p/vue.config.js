@@ -1,4 +1,4 @@
-const version = 'V1.0.11'
+const version = 'V1.0.14'
 const path = require('path')
 function resolve (dir) {
   return path.join(__dirname, dir)
@@ -83,6 +83,8 @@ if (process.env.NODE_ENV !== 'production') {
       } else if (message.startsWith('#CS-CONVERT? ')) {
         ws.send(`~nn@CS-CONVERT 1,${Math.round(Math.random())}`)
       } else if (message.startsWith('#PORT-DIRECTION? ')) {
+        ws.send('~01@NET-STAT [(TCP:80,0.0.0.0:0),LISTEN],[(TCP:5000,0.0.0.0:0),LISTEN],[(TCP:80,192.168.114.3:52400),ESTABLISHED],[(TCP:5000,192.168.1.100:51647),ESTABLISHED]')
+      } else if (message.startsWith('NET-STAT ')) {
         ws.send('~nn@PORT-DIRECTION both.ir,1.ir,IN')
         ws.send('~nn@PORT-DIRECTION both.analog.1.audio,OUT')
       } else if (message.startsWith('#KDS-AUD-OUTPUT? ')) {
@@ -111,8 +113,8 @@ if (process.env.NODE_ENV !== 'production') {
         ws.send(`~nn@STANDBY ${Math.round(Math.random())}`)
       } else if (message.startsWith('#VERSION? ')) {
         ws.send('~nn@VERSION 1.12.123')
-      } else if (message.startsWith('#UPG-TIME? ')) {
-        ws.send('~nn@UPG-TIME wen,05-12-2018,14:30:00')
+      } else if (message.startsWith('#TIME? ')) {
+        ws.send('~nn@TIME wen,05-12-2018,14:30:00')
       } else if (message.startsWith('#NET-DHCP? ')) {
         ws.send('~nn@NET-DHCP 0,0')
         ws.send('~nn@NET-DHCP 1,1')

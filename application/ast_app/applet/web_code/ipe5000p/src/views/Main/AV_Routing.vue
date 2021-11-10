@@ -29,9 +29,15 @@
       </div>
       <div class="setting">
         <span class="setting-title">Stream Name</span>
-        <input type="text"
-               class="setting-text"
-               v-model="channelName">
+        <div style="position: relative;">
+          <input type="text"
+                 class="setting-text"
+                 maxlength="24"
+                 v-model="channelName">
+          <span class="range-alert"
+                v-if="!isChannelName(channelName)"
+                style="top:34px;white-space: nowrap;">Alphanumeric and characters within length of 1 to 24 characters, spaces not allowed</span>
+        </div>
         <button type="button"
                 class="btn btn-plain-primary"
                 style="margin-left: 24px;"
@@ -206,6 +212,7 @@ export default {
       this.channelName = msg.split(' ')[1]
     },
     setChannelName () {
+      if (!this.isChannelName(this.channelName)) return
       this.$socket.sendMsg(`#KDS-DEFINE-CHANNEL-NAME ${this.channelName}`)
     },
     handleAudioMute (msg) {
@@ -246,6 +253,9 @@ export default {
     },
     setChannel () {
       this.$socket.sendMsg('#KDS-DEFINE-CHANNEL ' + (this.channel || 1))
+    },
+    isChannelName (name) {
+      return /^[a-zA-Z0-9][_\-a-zA-Z0-9]{0,23}$/.test(name)
     }
   }
 }

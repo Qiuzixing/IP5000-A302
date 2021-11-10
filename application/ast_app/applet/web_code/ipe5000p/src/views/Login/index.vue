@@ -47,6 +47,7 @@ export default {
     }
   },
   beforeCreate () {
+    sessionStorage.removeItem('login')
     this.$socket.ws.onmessage = msg => {
       this.handleMsg(msg.data.trim())
     }
@@ -106,6 +107,7 @@ export default {
     handleLogin (msg) {
       if (msg.split(',').pop().trim().toLowerCase() === 'ok') {
         this.$global.isLogin = true
+        sessionStorage.setItem('login', 'true')
         this.$router.push('/main')
       } else {
         this.error = true

@@ -15,59 +15,62 @@
                    @input="setEDIDMode"></multiselect>
       <!--      <v-model-select :is-disabled="edidLock" :options="edid.param"  v-model="edid.val"></v-model-select>-->
     </div>
-    <div class="radio-setting"
-         v-if="edid.val === 'custom'">
-      <span class="setting-title">User EDID</span>
-      <ul class="edid-list"
-          v-if="!(edidLock=='1')">
-        <li :class="{'active': isSelectListIndex === item[0]}"
-            v-for="item in edidList"
-            @click="isSelectListIndex = item[0]"
-            :key="item[0]">{{item[1]}}</li>
-      </ul>
-      <ul class="edid-list disabled"
-          v-else>
-        <li :class="{'active': isSelectListIndex === item[0]}"
-            v-for="item in edidList"
-            :key="item[0]">{{item[1]}}</li>
-      </ul>
-      <div style="margin-left: 24px;">
-        <el-upload action="/upload/edid"
-                   :on-success="upgradeFile"
-                   :before-upload="checkEDID"
-                   :show-file-list="false"
-                   :auto-upload="true">
+    <div v-show="edidMode">
+      <div class="radio-setting"
+           v-if="edid.val === 'custom'">
+        <span class="setting-title">User EDID</span>
+        <ul class="edid-list"
+            v-if="!(edidLock=='1')">
+          <li :class="{'active': isSelectListIndex === item[0]}"
+              v-for="item in edidList"
+              @click="isSelectListIndex = item[0]"
+              :key="item[0]">{{item[1]}}</li>
+        </ul>
+        <ul class="edid-list disabled"
+            v-else>
+          <li :class="{'active': isSelectListIndex === item[0]}"
+              v-for="item in edidList"
+              :key="item[0]">{{item[1]}}</li>
+        </ul>
+        <div style="margin-left: 24px;">
+          <el-upload action="/upload/edid"
+                     :on-success="upgradeFile"
+                     :before-upload="checkEDID"
+                     :show-file-list="false"
+                     :auto-upload="true">
+            <button class="btn btn-plain-primary"
+                    :disabled="edidLock==='1' || edidList.length > 7">UPLOAD</button>
+
+          </el-upload>
+          <br>
           <button class="btn btn-plain-primary"
-                  :disabled="edidLock==='1' || edidList.length > 7">UPLOAD</button>
+                  :disabled="edidLock==='1' || isSelectListIndex == '0'"
+                  style="margin-bottom: 24px;"
+                  @click="deleteEDID">REMOVE</button><br>
+          <button class="btn btn-plain-primary"
+                  :disabled="edidLock==='1'"
+                  style="width: 97px;"
+                  @click="setEDID">APPLY</button>
+          <input type="file"
+                 style="display:none;width:0;height:0;">
+        </div>
 
-        </el-upload>
-        <br>
-        <button class="btn btn-plain-primary"
-                :disabled="edidLock==='1' || isSelectListIndex == '0'"
-                style="margin-bottom: 24px;"
-                @click="deleteEDID">REMOVE</button><br>
-        <button class="btn btn-plain-primary"
-                :disabled="edidLock==='1'"
-                style="width: 97px;"
-                @click="setEDID">APPLY</button>
-        <input type="file"
-               style="display:none;width:0;height:0;">
       </div>
+      <div class="setting"
+           v-if="edid.val === 'passthru'">
+        <span class="setting-title">Read EDID from Specific Decoder</span>
+        <input type="text"
+               class="setting-text"
+               v-model="mac"
+               placeholder="0.0.0.0"
+               :disabled="edidLock=='1'">
+        <button class="btn btn-plain-primary"
+                :disabled="edidLock=='1'"
+                style="margin-left: 24px"
+                @click="readEDID">READ</button>
+      </div>
+    </div>
 
-    </div>
-    <div class="setting"
-         v-if="edid.val === 'passthru'">
-      <span class="setting-title">Read EDID from Specific Decoder</span>
-      <input type="text"
-             class="setting-text"
-             v-model="mac"
-             placeholder="0.0.0.0"
-             :disabled="edidLock=='1'">
-      <button class="btn btn-plain-primary"
-              :disabled="edidLock=='1'"
-              style="margin-left: 24px"
-              @click="readEDID">READ</button>
-    </div>
   </div>
 </template>
 
@@ -89,7 +92,8 @@ export default {
       edidList: [],
       edidListIndex: -1,
       isSelectListIndex: -1,
-      fileList: []
+      fileList: [],
+      edidMode: false
     }
   },
   beforeCreate () {
@@ -148,6 +152,7 @@ export default {
         this.edidListIndex = parseInt(data[2])
         this.isSelectListIndex = parseInt(data[2])
       }
+      this.edidMode = true
     },
     setEDIDMode (msg) {
       this.$socket.sendMsg(`#EDID-MODE 1,${msg},${this.isSelectListIndex === -1 ? 1 : this.edidListIndex}`)

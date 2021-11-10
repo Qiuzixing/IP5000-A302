@@ -41,7 +41,7 @@ export default {
     setTimeout(() => {
       loading.close()
       this.show = true
-    }, 1500)
+    }, 1000)
   },
   watch: {
     $route: {
@@ -56,7 +56,7 @@ export default {
         setTimeout(() => {
           loading.close()
           this.show = true
-        }, 1500)
+        }, 1000)
       }
     }
   }

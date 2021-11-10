@@ -22,7 +22,8 @@
       </div>
       <p class="setting-title"
          style="margin: 15px 0 0;">Layout</p>
-      <div class="video-wall">
+      <div class="video-wall"
+           v-show="layoutShow">
         <div class="video-wall-row"
              v-for="rowItem in row"
              :key="rowItem">
@@ -77,6 +78,7 @@ export default {
   },
   data () {
     return {
+      layoutShow: false,
       stretchType: '0',
       roaming: '0',
       bezel: '0',
@@ -125,6 +127,7 @@ export default {
       const arr = data.split(',')
       this.col = +arr[1]
       this.row = +arr[2]
+      this.layoutShow = true
     },
     handleSelectedLayoutRotation (data) {
       const arr = data.split(' ')[1].split(',')

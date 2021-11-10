@@ -130,12 +130,12 @@
         <span class="setting-title"
               style="width: 80px">Name</span>
         <div style="position: relative;flex: 1"
-             :class="{'error-input': idError}">
+             :class="{'error-input': nameError}">
           <input type="text"
                  maxlength="24"
                  v-model="addChannel.name"
                  class="setting-text" />
-          <span class="alert-error">Name must be 1 to 24 characters in length, <br>alphanumeric only and space</span>
+          <span class="alert-error">Alphanumeric and characters within length of 1 to 24 characters, spaces not allowed.</span>
         </div>
       </div>
       <span v-if="idRulerError"
@@ -167,7 +167,7 @@
                  maxlength="24"
                  v-model="editObj.name"
                  class="setting-text" />
-          <span class="alert-error">Name must be 1 to 24 characters in length, <br>alphanumeric only and space.</span>
+          <span class="alert-error">Alphanumeric and characters within length of 1 to 24 characters, spaces not allowed.</span>
         </div>
       </div>
       <span slot="footer"
@@ -327,21 +327,23 @@ export default {
     channelFileChange (e) {
       const file = e.target.files[0]
       if (file) {
-        if (file.type === 'application/json' && file.size <= 1024 * 1024 * 10) {
-          const reader = new FileReader()
-          reader.readAsText(file, 'UTF-8')
-          reader.onload = (e) => {
-            const text = JSON.parse(e.target.result)
-            if (Array.isArray(text.channels_list)) {
-              this.channelList = text.channels_list
-            } else {
-              e.target.value = ''
-              throw new TypeError('file error!')
-            }
+        if (file.type !== 'application/json') {
+          alert('File format error!')
+          return
+        }
+        if (file.size >= 1024 * 1024) {
+          alert('The file size is less than 1MB!')
+          return
+        }
+        const reader = new FileReader()
+        reader.readAsText(file, 'UTF-8')
+        reader.onload = (e) => {
+          const text = JSON.parse(e.target.result)
+          if (Array.isArray(text.channels_list)) {
+            this.channelList = text.channels_list
+          } else {
+            alert('File format error!')
           }
-        } else {
-          e.target.value = ''
-          throw new TypeError('file format error or size large!')
         }
       }
     },
@@ -409,7 +411,7 @@ export default {
       return id.match(/^[1-9]?[1-9]?[1-9]$/)
     },
     isName (name) {
-      return name.match(/^[A-Za-z0-9 ]{1,15}$/)
+      return /^[A-Za-z0-9][A-Za-z0-9\-_]{0,23}$/.test(name)
     },
     setDisplayInfo (val) {
       this.$socket.sendMsg('#KDS-OSD-DISPLAY ' + val)
