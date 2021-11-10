@@ -3714,3 +3714,10 @@ void GetUpgradeStatus(char* info, unsigned int size)
 
 
 
+int EX_NTFYPhraser(Notify_S *s_NTFYInfo)
+{
+    
+    printf("{s_NTFYInfo [%d][%d]}\n",s_NTFYInfo->NCmd,s_NTFYInfo->iParamNum);
+    return 0;
+}
+

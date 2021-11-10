@@ -425,6 +425,82 @@ RESET_Udp:
     return;
 }
 
+void Sendtoclient(char * msg, int len)
+{
+    HandleList_S * tmphandle = &(gs_handleMng.listHandleHead);
+	P3KReqistMsg_S *upregistMsg = NULL;
+    do{
+    	upregistMsg = (P3KReqistMsg_S *)HandleManageGetNextHandle(tmphandle);
+    	if(upregistMsg)
+    	{
+    		upregistMsg->sendMsg(upregistMsg->handleId,msg,len);
+    	}
+    	upregistMsg = NULL;
+    	tmphandle = tmphandle->next;
+	}while(tmphandle != NULL && tmphandle->next != NULL);
+}
+
+void * P3K_UdpInsideServer()
+{
+    int old_Udp_port;
+	g_Udp_Inside_Socket= socket(AF_INET,SOCK_DGRAM,0);
+	struct sockaddr_in myaddr;
+	myaddr.sin_family=AF_INET;
+	myaddr.sin_port = htons(60001);
+	myaddr.sin_addr.s_addr = inet_addr("127.0.0.1");//通配地址  将所有的地址绑定
+	int opt = 1;  
+    // sockfd为需要端口复用的套接字  
+    setsockopt(g_Udp_Inside_Socket,SOL_SOCKET,SO_REUSEADDR, (const void *)&opt, sizeof(opt));
+	if(bind(g_Udp_Inside_Socket,(struct sockaddr*)&myaddr,sizeof(myaddr))<0)
+		DBG_ErrMsg("Udp bind err");
+
+    int s32Ret = 0;
+    int tmplen = 0;
+	char recvBuf[1500] = "";
+    char aSendp3k[1500] = "";
+    P3K_SimpleCmdInfo_S Sendp3k;
+    P3K_SimpleCmdInfo_S respCmdInfo;
+    P3K_SimpleCmdInfo_S cmd;
+    char userDefine[MAX_USR_STR_LEN+1] = {0};
+    char dstdata[512] = {0};
+    
+	struct sockaddr_in client;
+    socklen_t len = sizeof(client);  
+	while(1)
+	{  
+		memset(recvBuf,0,sizeof(recvBuf));
+		int s = recvfrom(g_Udp_Inside_Socket, recvBuf, sizeof(recvBuf)-1,0,(struct sockaddr*)&client,&len);
+		if(s > 0 && !memcmp(recvBuf,"#P3K-NOTIFY",strlen("#P3K-NOTIFY")))
+		{
+            memcpy(cmd.command,"P3K-NOTIFY",strlen("P3K-NOTIFY"));
+            strcpy(cmd.param,recvBuf+12);
+            s32Ret = P3K_SilmpleReqCmdProcess(&cmd,&respCmdInfo,userDefine);
+            strcpy(respCmdInfo.command,userDefine);
+			if(s32Ret != 0)
+			{
+				continue;
+			}
+            memset(dstdata,0,sizeof(dstdata));
+			//组包
+			tmplen = P3K_SimpleRespCmdBurstification(&respCmdInfo, dstdata);
+			//发送数据
+            Sendtoclient(dstdata,tmplen);
+		}
+        else
+        {
+            usleep(20*100);
+        }
+	}
+    return;
+}
+
+
+
+void ParseMsgSetOrGet(P3K_SimpleCmdInfo_S *cmd,char *dstdata)
+{
+    char * tmp = &cmd->command[strlen(cmd->command)-1];
+    memcpy(dstdata,tmp,strlen(tmp));
+}
 
 static void * P3K_DataExcuteProc(void*arg)
 {
@@ -436,13 +512,12 @@ static void * P3K_DataExcuteProc(void*arg)
 	int tmplen = 0;
 	char aOtherCh[128] = {0};
 	char userDefine[MAX_USR_STR_LEN+1] = {0};
+    char  aSetOrGet[4] = "";
+    char  aEndFlag[4] = "?";
 	//函数处理执行线程
 	prctl(PR_SET_NAME, (unsigned long)"P3K_DataExcuteProc", 0,0,0);
-	//printf("child thread lwpid = %u\n", syscall(SYS_gettid));
-        //printf("child thread tid = %u\n", pthread_self());
-    Cfg_Init();
-	//g_network_info
-	int i_Udps32Ret = 0;
+      Cfg_Init();
+ 	int i_Udps32Ret = 0;
 	pthread_t tUdpserver;
 	i_Udps32Ret = pthread_create(&tUdpserver, NULL, P3K_UdpServer, NULL);
 	if(i_Udps32Ret)
@@ -452,28 +527,21 @@ static void * P3K_DataExcuteProc(void*arg)
 	else{
         printf("Udp Server Start\n");}
     pthread_detach(tUdpserver);
+
+    pthread_t tUdp_inside_server;
+	i_Udps32Ret = pthread_create(&tUdp_inside_server, NULL, P3K_UdpInsideServer, NULL);
+	if(i_Udps32Ret)
+	{
+		DBG_ErrMsg("Udp inside Server Start Error\n");
+	}
+	else{
+        printf("Udp inside Server Start\n");}
+    pthread_detach(tUdp_inside_server);
+    
 	while(1)//P3K_GetApiInitFlag())
 	{
 		memset(&pmsg,0,sizeof(P3KMsgQueueMember_S));
 		memset(aOtherCh,0,sizeof(aOtherCh));
-		//int ret1 = 1;
-		int ret1 = EX_AutomaticReporting(aOtherCh);
-		if(ret1 > 0)
-		{
-			HandleList_S * tmphandle = &(gs_handleMng.listHandleHead);
-			P3KReqistMsg_S *upregistMsg = NULL;
-			printf(">>>>%s\n",aOtherCh);
-			do{
-				upregistMsg = (P3KReqistMsg_S *)HandleManageGetNextHandle(tmphandle);
-				if(upregistMsg)
-				{
-					upregistMsg->sendMsg(upregistMsg->handleId,aOtherCh,strlen(aOtherCh));
-				}
-				upregistMsg = NULL;
-				tmphandle = tmphandle->next;
-			}while(tmphandle != NULL && tmphandle->next != NULL);
-			Clear_Re();
-		}
 		s32Ret = P3K_MSgQueueGetMsg(&pmsg);
 		if(s32Ret != 0)
 		{
@@ -490,24 +558,29 @@ static void * P3K_DataExcuteProc(void*arg)
 			{
 				continue;
 			}
+            memset(aSetOrGet,0,sizeof(aSetOrGet));
+            ParseMsgSetOrGet(&respCmdInfo,aSetOrGet);
 			memset(dstdata,0,sizeof(dstdata));
 			//组包
 			tmplen = P3K_SimpleRespCmdBurstification(&respCmdInfo, dstdata);
 			//发送数据
-			registMsg = P3K_GetReqistMsgByID(pmsg.handleId);
-			if(registMsg)
-			{
-				registMsg->sendMsg(pmsg.handleId,dstdata,tmplen);
-				if(strlen(userDefine) > 0)
-				{
-					registMsg->sendMsg(pmsg.handleId,userDefine,strlen(userDefine));
-				}
-			}
-			//char * str1 = "~01@KDS-DANTE-NAME  KDS-LONG\r\n";
-			//registMsg->sendMsg(pmsg.handleId,str1,strlen(str1));
-
-
-		}
+			if(!memcmp(aSetOrGet,aEndFlag,strlen(aEndFlag)))
+            {
+                //printf("Get\n");
+                registMsg = P3K_GetReqistMsgByID(pmsg.handleId);
+    			if(registMsg)
+    			{
+    				registMsg->sendMsg(pmsg.handleId,dstdata,tmplen);
+    				if(strlen(userDefine) > 0)
+    				{
+    					registMsg->sendMsg(pmsg.handleId,userDefine,strlen(userDefine));
+    				}
+    			}
+            }
+            else{
+                 Sendtoclient(dstdata,tmplen);
+            }            
+  		}
 	return  NULL;
 }
 
@@ -558,7 +631,7 @@ static int P3K_RecvMessage(int handleId,char*data,int len )
 	int flag = 0;
 	int iFlieSize = 0;
 	memset(cmd,0,sizeof(P3K_SimpleCmdInfo_S)*16);
-
+    
 	//flag = P3K_GetLDFWStatus(&gs_LDFWStatus, handleId);
 	if(LDFWflag == 1)
 	{
@@ -671,7 +744,7 @@ static int P3K_RecvMessage(int handleId,char*data,int len )
 				continue;
 			}
 			//通用命令放入缓存
-			printf("<<<<<<11111%s\n",data);
+			printf("<<<<<<recv%s\n",data);
 			memset(&queueMmber,0,sizeof(queueMmber));
 			queueMmber.handleId =handleId;
 			memcpy(&queueMmber.cmdinfo,&cmd[i],sizeof(P3K_SimpleCmdInfo_S));

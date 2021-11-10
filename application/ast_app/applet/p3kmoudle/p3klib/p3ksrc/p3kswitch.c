@@ -72,6 +72,78 @@ static int P3K_PhraserWithSeparator(char separator,char * param, int len, char s
 	return i;
 }
 
+static int P3K_CheckNTFYCMD(char*data)
+{
+	int tmpDirec = NTFY_AUDIO;
+
+	if((!strcasecmp(data,"AUDIO")))
+		{tmpDirec = NTFY_AUDIO;}
+	else if((!strcasecmp(data,"VIDEO")))
+		{tmpDirec = NTFY_VIDEO;}
+	else if((!strcasecmp(data,"HDCP")))
+		{tmpDirec = NTFY_HDCP;}
+    else if((!strcasecmp(data,"SWITCH")))
+		{tmpDirec = NTFY_SWITCH;}
+    else if((!strcasecmp(data,"AUDIO_SWITCH")))
+		{tmpDirec = NTFY_AUDIO_SWITCH;}
+    else if((!strcasecmp(data,"INPUT")))
+		{tmpDirec = NTFY_INPUT;}
+    else if((!strcasecmp(data,"OUTPUT")))
+		{tmpDirec = NTFY_OUTPUT;}
+    else if((!strcasecmp(data,"CEC_MSG")))
+		{tmpDirec = NTFY_CEC_MSG;}
+    else if((!strcasecmp(data,"IR_MSG")))
+		{tmpDirec = NTFY_IR_MSG;}
+    else if((!strcasecmp(data,"RS232_MSG")))
+		{tmpDirec = NTFY_RS232_MSG;}
+	return tmpDirec;
+}
+
+static int P3K_NTFYToStr(int type,char*data)
+{
+	char tmpbuf[32]={0};
+	memset(tmpbuf,0,sizeof(tmpbuf));
+	switch(type)
+		{
+			case NTFY_AUDIO:
+				strcpy(tmpbuf,"AUDIO-NTFY");
+				break;
+			case NTFY_VIDEO:
+				strcpy(tmpbuf,"VIDEO-NTFY");
+				break;
+			case NTFY_HDCP:
+				strcpy(tmpbuf,"HDCP-NTFY");
+				break;
+            case NTFY_SWITCH:
+				strcpy(tmpbuf,"SWITCH-NTFY");
+				break;
+            case NTFY_AUDIO_SWITCH:
+				strcpy(tmpbuf,"AUDIO_SWITCH-NTFY");
+				break;
+            case NTFY_INPUT:
+				strcpy(tmpbuf,"INPUT-NTFY");
+				break;
+            case NTFY_OUTPUT:
+				strcpy(tmpbuf,"OUTPUT-NTFY");
+				break;
+            case NTFY_CEC_MSG:
+				strcpy(tmpbuf,"CEC-NTFY");
+				break;
+            case NTFY_IR_MSG:
+				strcpy(tmpbuf,"IR-NTFY");
+				break;
+            case NTFY_RS232_MSG:
+				strcpy(tmpbuf,"RS232-NTFY");
+				break;
+			default:
+				strcpy(tmpbuf,"DEFAULT");
+				break;
+		}
+	memcpy(data,tmpbuf,strlen(tmpbuf));
+	return 0;
+}
+
+
 static int P3K_CheckEdidMode(char*data)
 {
 	int tmpDirec = PASSTHRU;
@@ -4380,6 +4452,81 @@ static int P3K_GetBEACON(char*reqparam,char*respParam,char*userdata)
 }
 
 
+static int  P3K_PhraserNTFYParam(char *param,int len,char str[][MAX_PARAM_LEN] )
+{
+	int tmpLen = 0 ;
+	//int s32Ret = 0;
+	int i = 0;
+	char *tmpdata = param;
+	char *tmpdata1 = param;
+
+	if(param == NULL ||len <=0)
+	{
+		return -1;
+	}
+	while(tmpdata != NULL)
+	{
+		tmpdata = strchr(tmpdata,':');
+		if(tmpdata != NULL)
+		{
+			tmpLen = tmpdata-tmpdata1;
+			memcpy(str[i],tmpdata1,tmpLen);
+			i++;
+			if(len > tmpdata-param+1)
+			{
+				tmpdata1 = tmpdata+1;
+				tmpdata = tmpdata +1;
+		       }
+			else
+			{
+				break;
+			}
+		}
+	}
+	memcpy(str[i],tmpdata1,strlen(tmpdata1));
+	i++;
+	return i;
+}
+
+
+
+static int P3K_NTFY_PROC(char*reqparam,char*respParam,char*userdata)
+{
+	DBG_InfoMsg("P3K_NTFY_PROC\n");
+	int count = 0;
+	char CMD[24] = "";
+    Notify_S s_NTFYInfo = {0};
+	int u32ret = 0;
+	char tmpparam[MAX_PARAM_LEN] = {0};
+	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
+    //char strParam[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
+    
+	s_NTFYInfo.iParamNum = P3K_PhraserNTFYParam(reqparam,strlen(reqparam),str);
+	memcpy(CMD,str[0],strlen(str[0]));
+    s_NTFYInfo.NCmd = P3K_CheckNTFYCMD(CMD);
+    for(count = 2;count < s_NTFYInfo.iParamNum;count++)
+    {
+        memcpy(s_NTFYInfo.strParam[count-2],str[count],strlen(str[count]));
+    }
+    s_NTFYInfo.iParamNum -= 2;
+    printf("{param=%s,%s}\n",str[2],str[3]);
+	u32ret = EX_NTFYPhraser(&s_NTFYInfo);
+    if(u32ret)
+	{
+		DBG_ErrMsg("EX_NTFYPhraser err\n");
+	}
+    P3K_NTFYToStr(s_NTFYInfo.NCmd,userdata);
+    sprintf(tmpparam,"%d,%d,",s_NTFYInfo.NCmd,s_NTFYInfo.iParamNum);
+    for(count = 0;count < s_NTFYInfo.iParamNum;count++)
+    {
+        sprintf(tmpparam+strlen(tmpparam),"%s",s_NTFYInfo.strParam[count]);
+    }
+	memcpy(respParam,tmpparam,strlen(tmpparam));
+    
+	return 0;
+}
+
+
 /*   P3K_SetIRGateway  */
 /*P3K_GetBEACON
 int P3K_SilmpleSpecReqCmdProcess(P3K_SimpleSpecCmdInfo_S * cmdreq, P3K_SimpleSpecCmdInfo_S * cmdresp)
@@ -4557,6 +4704,7 @@ int P3K_SilmpleReqCmdProcess(P3K_SimpleCmdInfo_S *cmdreq,P3K_SimpleCmdInfo_S *cm
 									{"UDPNET-CONFIG?",P3K_Discovery},
 									{"BEACON-CONF",P3K_ConfBeaconInfo},
 									{"BEACON-CONF?",P3K_GetBeaconConf},
+									{"P3K-NOTIFY",P3K_NTFY_PROC},
 									{NULL,NULL}
 	};
 

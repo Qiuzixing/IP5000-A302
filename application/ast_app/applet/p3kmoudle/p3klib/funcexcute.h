@@ -189,6 +189,28 @@ typedef enum _State_E
 	ON,
 }State_E;
 
+typedef enum _NTFYCMD_E
+{
+	NTFY_AUDIO,
+	NTFY_VIDEO,
+	NTFY_HDCP,
+	NTFY_SWITCH,
+	NTFY_AUDIO_SWITCH,
+	NTFY_INPUT,
+	NTFY_OUTPUT,
+	NTFY_CEC_MSG,
+	NTFY_IR_MSG,
+	NTFY_RS232_MSG,
+}NTFYCmd_E;
+
+typedef struct   _NTFY_S
+{
+     NTFYCmd_E NCmd;  //.............参数类型
+     int iParamNum;  //..............参数个数
+     char strParam[10][256];  //.....参数
+}Notify_S;
+
+
 typedef struct   _MuteInfo_S
 {
        PortDirectionType_E direction;
@@ -585,6 +607,7 @@ int EX_Beacon(int iPort_Id,int iStatus,int iTime);
 int EX_ConfBeaconInfo(char *muticastIP,int port);
 int EX_GetBeaconConf(char *muticastIP,int *port);
 int EX_GetBeacon(int *iPort_Id,int *iStatus,int *iTime);
+int EX_NTFYPhraser(Notify_S *s_NTFYInfo);
 
 void GetUpgradeStatus(char *info, unsigned int size);
 

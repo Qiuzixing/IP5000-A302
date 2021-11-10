@@ -57,6 +57,16 @@ sum:命令总数
 ********************/
 int P3K_ApiGetTotalExcuteCmd(int *sum);
 
+
+/*******************
+功能:给所有tcpclinet发送消息
+输出参数:
+msg:消息
+len:消息长度
+********************/
+void Sendtoclient(char * msg, int len);
+
+
 #ifdef __cplusplus
 }
 #endif
