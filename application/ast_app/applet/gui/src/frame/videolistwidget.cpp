@@ -33,6 +33,7 @@ OSDMeun::OSDMeun(QWidget *parent)
     ,m_currentPage(1)
     ,m_onSreachMode(false)
     ,m_displayStatus(false)
+    ,m_pageChannels(5)
 {
     // 解析菜单参数
     parseMeunJson(MENUINFO_PATH);
@@ -105,6 +106,19 @@ void OSDMeun::initPageNumList()
     QAction *act_5 = new QAction("9",pageNumList);
     QAction *act_6 = new QAction("10",pageNumList);
 
+    QFont font;
+    int fontsize = 15 * ((float)g_nScreenWidth/g_nStdScreenWidth);
+    font.setPointSize(fontsize);
+    font.setBold(true);
+    font.setWeight(50 * g_fScaleScreen);
+
+    act_1->setFont(font);
+    act_2->setFont(font);
+    act_3->setFont(font);
+    act_4->setFont(font);
+    act_5->setFont(font);
+    act_6->setFont(font);
+
     if(g_nScreenWidth < 3840)
     {
         list.append(act_1);
@@ -157,7 +171,8 @@ void OSDMeun::initLayout()
     m_listWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_listWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
-    // 设置字体大小
+    // 设置字体
+    setButtonFont();
     setMeunFont();
 
     // 初始化设置页面频道数
@@ -190,6 +205,24 @@ void OSDMeun::initLayout()
 
     this->setLayout(m_mainLayout);
     qDebug() << "setLayout  finished";
+}
+
+void OSDMeun::setButtonFont()
+{
+    QFont font;
+    int fontsize = 15 * ((float)g_nScreenWidth/g_nStdScreenWidth);
+    font.setPointSize(fontsize);
+    font.setBold(true);
+    font.setWeight(50 * g_fScaleScreen);
+
+    m_Select->setFont(font);
+    m_Search->setFont(font);
+    m_Page_up->setFont(font);
+    m_Page_down->setFont(font);
+    m_Apply->setFont(font);
+    m_Exit->setFont(font);
+    m_inputEdit->setFont(font);
+    m_Search->setFont(font);
 }
 
 void OSDMeun::setMeunFont()
@@ -377,7 +410,7 @@ void OSDMeun::parseMeunJson(QString jsonpath)
 
     if(!in.is_open())
     {
-        qDebug() << "openfile failed";
+        qDebug() << "open osd.json failed";
         return;
     }
     qDebug() << "Start Parse OSDjson";
@@ -408,7 +441,9 @@ void OSDMeun::parseMeunJson(QString jsonpath)
 
         QString str = size.c_str();
         qDebug() << "str:" << str;
-        int fontsize;
+
+        // 匹配字号
+        int fontsize = 0;
         if(str.compare("small") == 0)
         {
             fontsize = Small;
@@ -442,7 +477,7 @@ void OSDMeun::parseMeunJson(QString jsonpath)
             else
                 m_pageChannels = channelnum;
         }
-        else if(m_pageChannels == 0)
+        else if(channelnum == 0)
         {
             m_pageChannels = 5;
         }
@@ -471,7 +506,7 @@ QFont OSDMeun::loadFontSize()
     {
         case Small:
         {
-            m_FontSize = 10 * ((float)g_nScreenWidth/g_nStdScreenWidth);
+            m_FontSize = 15 * ((float)g_nScreenWidth/g_nStdScreenWidth);
             font.setPointSize(m_FontSize);
             font.setBold(true);
             font.setWeight(50 * g_fScaleScreen);
@@ -479,7 +514,7 @@ QFont OSDMeun::loadFontSize()
         }
         case Mid:
         {
-            m_FontSize = 15 * ((float)g_nScreenWidth/g_nStdScreenWidth);
+            m_FontSize = 20 * ((float)g_nScreenWidth/g_nStdScreenWidth);
             font.setPointSize(m_FontSize);
             font.setBold(true);
             font.setWeight(50 * g_fScaleScreen);
@@ -487,7 +522,7 @@ QFont OSDMeun::loadFontSize()
         }
         case Big:
         {
-            m_FontSize = 20 * ((float)g_nScreenWidth/g_nStdScreenWidth);
+            m_FontSize = 25 * ((float)g_nScreenWidth/g_nStdScreenWidth);
             font.setPointSize(m_FontSize);
             font.setBold(true);
             font.setWeight(50 * g_fScaleScreen);
@@ -513,7 +548,7 @@ void OSDMeun::parseChannelJson()
 
     if(!in.is_open())
     {
-        qDebug() << "openfile failed";
+        qDebug() << "open channel_map.json failed";
         return;
     }
 

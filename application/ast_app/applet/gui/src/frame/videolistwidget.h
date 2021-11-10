@@ -49,6 +49,7 @@ public:
 
     void setListWidgetHeight();
     void setMeunFont();
+    void setButtonFont();
 
      void hideSettingPage();
 

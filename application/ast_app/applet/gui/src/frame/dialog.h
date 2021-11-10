@@ -90,6 +90,7 @@ public:
     ~Dialog();
     void setSelectedNode(QString);
     void setSleepPicture(char *path);
+    void setInfoEnable(bool enable);
 
 signals:
     void sigStartSleepMode();

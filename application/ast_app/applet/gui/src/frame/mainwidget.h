@@ -37,14 +37,16 @@ public:
     void moveFramebuffer(int align);
     void setTransparency(int Transparency);
 
-    void showLongDisplay();
+
     void setOsdDispaly(bool status);
 
     void switchOSDMeun();
 
-    void getResolutionFromTiming();
     bool p3kconnected();
-public slots:
+public slots:  
+    void getResolutionFromTiming();
+     void showLongDisplay();
+
     void hideOsdMeun();
     void showOsdMeun();
     void moveOsdMeun(int position);
@@ -52,6 +54,8 @@ public slots:
 
     void slotShowOverlay();
     void slotHideOverlay();
+
+    void destroyOsdAndOverlay();
 
     void isNoSignal();
 
@@ -80,6 +84,7 @@ protected:
 
 private:
     void initOsdMeun();
+    void initOverlay();
     void initPanelStack();
 
 private:
@@ -105,6 +110,9 @@ private:
 
     int m_Transparency; // 透明度
     int m_CmdOuttime;
+    bool m_overlayStatus;
+
+    bool m_bFirst;
 
     UdpRecvThread* UdpRecv;
     P3ktcp *m_p3kTcp;

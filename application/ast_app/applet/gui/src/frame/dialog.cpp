@@ -879,6 +879,13 @@ void Dialog::setSleepPicture(char *path)
     update();
 }
 
+void Dialog::setInfoEnable(bool enable)
+{
+    infoL->setVisible(enable);
+    infoC->setVisible(enable);
+    infoR->setVisible(enable);
+}
+
 void Dialog::setNodeDialogVisible(bool bVisible)
 {
     dlgNode->setVisible(bVisible);
