@@ -25,3 +25,4 @@ p3ktcp:
 clean:
 	make -C $(LIB_PWD) clean
 	make -C $(P3KTCP) clean
+	make -C $(P3KNOTY) clean
