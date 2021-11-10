@@ -2189,6 +2189,14 @@ init_share_param_from_flash()
 		fi
 	fi
 
+	SOIP_PORT=`astparam g soip_port`
+	if echo "$SOIP_PORT" | grep -q "not defined" ; then
+		SOIP_PORT=`astparam r soip_port`
+		if echo "$SOIP_PORT" | grep -q "not defined" ; then
+			SOIP_PORT='50001'
+		fi
+	fi
+
 	S0_BAUDRATE=`astparam g s0_baudrate`
 	if echo "$S0_BAUDRATE" | grep -q "not defined" ; then
 		S0_BAUDRATE=`astparam r s0_baudrate`
@@ -3257,6 +3265,7 @@ echo_parameters()
 	echo "SOIP_GUEST_ON=$SOIP_GUEST_ON"
 	echo "SOIP_TYPE2=$SOIP_TYPE2"
 	echo "SOIP_TYPE=$SOIP_TYPE"
+	echo "SOIP_PORT=$SOIP_PORT"
 	echo "S0_BAUDRATE=$S0_BAUDRATE"
 	echo "NO_SOIP=$NO_SOIP"
 	echo "NO_VIDEO=$NO_VIDEO"
@@ -3422,6 +3431,7 @@ echo_parameters_json()
 	echo "\"SOIP_GUEST_ON\":\"$SOIP_GUEST_ON\","
 	echo "\"SOIP_TYPE2\":\"$SOIP_TYPE2\","
 	echo "\"SOIP_TYPE\":\"$SOIP_TYPE\","
+	echo "\"SOIP_PORT\":\"$SOIP_PORT\","
 	echo "\"NO_SOIP\":\"$NO_SOIP\","
 	echo "\"S0_BAUDRATE\":\"$S0_BAUDRATE\","
 	echo "\"NO_VIDEO\":\"$NO_VIDEO\","

@@ -1278,7 +1278,7 @@ int Cfg_Init_Gateway(void)
 	g_gateway_info.cec_mode = ON;
 	g_gateway_info.cec_output = 0;
 	g_gateway_info.rs232_mode = ON;
-	g_gateway_info.rs232_port = 50001;
+	g_gateway_info.rs232_port = 5001;
 	g_gateway_info.rs232_param.rate = 115200;
 	g_gateway_info.rs232_param.bitWidth = 8;
 	g_gateway_info.rs232_param.parity = PARITY_NONE;

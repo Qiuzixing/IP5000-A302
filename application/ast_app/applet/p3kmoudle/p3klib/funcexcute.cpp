@@ -2588,13 +2588,18 @@ int EX_SetUartConf(UartMessageInfo_S*conf)
 
 	char cmd[128] = "";
 	if(conf->parity == PARITY_ODD)
-		sprintf(cmd,"astparam s s0_baudrate %d-%do%d;astparam save",conf->rate,conf->bitWidth,(int)conf->stopBitsMode);
+//		sprintf(cmd,"astparam s s0_baudrate %d-%do%d;astparam save",conf->rate,conf->bitWidth,(int)conf->stopBitsMode);
+		sprintf(cmd,"e_p3k_soip_param::%d-%do%d",conf->rate,conf->bitWidth,(int)conf->stopBitsMode);
 	else if(conf->parity == PARITY_EVEN)
-		sprintf(cmd,"astparam s s0_baudrate %d-%de%d;astparam save",conf->rate,conf->bitWidth,(int)conf->stopBitsMode);
+//		sprintf(cmd,"astparam s s0_baudrate %d-%de%d;astparam save",conf->rate,conf->bitWidth,(int)conf->stopBitsMode);
+		sprintf(cmd,"e_p3k_soip_param::%d-%de%d",conf->rate,conf->bitWidth,(int)conf->stopBitsMode);
 	else
-		sprintf(cmd,"astparam s s0_baudrate %d-%dn%d;astparam save",conf->rate,conf->bitWidth,(int)conf->stopBitsMode);
+//		sprintf(cmd,"astparam s s0_baudrate %d-%dn%d;astparam save",conf->rate,conf->bitWidth,(int)conf->stopBitsMode);
+		sprintf(cmd,"e_p3k_soip_param::%d-%dn%d",conf->rate,conf->bitWidth,(int)conf->stopBitsMode);
 
-	system(cmd);
+	DBG_InfoMsg("ast_send_event %s\n",cmd);
+	ast_send_event(0xFFFFFFFF,cmd);
+
 	return 0;
 }
 int EX_GetUartConf(int comId,UartMessageInfo_S*conf)
@@ -2617,7 +2622,11 @@ int EX_AddComRoute(ComRouteInfo_S*info,int comId)
 {
 	Cfg_Set_GW_COM_Add(info->portNumber);
 
-	system("astparam s no_soip n;astparam save");
+	//system("astparam s no_soip n;astparam save");
+	char sCmd[64] = "";
+	sprintf(sCmd,"e_p3k_soip_gw_on::%d",info->portNumber);
+	DBG_InfoMsg("ast_send_event %s\n",sCmd);
+	ast_send_event(0xFFFFFFFF,sCmd);
 
 	return 0;
 }
@@ -2625,7 +2634,9 @@ int EX_RemoveComRoute(int comId)
 {
 	Cfg_Set_GW_COM_Remove();
 
-	system("astparam s no_soip y;astparam save");
+	DBG_InfoMsg("ast_send_event e_p3k_soip_gw_off\n");
+	ast_send_event(0xFFFFFFFF,"e_p3k_soip_gw_off");
+	//system("astparam s no_soip y;astparam save");
 	return 0;
 }
 int EX_GetComRoute(int comId,ComRouteInfo_S*info)
@@ -2638,7 +2649,7 @@ int EX_GetComRoute(int comId,ComRouteInfo_S*info)
 	{
 		info->HeartTimeout = 60;
 		info->portNumber = port;
-		info->portType = 1;
+		info->portType = 0;
 		info->rePlay = 0;
 	}
 	else
@@ -2654,7 +2665,7 @@ int EX_GetComRoute(int comId,ComRouteInfo_S*info)
 int EX_GetOpenTunnelParam(int tunnelId,TunnelParam_S*param)
 {
 
-	param->portNumber= 50001;
+	param->portNumber= 5001;
 	param->portType = 0;
 	param->connectType = 0;
 	param->reMoteNumber = 4000;

@@ -32,15 +32,22 @@ init()
 
 load_soip_c()
 {
+	SOIP_GUEST_ON=`astparam g soip_guest_on`
+	SOIP_PORT=`astparam g soip_port`
+	SOIP_TYPE=`astparam g soip_type`
+	S0_BAUDRATE=`astparam g s0_baudrate`
+
+	echo "load_soip_c SOIP_GUEST_ON($SOIP_GUEST_ON) SOIP_PORT($SOIP_PORT) SOIP_TYPE($SOIP_TYPE) S0_BAUDRATE($S0_BAUDRATE)"
+
 	case "$SOIP_TYPE" in
 		1)
 			soip -c -d /dev/ttyS0
 		;;
 		2)
 			if [ "$SOIP_GUEST_ON" = 'y' ]; then
-				soip2 -h -f /dev/ttyS0 -b $S0_BAUDRATE -o $SOIP_TOKEN_TIMEOUT
+				soip2 -h -f /dev/ttyS0 -b $S0_BAUDRATE -o $SOIP_TOKEN_TIMEOUT -p $SOIP_PORT
 			else
-				soip2 -c -f /dev/ttyS0 -d $S_ENCODER_IP -b $S0_BAUDRATE
+				soip2 -c -f /dev/ttyS0 -d $S_ENCODER_IP -b $S0_BAUDRATE -p 6752
 			fi
 		;;
 		3)
@@ -62,20 +69,7 @@ load_soip_c()
 
 unload_soip_c()
 {
-	case "$SOIP_TYPE" in
-		1)
-			pkill soip 2>/dev/null
-		;;
-		2)
-			pkill soip2 2>/dev/null
-		;;
-		3)
-			pkill soip3 2>/dev/null
-		;;
-		*)
-			echo "ERROR! Unsupported SOIP_TYPE($SOIP_TYPE)"
-		;;
-	esac
+	pkill soip
 }
 
 start_service()
@@ -393,11 +387,13 @@ handle_se_no_encoder_ip()
 
 handle_se_start()
 {
+	SOIP_GUEST_ON=`astparam g soip_guest_on`
+	SOIP_TYPE=`astparam g soip_type`
+
+	echo "handle_se_start SOIP_GUEST_ON($SOIP_GUEST_ON) SOIP_TYPE($SOIP_TYPE)"
+
 	# validata input
 	if [ "$#" != '1' ]; then
-		return
-	fi
-	if [ "$SOIP_GUEST_ON" = 'y' ] || [ "$SOIP_TYPE" -eq 1 ] ; then
 		return
 	fi
 
@@ -407,18 +403,23 @@ handle_se_start()
 
 	update_session_id
 
-	# get channel param
-	S_CH_SELECT="$1"
-	S_MULTICAST_IP='0.0.0.0'
+	if [ "$SOIP_GUEST_ON" = 'y' ]; then
+		start_service
+		to_s_srv_on
+	elif [ "$SOIP_TYPE" -eq 1 ]; then
+		start_service
+		to_s_srv_on
+	else
+		# get channel param
+		S_CH_SELECT="$1"
+		S_MULTICAST_IP='0.0.0.0'
 
-	to_s_search $S_SESSION_ID $S_CH_SELECT
+		to_s_search $S_SESSION_ID $S_CH_SELECT
+	fi
 }
 
 handle_se_stop()
 {
-	if [ "$SOIP_GUEST_ON" = 'y' ] || [ "$SOIP_TYPE" -eq 1 ] ; then
-		return
-	fi
 	do_stop_srv $S_SESSION_ID
 	update_session_id
 	to_s_idle
@@ -573,22 +574,6 @@ event_loop()
 	echo ""
 }
 
-s_guest_mode()
-{
-	# Bruce170505. Guest mode doesn't do multicast.
-	# At this stage, multicast IP is unknown.
-	while true; do
-		load_soip_c
-	done
-}
-
-s_type_1()
-{
-	while true; do
-		load_soip_c
-	done
-}
-
 start_slm()
 {
 	cd /usr/local/bin
@@ -605,14 +590,6 @@ start_slm()
 	# ${string##substring}: Longest Substring Match
 	# /usr/local/bin/xxx.sh to xxx.sh
 	echo "[${0##/*/}] hello world"
-
-	if [ "$SOIP_GUEST_ON" = 'y' ]; then
-		s_guest_mode &
-		to_s_srv_on
-	elif [ "$SOIP_TYPE" -eq 1 ]; then
-		s_type_1 &
-		to_s_srv_on
-	fi
 
 	# start event loop
 	event_loop &

@@ -33,7 +33,9 @@
 #include "astdebug.h"
 
 #define MAXMESG 2048
-#define SOIP2_PORT 6752
+//#define SOIP2_PORT 6752
+#define SOIP2_PORT 50001
+
 //#define CTRL_CODE 0x0E /* Ctrl+N */
 #define TIMEOUT 2 // 2 seconds
 
@@ -312,7 +314,7 @@ unsigned int open_uart(char *uart_port, char *uart_config)
 }
 
 
-int soip2_connect_to_host(int fd, struct s_req_pkt *req)
+int soip2_connect_to_host(int fd, struct s_req_pkt *req, int soip_port)
 {
 	int ret = 0;
 	struct sockaddr_in addr;
@@ -333,7 +335,8 @@ int soip2_connect_to_host(int fd, struct s_req_pkt *req)
 
 	//fill out addr info
 	addr.sin_family = AF_INET;
-	addr.sin_port = htons(SOIP2_PORT);
+	//addr.sin_port = htons(SOIP2_PORT);
+	addr.sin_port = htons(soip_port);
 	addr.sin_addr.s_addr = inet_addr(req->target_ip);
 
 	// Set non-blocking
@@ -729,7 +732,7 @@ out:
 	return ret;
 }
 
-unsigned int do_soip2_client(char *uart_port, char *uart_config, char *host_ip)
+unsigned int do_soip2_client(char *uart_port, char *uart_config, char *host_ip, const int soip_port)
 {
 	int ret = 0;
 	struct s_req_pkt req;
@@ -754,7 +757,7 @@ unsigned int do_soip2_client(char *uart_port, char *uart_config, char *host_ip)
 		** Create socket. Set to non-blocking.
 		** Connect() and select() with timeout
 		*/
-		socket_fd = ret = soip2_connect_to_host(uart_fd, &req);
+		socket_fd = ret = soip2_connect_to_host(uart_fd, &req, soip_port);
 		if (ret < 0) {
 			/*
 			** retry after 100ms so that CPU won't be overloaded.
@@ -826,7 +829,7 @@ done:
 	return -1;
 }
 
-int soip2_host_start_listen(void)
+int soip2_host_start_listen(int soip_port)
 {
 	int ret = -1;
 	struct sockaddr_in addr;
@@ -848,7 +851,8 @@ int soip2_host_start_listen(void)
 
 	//fill out addr info
 	addr.sin_family = AF_INET;
-	addr.sin_port = htons(SOIP2_PORT);
+	//addr.sin_port = htons(SOIP2_PORT);
+	addr.sin_port = htons(soip_port);
 	addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	ret = bind(sock, (struct sockaddr *)&addr, sizeof(struct sockaddr_in));
@@ -1077,7 +1081,7 @@ static int do_broadcast(int uc, char *ubuff)
 }
 
 
-int do_soip2_host(char *uart_port, char *uart_config, const int token_time)
+int do_soip2_host(char *uart_port, char *uart_config, const int token_time, const int soip_port)
 {
 	fd_set read_fds;
 	int i;
@@ -1095,15 +1099,49 @@ int do_soip2_host(char *uart_port, char *uart_config, const int token_time)
 	FD_ZERO(&read_fds);
 	memset(client_list, 0, sizeof(t_c_info)*FD_SETSIZE);
 
+	#if 0
 	uart_fd = open_uart(uart_port, uart_config);
 	if (uart_fd < 0)
+	{
 		goto done;
+	}
 
-	if ((listener_fd = soip2_host_start_listen()) == -1)
+	if ((listener_fd = soip2_host_start_listen(soip_port)) == -1)
+	{
 		goto done;
-	
+	}
+
 	if ((event_fd = soip2_create_event_listener()) == -1)
+	{
 		goto done;
+	}
+	#else
+	uart_fd = -1;
+	listener_fd = -1;
+	event_fd = -1;
+	while(1)
+	{
+		if(uart_fd < 0)
+			uart_fd = open_uart(uart_port, uart_config);
+
+		if(listener_fd < 0)
+			listener_fd = soip2_host_start_listen(soip_port);
+
+		if(event_fd < 0)
+			event_fd = soip2_create_event_listener();
+
+		if((uart_fd >= 0)&&(listener_fd >= 0)&&(event_fd >= 0))
+		{
+			break;
+		}
+		else
+		{
+			printf("uart_fd=%d listener_fd=%d event_fd=%d\n",uart_fd,listener_fd,event_fd);
+			sleep(5);
+		}
+	}
+
+	#endif
 
 	FD_SET(uart_fd, &master_fd);
 	if(uart_fd > fdmax)
@@ -1285,6 +1323,7 @@ int main(int argc, char **argv)
 	char *uart_port;
 	char *uart_config;
 	char *host_ip;
+	int soip_port = SOIP2_PORT;
 	int token_time = TOKEN_TIME;
 	
 	enum {
@@ -1298,7 +1337,7 @@ int main(int argc, char **argv)
 		int c;
 		int index = 0;
 
-		c = getopt_long(argc, argv, "hcf:d:b:to:", longopts, &index);
+		c = getopt_long(argc, argv, "hcf:d:b:to:p:", longopts, &index);
 
 		if (c == -1)
 			break;
@@ -1328,6 +1367,9 @@ int main(int argc, char **argv)
 			case '?':
 				cmd = cmd_help;
 				break;
+			case 'p':
+				soip_port = atoi(optarg);
+				break;
 			default:
 				err("getopt\n");
 		}
@@ -1335,10 +1377,10 @@ int main(int argc, char **argv)
 
 	switch (cmd) {
 		case cmd_host:
-			do_soip2_host(uart_port, uart_config, token_time);
+			do_soip2_host(uart_port, uart_config, token_time, soip_port);
 			break;
 		case cmd_client:
-			do_soip2_client(uart_port, uart_config, host_ip);
+			do_soip2_client(uart_port, uart_config, host_ip, soip_port);
 			break;
 		case cmd_test:
 			do_soip2_test(uart_port, uart_config);

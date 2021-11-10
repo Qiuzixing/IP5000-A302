@@ -3024,6 +3024,73 @@ handle_e_p3k_ntp()
 	esac
 }
 
+handle_e_soip_param()
+{
+	echo "handle_e_soip_param."
+	local _para1
+
+	#e_p3k_soip_param::param
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	_para1="$1"
+
+	astparam s s0_baudrate $_para1
+	astparam save
+
+	ipc @s_lm_set s se_start:$CH_SELECT_S
+}
+
+handle_e_soip_gw_on()
+{
+	echo "handle_e_soip_gw_on."
+	local _para1
+
+	#e_p3k_soip_gw_on::port
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	_para1="$1"
+
+	astparam s soip_guest_on y
+	astparam s soip_type 2
+	astparam s soip_port $_para1
+	astparam save
+
+	ipc @s_lm_set s se_start:$CH_SELECT_S
+
+}
+
+handle_e_soip_gw_off()
+{
+	echo "handle_e_soip_gw_off."
+
+	astparam s soip_guest_on n
+	astparam save
+
+	ipc @s_lm_set s se_start:$CH_SELECT_S
+}
+
+handle_e_p3k_soip()
+{
+	echo "handle_e_p3k_soip."
+	case "$event" in
+		e_p3k_soip_param?*)
+			handle_e_soip_param "$event"
+		;;
+		e_p3k_soip_gw_on?*)
+			handle_e_soip_gw_on "$event"
+		;;
+		e_p3k_soip_gw_off)
+			handle_e_soip_gw_off
+		;;
+		*)
+			echo "error param"
+		;;
+	esac
+
+}
+
 handle_e_p3k()
 {
 	echo "handle_e_p3k."
@@ -3066,6 +3133,9 @@ handle_e_p3k()
 		;;
 		e_p3k_ntp_?*)
 			handle_e_p3k_ntp "$event"
+		;;
+		e_p3k_soip_?*)
+			handle_e_p3k_soip "$event"
 		;;
 		*)
 		;;

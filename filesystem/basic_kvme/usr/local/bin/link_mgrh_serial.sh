@@ -29,8 +29,27 @@ init()
 	return
 }
 
+watch_dog()
+{
+	# Bruce170505. Guest mode doesn't do multicast.
+	# At this stage, multicast IP is unknown.
+	while true; do
+		$*
+		if [ $? -eq 138 ]; then
+			break
+		fi
+	done
+}
+
 load_soip_h()
 {
+	SOIP_GUEST_ON=`astparam g soip_guest_on`
+	SOIP_PORT=`astparam g soip_port`
+	SOIP_TYPE=`astparam g soip_type`
+	S0_BAUDRATE=`astparam g s0_baudrate`
+
+	echo "load_soip_h SOIP_GUEST_ON($SOIP_GUEST_ON) SOIP_PORT($SOIP_PORT) SOIP_TYPE($SOIP_TYPE) S0_BAUDRATE($S0_BAUDRATE)"
+
 	case "$SOIP_TYPE" in
 		1)
 			if [ "$SOIP_GUEST_ON" = 'y' ]; then
@@ -40,7 +59,11 @@ load_soip_h()
 			fi
 		;;
 		2)
-			soip2 -h -f /dev/ttyS0 -b $S0_BAUDRATE -o $SOIP_TOKEN_TIMEOUT
+			if [ "$SOIP_GUEST_ON" = 'y' ]; then
+				soip2 -h -f /dev/ttyS0 -b $S0_BAUDRATE -o $SOIP_TOKEN_TIMEOUT -p $SOIP_PORT
+			else
+				soip2 -h -f /dev/ttyS0 -b $S0_BAUDRATE -o $SOIP_TOKEN_TIMEOUT -p 6752
+			fi
 		;;
 		3)
 			# Bruce170505. Guest mode doesn't do multicast.
@@ -58,20 +81,21 @@ load_soip_h()
 
 unload_soip_h()
 {
-	case "$SOIP_TYPE" in
-		1)
-			pkill soip 2>/dev/null
-		;;
-		2)
-			pkill soip2 2>/dev/null
-		;;
-		3)
-			pkill soip3 2>/dev/null
-		;;
-		*)
-			echo "ERROR! Unsupported SOIP_TYPE($SOIP_TYPE)"
-		;;
-	esac
+	pkill soip
+	# case "$SOIP_TYPE" in
+	# 	1)
+	# 		pkill soip 2>/dev/null
+	# 	;;
+	# 	2)
+	# 		pkill soip2 2>/dev/null
+	# 	;;
+	# 	3)
+	# 		pkill soip3 2>/dev/null
+	# 	;;
+	# 	*)
+	# 		echo "ERROR! Unsupported SOIP_TYPE($SOIP_TYPE)"
+	# 	;;
+	# esac
 }
 
 start_service()
@@ -194,11 +218,13 @@ handle_se_attaching()
 
 handle_se_start()
 {
+	SOIP_GUEST_ON=`astparam g soip_guest_on`
+	SOIP_TYPE=`astparam g soip_type`
+
+	echo "handle_se_start SOIP_GUEST_ON($SOIP_GUEST_ON) SOIP_TYPE($SOIP_TYPE)"
+
 	# validata input
 	if [ "$#" != '1' ]; then
-		return
-	fi
-	if [ "$SOIP_GUEST_ON" = 'y' ] || [ "$SOIP_TYPE" -eq 1 ]; then
 		return
 	fi
 
@@ -207,20 +233,27 @@ handle_se_start()
 	# return as S_STATE='s_idle'
 
 	#update_session_id updated in handle_ue_stop()
+	if [ "$SOIP_GUEST_ON" = 'y' ]; then
+		start_service
+		to_s_srv_on
+	elif [ "$SOIP_TYPE" -eq 1 ]; then
+		start_service
+		to_s_srv_on
+	else
+		# get channel param
+		S_CH_SELECT="$1"
+		S_MULTICAST_IP=`map_multicast_ip $MULTICAST_IP_PREFIX s $S_CH_SELECT`
 
-	# get channel param
-	S_CH_SELECT="$1"
-	S_MULTICAST_IP=`map_multicast_ip $MULTICAST_IP_PREFIX s $S_CH_SELECT`
-
-	to_s_pre_start_srv $S_SESSION_ID $S_CH_SELECT $S_MULTICAST_IP
-	# return as "S_STATE='s_pre_start_srv'"
+		to_s_pre_start_srv $S_SESSION_ID $S_CH_SELECT $S_MULTICAST_IP
+		# return as "S_STATE='s_pre_start_srv'"
+	fi
 }
 
 handle_se_stop()
 {
-	if [ "$SOIP_GUEST_ON" = 'y' ] || [ "$SOIP_TYPE" -eq 1 ]; then
-		return
-	fi
+#	if [ "$SOIP_GUEST_ON" = 'y' ] || [ "$SOIP_TYPE" -eq 1 ]; then
+#		return
+#	fi
 
 	case "$S_STATE" in
 		s_idle)
@@ -424,13 +457,13 @@ start_slm()
 	# /usr/local/bin/xxx.sh to xxx.sh
 	echo "[${0##/*/}] hello world"
 
-	if [ "$SOIP_GUEST_ON" = 'y' ]; then
-		s_guest_mode &
-		to_s_srv_on
-	elif [ "$SOIP_TYPE" -eq 1 ]; then
-		s_type_1 &
-		to_s_srv_on
-	fi
+	# if [ "$SOIP_GUEST_ON" = 'y' ]; then
+	# 	s_guest_mode &
+	# 	to_s_srv_on
+	# elif [ "$SOIP_TYPE" -eq 1 ]; then
+	# 	s_type_1 &
+	# 	to_s_srv_on
+	# fi
 
 	# start event loop
 	event_loop &
