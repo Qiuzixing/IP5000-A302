@@ -576,7 +576,8 @@ int main (int argc, char const *argv[])
 {
 	if((argc == 2)&&(!memcmp(argv[1],"-c",strlen("-c"))))
 	{
-		printf("P3k TCP only init cfg\n");
+		g_bCfg = 1;
+		printf("P3k TCP only init cfg g_bCfg = %d\n",g_bCfg);
 		Cfg_Init();
 		return 0;
 	}
