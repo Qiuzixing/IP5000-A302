@@ -32,6 +32,7 @@ int                 g_Udp_Socket;
 int                 g_Udp_Inside_Socket;
 ConnectionList_S    *g_connectionlist_info;
 
+int 				g_bCfg = 0;
 
 using namespace std;
 
@@ -148,6 +149,11 @@ int Cfg_Init_Channel(void)
 		return 0;
 	}
 
+	if(g_bCfg == 1)
+	{
+		return 0;
+	}
+
 	//Read  channel cfg
 	Json::Reader reader;
 	Json::Value root1;
@@ -192,10 +198,22 @@ int Cfg_Init_Channel(void)
 
 int Get_dante_name()
 {
-	system("ipc @m_lm_set s set_dante:1");
-	usleep(1000*1000);
+	DBG_InfoMsg("Cfg_Init_Audio\n");
 
-	mysystem("astparam g dante_friendly_name", g_audio_info.dante_name,32);
+	if(g_bCfg == 1)
+	{
+		DBG_WarnMsg("g_bCfg == 1\n");
+		return -1;
+	}
+
+	if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+	{
+		DBG_InfoMsg("Start set_dante:1 \n");
+		system("ipc @m_lm_set s set_dante:1");
+		usleep(1000*1000);
+		mysystem("astparam g dante_friendly_name", g_audio_info.dante_name,32);
+	}
+
 	return 0;
 }
 int Cfg_Init_Audio(void)
@@ -206,6 +224,7 @@ int Cfg_Init_Audio(void)
 	DBG_InfoMsg("This is Decoder\n");
 	return 0;
 #endif
+	int bDanteUpdate = 0;
 
 	char path[128] = "";
 	sprintf(path,"%s%s%s",CONF_PATH,g_module,AUDIO_FILE);
@@ -229,11 +248,16 @@ int Cfg_Init_Audio(void)
 		DBG_ErrMsg("Cfg_Check_File %s Failed\n",path);
 
 		//get dante name
-		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+		if((g_bCfg == 0)&&(strcmp(g_version_info.model,IPE_P_MODULE) == 0))
 			Get_dante_name();
 
 		//create autoswitch cfg from default value
 		Cfg_Update(AUDIO_INFO);
+		return 0;
+	}
+
+	if(g_bCfg == 1)
+	{
 		return 0;
 	}
 
@@ -370,15 +394,31 @@ int Cfg_Init_Audio(void)
 
 			}
 
-			if(!root[JSON_DANTE_NAME].empty())
+			if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
 			{
-				string name = root[JSON_DANTE_NAME].asString();
-				sprintf(g_audio_info.dante_name,name.c_str());
+				if(!root[JSON_DANTE_NAME].empty())
+				{
+
+					string name = root[JSON_DANTE_NAME].asString();
+					sprintf(g_audio_info.dante_name,name.c_str());
+				}
+				else
+				{
+					if(g_bCfg == 0)
+					{
+						Get_dante_name();
+						bDanteUpdate = 1;
+					}
+				}
 			}
 		}
 	}
 
 	fclose(fp);
+
+	if(bDanteUpdate == 1)
+		Cfg_Update(AUDIO_INFO);
+
 	return 0;
 }
 
@@ -398,6 +438,11 @@ int Cfg_Init_Video(void)
 
 		//create autoswitch cfg from default value
 		Cfg_Update(VIDEO_INFO);
+		return 0;
+	}
+
+	if(g_bCfg == 1)
+	{
 		return 0;
 	}
 
@@ -467,6 +512,11 @@ int Cfg_Init_AutoSwitch(void)
 
 		//create autoswitch cfg from default value
 		Cfg_Update(AUTOSWITCH_INFO);
+		return 0;
+	}
+
+	if(g_bCfg == 1)
+	{
 		return 0;
 	}
 
@@ -640,6 +690,11 @@ int Cfg_Init_AVSetting(void)
 		return 0;
 	}
 
+	if(g_bCfg == 1)
+	{
+		return 0;
+	}
+
 	//Read  avsetting cfg
 	Json::Reader reader;
 	Json::Value root1;
@@ -769,6 +824,11 @@ int Cfg_Init_EDID(void)
 		return 0;
 	}
 
+	if(g_bCfg == 1)
+	{
+		return 0;
+	}
+
 	//Read  Log cfg
 	Json::Reader reader;
 	Json::Value root1;
@@ -849,6 +909,11 @@ int Cfg_Init_Device(void)
 
 		//create channel cfg from default value
 		Cfg_Update(DEVICE_INFO);
+		return 0;
+	}
+
+	if(g_bCfg == 1)
+	{
 		return 0;
 	}
 
@@ -950,6 +1015,11 @@ int Cfg_Init_Version(void)
 		return 0;
 	}
 
+	if(g_bCfg == 1)
+	{
+		return 0;
+	}
+
 	//Read  version cfg
 	Json::Reader reader;
 	Json::Value root1;
@@ -1017,6 +1087,11 @@ int Cfg_Init_Time(void)
 
 		//create channel cfg from default value
 		Cfg_Update(TIME_INFO);
+		return 0;
+	}
+
+	if(g_bCfg == 1)
+	{
 		return 0;
 	}
 
@@ -1105,6 +1180,11 @@ int Cfg_Init_User(void)
 
 		//create channel cfg from default value
 		Cfg_Update(USER_INFO);
+		return 0;
+	}
+
+	if(g_bCfg == 1)
+	{
 		return 0;
 	}
 
@@ -1210,6 +1290,11 @@ int Cfg_Init_VideoWall(void)
 		return 0;
 	}
 
+	if(g_bCfg == 1)
+	{
+		return 0;
+	}
+
 	//Read  user cfg
 	Json::Reader reader;
 	Json::Value root1;
@@ -1294,6 +1379,11 @@ int Cfg_Init_Gateway(void)
 
 		//create autoswitch cfg from default value
 		Cfg_Update(GATEWAY_INFO);
+		return 0;
+	}
+
+	if(g_bCfg == 1)
+	{
 		return 0;
 	}
 
@@ -1475,6 +1565,11 @@ int Cfg_Init_Network(void)
 
 		//create autoswitch cfg from default value
 		Cfg_Update(NETWORK_INFO);
+		return 0;
+	}
+
+	if(g_bCfg == 1)
+	{
 		return 0;
 	}
 
@@ -1717,6 +1812,11 @@ int Cfg_Init_Log(void)
 
 		//create channel cfg from default value
 		Cfg_Update(LOG_INFO);
+		return 0;
+	}
+
+	if(g_bCfg == 1)
+	{
 		return 0;
 	}
 
@@ -2548,8 +2648,11 @@ int Cfg_Update_Audio(void)
 		else
 			root[JSON_SOURCE_SELECT] = JSON_AUDIO_DANTE;
 
-		if(strlen(g_audio_info.dante_name) > 0)
-			root[JSON_DANTE_NAME] = g_audio_info.dante_name;
+		if(g_bCfg == 0)
+		{
+			if(strlen(g_audio_info.dante_name) > 0)
+				root[JSON_DANTE_NAME] = g_audio_info.dante_name;
+		}
 	}
 	else
 	{

@@ -495,6 +495,8 @@ extern State_E				g_osd_enable;
 extern int                  g_Udp_Socket;     
 extern int                  g_Udp_Inside_Socket;
 extern ConnectionList_S     *g_connectionlist_info;
+extern int 					g_bCfg;
+
 typedef enum _SyncInfoType_E
 {
 	CHANNEL_INFO = 0,
