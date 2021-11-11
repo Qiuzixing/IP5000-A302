@@ -646,7 +646,9 @@ static ssize_t store_io_select(struct device *dev, struct device_attribute *attr
 	} else if(!strncmp(buf, "out_analog", 10)){
 		SetupCodec(1, 1, mic_input_pin, CODEC_OUTPUT_HP);
 		analog_in_volume_cfg(analog_in_vol); analog_out_volume_cfg(analog_out_vol);
-	} else {
+	}else if(!strncmp(buf, "mute_out_analog", 15)){
+		SetupCodec(0, 0, mic_input_pin, CODEC_OUTPUT_HP);
+	}else {
 		printk("usage: auto | hdmi | analog | out_analog\n");
 	}
 	return strlen(buf);

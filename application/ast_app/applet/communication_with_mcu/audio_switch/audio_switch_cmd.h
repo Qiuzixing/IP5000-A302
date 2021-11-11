@@ -30,7 +30,8 @@ typedef enum
 {
     HDMI = 0,
     ANALOG_IN = 1,
-    ANALOG_OUT
+    ANALOG_OUT,
+    IO_ANALOG_OUTMUTE
 }io_select_value;
 
 typedef enum
@@ -55,5 +56,6 @@ typedef enum
 void mute_control(const char *file_name,mute_value value);
 void all_switch_set_high(void);
 void mDelay(unsigned int msecond);
-void audio_switch();
+void audio_switch(void);
+void ipe5000_and_ipe5000w_autoaudio_control(void);
 #endif

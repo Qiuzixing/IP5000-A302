@@ -741,27 +741,6 @@ static void do_handle_uart_pass(uint16_t cmd,char *cmd_param)
     free(uart_pass);
 }
 
-static void ipe5000_and_ipe5000w_autoaudio_control(void)
-{
-    uint16_t cmd = CMD_GPIO_SET_VAL;
-    char ast1520_out[] = "1:72:0";
-    char it6802_out[] = "1:72:1";
-    switch(audio_inout_info.audio_in)
-    {
-        case AUDIO_IN_ANALOG:
-            do_handle_set_gpio_val(cmd,ast1520_out);
-            set_io_select(ANALOG_IN);
-            break;
-        case AUDIO_IN_HDMI:
-            do_handle_set_gpio_val(cmd,it6802_out);
-            set_io_select(HDMI);
-            set_io_select(ANALOG_OUT);
-            break;
-        default:
-            break;
-    }
-}
-
 static void handle_audio()
 {
     if(board_type_flag == IPE5000 || board_type_flag == IPE5000W)

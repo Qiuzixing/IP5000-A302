@@ -7,6 +7,7 @@
 
 extern audio_inout_info_struct audio_inout_info;
 extern uint8_t last_hdmi_in_index;
+extern uint8_t board_type_flag;
 void mDelay(unsigned int msecond)
 {
     struct timeval time;
@@ -36,6 +37,9 @@ void set_io_select(io_select_value value)
             break;
         case ANALOG_OUT:
             memcpy(io_value,"out_analog",strlen("out_analog"));
+            break;
+        case IO_ANALOG_OUTMUTE:
+            memcpy(io_value,"mute_out_analog",strlen("mute_out_analog"));
             break;
         default:
             break;
@@ -102,6 +106,10 @@ static void set_gsv_insert_audio(insert_value value)
     char no_insert_param[5] = "0:16";
     if(value == INSERT)
     {
+        if(board_type_flag == IPE5000 )
+        {
+            strncpy(insert_param,"32:17",sizeof(no_insert_param));
+        }
         do_handle_set_audio_insert_extract(cmd,insert_param);
     }
     else
@@ -119,6 +127,10 @@ static void set_gsv_insert_audio(insert_value value)
                 break;
             default:
                 break;
+        }
+        if(board_type_flag == IPE5000)
+        {
+            strncpy(no_insert_param,"0:17",sizeof(no_insert_param));
         }
         do_handle_set_audio_insert_extract(cmd,no_insert_param);
     }
@@ -253,7 +265,7 @@ void all_switch_set_high(void)
     do_handle_set_gpio_val(cmd,all_switch);
 }
 
-void audio_switch()
+void audio_switch(void)
 {
     switch(audio_inout_info.audio_in)
     {
@@ -270,4 +282,84 @@ void audio_switch()
             break;
     }
     return;
+}
+
+static void ipe5000_and_ipe5000w_analog_in_xxx_out(void)
+{
+    uint16_t cmd = CMD_GPIO_SET_VAL;
+    char ast1520_out[] = "1:72:0";
+    int flag = 0;
+    int i = 0;
+    for(i = 0;i <= AUDIO_OUT_TYPE_NUM;i++)
+    {
+        switch(audio_inout_info.audio_out[i])
+        {
+            case AUDIO_OUT_HDMI:
+                set_gsv_insert_audio(INSERT);
+                break;
+            case AUDIO_OUT_LAN:
+                do_handle_set_gpio_val(cmd,ast1520_out);
+                set_io_select(ANALOG_IN);
+                break;
+            case AUDIO_OUT_NULL:
+                flag = 1;
+                break;
+            default:
+                break;
+        }
+        if(flag == 1 )
+        {
+            break;
+        }
+    }
+}
+
+static void ipe5000_and_ipe5000w_hdmi_in_xxx_out(void)
+{
+    uint16_t cmd = CMD_GPIO_SET_VAL;
+    char it6802_out[] = "1:72:1";
+    int flag = 0;
+    int i = 0;
+    do_handle_set_gpio_val(cmd,it6802_out);
+    set_io_select(IO_ANALOG_OUTMUTE);
+    for(i = 0;i <= AUDIO_OUT_TYPE_NUM;i++)
+    {
+        switch(audio_inout_info.audio_out[i])
+        {
+            case AUDIO_OUT_ANALOG:
+                set_io_select(HDMI);
+                set_io_select(ANALOG_OUT);
+                break;
+            case AUDIO_OUT_LAN:
+                set_io_select(HDMI);
+                break;
+            case AUDIO_OUT_HDMI:
+                set_gsv_insert_audio(NO_INSERT);
+                break;
+            case AUDIO_OUT_NULL:
+                flag = 1;
+                break;
+            default:
+                break;
+        }
+        if(flag == 1)
+        {
+            break;
+        }
+    }
+}
+
+void ipe5000_and_ipe5000w_autoaudio_control(void)
+{
+    switch(audio_inout_info.audio_in)
+    {
+        case AUDIO_IN_ANALOG:
+            ipe5000_and_ipe5000w_analog_in_xxx_out();
+            break;
+        case AUDIO_IN_HDMI:
+            ipe5000_and_ipe5000w_hdmi_in_xxx_out();
+            break;
+        default:
+            break;
+    }
 }
