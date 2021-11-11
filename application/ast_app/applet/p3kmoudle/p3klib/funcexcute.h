@@ -513,6 +513,8 @@ int EX_Login(char*name,char*password);
 int EX_GetLoginInfo(char*name,char*password);
 int EX_Logout(void);
 int EX_GetDevVersion(char*version);
+int EX_GetBootVersion(char*version);
+
 int EX_Upgrade(void);
 int EX_SetDeviceNameModel(char*mod);
 int EX_GetDeviceNameModel(char*mod);

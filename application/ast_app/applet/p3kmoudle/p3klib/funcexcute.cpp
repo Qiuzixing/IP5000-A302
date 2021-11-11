@@ -3003,6 +3003,16 @@ int EX_GetDevVersion(char*version)
 	return 0;
 }
 
+int EX_GetBootVersion(char*version)
+{
+	if(version != NULL)
+	{
+		strcpy(version,"v1.1.4");
+	}
+
+	return 0;
+}
+
 #define EMPTY_FW_STATUS		"ongoing,0,0"
 static void CreateFWStatusFile(void)
 {

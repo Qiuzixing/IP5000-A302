@@ -2426,6 +2426,26 @@ static int P3K_GetVersion(char*reqparam,char*respParam,char*userdata)
 	memcpy(respParam,tmpparam,strlen(tmpparam));
 	return 0;
 }
+
+static int P3K_GetBootVersion(char*reqparam,char*respParam,char*userdata)
+{
+	//#BL-VERSION? <CR>
+	//~nn@BL-VERSION bootload_version<CR><LF>
+	DBG_InfoMsg("P3K_GetBootVersion\n");
+	int s32Ret = 0;
+	char tmpparam[MAX_PARAM_LEN] = {0};
+	char ver[32] = {0};
+
+	s32Ret = EX_GetBootVersion(ver);
+	if(s32Ret)
+	{
+		DBG_ErrMsg("EX_GetBootVersion err\n");
+	}
+	sprintf(tmpparam,"%s",ver);
+	memcpy(respParam,tmpparam,strlen(tmpparam));
+	return 0;
+}
+
 static int P3K_SetFCTMODEL(char*reqparam,char*respParam,char*userdata)
 {
 	//#FCT-MODEL model_name<CR>
@@ -4618,6 +4638,7 @@ int P3K_SilmpleReqCmdProcess(P3K_SimpleCmdInfo_S *cmdreq,P3K_SimpleCmdInfo_S *cm
 									{"LOGIN?",P3K_GetLogin},
 									{"LOGOUT",P3K_LogOut},
 									{"VERSION?",P3K_GetVersion},
+									{"BL-VERSION?",P3K_GetBootVersion},
 									{"UPGRADE",P3K_Upgrade},
 									{"UPGRADE-STATUS?",P3K_UpgradeStatus},
 									{"FCT-MODEL",P3K_SetFCTMODEL},
