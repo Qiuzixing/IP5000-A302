@@ -1361,7 +1361,11 @@ int Cfg_Init_Gateway(void)
 	sprintf(path,"%s%s%s",CONF_PATH,g_module,GATEWAY_FILE);
 
 	g_gateway_info.cec_mode = ON;
-	g_gateway_info.cec_output = 0;
+#ifdef CONFIG_P3K_HOST
+	g_gateway_info.cec_output = 1;
+#else
+	g_gateway_info.cec_output = 2;
+#endif
 	g_gateway_info.rs232_mode = ON;
 	g_gateway_info.rs232_port = 5001;
 	g_gateway_info.rs232_param.rate = 115200;
