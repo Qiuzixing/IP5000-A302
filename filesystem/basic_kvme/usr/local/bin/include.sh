@@ -3065,10 +3065,6 @@ init_share_param_from_flash()
 	else
 		BTN2_DELAY="$_t"
 	fi
-
-	echo "==============================="
-	cat /etc/version
-	echo "==============================="
 }
 
 start_network()
@@ -4087,6 +4083,9 @@ notify_node_info_chg()
 
 init_version_file() {
 	sed -i "1 c $MODEL_NUMBER" /etc/version
+	echo "==============================="
+	cat /etc/version
+	echo "==============================="
 }
 
 init_info_file() {
