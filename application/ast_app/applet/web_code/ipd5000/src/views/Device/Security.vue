@@ -187,7 +187,8 @@ export default {
     }
   },
   created () {
-
+    this.getHTTPS()
+    this.get801x()
   },
   methods: {
     getHTTPS () {
@@ -198,7 +199,7 @@ export default {
         .then(msg => {
           if (msg.data.https_setting) {
             this.httpsServer = msg.data.https_setting.mode
-            this.https = msg.data.https_setting.methods
+            this.https = msg.data.https_setting.method
           }
         })
     },
