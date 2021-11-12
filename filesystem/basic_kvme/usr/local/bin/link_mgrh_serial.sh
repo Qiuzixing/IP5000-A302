@@ -43,10 +43,55 @@ watch_dog()
 
 load_soip_h()
 {
-	SOIP_GUEST_ON=`astparam g soip_guest_on`
-	SOIP_PORT=`astparam g soip_port`
 	SOIP_TYPE=`astparam g soip_type`
+	if echo "$SOIP_TYPE" | grep -q "not defined" ; then
+		SOIP_TYPE=`astparam r soip_type`
+		if echo "$SOIP_TYPE" | grep -q "not defined" ; then
+			# Check legacy soip_type2
+			SOIP_TYPE2=`astparam g soip_type2`
+			if echo "$SOIP_TYPE2" | grep -q "not defined" ; then
+				SOIP_TYPE2=`astparam r soip_type2`
+			fi
+			# 1, 2 or 3. Default type 2.
+			case "$SOIP_TYPE2" in
+				y)
+					SOIP_TYPE='2'
+				;;
+				n)
+					SOIP_TYPE='1'
+				;;
+				*)
+					SOIP_TYPE='2'
+					SOIP_TYPE2='y'
+				;;
+			esac
+		fi
+	fi
+
+	SOIP_GUEST_ON=`astparam g soip_guest_on`
+	if echo "$SOIP_GUEST_ON" | grep -q "not defined" ; then
+		SOIP_GUEST_ON=`astparam r soip_guest_on`
+		if echo "$SOIP_GUEST_ON" | grep -q "not defined" ; then
+			SOIP_GUEST_ON='y'
+		fi
+	fi
+
+	SOIP_PORT=`astparam g soip_port`
+	if echo "$SOIP_PORT" | grep -q "not defined" ; then
+		SOIP_PORT=`astparam r soip_port`
+		if echo "$SOIP_PORT" | grep -q "not defined" ; then
+			SOIP_PORT='5001'
+		fi
+	fi
+
 	S0_BAUDRATE=`astparam g s0_baudrate`
+	if echo "$S0_BAUDRATE" | grep -q "not defined" ; then
+		S0_BAUDRATE=`astparam r s0_baudrate`
+		if echo "$S0_BAUDRATE" | grep -q "not defined" ; then
+			S0_BAUDRATE='115200-8n1'
+		fi
+	fi
+
 
 	echo "load_soip_h SOIP_GUEST_ON($SOIP_GUEST_ON) SOIP_PORT($SOIP_PORT) SOIP_TYPE($SOIP_TYPE) S0_BAUDRATE($S0_BAUDRATE)"
 
@@ -218,8 +263,38 @@ handle_se_attaching()
 
 handle_se_start()
 {
-	SOIP_GUEST_ON=`astparam g soip_guest_on`
 	SOIP_TYPE=`astparam g soip_type`
+	if echo "$SOIP_TYPE" | grep -q "not defined" ; then
+		SOIP_TYPE=`astparam r soip_type`
+		if echo "$SOIP_TYPE" | grep -q "not defined" ; then
+			# Check legacy soip_type2
+			SOIP_TYPE2=`astparam g soip_type2`
+			if echo "$SOIP_TYPE2" | grep -q "not defined" ; then
+				SOIP_TYPE2=`astparam r soip_type2`
+			fi
+			# 1, 2 or 3. Default type 2.
+			case "$SOIP_TYPE2" in
+				y)
+					SOIP_TYPE='2'
+				;;
+				n)
+					SOIP_TYPE='1'
+				;;
+				*)
+					SOIP_TYPE='2'
+					SOIP_TYPE2='y'
+				;;
+			esac
+		fi
+	fi
+
+	SOIP_GUEST_ON=`astparam g soip_guest_on`
+	if echo "$SOIP_GUEST_ON" | grep -q "not defined" ; then
+		SOIP_GUEST_ON=`astparam r soip_guest_on`
+		if echo "$SOIP_GUEST_ON" | grep -q "not defined" ; then
+			SOIP_GUEST_ON='y'
+		fi
+	fi
 
 	echo "handle_se_start SOIP_GUEST_ON($SOIP_GUEST_ON) SOIP_TYPE($SOIP_TYPE)"
 

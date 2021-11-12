@@ -2185,7 +2185,7 @@ init_share_param_from_flash()
 	if echo "$SOIP_GUEST_ON" | grep -q "not defined" ; then
 		SOIP_GUEST_ON=`astparam r soip_guest_on`
 		if echo "$SOIP_GUEST_ON" | grep -q "not defined" ; then
-			SOIP_GUEST_ON='n'
+			SOIP_GUEST_ON='y'
 		fi
 	fi
 
@@ -2193,7 +2193,7 @@ init_share_param_from_flash()
 	if echo "$SOIP_PORT" | grep -q "not defined" ; then
 		SOIP_PORT=`astparam r soip_port`
 		if echo "$SOIP_PORT" | grep -q "not defined" ; then
-			SOIP_PORT='50001'
+			SOIP_PORT='5001'
 		fi
 	fi
 
