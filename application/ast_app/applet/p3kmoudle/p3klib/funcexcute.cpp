@@ -2762,10 +2762,19 @@ int EX_SetDNSName(int id,char*name)
 #ifdef CONFIG_P3K_HOST
 		{	if(strlen(name)>0)
 			{
-				char sCmd[64] = "";
-				sprintf(sCmd,"e_p3k_net_dante_name::%s",name);
-				DBG_InfoMsg("ast_send_event %s\n",sCmd);
-				ast_send_event(0xFFFFFFFF,sCmd);
+				if(strcmp(g_audio_info.dante_name,name) == 0)
+				{
+					DBG_WarnMsg(" !!! dante_name %s is the same\n",name);
+					return 0;
+				}
+				else
+				{
+
+					char sCmd[64] = "";
+					sprintf(sCmd,"e_p3k_net_dante_name::%s",name);
+					DBG_InfoMsg("ast_send_event %s\n",sCmd);
+					ast_send_event(0xFFFFFFFF,sCmd);
+				}
 			}
 		}
 #else

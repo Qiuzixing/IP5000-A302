@@ -198,7 +198,7 @@ int Cfg_Init_Channel(void)
 
 int Get_dante_name()
 {
-	DBG_InfoMsg("Cfg_Init_Audio\n");
+	DBG_InfoMsg("Cfg_Init_Audio g_bCfg =%d\n",g_bCfg);
 
 	if(g_bCfg == 1)
 	{
@@ -240,6 +240,8 @@ int Cfg_Init_Audio(void)
 	g_audio_info.dst_port[3] = PORT_NONE;
 	g_audio_info.source = AUDIO_IN_HDMI;
 	sprintf(g_audio_info.dante_name,"dante");
+
+	printf("g_bCfg = %d\n",g_bCfg);
 
 	//Check autoswitch cfg
 	int nAccessRet = Cfg_Check_File(path);
