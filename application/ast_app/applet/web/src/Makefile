@@ -39,9 +39,9 @@ CXXFILES = 	  src/Civetweb_API.cpp \
 			  src/thread.cpp \
 			  src/astparam.cpp 
 			  
-CFILES = src/bmp2jpg.c
+CFILES = src/ast_send_event.c
 
-
+BMP2PJP_CFILES = src/bmp2jpg.c 
 
 CPPFLAGS = -I$(PREFIX)/include/civetweb -I./src -I$(LOG_INC) -I$(INCPATH) \
 		  $(COPT) -DUSE_WEBSOCKET -DNO_CACHING
@@ -62,13 +62,12 @@ include ./Makefile.in-os
 
 default:clean build install
 
-build: $(CFILES:.c=.o) $(CXXFILES:.cpp=.o) 
-	$(CXX) -o $(PROG) $(CXXFILES:.cpp=.o) $(LDFLAGS)
-	$(CC) -o $(BMP2JPG) $(CFILES:.c=.o) -L ${JPG_PREFIX}/lib -ljpeg
+build: $(CFILES:.c=.o) $(BMP2PJP_CFILES:.c=.o) $(CXXFILES:.cpp=.o) 
+	$(CXX) -o $(PROG) $(CXXFILES:.cpp=.o) $(CFILES:.c=.o) $(LDFLAGS)
+	$(CC) -o $(BMP2JPG) $(BMP2PJP_CFILES:.c=.o) -L ${JPG_PREFIX}/lib -ljpeg
 
 clean:
-#	rm -f $(PROG)
-	rm -f $(PROG) $(CFILES:.c=.o) $(CXXFILES:.cpp=.o)
+	rm -f $(PROG) $(CFILES:.c=.o) $(CXXFILES:.cpp=.o) $(BMP2PJP_CFILES:.c=.o)
 	
 install:
 	@echo "install"

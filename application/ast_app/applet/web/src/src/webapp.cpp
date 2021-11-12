@@ -2,7 +2,7 @@
 #include "debug.h"
 #include "Civetweb_API.h"
 #include "stringsplit.h"
-
+#include "ast_send_event.h"
 
 #define SUCCESS_CODE                200
 #define BAD_REQUEST_CODE            400
@@ -454,6 +454,7 @@ int CWeb::Secure802XSetHanndle(struct mg_connection *conn, void *cbdata)
         }
 
         BC_INFO_LOG("Secure802XSetHanndle upload file OK");
+        ast_send_event(0xFFFFFFFF,"e_802_1x");
         send_http_ok_rsp(conn);
     }
     else
