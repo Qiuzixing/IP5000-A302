@@ -582,7 +582,9 @@ int alc5640_CodecExist(void)
 int alc5640_SetupCodec(unsigned int enable_adc, unsigned int enable_dac,
 	unsigned int input_paths, unsigned int output_paths)
 {
+#if defined(CONFIG_ARCH_AST1500_CLIENT)
 	char msg[A_MAX_PAYLOAD];
+#endif
 	printk("set up ALC5640\n");
 	alc5640_multi_func_pin();
 	if (enable_dac)
@@ -726,7 +728,7 @@ void alc5640_analog_out_volume_cfg(int cfg)
 	if (cfg != 0)
 		mute_mask = 0;
 
-	// Sid 2021-10-16, For Kramer, requir 80 as 0dB
+#if 1 // Sid 2021-10-16, For Kramer, requir 80 as 0dB
 	if (cfg >= 80)
 	{
 		// Sid 2021-10-16, when cfg = 80, it should be 0dB as Kramer's requirement, and 100 is full range to 12dB
@@ -739,10 +741,11 @@ void alc5640_analog_out_volume_cfg(int cfg)
 		cfg = 80 - cfg; // 1~79
 		cfg = ((cfg * (range - 8)) / 80) + 8; // 8 is 0dB, 0x3F is -82.5dB
 	}
-
+#else
 	/* 0x0: +12dB, 0x8: 0dB,  0x3F: -46.5dB */
 	cfg = 100 - cfg;
 	cfg = range * cfg / 100;
+#endif
 cfg_set:
 	rd16(reg, &val);
 	val &= ~mask;
@@ -808,8 +811,22 @@ u32 alc5640_analog_out_volume(void)
 	rd16(reg, &val);
 	cfg = val & range;
 
+#if 1 // Sid 2021-10-16, For Kramer, requir 80 as 0dB
+	if (cfg <= 8)
+	{
+		// Sid 2021-10-16, when cfg = 80, it should be 0dB as Kramer's requirement, and 100 is full range to 12dB
+		cfg = 100 - ((20 * cfg) / 8);
+	}
+	else
+	{
+		// Sid 2021-10-16 when cfg < 80, for smooth matching from 0x3F to 8
+		cfg = 80 - ((cfg - 8) * 80 / (range - 8));
+		cfg = 80 - cfg;						  // 1~79
+		cfg = ((cfg * (range - 8)) / 80) + 8; // 8 is 0dB, 0x3F is -82.5dB
+	}
+#else
 	cfg = (range - cfg) * 100 / range;
-
+#endif
 	return cfg;
 }
 
