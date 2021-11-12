@@ -564,7 +564,7 @@ static void * P3K_DataExcuteProc(void*arg)
 			//组包
 			tmplen = P3K_SimpleRespCmdBurstification(&respCmdInfo, dstdata);
 			//发送数据
-			if(!memcmp(aSetOrGet,aEndFlag,strlen(aEndFlag)))
+			if(!memcmp(aSetOrGet,aEndFlag,strlen(aEndFlag)) || (!strcasecmp(respCmdInfo.command,"LOGIN")))
             {
                 //printf("Get\n");
                 registMsg = P3K_GetReqistMsgByID(pmsg.handleId);

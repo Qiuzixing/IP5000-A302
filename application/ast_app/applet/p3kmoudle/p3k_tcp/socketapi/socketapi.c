@@ -16,6 +16,8 @@
 #include "common.h"
 #include <sys/prctl.h>
 #include <netdb.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 #include "socketapi.h"
 #include "debugtool.h"
@@ -117,6 +119,11 @@ static int CheckSelectRead(fd_set *readfds,SocketList_S *head,SocketList_S *sock
 		newnode->socketType = SOCKETTYPE_ENUM_SUB;
 		newnode->port = ntohs(client_addr.sin_port);
 		inet_ntop(AF_INET, (void *)(&client_addr.sin_addr.s_addr), newnode->ip, IP_ADRESS_LEN);
+
+        int flag = fcntl(cliSockfd,F_GETFL);
+		flag |= O_NONBLOCK;
+		fcntl(cliSockfd,F_SETFL,flag);
+        
 		//snprintf(newnode->ip,16,"%s",inet_ntoa(client_addr.sin_addr));
 		list_add_tail(&(head->_list),&(newnode->_list));
 	}else if(SOCKETTYPE_ENUM_SUB == sockInfo->socketType){//´ÓÌ×½Ó×Ö

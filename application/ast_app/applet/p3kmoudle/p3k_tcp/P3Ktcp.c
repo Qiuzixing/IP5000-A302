@@ -212,6 +212,15 @@ int Tcp_NetSenddata(int userId,char*data,int len)
     if(!getpeername(info->sockfd,(struct sockaddr *)&sa,&len1))
     {
         printf("Dest ip:%s port:%d\n",inet_ntoa(sa.sin_addr),ntohs(sa.sin_port));
+        int port = ntohs(sa.sin_port); 
+        if(!memcmp(inet_ntoa(sa.sin_addr),"127.0.0.1",strlen("127.0.0.1")))
+        {
+            if(port == 6002)
+             {}
+             else{
+                return;
+             }
+        }
     }
 	SOCKET_TcpSendMessage(info->sockfd,data,len);
 	return 0;
@@ -517,7 +526,6 @@ void * TcpCmd_cb(void * fd)
     SocketWorkInfo_S*handle = (SocketWorkInfo_S*)fd;
     while(1)
     {
-        //printf("11\n");
         if(handle->serverport == g_network_info.tcp_port)
         {
             usleep(50*1000);
@@ -525,7 +533,9 @@ void * TcpCmd_cb(void * fd)
         else
         {
             SOCKET_DestroyTcpServer(Tcp_NetGetNetReristHandle());
+            Tcp_P3KHandleListUnInit();
             Tcp_NetInit(g_network_info.tcp_port);
+            return;
         }
     }
     return;
