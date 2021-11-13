@@ -212,15 +212,15 @@ int Tcp_NetSenddata(int userId,char*data,int len)
     if(!getpeername(info->sockfd,(struct sockaddr *)&sa,&len1))
     {
         printf("Dest ip:%s port:%d\n",inet_ntoa(sa.sin_addr),ntohs(sa.sin_port));
-        int port = ntohs(sa.sin_port); 
-        if(!memcmp(inet_ntoa(sa.sin_addr),"127.0.0.1",strlen("127.0.0.1")))
-        {
-            if(port == 6002)
-             {}
-             else{
-                return;
-             }
-        }
+ //       int port = ntohs(sa.sin_port);
+ //       if(!memcmp(inet_ntoa(sa.sin_addr),"127.0.0.1",strlen("127.0.0.1")))
+ //      {
+ //           if(port == 6002)
+ //            {}
+ //            else{
+ //               return;
+ //            }
+ //       }
     }
 	SOCKET_TcpSendMessage(info->sockfd,data,len);
 	return 0;
