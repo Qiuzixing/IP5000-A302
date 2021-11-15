@@ -14,7 +14,7 @@
 #include <dirent.h>
 #include <algorithm>
 #include <errno.h>
-
+#include "mutex.h"
 
 #define OPTION_MAX_NUMBER 126			//此宏为 内部指定的 option 列表的最大值，慎改
 
@@ -458,8 +458,8 @@ void AddURIProcessHandler(struct mg_context *ctx,struct uri_list * list,int list
 
 }
 
-list<ws_clients> gb_clientconnlist;
-
+static list<ws_clients> gb_clientconnlist;
+static CMutex g_WsCliListMutex;
 
 
 /*
@@ -477,15 +477,18 @@ static bool DeleteWSClientInList(const struct mg_connection *conn)
 	struct mg_context *ctx = mg_get_context(conn);
 	mg_lock_context(ctx);
 	list<ws_clients>::iterator ws_clientIterator;
-	for(ws_clientIterator = gb_clientconnlist.begin();ws_clientIterator!=gb_clientconnlist.end();++ws_clientIterator)
 	{
-		if(ws_clientIterator->conn == conn)
+		CMutexLocker locker(&g_WsCliListMutex);
+		for(ws_clientIterator = gb_clientconnlist.begin();ws_clientIterator!=gb_clientconnlist.end();++ws_clientIterator)
 		{
-			BC_INFO_LOG("earse conn from list [%p]",ws_clientIterator->conn);
-			ws_clientIterator->conn = NULL;
-			ws_clientIterator->local_auth = WEBSVR_AUTH_UNKNOW;
-			gb_clientconnlist.erase(ws_clientIterator);
-			break;
+			if(ws_clientIterator->conn == conn)
+			{
+				BC_INFO_LOG("earse conn from list [%p]",ws_clientIterator->conn);
+				ws_clientIterator->conn = NULL;
+				ws_clientIterator->local_auth = WEBSVR_AUTH_UNKNOW;
+				gb_clientconnlist.erase(ws_clientIterator);
+				break;
+			}
 		}
 	}
 	mg_unlock_context(ctx);
@@ -503,6 +506,7 @@ static bool DeleteWSClientInList(const struct mg_connection *conn)
 
 int SetWebsocketLocalAuthSucess(struct mg_connection *conn)
 {
+	CMutexLocker locker(&g_WsCliListMutex);
 	list<ws_clients>::iterator ws_clientIterator;
 	for(ws_clientIterator = gb_clientconnlist.begin();ws_clientIterator!=gb_clientconnlist.end();++ws_clientIterator)
 	{
@@ -516,6 +520,7 @@ int SetWebsocketLocalAuthSucess(struct mg_connection *conn)
 }
 int SetWebsocketLDAPAuthSucess(struct mg_connection *conn)
 {
+	CMutexLocker locker(&g_WsCliListMutex);
 	list<ws_clients>::iterator ws_clientIterator;
 	for(ws_clientIterator = gb_clientconnlist.begin();ws_clientIterator!=gb_clientconnlist.end();++ws_clientIterator)
 	{
@@ -559,7 +564,10 @@ int WebSocketConnectHandler(const struct mg_connection *conn, void *cbdata)
 	WebscketTempConn.conn = (struct mg_connection *)conn;
 	WebscketTempConn.local_auth = WEBSVR_AUTH_UNKNOW;
 	WebscketTempConn.ldap_auth = WEBSVR_AUTH_UNKNOW;
-	gb_clientconnlist.push_back(WebscketTempConn);
+	{
+		CMutexLocker locker(&g_WsCliListMutex);
+		gb_clientconnlist.push_back(WebscketTempConn);
+	}
 
 	#if 0
 	list<ws_clients>::iterator ws_clientIterator;
