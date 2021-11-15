@@ -418,7 +418,7 @@ do_start_srv_ex()
 				if [ $c_done -eq 1 ]; then
 					continue
 				fi
-				if [ "$NO_CEC" = 'n' ]; then
+				if [ "$NO_CEC" = 'n' -a "$CEC_GATWAY" = 'off' ]; then
 					ipc @c_lm_set s ce_start:$CH_SELECT_C
 					update_node_info CH_SELECT_C $CH_SELECT_C
 				fi
@@ -2714,14 +2714,28 @@ handle_e_p3k_ir()
 handle_ce_gw()
 {
 	local _para1=$1
+	
 	case "$MODEL_NUMBER" in
 		KDS-DEC7)
 			case $1 in
-				sii9136)
+				over_ip)
 					ipc @m_lm_set s set_gpio_val:1:68:1
+					NO_CEC='n'
+					CEC_GATWAY='off'
+					ipc @c_lm_set s ce_start:$CH_SELECT_C
+				;;
+				hdmi_out)
+					ipc @m_lm_set s set_gpio_val:1:68:1
+					NO_CEC='y'
+					CEC_GATWAY='on'
+					CEC_SEND_DIR='hdmi_out'
+					ipc @c_lm_set s ce_stop
 				;;
 				hdmi_in)
-					ipc @m_lm_set s set_gpio_val:1:68:0
+					NO_CEC='y'
+					CEC_GATWAY='on'
+					CEC_SEND_DIR='hdmi_in'
+					ipc @c_lm_set s ce_stop
 				;;
 				*)
 				;;
@@ -2738,7 +2752,16 @@ handle_ce_send()
 {
 	echo "$1"
 	local _para1=$1
-	cec_send $1
+	case $CEC_SEND_DIR in
+		hdmi_in)
+			echo "To be done"
+		;;
+		hdmi_out)
+			cec_send $1
+		;;
+		*)
+		;;
+	esac
 	echo "handle_ce_send.($_para1)" 
 }
 
@@ -3484,6 +3507,8 @@ init_param_from_flash()
 		fi
 	fi
 
+	CEC_GATWAY='off'
+	CEC_SEND_DIR='hdmi_out'
 	astparam s fourth_priority_board_status $POWER_ON
 	astparam s sec_priority_net_status $GET_IP_FAIL
 	astparam s repeat_net_lighting_flag 0

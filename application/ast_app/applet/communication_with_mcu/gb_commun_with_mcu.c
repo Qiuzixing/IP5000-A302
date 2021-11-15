@@ -358,6 +358,44 @@ static void do_handle_get_cmd(uint16_t cmd,char *cmd_param)
     APP_Comm_Send(cmd, &port, sizeof(port));
 }
 
+static void auto_switch_cec(unsigned char input_source)
+{
+    uint16_t gpio_cmd = CMD_GPIO_SET_VAL;
+    char hdmi1_cec[] = "3:67:1:68:0:69:0"; 
+    char hdmi2_cec[] = "3:67:1:68:1:69:0"; 
+    char hdmi3_cec[] = "3:67:1:68:0:69:1"; 
+    char ipe5000w_hdmi1_cec[] = "1:77:0";
+    char ipe5000w_hdmi2_cec[] = "1:77:1";
+    switch(input_source)
+    {
+        case HDMIRX1:
+            if(board_type_flag == IPE5000W)
+            {
+                do_handle_set_gpio_val(gpio_cmd,ipe5000w_hdmi1_cec);
+            }
+            else
+            {
+                do_handle_set_gpio_val(gpio_cmd,hdmi1_cec);
+            }
+            break;
+        case HDMIRX2:
+            if(board_type_flag == IPE5000W)
+            {
+                do_handle_set_gpio_val(gpio_cmd,ipe5000w_hdmi2_cec);
+            }
+            else
+            {
+                do_handle_set_gpio_val(gpio_cmd,hdmi2_cec);
+            }
+            break;
+        case HDMIRX3:
+            do_handle_set_gpio_val(gpio_cmd,hdmi3_cec);
+            break;
+        default:
+            break;
+    }
+}
+
 static void do_handle_input_source(uint16_t cmd,char *cmd_param)
 {
     struct CmdDataInputSorce vdo_source;
@@ -377,6 +415,7 @@ static void do_handle_input_source(uint16_t cmd,char *cmd_param)
         switch(board_type_flag)
         {
             case IPE5000P:
+                //Automatic switching of usb-b or usb-c
                 if(vdo_source.rxPort == HDMIRX3)
                 {
                     do_handle_set_gpio_val(gpio_cmd,select_usb_type_c);
@@ -385,6 +424,10 @@ static void do_handle_input_source(uint16_t cmd,char *cmd_param)
                 {
                     do_handle_set_gpio_val(gpio_cmd,select_usb_type_b);
                 }
+                auto_switch_cec(vdo_source.rxPort);
+                break;
+            case IPE5000W:
+                auto_switch_cec(vdo_source.rxPort);
                 break;
             default:
                 break;

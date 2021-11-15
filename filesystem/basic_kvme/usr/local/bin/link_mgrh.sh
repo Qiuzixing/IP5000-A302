@@ -122,7 +122,7 @@ _do_start_srv()
 	if [ "$NO_PWRBTN" = 'n' ]; then
 		ipc @p_lm_set s pe_start:$CH_SELECT_P
 	fi
-	if [ "$NO_CEC" = 'n' ]; then
+	if [ "$NO_CEC" = 'n' -a "$CEC_GATWAY" = 'off' ]; then
 		ipc @c_lm_set s ce_start:$CH_SELECT_C
 	fi
 }
@@ -740,7 +740,6 @@ handle_e_ip_got()
 		p3ktcp &
 		usleep 10000
 		web &
-		
 		if [ "$P3KCFG_AV_ACTION" = 'stop' ];then
 			e e_stop_link
 		fi
@@ -1735,17 +1734,38 @@ handle_e_p3k_ir()
 	esac
 }
 
+open_cec_over_ip()
+{
+	NO_CEC='n'
+	CEC_GATWAY='off'
+	ipc @c_lm_set s ce_start:$CH_SELECT_C
+}
+
+ban_cec_over_ip()
+{
+	NO_CEC='y'
+	CEC_GATWAY='on'
+	ipc @c_lm_set s ce_stop
+}
+
 handle_ce_gw()
 {
 	local _para1=$1
+	
 	case "$MODEL_NUMBER" in
 		KDS-EN7)
 			case $1 in
-				it6802)
+				over_ip)
 					ipc @m_lm_set s set_gpio_val:1:68:1
+					open_cec_over_ip
+				;;
+				hdmi_in)
+					ipc @m_lm_set s set_gpio_val:1:68:1
+					ban_cec_over_ip
+					CEC_SEND_DIR='hdmi_in'
 				;;
 				hdmi_out)
-					ipc @m_lm_set s set_gpio_val:1:68:0
+					CEC_SEND_DIR='hdmi_out'
 				;;
 				*)
 				;;
@@ -1753,23 +1773,17 @@ handle_ce_gw()
 		;;
 		KDS-SW3-EN7)
 			case $1 in
-				it6802_hdmi1)
-					ipc @m_lm_set s set_gpio_val:3:67:1:68:0:69:0
+				over_ip)
+					open_cec_over_ip
 				;;
-				it6802_hdmi2)
-					ipc @m_lm_set s set_gpio_val:3:67:1:68:1:69:0
+				#The switching of CEC varies with the switching of video source(in commun_with_mcu process)
+				hdmi_in)
+					ban_cec_over_ip
+					CEC_SEND_DIR='hdmi_in'
 				;;
-				it6802_hdmi3)
-					ipc @m_lm_set s set_gpio_val:3:67:1:68:0:69:1
-				;;
-				hdmiout_hdmi1)
-					ipc @m_lm_set s set_gpio_val:3:67:0:68:0:69:0
-				;;
-				hdmiout_hdmi2)
-					ipc @m_lm_set s set_gpio_val:3:67:0:68:1:69:0
-				;;
-				hdmiout_hdmi3)
-					ipc @m_lm_set s set_gpio_val:3:67:0:68:0:69:1
+				hdmi_out)
+					ban_cec_over_ip
+					CEC_SEND_DIR='hdmi_out'
 				;;
 				*)
 				;;
@@ -1777,11 +1791,12 @@ handle_ce_gw()
 		;;
 		WP-SW2-EN7)
 			case $1 in
-				it6802_hdmi1)
-					ipc @m_lm_set s set_gpio_val:1:77:0
+				over_ip)
+					open_cec_over_ip
 				;;
-				it6802_hdmi2)
-					ipc @m_lm_set s set_gpio_val:1:77:1
+				#The switching of CEC varies with the switching of video source(in commun_with_mcu process)
+				hdmi_in)
+					ban_cec_over_ip
 				;;
 				*)
 				;;
@@ -1798,7 +1813,16 @@ handle_ce_send()
 {
 	echo "$1"
 	local _para1=$1
-	cec_send $1
+	case $CEC_SEND_DIR in
+		hdmi_in)
+			cec_send $1
+		;;
+		hdmi_out)
+			echo "To be done"
+		;;
+		*)
+		;;
+	esac
 	echo "handle_ce_send.($_para1)" 
 }
 
@@ -2470,6 +2494,8 @@ init_param_from_flash()
 		fi
 	fi
 
+	CEC_GATWAY='off'
+	CEC_SEND_DIR='hdmi_in'
 	astparam s fourth_priority_board_status $POWER_ON
 	astparam s sec_priority_net_status $GET_IP_FAIL
 	astparam s repeat_net_lighting_flag 0
