@@ -9,7 +9,7 @@ extern "C"{
 
 
  
-typedef int (*P3K_MsgSend)(int handleId,char*data, int len); //组包好的数据发送
+typedef int (*P3K_MsgSend)(int handleId,char*data, int len,int flag); //组包好的数据发送
 
 typedef struct _P3KApiHandle_S
 {
@@ -64,7 +64,7 @@ int P3K_ApiGetTotalExcuteCmd(int *sum);
 msg:消息
 len:消息长度
 ********************/
-void Sendtoclient(char * msg, int len);
+void Sendtoclient(char * msg, int len, int Id);
 
 
 #ifdef __cplusplus

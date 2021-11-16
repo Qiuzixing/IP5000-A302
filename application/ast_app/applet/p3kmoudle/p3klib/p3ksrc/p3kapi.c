@@ -425,7 +425,7 @@ RESET_Udp:
     return;
 }
 
-void Sendtoclient(char * msg, int len)
+void Sendtoclient(char * msg, int len,int Id)
 {
     HandleList_S * tmphandle = &(gs_handleMng.listHandleHead);
 	P3KReqistMsg_S *upregistMsg = NULL;
@@ -433,8 +433,13 @@ void Sendtoclient(char * msg, int len)
     	upregistMsg = (P3KReqistMsg_S *)HandleManageGetNextHandle(tmphandle);
     	if(upregistMsg)
     	{
-    		upregistMsg->sendMsg(upregistMsg->handleId,msg,len);
+    	    if(upregistMsg->handleId == Id)
+            {
+                goto SKIP;
+            }   
+    		upregistMsg->sendMsg(upregistMsg->handleId,msg,len,1);
     	}
+SKIP:
     	upregistMsg = NULL;
     	tmphandle = tmphandle->next;
 	}while(tmphandle != NULL && tmphandle->next != NULL);
@@ -484,7 +489,7 @@ void * P3K_UdpInsideServer()
 			//组包
 			tmplen = P3K_SimpleRespCmdBurstification(&respCmdInfo, dstdata);
 			//发送数据
-            Sendtoclient(dstdata,tmplen);
+            Sendtoclient(dstdata,tmplen,1000);
 		}
         else
         {
@@ -564,22 +569,23 @@ static void * P3K_DataExcuteProc(void*arg)
 			//组包
 			tmplen = P3K_SimpleRespCmdBurstification(&respCmdInfo, dstdata);
 			//发送数据
-			//if(!memcmp(aSetOrGet,aEndFlag,strlen(aEndFlag)) || (!strcasecmp(respCmdInfo.command,"LOGIN")))
-            {
-                //printf("Get\n");
-                registMsg = P3K_GetReqistMsgByID(pmsg.handleId);
-    			if(registMsg)
+            //printf("Get\n");
+            registMsg = P3K_GetReqistMsgByID(pmsg.handleId);
+    		if(registMsg)
+    		{
+    		    registMsg->sendMsg(pmsg.handleId,dstdata,tmplen,0);
+    			if(strlen(userDefine) > 0)
     			{
-    				registMsg->sendMsg(pmsg.handleId,dstdata,tmplen);
-    				if(strlen(userDefine) > 0)
-    				{
-    					registMsg->sendMsg(pmsg.handleId,userDefine,strlen(userDefine));
-    				}
+    				registMsg->sendMsg(pmsg.handleId,userDefine,strlen(userDefine),0);
     			}
+    		}
+            if(!memcmp(aSetOrGet,aEndFlag,strlen(aEndFlag)) || (!strcasecmp(respCmdInfo.command,"LOGIN")))
+            {
+                 
+            } 
+            else{
+                Sendtoclient(dstdata,tmplen,registMsg->handleId);
             }
-            //else{
-            //     Sendtoclient(dstdata,tmplen);
-            //}
   		}
 	return  NULL;
 }
@@ -669,7 +675,7 @@ static int P3K_RecvMessage(int handleId,char*data,int len )
 				registMsg = P3K_GetReqistMsgByID(handleId);
 				if(registMsg)
 				{
-					registMsg->sendMsg(handleId,aMsg,strlen(aMsg));
+					registMsg->sendMsg(handleId,aMsg,strlen(aMsg),0);
 				}
 			}
 			else{
@@ -677,7 +683,7 @@ static int P3K_RecvMessage(int handleId,char*data,int len )
 				registMsg = P3K_GetReqistMsgByID(handleId);
 				if(registMsg)
 				{
-					registMsg->sendMsg(handleId,ret,strlen(ret));
+					registMsg->sendMsg(handleId,ret,strlen(ret),0);
 				}
 				DBG_ErrMsg("UPGRADE err\n");
 				LDFWflag = 0;
@@ -723,7 +729,7 @@ static int P3K_RecvMessage(int handleId,char*data,int len )
 					registMsg = P3K_GetReqistMsgByID(handleId);
 					if(registMsg)
 					{
-						registMsg->sendMsg(handleId,aMsg,strlen(aMsg));
+						registMsg->sendMsg(handleId,aMsg,strlen(aMsg),0);
 					}
 				}
 				//P3K_LDWFSetUpgradeHandle(handleId);
@@ -739,7 +745,7 @@ static int P3K_RecvMessage(int handleId,char*data,int len )
 				registMsg = P3K_GetReqistMsgByID(handleId);
 				if(registMsg)
 				{
-					registMsg->sendMsg(handleId,handleshark,strlen(handleshark));
+					registMsg->sendMsg(handleId,handleshark,strlen(handleshark),0);
 				}
 				continue;
 			}

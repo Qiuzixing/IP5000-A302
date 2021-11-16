@@ -198,7 +198,7 @@ static int Tcp_P3KHandleListUnInit()
 	return 0;
 
 }
-int Tcp_NetSenddata(int userId,char*data,int len)
+int Tcp_NetSenddata(int userId,char*data,int len,int flag)
 {
 
 	//USR idÕÒµ½¶ÔÓ¦socket
@@ -207,22 +207,28 @@ int Tcp_NetSenddata(int userId,char*data,int len)
 	{
 		return -1;
 	}
-    struct sockaddr_in sa;
-    int len1 = sizeof(sa);
-    if(!getpeername(info->sockfd,(struct sockaddr *)&sa,&len1))
-    {
-        printf("Dest ip:%s port:%d\n",inet_ntoa(sa.sin_addr),ntohs(sa.sin_port));
- //       int port = ntohs(sa.sin_port);
- //       if(!memcmp(inet_ntoa(sa.sin_addr),"127.0.0.1",strlen("127.0.0.1")))
- //      {
- //           if(port == 6002)
- //            {}
- //            else{
- //               return;
- //            }
- //       }
+    if(flag == 1){
+        struct sockaddr_in sa;
+        int len1 = sizeof(sa);
+        if(!getpeername(info->sockfd,(struct sockaddr *)&sa,&len1))
+        {
+            //printf("Dest ip:%s port:%d\n",inet_ntoa(sa.sin_addr),ntohs(sa.sin_port));
+            int port = ntohs(sa.sin_port); 
+            if(!memcmp(inet_ntoa(sa.sin_addr),"127.0.0.1",strlen("127.0.0.1")))
+            {
+                if(port == 6002)
+                 {}
+                 else{
+                    return;
+                 }
+            }
+        }
+    	SOCKET_TcpSendMessage(info->sockfd,data,len);
     }
-	SOCKET_TcpSendMessage(info->sockfd,data,len);
+    else
+    {
+        SOCKET_TcpSendMessage(info->sockfd,data,len);
+    }
 	return 0;
 }
 void Create_TimeHead(TimeOut_S ** head)
