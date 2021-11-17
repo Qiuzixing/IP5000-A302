@@ -3507,8 +3507,6 @@ init_param_from_flash()
 		fi
 	fi
 
-	CEC_GATWAY='off'
-	CEC_SEND_DIR='hdmi_out'
 	astparam s fourth_priority_board_status $POWER_ON
 	astparam s sec_priority_net_status $GET_IP_FAIL
 	astparam s repeat_net_lighting_flag 0
@@ -3552,10 +3550,33 @@ init_param_from_p3k_cfg()
 		if echo "$P3KCFG_IR_DIR" | grep -q "null" ; then
 			P3KCFG_IR_DIR='out'
 		fi
+
+		CEC_GATWAY=`jq -r '.gateway.cec_mode' $gateway_setting`
+		if echo "CEC_GATWAY" | grep -q "null" ; then
+			CEC_GATWAY='on'
+		fi
+
+		P3KCFG_CEC_DIR=`jq -r '.gateway.cec_destination' $gateway_setting`
+
+		echo "P3KCFG_CEC_DIR=$P3KCFG_CEC_DIR"
+
+		if echo "P3KCFG_CEC_DIR" | grep -q "null" ; then
+			CEC_SEND_DIR='hdmi_out'
+		elif [ "$P3KCFG_CEC_DIR" = 'hdmi_in' ]; then
+			CEC_SEND_DIR='hdmi_in'
+		elif [ "$P3KCFG_CEC_DIR" = 'hdmi_loop' ]; then
+			CEC_SEND_DIR='hdmi_in'
+		else
+			CEC_SEND_DIR='hdmi_out'
+		fi
 	else
 		P3KCFG_IR_DIR='out'
+		CEC_GATWAY='on'
+		CEC_SEND_DIR='hdmi_out'
 	fi
 	echo "P3KCFG_IR_DIR=$P3KCFG_IR_DIR"
+	echo "CEC_GATWAY=$CEC_GATWAY"
+	echo "CEC_SEND_DIR=$CEC_SEND_DIR"
 
 	if [ -f "$auto_switch_setting" ];then
 		P3KCFG_SWITCH_IN=`jq -r '.gateway.ir_direction' $auto_switch_setting`

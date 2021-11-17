@@ -2296,13 +2296,13 @@ int EX_SetCECGateWayMode(int mode)
 		}
 
 		if(mode == 0)
-			sprintf(sCmd,"e_p3k_cec_gw::off");
+			sprintf(sCmd,"e_p3k_cec_gw::over_ip");
 		else if(mode == 1) //in
-			sprintf(sCmd,"e_p3k_cec_gw::in");
+			sprintf(sCmd,"e_p3k_cec_gw::hdmi_in");
 		else if(mode == 2) //out
-			sprintf(sCmd,"e_p3k_cec_gw::out");
+			sprintf(sCmd,"e_p3k_cec_gw::hdmi_out");
 		else //loop == 2
-			sprintf(sCmd,"e_p3k_cec_gw::out");
+			sprintf(sCmd,"e_p3k_cec_gw::hdmi_out");
 #else
 		if((strcmp(g_version_info.model,IPD_W_MODULE) == 0)
 			&&((mode == 1)||(mode == 3)))
@@ -2312,13 +2312,13 @@ int EX_SetCECGateWayMode(int mode)
 		}
 
 		if(mode == 0)
-			sprintf(sCmd,"e_p3k_cec_gw::off");
+			sprintf(sCmd,"e_p3k_cec_gw::over_ip");
 		else if(mode == 1) //in
-			sprintf(sCmd,"e_p3k_cec_gw::in");
+			sprintf(sCmd,"e_p3k_cec_gw::hdmi_in");
 		else if(mode == 2) //out
-			sprintf(sCmd,"e_p3k_cec_gw::out");
+			sprintf(sCmd,"e_p3k_cec_gw::hdmi_out");
 		else //loop == 1
-			sprintf(sCmd,"e_p3k_cec_gw::in");
+			sprintf(sCmd,"e_p3k_cec_gw::hdmi_in");
 #endif
 		DBG_InfoMsg("ast_send_event %s\n",sCmd);
 		ast_send_event(0xFFFFFFFF,sCmd);
