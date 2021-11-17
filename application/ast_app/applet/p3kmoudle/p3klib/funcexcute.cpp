@@ -1075,9 +1075,12 @@ int EX_SetVidOutput(char info[][MAX_PARAM_LEN],int count )
 			int out_id = atoi(info[i]);
 			if(out_id == AUDIO_OUT_HDMI)
 			{
-				sprintf(sCmd,"%s::hdmi",sCmd);
-				port[nCount] = PORT_HDMI;
-				nCount++;
+				if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+				{
+					sprintf(sCmd,"%s::hdmi",sCmd);
+					port[nCount] = PORT_HDMI;
+					nCount++;
+				}
 			}
 			else if(out_id == AUDIO_OUT_ANALOG)
 			{
@@ -1134,10 +1137,13 @@ int EX_GetVidOutput(char * date)
 		DBG_InfoMsg("EX_GetVidOutput i:%d, dst:%d\n",i,g_audio_info.dst_port[i]);
 		if(g_audio_info.dst_port[i] == PORT_HDMI)
 		{
-			if(strlen(str) > 0)
-				sprintf(str,"%s%d",str,AUDIO_OUT_HDMI);
-			else
-				sprintf(str,"%d",AUDIO_OUT_HDMI);
+			if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+			{
+				if(strlen(str) > 0)
+					sprintf(str,"%s%d",str,AUDIO_OUT_HDMI);
+				else
+					sprintf(str,"%d",AUDIO_OUT_HDMI);
+			}
 		}
 		else if(g_audio_info.dst_port[i] == PORT_ANALOG_AUDIO)
 		{

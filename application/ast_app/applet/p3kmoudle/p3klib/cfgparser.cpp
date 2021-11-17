@@ -371,7 +371,9 @@ int Cfg_Init_Audio(void)
 					}
 					else if(output == JSON_AUDIO_HDMI)
 					{
-						g_audio_info.dst_port[i] = PORT_HDMI;
+
+						if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+							g_audio_info.dst_port[i] = PORT_HDMI;
 						continue;
 					}
 					else if(output == JSON_AUDIO_LAN)
@@ -2684,9 +2686,9 @@ int Cfg_Update_Audio(void)
 		{
 			Json::Value& JsonDst = JsonDestArray[i];
 
-			if(g_audio_info.dst_port[i] == PORT_HDMI)
+			/*if(g_audio_info.dst_port[i] == PORT_HDMI)
 				JsonDst = JSON_AUDIO_HDMI;
-			else if(g_audio_info.dst_port[i] == PORT_ANALOG_AUDIO)
+			else */if(g_audio_info.dst_port[i] == PORT_ANALOG_AUDIO)
 				JsonDst = JSON_AUDIO_ANALOG;
 			else if(g_audio_info.dst_port[i] == PORT_STREAM)
 				JsonDst = JSON_AUDIO_LAN;
