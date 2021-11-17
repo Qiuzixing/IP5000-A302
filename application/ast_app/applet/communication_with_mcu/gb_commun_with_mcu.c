@@ -91,7 +91,7 @@ const ipc_cmd_struct ipc_cmd_list[] =
         //audio command     
         {IPC_EVENT_HDMI_AUDIO_STATUS,   "unknown",                  sizeof("unknown"),              EVENT_HDMI_AUDIO_STATUS,            SEND_CMD},
         {IPC_GET_AUDIO_STATUS,          "unknown",                  sizeof("unknown"),              CMD_HDMI_GET_AUDIO_STATUS,          SEND_CMD},
-        {IPC_HDMI_AUDIO_CONTROL,        "unknown",                  sizeof("unknown"),              CMD_HDMI_AUDIO_CONTROL,             SEND_CMD},
+        {IPC_HDMI_AUDIO_CONTROL,        "set_hdmi_mute",            sizeof("set_hdmi_mute"),        CMD_HDMI_AUDIO_CONTROL,             SEND_CMD},
         {IPC_SET_AUDIO_INSERT_EXTRACT,  "set_audio_insert",         sizeof("set_audio_insert"),     CMD_HDMI_SET_AUDIO_INSERT_EXTRACT,  SEND_CMD},
         //other command
         {IPC_UART_PASSTHROUGH,          "set_dante",                sizeof("set_dante"),            CMD_UART_PASSTHROUGH,               SEND_CMD},
@@ -784,6 +784,26 @@ static void do_handle_uart_pass(uint16_t cmd,char *cmd_param)
     free(uart_pass);
 }
 
+static void do_handle_set_hdmi_mute(uint16_t cmd,char *cmd_param)
+{
+    struct CmdDataAudioControl ado_mode;
+    memset((unsigned char *)&ado_mode, 0, sizeof(ado_mode));
+    char *port = strtok(cmd_param,":");
+    char *enable = strtok(NULL,":");
+    char *mute = strtok(NULL,":");
+    if((port != NULL) && (enable != NULL) && (mute != NULL))
+    {
+        ado_mode.port = atoi(port);
+        ado_mode.enable = atoi(enable);
+        ado_mode.mute = atoi(mute);
+        APP_Comm_Send(cmd, (U8*)&ado_mode, sizeof(ado_mode));
+    }
+    else
+    {
+        printf("warn:Illegal parameter, discard directly\n");
+    }
+}
+
 static void handle_audio()
 {
     if(board_type_flag == IPE5000 || board_type_flag == IPE5000W)
@@ -879,6 +899,7 @@ static void do_handle_ipc_cmd(int index,char *cmd_param)
     case IPC_GET_AUDIO_STATUS:
         break;
     case IPC_HDMI_AUDIO_CONTROL:
+        do_handle_set_hdmi_mute(ipc_cmd_list[index].a30_cmd,cmd_param);
         break;
     case IPC_SET_AUDIO_INSERT_EXTRACT:
         do_handle_set_audio_insert_extract(ipc_cmd_list[index].a30_cmd,cmd_param);

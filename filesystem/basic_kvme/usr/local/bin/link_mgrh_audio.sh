@@ -259,15 +259,7 @@ handle_ae_mute()
 {
 	local _para1="$1"
 	echo "handle_ae_mute.($_para1)"
-
-	if [ $_para1 != '1' ]; then
-		echo 1 > /sys/class/leds/linein_mute/brightness
-	    echo 1 > /sys/class/leds/lineout_mute/brightness
-	else
-		echo 0 > /sys/class/leds/linein_mute/brightness
-	    echo 0 > /sys/class/leds/lineout_mute/brightness
-	fi
-
+	#web_mute_slider_handle $_para1
 }
 
 handle_ae_test()
@@ -439,6 +431,16 @@ start_alm()
 
 	# start event loop
 	event_loop &
+	
+	if [ $P3KCFG_AV_MUTE = 'off' ];then
+		echo 100 > /sys/devices/platform/1500_i2s/analog_in_vol
+		echo 1 > /sys/class/leds/linein_mute/brightness
+		echo 1 > /sys/class/leds/lineout_mute/brightness
+	else
+		echo 0 > /sys/devices/platform/1500_i2s/analog_in_vol
+		echo 0 > /sys/class/leds/linein_mute/brightness
+		echo 0 > /sys/class/leds/lineout_mute/brightness
+	fi
 
 	if [ $UGP_FLAG = 'success' ];then
 		ipc @m_lm_set s open_report

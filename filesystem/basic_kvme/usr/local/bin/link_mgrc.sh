@@ -2598,6 +2598,25 @@ handle_e_p3k_video()
 	esac
 }
 
+web_mute_slider_handle()
+{
+	if [ $1 != '1' ];then
+		#unmute
+		P3KCFG_AV_MUTE='off'
+		echo 100 > /sys/devices/platform/1500_i2s/analog_in_vol
+		echo 1 > /sys/class/leds/linein_mute/brightness
+	    echo 1 > /sys/class/leds/lineout_mute/brightness
+		ipc @m_lm_set s set_hdmi_mute:16:1:0
+	else
+		#mute,Because the linein mute sound is still a little, you can directly turn the volume to 0 as mute
+		P3KCFG_AV_MUTE='on'
+		echo 0 > /sys/devices/platform/1500_i2s/analog_in_vol
+		echo 0 > /sys/class/leds/linein_mute/brightness
+	    echo 0 > /sys/class/leds/lineout_mute/brightness
+		ipc @m_lm_set s set_hdmi_mute:16:1:1
+	fi
+}
+
 handle_e_p3k_audio()
 {
 	echo "handle_e_p3k_audio."
@@ -2617,14 +2636,7 @@ handle_e_p3k_audio()
 			ipc @a_lm_set s ae_dir:$_para1
 		;;
 		e_p3k_audio_mute::?*)
-			#ipc @a_lm_set s ae_mute:$_para1
-			if [ $_para1 != '1' ]; then
-				echo 1 > /sys/class/leds/lineout_mute/brightness
-				P3KCFG_AV_MUTE='off'
-			else
-				echo 0 > /sys/class/leds/lineout_mute/brightness
-				P3KCFG_AV_MUTE='on'
-			fi
+			web_mute_slider_handle $_para1
 		;;
 		*)
 		echo "ERROR!!!! Invalid event ($event) received"
@@ -3592,14 +3604,10 @@ init_param_from_p3k_cfg()
 set_variable_power_on_status()
 {
 	if [ $P3KCFG_AV_MUTE = 'off' ];then
-		echo 1 > /sys/class/leds/linein_mute/brightness
-		echo 1 > /sys/class/leds/lineout_mute/brightness
+		ipc @m_lm_set s set_hdmi_mute:16:1:0
 	else
-		echo 0 > /sys/class/leds/linein_mute/brightness
-		echo 0 > /sys/class/leds/lineout_mute/brightness
+		ipc @m_lm_set s set_hdmi_mute:16:1:1
 	fi
-
-	
 }
 
 signal_handler()
@@ -3733,7 +3741,9 @@ fi
 #Initialize I2C bus3(temperature sensor)
 init_temperature_sensor
 
-set_variable_power_on_status
+if [ $UGP_FLAG = 'success' ];then
+	set_variable_power_on_status
+fi
 
 # TBD remove? screen switch doesn't check HAS_CRT anymore
 #if [ -f "$DISPLAY_SYS_PATH"/screen ]; then

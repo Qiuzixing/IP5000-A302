@@ -1664,6 +1664,33 @@ handle_e_p3k_audio_switch()
 	esac
 }
 
+web_mute_slider_handle()
+{
+	if [ $1 != '1' ];then
+		#unmute
+		echo 100 > /sys/devices/platform/1500_i2s/analog_in_vol
+		echo 1 > /sys/class/leds/linein_mute/brightness
+	    echo 1 > /sys/class/leds/lineout_mute/brightness
+		#Because KDS-EN7 use gsv2001 chip,it just have one core,therefore, mute outputs one way and follows mute later
+		#but KDS-SW3-EN7 use gsv2008 will be no such problem,because it have two core
+		ipc @m_lm_set s set_hdmi_mute:16:1:0
+		if [ $MODEL_NUMBER = 'KDS-SW3-EN7' ];then
+			ipc @m_lm_set s set_hdmi_mute:17:1:0
+			echo 0 > /sys/class/leds/dante_mute/brightness
+		fi
+	else
+		#mute,Because the linein mute sound is still a little, you can directly turn the volume to 0 as mute
+		echo 0 > /sys/devices/platform/1500_i2s/analog_in_vol
+		echo 0 > /sys/class/leds/linein_mute/brightness
+	    echo 0 > /sys/class/leds/lineout_mute/brightness
+		ipc @m_lm_set s set_hdmi_mute:16:1:1
+		if [ $MODEL_NUMBER = 'KDS-SW3-EN7' ];then
+			ipc @m_lm_set s set_hdmi_mute:17:1:1
+			echo 1 > /sys/class/leds/dante_mute/brightness
+		fi
+	fi
+}
+
 handle_e_p3k_audio()
 {
 	echo "handle_e_p3k_audio."
@@ -1693,7 +1720,7 @@ handle_e_p3k_audio()
 			esac
 		;;
 		e_p3k_audio_mute::?*)
-			ipc @a_lm_set s ae_mute:$_para1
+			web_mute_slider_handle $_para1
 		;;
 		e_p3k_audio_dante_name::?*)
 			ipc @m_lm_set s set_dante:0:$_para1
@@ -2629,11 +2656,17 @@ set_variable_power_on_status()
 	fi
 
 	if [ $P3KCFG_AV_MUTE = 'off' ];then
-		echo 1 > /sys/class/leds/linein_mute/brightness
-		echo 1 > /sys/class/leds/lineout_mute/brightness
+		ipc @m_lm_set s set_hdmi_mute:16:1:0
+		if [ $MODEL_NUMBER = 'KDS-SW3-EN7' ];then
+			ipc @m_lm_set s set_hdmi_mute:17:1:0
+			echo 0 > /sys/class/leds/dante_mute/brightness
+		fi
 	else
-		echo 0 > /sys/class/leds/linein_mute/brightness
-		echo 0 > /sys/class/leds/lineout_mute/brightness
+		ipc @m_lm_set s set_hdmi_mute:16:1:1
+		if [ $MODEL_NUMBER = 'KDS-SW3-EN7' ];then
+			ipc @m_lm_set s set_hdmi_mute:17:1:1
+			echo 1 > /sys/class/leds/dante_mute/brightness
+		fi
 	fi
 }
 

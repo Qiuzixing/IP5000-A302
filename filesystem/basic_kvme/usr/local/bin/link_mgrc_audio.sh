@@ -580,6 +580,16 @@ start_alm()
 
 	# start event loop
 	event_loop &
+
+	if [ $P3KCFG_AV_MUTE = 'off' ];then
+		echo 100 > /sys/devices/platform/1500_i2s/analog_in_vol
+		echo 1 > /sys/class/leds/linein_mute/brightness
+		echo 1 > /sys/class/leds/lineout_mute/brightness
+	else
+		echo 0 > /sys/devices/platform/1500_i2s/analog_in_vol
+		echo 0 > /sys/class/leds/linein_mute/brightness
+		echo 0 > /sys/class/leds/lineout_mute/brightness
+	fi
 }
 
 start_alm
