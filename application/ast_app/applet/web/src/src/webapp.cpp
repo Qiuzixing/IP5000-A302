@@ -521,6 +521,7 @@ int CWeb::UpdateSleepImageHandle(struct mg_connection *conn, void *cbdata)
     else
     {
         BC_INFO_LOG("UpdateSleepImageHandle upload file OK");
+        My_System("e e_update_idle_screen");
         send_http_ok_rsp(conn);
     }
 

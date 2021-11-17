@@ -3227,6 +3227,23 @@ handle_e_set_ttl()
 	echo $1 > /proc/sys/net/ipv4/ip_default_ttl
 }
 
+handle_e_update_idle_screen()
+{
+	case `cat $DISPLAY_SYS_PATH/screen_off` in
+		disable)
+			SCREEN=`cat $DISPLAY_SYS_PATH/screen`
+			if [ "$SCREEN" = '[1] message screen' ]; then
+				echo 1 > $DISPLAY_SYS_PATH/screen_off
+				cp -f /data/configs/kds-7/display/sleep_image.jpg /share/default.jpg
+				switch_to_GUI_screen show_dialog
+				echo 0 > $DISPLAY_SYS_PATH/screen_off
+			fi
+			;;
+		*)
+			;;
+	esac
+}
+
 handle_set_up_alc5640()
 {
 	if [ $P3KCFG_AV_MUTE = 'off' ];then
