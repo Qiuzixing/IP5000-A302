@@ -60,6 +60,7 @@ OSD_FROM_GUI='y'
 JUMBO_MTU='8000'
 IEEE8021X_PATH='/data/configs/kds-7/secure'
 IEEE8021X_JSON_PATH="$IEEE8021X_PATH/ieee802_1x_setting.json"
+LOG_JSON_PATH=="/data/configs/kds-7/log/log_setting.json"
 
 #. ip_mapping.sh
 . bash/utilities.sh
@@ -4200,3 +4201,58 @@ start_ieee802dot1x_daemon()
 	fi
 }
 
+
+##########################################################################################
+#syslogd Options:
+#
+#        -n              Run in foreground
+#        -O FILE         Log to given file (default:/var/log/messages)
+#        -l n            Set local log level
+#        -S              Smaller logging output
+#        -s SIZE         Max size (KB) before rotate (default:200KB, 0=off)
+#        -b NUM          Number of rotated logs to keep (default:1, max=99, 0=purge)
+#        -R HOST[:PORT]  Log to IP or hostname on PORT (default PORT=514/UDP)
+#        -L              Log locally and via network (default is network only if -R)
+#        -D              Drop duplicates
+#        -C[size(KiB)]   Log to shared mem buffer (read it using logread)
+##########################################################################################
+
+handle_e_log()
+{
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+	LOG_ACTION=$3
+	LOG_PERIOD=$5
+	echo "LOG_ACTION=$LOG_ACTION"
+	echo "LOG_PERIOD=$LOG_PERIOD"
+	if [ -z "$LOG_ACTION" ]; then
+		LOG_ACTION=$(jq -r .log_setting.active $LOG_JSON_PATH | tr A-Z a-z)
+	fi
+	if [ -z "$LOG_ACTION" ]; then
+		LOG_ACTION='pause'
+	fi
+	case $LOG_ACTION in
+		start|on)
+			pkill -9 syslogd
+			pkill -9 klogd
+			syslogd -l 7 -s 1000 -b 1
+			klogd
+			;;
+		pause|stop|off)
+			pkill -9 syslogd
+			pkill -9 klogd
+			;;
+		resume)
+			pkill -9 syslogd
+			pkill -9 klogd
+			syslogd -l 7 -s 1000 -b 1
+			klogd
+			;;
+		reset)
+			pkill -9 syslogd
+			pkill -9 klogd
+			rm -f /var/log/messages*
+			syslogd -l 7 -s 1000 -b 1
+			klogd
+			;;
+	esac
+}

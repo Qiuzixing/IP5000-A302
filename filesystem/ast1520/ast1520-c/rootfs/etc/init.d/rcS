@@ -106,4 +106,4 @@ if [ "$no_lm" = "y" ]; then
 	exit 0
 fi
 
-link_mgrc.sh &
+link_mgrc.sh 2>&1 | logger -t LM -p user.info &

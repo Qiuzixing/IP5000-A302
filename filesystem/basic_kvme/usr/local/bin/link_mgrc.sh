@@ -479,6 +479,7 @@ handle_e_sys_init_ok()
 		#refresh_4bits_ch
 		#refresh_ch_params
 
+		handle_e_log
 		# Export LM params to /var/lm. So that sub-LM can import.
 		handle_e_var
 
@@ -3364,6 +3365,9 @@ state_machine()
 			;;
 			e_set_up_alc5640*)
 				handle_set_up_alc5640 "$event"
+			;;
+			e_log*)
+				handle_e_log "$event"
 			;;
 			e_?*)
 				tickle_watchdog

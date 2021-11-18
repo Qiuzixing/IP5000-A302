@@ -77,6 +77,10 @@
 #define PASSWD_STR              "passwd"
 #define USRNAME_STR             "username"
 
+#define EXPORT_URL              "/settings/export"
+#define IMPORT_URL              "/settings/import"
+#define LOG_URL                 "/log/log"
+
 CMutex CWeb::s_p3kmutex;
 CCond  CWeb::s_p3kcond;
 P3kStatus CWeb::s_p3kStatus;
@@ -193,6 +197,9 @@ void CWeb::HttpRun()
         {"/capture.jpg", CapturejpgReqHandler, NULL},
         {SECURE_HTTPS_URL, SecureHttpsSetHanndle, NULL},
         {SECURE_802X_URL, Secure802XSetHanndle, NULL},
+        {IMPORT_URL, ImportHanndle, NULL},
+        {EXPORT_URL, ExportHanndle, NULL},
+        {LOG_URL, LogHanndle, NULL},
 	};
 	AddURIProcessHandler(ctx,UriHandleList,ARRAY_SIZE(UriHandleList));
 }
@@ -1299,6 +1306,67 @@ int CWeb::CapturejpgReqHandler(struct mg_connection *conn, void *cbdata)
 	send_jpg_file(conn,CAPTURE_JPG_FILE);
 
     return 1;
+}
+
+int CWeb::ExportHanndle(struct mg_connection *conn, void *cbdata)
+{
+    const struct mg_request_info *pRequest = mg_get_request_info(conn);
+    if(strcmp(pRequest->request_method, "GET") == 0)
+    {
+        string strCmd = "/usr/local/bin/export_settings.sh ";
+        char method[MAX_PARAM_LEN] = {0};
+        mg_get_var_from_querystring(conn, "method", method, MAX_PARAM_LEN);
+        strCmd += method;
+        My_System(strCmd.c_str());
+
+        mg_printf(conn, "%s",
+                "HTTP/1.1 200 OK\r\n" "Cache-Control: no-cache\r\n"
+                "Pragma: no-cache\r\nExpires: Thu, 01 Dec 1994 16:00:00 GMT\r\n"
+                "Connection: close\r\nContent-Type: multipart/x-mixed-replace;\r\n"
+                "Content-Disposition:attachment;filename=\"settings.tar.gz\"\r\n");
+        mg_send_file(conn, "/dev/shm/settings.tar.gz");
+        return 1;
+    }
+    return 0;
+}
+
+int CWeb::ImportHanndle(struct mg_connection *conn, void *cbdata)
+{
+    const struct mg_request_info *pRequest = mg_get_request_info(conn);
+    if(strcmp(pRequest->request_method, "POST") == 0)
+    {
+        struct T_FromInfo tFrom;
+        string strCmd = "/usr/local/bin/import_settings.sh /dev/shm/settings.tar.gz";
+        if(!SaveUploadFile(conn, "/dev/shm/", "settings.tar.gz", &tFrom))
+        {
+            BC_INFO_LOG("ImportHanndle upload file error");
+            send_http_error_rsp(conn);
+        }
+        else
+        {
+            BC_INFO_LOG("ImportHanndle upload file OK");
+            My_System(strCmd.c_str());
+            send_http_ok_rsp(conn);
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int CWeb::LogHanndle(struct mg_connection *conn, void *cbdata)
+{
+    const struct mg_request_info *pRequest = mg_get_request_info(conn);
+    if(strcmp(pRequest->request_method, "GET") == 0)
+    {
+        // mg_printf(conn, "%s",
+        //         "HTTP/1.1 200 OK\r\n" "Cache-Control: no-cache\r\n"
+        //         "Pragma: no-cache\r\nExpires: Thu, 01 Dec 1994 16:00:00 GMT\r\n"
+        //         "Connection: close\r\n"
+        //         "Content-Disposition:attachment;filename=\"log.txt\"\r\n");
+        mg_send_file(conn, "/var/log/messages");
+        return 1;
+    }
+    return 0;
 }
 
 void *CWeb::MjpegStreamThread(void *param)

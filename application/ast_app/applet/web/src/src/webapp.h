@@ -1,13 +1,4 @@
 /****************************************************************************
-* 版权信息：（C）2020，深圳市拔超科技有限公司版权所有
-* 系统名称：
-* 文件名称：webapp.h
-* 文件说明：该文件是利用civetweb.h提供的接口，封装了一些简单业务逻辑，
-* 作    者：zp
-* 版本信息：1.0
-* 设计日期：2020-9-4
-* 修改记录：
-* 日    期                版    本                修改人                 修改摘要
 ****************************************************************************/
 
 #ifndef __WEBAPP_H__
@@ -28,7 +19,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#define MG_READ_BUFSIZE 	2*1024
+#define MG_READ_BUFSIZE     2*1024
 #define MAX_PARAM_LEN       128
 #define KEY_VALUE_SIZE      256
 #define MAX_KEY_VALUE_SIZE  1024
@@ -38,7 +29,7 @@ typedef struct P3kStatus
     struct mg_connection *p3k_conn;
     Bool16 p3k_writeok;
     int p3k_start;
-}P3kStatus;
+} P3kStatus;
 
 typedef struct conn_state
 {
@@ -49,22 +40,23 @@ typedef struct conn_state
     char boundary[MAX_PARAM_LEN];
     long long flen;
     unsigned int last_mjpeg_seq;
-}conn_state;
+} conn_state;
 
 typedef struct T_FromInfo
 {
     char filename[KEY_VALUE_SIZE];
     char filepath[KEY_VALUE_SIZE];
     long long  filesize;
-}T_FromInfo;
+} T_FromInfo;
 
 typedef struct T_SecureInfo
 {
     string strSecureFile;
     Json::Value jsonData;
-}T_SecureInfo;
+} T_SecureInfo;
 
-enum {
+enum
+{
     request_default = 0,
     request_fast_cgi,
     request_mjpeg,
@@ -78,21 +70,21 @@ enum {
 class CWeb
 {
 public:
-	static bool			Start(ConfInfoParam * p_webparam,string Server_mode);
-	static void         Stop();
+    static bool         Start(ConfInfoParam * p_webparam, string Server_mode);
+    static void         Stop();
     static void         HttpRun();
-	static void			WebSocketRun(mg_websocket_handler handler,void *cbdata);
+    static void         WebSocketRun(mg_websocket_handler handler, void *cbdata);
 
-	static void			Print_ServerPort();
+    static void         Print_ServerPort();
 
-	static int 			file_found(const char *key,const char *filename,char *path,size_t pathlen,void *user_data);
-	static int 			file_get(const char *key,const char *value,size_t valuelen,void *user_data);
-	static int 			file_store(const char *path, long long file_size, void *user_data);
-    static int          SecureFileFound(const char *key,const char *filename,char *path,size_t pathlen,void *user_data);
-    static int          SecureFileGet(const char *key,const char *value,size_t valuelen,void *user_data);
+    static int          file_found(const char *key, const char *filename, char *path, size_t pathlen, void *user_data);
+    static int          file_get(const char *key, const char *value, size_t valuelen, void *user_data);
+    static int          file_store(const char *path, long long file_size, void *user_data);
+    static int          SecureFileFound(const char *key, const char *filename, char *path, size_t pathlen, void *user_data);
+    static int          SecureFileGet(const char *key, const char *value, size_t valuelen, void *user_data);
     static int          SecureFileGetStore(const char *path, long long file_size, void *user_data);
     static bool         SaveSecureFile(struct mg_connection *conn, const char *i_pJsonFile, T_SecureInfo *o_tInfo);
-    // 鎸囧畾涓嬭浇鏂囦欢瀛樺偍浣嶇疆锛屼互鍙婂埆鍚?
+    // 鎸囧畾涓嬭浇鏂囦欢瀛樺偍浣嶇疆
     static bool         SaveUploadFile(struct mg_connection *conn, const char *i_pPath, const char *i_pFileNmae, struct T_FromInfo *o_tFrominfo);
 
     // security
@@ -119,11 +111,11 @@ public:
 
     // P3K
     static void        P3kStatusInit();
-    static void 	   P3kWebsocketHandle(struct mg_connection *conn,char *data,size_t len);
+    static void        P3kWebsocketHandle(struct mg_connection *conn, char *data, size_t len);
     static void *      P3kCommunicationThread(void *arg);
     static void        CloseP3kSocket(void);
 
-    // 鍘?000
+    // APIs
     static int         ActionReqHandler(struct mg_connection *conn, void *cbdata);
     static int         StreamReqHandler(struct mg_connection *conn, void *cbdata);
     static int         UploadLogoReqHandler(struct mg_connection *conn, void *cbdata);
@@ -131,18 +123,21 @@ public:
     static int         CapturebmpReqHandler(struct mg_connection *conn, void *cbdata);
     static int         CapturejpgReqHandler(struct mg_connection *conn, void *cbdata);
     static void *      MjpegStreamThread(void *param);
+    static int         ExportHanndle(struct mg_connection *conn, void *cbdata);
+    static int         ImportHanndle(struct mg_connection *conn, void *cbdata);
+    static int         LogHanndle(struct mg_connection *conn, void *cbdata);
 
 private:
-    static conn_state* get_state(struct mg_connection * conn);
+    static conn_state *get_state(struct mg_connection *conn);
     static long long get_time_ms(void);
     static int SendBmpPic(struct mg_connection *conn, const char *path);
-    static int send_bmp_file(struct mg_connection *conn,const char * picpath);
+    static int send_bmp_file(struct mg_connection *conn, const char * picpath);
     static void update_jpg_preview_file(void);
 
-	static CMutex s_p3kmutex;
+    static CMutex s_p3kmutex;
     static CCond s_p3kcond;
-	static int s_p3kSocket;
-	static struct mg_context * ctx;
+    static int s_p3kSocket;
+    static struct mg_context * ctx;
     static P3kStatus s_p3kStatus;
 
     static CMutex s_AliveStreamMutex;

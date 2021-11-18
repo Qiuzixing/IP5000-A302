@@ -96,4 +96,4 @@ fi
 
 # Bruce160407. Lower LM priority so that it won't impact VideoIP thread.
 #link_mgrh.sh &
-nice -n 15 link_mgrh.sh
+nice -n 15 link_mgrh.sh 2>&1 | logger -t LM -p user.info &

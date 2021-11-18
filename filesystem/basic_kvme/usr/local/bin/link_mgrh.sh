@@ -233,6 +233,7 @@ handle_e_sys_init_ok()
 
 		# A7 disable watchdog after sys_init_ok
 		#disable_watchdog
+		handle_e_log
 
 		# Export LM params to /var/lm. So that sub-LM can import.
 		handle_e_var
@@ -2376,6 +2377,9 @@ state_machine()
 			;;
 			e_set_ttl*)
 				handle_e_set_ttl "$event"
+			;;
+			e_log*)
+				handle_e_log "$event"
 			;;
 			e_?*)
 				tickle_watchdog
