@@ -212,6 +212,7 @@ static  int P3K_HandleListInit()
 {
 	memset(&gs_handleMng,0,sizeof(P3KRegistHandleMng_S));
 	pthread_mutex_init(&gs_handleMng.selfLock,NULL);
+	HandleManageInitHead(&(gs_handleMng.listHandleHead));
 	return 0;
 }
 static int P3K_HandleListUnInit()
@@ -429,20 +430,36 @@ void Sendtoclient(char * msg, int len,int Id)
 {
     HandleList_S * tmphandle = &(gs_handleMng.listHandleHead);
 	P3KReqistMsg_S *upregistMsg = NULL;
-    do{
-    	upregistMsg = (P3KReqistMsg_S *)HandleManageGetNextHandle(tmphandle);
-    	if(upregistMsg)
+
+	int nCount = 0;
+	printf(">>>>>>>>>>>>>Sendtoclient len:%d msg:%s \n",len,msg);
+
+	int nnn = HandleManageGetUsrCount(tmphandle);
+
+	printf(">>>>>>>>>>>>>HandleManageGetUsrCount count = %d\n",nnn);
+
+	for(nCount=0; nCount<nnn; nCount++)
+	{
+		upregistMsg = (P3KReqistMsg_S *)HandleManageGetNextHandle(tmphandle);
+   		if(upregistMsg)
     	{
     	    if(upregistMsg->handleId == Id)
             {
-                goto SKIP;
-            }   
+                tmphandle = tmphandle->next;//goto SKIP;
+                continue;
+            }
+
     		upregistMsg->sendMsg(upregistMsg->handleId,msg,len,1);
     	}
-SKIP:
-    	upregistMsg = NULL;
+		else
+		{
+			break;
+		}
+
     	tmphandle = tmphandle->next;
-	}while(tmphandle != NULL && tmphandle->next != NULL);
+	}
+
+	printf(">>>>>>>>>>>>>>Sendtoclient End nCount = %d\n",nCount);
 }
 
 void * P3K_UdpInsideServer()

@@ -29,6 +29,7 @@ int HandleManageAddHandle(HandleList_S *head,void *handle)
 	newNode->pre = cur;
 	newNode->next = NULL;
 	newNode->handle = handle;
+	pthread_mutex_init(&newNode->selfMutex,NULL);
 	pthread_mutex_unlock(&head->selfMutex);
 	return 0;
 }

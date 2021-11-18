@@ -550,6 +550,10 @@ void * TcpCmd_cb(void * fd)
 int Tcp_NetInit(int port)
 {
 	Create_TimeHead(&sTimeOut);
+
+	printf("Tcp_NetInit\n");
+	HandleManageInitHead(&(gs_cliHandleMng.listHandleHead));
+
 	P3K_ApiInit();
 	SocketWorkInfo_S * handle = Tcp_NetGetNetReristHandle();
 	handle->readcb =Tcp_NetRecvMsg;
