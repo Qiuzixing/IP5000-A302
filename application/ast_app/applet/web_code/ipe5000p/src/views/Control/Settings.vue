@@ -11,41 +11,49 @@
                   inactive-value="0"
                   @input="setCECGateway"></v-switch>
       </div>
-      <div class="setting">
-        <span class="setting-title">Gateway HDMI Port</span>
-        <multiselect :disabled="cecGateWay === '0'"
-                     :options="[{value: '1', label: 'HDMI Input'}, {value: '3', label: 'HDMI Loop Through'}]"
-                     v-model="cecGateWayPort"
-                     @input="setCECPort"></multiselect>
-      </div>
-      <div class="setting">
-        <span class="setting-title">Command </span>
-        <input type="text"
-               :disabled="cecGateWay === '0'"
-               class="setting-text"
-               v-model="cecCmd">
-        <button class="btn btn-plain-primary"
-                :disabled="cecGateWay === '0'"
-                style="margin-left: 25px"
-                @click="sendCECCmd">SEND</button>
-      </div>
-      <div class="radio-setting">
-        <span class="setting-title">Responses </span>
-        <div>
-          <div class="res-title">
-            <span>Command</span>
-            <span>Result</span>
+      <div v-if="$global.deviceType !== 2">
+        <div class="setting">
+          <span class="setting-title">Gateway HDMI Port</span>
+          <multiselect :disabled="cecGateWay === '0'"
+                       :options="[{value: '1', label: 'HDMI Input'}, {value: '3', label: 'HDMI Loop Through'}]"
+                       v-model="cecGateWayPort"
+                       @input="setCECPort"></multiselect>
+        </div>
+        <div class="setting">
+          <span class="setting-title">Command </span>
+          <div style="position:relative;">
+            <input type="text"
+                   :disabled="cecGateWay === '0'"
+                   class="setting-text"
+                   v-model="cecCmd">
+            <span v-if="hexError"
+                  class="range-alert"
+                  style="white-space: nowrap;">Please enter hexadecimal</span>
           </div>
-          <div class="res-info">
-            <div class="res-info-item"
-                 v-for="(item, index) in cecResList"
-                 :key="index">
-              <span>{{item.cmd}}</span>
-              <span>{{responseType[item.type]}}</span>
+          <button class="btn btn-plain-primary"
+                  :disabled="cecGateWay === '0'"
+                  style="margin-left: 25px"
+                  @click="sendCECCmd">SEND</button>
+        </div>
+        <div class="radio-setting">
+          <span class="setting-title">Responses </span>
+          <div>
+            <div class="res-title">
+              <span>Command</span>
+              <span>Result</span>
+            </div>
+            <div class="res-info">
+              <div class="res-info-item"
+                   v-for="(item, index) in cecResList"
+                   :key="index">
+                <span>{{item.cmd}}</span>
+                <span>{{responseType[item.type]}}</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
     </div>
     <div class="setting-model">
       <h3 class="setting-model-title">RS-232 Settings</h3>
@@ -86,11 +94,11 @@
         <multiselect :options="stopBitsParam"
                      v-model="stopBits"></multiselect>
       </div>
-      <div class="setting">
+      <!-- <div class="setting">
         <span class="setting-title">Connection</span>
         <button :disabled="!rs232GW"
                 class="btn btn-plain-primary">CHECK</button>
-      </div>
+      </div> -->
       <button class="btn btn-primary"
               @click="saveBaudRate">SAVE</button>
     </div>
@@ -225,7 +233,8 @@ export default {
       rs232Port: 5000,
       irDirection: 'in',
       rs232GW: false,
-      irGW: '0'
+      irGW: '0',
+      hexError: false
     }
   },
   beforeCreate () {
@@ -282,8 +291,12 @@ export default {
       this.$socket.sendMsg('#CEC-GW-PORT-ACTIVE ' + this.cecGateWayPort)
     },
     sendCECCmd () {
-      if (this.checkHex(this.cecCmd)) {
-        this.$socket.sendMsg(`#CEC-SND 1,1,1,${this.cecCmd.length / 2},${this.cecCmd}`)
+      const cmd = this.cecCmd.replace(/\s/g, '')
+      if (this.checkHex(cmd)) {
+        this.hexError = false
+        this.$socket.sendMsg(`#CEC-SND 1,1,1,${cmd.length / 2},${cmd}`)
+      } else {
+        this.hexError = true
       }
     },
     handleCECResponse (msg) {

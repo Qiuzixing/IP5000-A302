@@ -41,7 +41,7 @@
               @change="handleInputChange">
     </el-input>
     <span class="range-alert"
-          v-if="alert">range {{min + "-" + max}}</span>
+          v-if="alert">Range {{min + "-" + max}}</span>
   </div>
 
 </template>

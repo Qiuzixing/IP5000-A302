@@ -81,6 +81,8 @@
               <span class="range-alert"
                     v-if="imgError"
                     style="white-space: nowrap;">The image format must be JPEG (1280 x 720)</span>
+              <span v-if="uploadComplete"
+                    style="font-size:20px;margin-left:15px;color:#67c23a;"><i class="el-icon-circle-check"></i></span>
             </div>
 
           </div>
@@ -150,7 +152,8 @@ export default {
         { value: '10', label: '10 Mbps' }
       ],
       imgError: false,
-      imgName: ''
+      imgName: '',
+      uploadComplete: false
     }
   },
   beforeCreate () {
@@ -272,6 +275,10 @@ export default {
               xhr.onload = oevent => {
                 if (xhr.status === 200) {
                   this.imgName = ''
+                  this.uploadComplete = true
+                  setTimeout(() => {
+                    this.uploadComplete = false
+                  }, 2000)
                 }
               }
               xhr.send(formData)

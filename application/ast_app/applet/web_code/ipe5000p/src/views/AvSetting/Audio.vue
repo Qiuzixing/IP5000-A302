@@ -49,10 +49,10 @@
         <h3 class="setting-title">Audio Destination</h3>
         <template v-if="this.$global.deviceType == 0">
           <div :key="item.name"
-               v-for="(item, index) in audioDestinationDesc"
+               v-for="(item, index) in audioDestinationDesc2"
                style="margin-bottom: 15px;">
             <checkbox-component :label="item"
-                                v-if="!(index ==1 && direction=='in' || index == 3) "
+                                v-if="!(index ==1 && direction=='in' || index == 3 || index == 0) "
                                 v-model="audioDestination[index]"
                                 :active-value="1"
                                 :inactive-value="0" />
@@ -146,6 +146,12 @@ export default {
         'HDMI',
         'Analog',
         'LAN',
+        'Dante'
+      ],
+      audioDestinationDesc2: [
+        'HDMI',
+        'Analog',
+        'HDMI && LAN',
         'Dante'
       ],
       avSignal: {
