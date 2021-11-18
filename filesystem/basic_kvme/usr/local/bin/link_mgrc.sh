@@ -2723,6 +2723,18 @@ handle_e_p3k_ir()
 	esac
 }
 
+enable_hdmi_in_cec_report()
+{
+	echo 0 > /sys/devices/platform/cec/cec_report
+	#ipc @m_lm_set s close_cec_report
+}
+
+enable_hdmi_out_cec_report()
+{
+	echo 1 > /sys/devices/platform/cec/cec_report
+	#ipc @m_lm_set s open_cec_report
+}
+
 handle_ce_gw()
 {
 	local _para1=$1
@@ -2741,12 +2753,14 @@ handle_ce_gw()
 					NO_CEC='y'
 					CEC_GATWAY='on'
 					CEC_SEND_DIR='hdmi_out'
+					enable_hdmi_out_cec_report
 					ipc @c_lm_set s ce_stop
 				;;
 				hdmi_in)
 					NO_CEC='y'
 					CEC_GATWAY='on'
 					CEC_SEND_DIR='hdmi_in'
+					enable_hdmi_in_cec_report
 					ipc @c_lm_set s ce_stop
 				;;
 				*)
@@ -3194,6 +3208,16 @@ handle_e_hdcp()
 	esac
 }
 
+handle_e_cec_cmd_report()
+{
+	local _para1
+
+	_para1=${event#*::}
+
+	echo "cec_cmd=$_para1"
+	#p3k_notify cec_msg::$_para1
+}
+
 handle_e_set_ttl()
 {
 	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
@@ -3317,6 +3341,9 @@ state_machine()
 			;;
 			e_set_ttl*)
 				handle_e_set_ttl "$event"
+			;;
+			e_cec_cmd_report*)
+				handle_e_cec_cmd_report "$event"
 			;;
 			e_set_up_alc5640*)
 				handle_set_up_alc5640 "$event"

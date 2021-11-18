@@ -1775,6 +1775,18 @@ ban_cec_over_ip()
 	ipc @c_lm_set s ce_stop
 }
 
+enable_hdmi_in_cec_report()
+{
+	echo 1 > /sys/devices/platform/cec/cec_report
+	#ipc @m_lm_set s close_cec_report
+}
+
+enable_hdmi_out_cec_report()
+{
+	echo 0 > /sys/devices/platform/cec/cec_report
+	#ipc @m_lm_set s open_cec_report
+}
+
 handle_ce_gw()
 {
 	local _para1=$1
@@ -1789,9 +1801,12 @@ handle_ce_gw()
 				hdmi_in)
 					ipc @m_lm_set s set_gpio_val:1:68:1
 					ban_cec_over_ip
+					enable_hdmi_in_cec_report
 					CEC_SEND_DIR='hdmi_in'
 				;;
 				hdmi_out)
+					ban_cec_over_ip
+					enable_hdmi_out_cec_report
 					CEC_SEND_DIR='hdmi_out'
 				;;
 				*)
@@ -1806,10 +1821,12 @@ handle_ce_gw()
 				#The switching of CEC varies with the switching of video source(in commun_with_mcu process)
 				hdmi_in)
 					ban_cec_over_ip
+					enable_hdmi_in_cec_report
 					CEC_SEND_DIR='hdmi_in'
 				;;
 				hdmi_out)
 					ban_cec_over_ip
+					enable_hdmi_out_cec_report
 					CEC_SEND_DIR='hdmi_out'
 				;;
 				*)
@@ -1824,6 +1841,7 @@ handle_ce_gw()
 				#The switching of CEC varies with the switching of video source(in commun_with_mcu process)
 				hdmi_in)
 					ban_cec_over_ip
+					enable_hdmi_in_cec_report
 				;;
 				*)
 				;;
@@ -2248,6 +2266,16 @@ handle_e_ipe5000w_led_chose()
 	esac
 }
 
+handle_e_cec_cmd_report()
+{
+	local _para1
+
+	_para1=${event#*::}
+
+	echo "cec_cmd=$_para1"
+	#p3k_notify cec_msg::$_para1
+}
+
 handle_e_set_ttl()
 {
 	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
@@ -2339,6 +2367,9 @@ state_machine()
 			;;
 			e_chg_hostname*)
 				handle_e_chg_hostname "$event"
+			;;
+			e_cec_cmd_report*)
+				handle_e_cec_cmd_report "$event"
 			;;
 			e_ipe5000w_led*)
 				handle_e_ipe5000w_led_chose "$event"

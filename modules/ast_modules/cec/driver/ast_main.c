@@ -16,6 +16,14 @@
 static struct platform_device *pdev;
 static struct cec_drv_data *drv_data;
 static u32 drv_option = 0;
+#if defined(CEC_REPORT_TO_APP)
+enum
+{
+	OPEN_CEC_REPORT = 0,
+	CLOSE_CEC_REPORT
+};
+static u32 cec_report_flag = CLOSE_CEC_REPORT;
+#endif
 module_param(drv_option, int, S_IRUGO);
 
 wait_queue_head_t cec_wait_queue;
@@ -768,12 +776,20 @@ static void cec_frame_to_net_tx(struct cec_drv_data *d, u8 *buf, u32 size)
 	}
 #endif
 }
-
+#if defined(CEC_REPORT_TO_APP)
+#define A_MAX_PAYLOAD 1024
+#define NOTIFY_APP_MSG_FORMAT	"e_cec_cmd_report::"
+#define CEC_CMD_MAX_NUM		100
+#endif
 static void _cec_recv(struct cec_frame *frame)
 {
 	u8 *buf;
 	u32 size;
-
+#if defined(CEC_REPORT_TO_APP)
+	char msg[A_MAX_PAYLOAD] = {0};
+	int index = 0;
+	char num_to_hex[3] = {0};
+#endif
 	buf = frame->buf;
 	size = frame->size;
 
@@ -802,7 +818,28 @@ static void _cec_recv(struct cec_frame *frame)
 #if defined(AST_DEBUG)
 	}
 #endif
-
+#if defined(CEC_REPORT_TO_APP)
+	if(cec_report_flag == OPEN_CEC_REPORT)
+	{
+		int k = 0;
+		snprintf(msg, A_MAX_PAYLOAD, "%s",NOTIFY_APP_MSG_FORMAT);
+		index = strlen(NOTIFY_APP_MSG_FORMAT);
+		if(size > CEC_CMD_MAX_NUM)
+		{
+			printk("Warning:receive cec cmd too long\n");
+			goto exit;
+		}
+		for(k = 0;k < size;k++)
+		{
+			snprintf(num_to_hex,3,"%.2x",buf[k]);
+			msg[index++] = num_to_hex[0];
+			msg[index++] = num_to_hex[1];
+			msg[index++] = ':';
+		}
+		msg[--index] = '\0';
+		ast_notify_user(msg);
+	}
+#endif
 	cec_frame_to_net_tx(drv_data, buf, size);
 exit:
 	return;
@@ -1904,6 +1941,44 @@ exit:
 static DEVICE_ATTR(debug_level, (S_IWUSR | S_IRUGO), show_debug_level, store_debug_level);
 #endif
 
+#if defined(CEC_REPORT_TO_APP)
+static ssize_t show_cec_report(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	int num = 0;
+	if(cec_report_flag == OPEN_CEC_REPORT)
+	{
+		printk("open cec report\n");
+	}
+	else
+	{
+		printk("close cec report\n");
+	}
+
+	return num;
+}
+
+static ssize_t store_cec_report(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	u32 cfg, c;
+
+	c = sscanf(buf, "%d", &cfg);
+	if (c == 0)
+		goto exit;
+
+	if(cfg == 1)
+	{
+		cec_report_flag = OPEN_CEC_REPORT;
+	}
+	else
+	{
+		cec_report_flag = CLOSE_CEC_REPORT;
+	}
+
+exit:
+	return count;
+}
+static DEVICE_ATTR(cec_report, (S_IWUSR | S_IRUGO), show_cec_report, store_cec_report);
+#endif
 static struct attribute *dev_attrs[] = {
 	&dev_attr_topology.attr,
 	&dev_attr_topology_raw.attr,
@@ -1917,6 +1992,9 @@ static struct attribute *dev_attrs[] = {
 	&dev_attr_nrx_topology.attr,
 	&dev_attr_ntx_topology.attr,
 	&dev_attr_stop.attr,
+#if defined(CEC_REPORT_TO_APP)
+	&dev_attr_cec_report.attr,
+#endif
 #if defined(AST_DEBUG)
 	&dev_attr_debug_level.attr,
 #endif
