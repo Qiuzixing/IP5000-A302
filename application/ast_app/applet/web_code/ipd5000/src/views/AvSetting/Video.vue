@@ -53,6 +53,8 @@
             <span class="range-alert"
                   v-if="imgError"
                   style="white-space: nowrap;">The image format must be JPEG (1280 x 720)</span>
+            <span v-if="uploadComplete"
+                  style="font-size:20px;margin-left:15px;color:#67c23a;"><i class="el-icon-circle-check"></i></span>
           </div>
         </div>
       </div>
@@ -151,7 +153,8 @@ export default {
         shutdown_delay_on_signal_loss_sec: 10,
         wake_up_delay_on_signal_detection_sec: 10
       },
-      imgError: false
+      imgError: false,
+      uploadComplete: false
       // avSignal: {
       // }
     }
@@ -260,6 +263,10 @@ export default {
               xhr.onload = oevent => {
                 if (xhr.status === 200) {
                   this.imgName = ''
+                  this.uploadComplete = true
+                  setTimeout(() => {
+                    this.uploadComplete = false
+                  }, 2000)
                 }
               }
               xhr.send(formData)

@@ -94,9 +94,13 @@
         </div>
       </div>
     </div>
-    <footer><button class="btn btn-primary"
+    <footer>
+      <p class="error-msg"
+         v-if="sameMacError">You can not define the same MAC as a Master and a slave</p>
+      <button class="btn btn-primary"
               :disabled="castMode === '1'"
-              @click="save">SAVE</button></footer>
+              @click="save">SAVE</button>
+    </footer>
   </div>
 </template>
 
@@ -125,7 +129,8 @@ export default {
       mac: '',
       kvm: {},
       macError: -1,
-      castMode: '0' // 2: Multicast才可以设置KVM
+      castMode: '0', // 2: Multicast才可以设置KVM
+      sameMacError: false
     }
   },
   beforeCreate () {
@@ -180,9 +185,10 @@ export default {
       this.macError = this.checkMAC(this.kvmMap)
       if (this.macError !== -1) return
       if (this.checkSameMac(this.kvmMap) > 1) {
-        alert('You can not define the same MAC as a Master and a slave')
+        this.sameMacError = true
         return
       }
+      this.sameMacError = false
       this.kvm.kvm_timeout_sec = this.timeout
       this.kvm.kvm_usb_mode = this.kvmMode
       this.kvm.kvm_col = this.col

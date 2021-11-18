@@ -1,124 +1,137 @@
 <template>
   <div class="main-setting">
-    <div class="overlay">
-      <div>
-        <v-collapse title="Overlay settings">
-          <div class="overlay-setting">
-            <span class="overlay-title">Display Overlay</span>
-            <button class="btn btn-plain-primary">START</button>
-            <button class="btn btn-plain-primary"
-                    style="margin-left:15px;">STOP</button>
-          </div>
-        </v-collapse>
-        <v-collapse title="Image settings">
-          <div class="overlay-setting">
-            <span class="overlay-title">Image</span>
-            <div class="overlay-setting-item overlay-img">
-              <span class="file-name"
-                    style="display: inline-block;">logo.png</span>
-              <span class="upload-icon"
-                    @click="clickUpload">
-                <icon-svg icon-class="upload_img" />
-              </span>
-              <input type="file"
-                     ref="upload"
-                     style="display: none;">
+    <div class="setting-model">
+      <div class="overlay">
+        <div>
+          <v-collapse title="Overlay settings">
+            <div class="overlay-setting">
+              <span class="overlay-title">Display Overlay</span>
+              <button class="btn btn-plain-primary">START</button>
+              <button class="btn btn-plain-primary"
+                      style="margin-left:15px;">STOP</button>
             </div>
-          </div>
-          <div class="overlay-setting">
-            <span class="overlay-title">Align</span>
-            <div class="overlay-setting-item">
-              <multiselect v-model="imgPosition"
-                           :options="horizontalPosition.param"></multiselect>
-            </div>
-          </div>
-          <div class="overlay-setting">
-            <span class="overlay-title">Transparency (%)</span>
-            <div class="overlay-setting-item">
-              <el-slider style="width: 200px;display: inline-block;"
-                         :min="0"
-                         :max="100"
-                         :show-tooltip="false"
-                         v-model="imgTransparency"
-                         :marks="marks">
-              </el-slider>
-              <span style="margin-left: 15px;">{{ imgTransparency }}</span>
-            </div>
-          </div>
-          <div class="overlay-setting"
-               style="margin-top: 24px;">
-            <span class="overlay-title">Show</span>
-            <v-checkbox v-model="showImg"></v-checkbox>
-          </div>
-        </v-collapse>
-        <v-collapse title="Text settings">
-          <div class="overlay-setting">
-            <span class="overlay-title">Text</span>
-            <div class="overlay-setting-item">
-              <input type="text"
-                     style="width: 100%;"
-                     class="setting-text"
-                     value="Next presentation will start at 14:00">
-            </div>
-          </div>
-          <div class="overlay-setting">
-            <span class="overlay-title">Size</span>
-            <div class="fontSize.val">
-              <multiselect v-model="fontSize.val"
-                           :options="fontSize.param"></multiselect>
-            </div>
-          </div>
-          <div class="overlay-setting">
-            <span class="overlay-title">Align</span>
-            <div class="overlay-setting-item">
-              <multiselect v-model="textAlign"
-                           :options="horizontalPosition.param"></multiselect>
-            </div>
-          </div>
-          <div class="overlay-setting">
-            <span class="overlay-title">Color</span>
-            <div class="overlay-setting-item"
-                 style="position: relative">
-              <div class="color-desc">
-                <p style="margin: 0"><span class="color-box"
-                        :style="{'background': boxColor}"></span>
-                  {{colorHex}}</p>
-                <color-picker v-model="color"
-                              color-format="rgb"
-                              :show-alpha="false"
-                              @change="closeColor"></color-picker>
+          </v-collapse>
+          <v-collapse title="Image settings">
+            <div class="overlay-setting">
+              <span class="overlay-title">Image</span>
+              <div class="overlay-setting-item overlay-img">
+                <span class="file-name"
+                      style="display: inline-block;overflow: hidden;">{{imgName}}</span>
+                <span class="
+                    upload-icon"
+                      @click="clickUpload">
+                  <icon-svg icon-class="upload_img" />
+                </span>
+                <input type="file"
+                       ref="upload"
+                       @change="browseImg"
+                       accept="image/png"
+                       style="display: none;">
+                <span class="range-alert"
+                      v-if="imgError"
+                      style="white-space: nowrap;">{{imgErrorMsg}}</span>
+                <span v-if="uploadComplete"
+                      style="font-size:20px;margin-left:15px;color:#67c23a;"><i class="el-icon-circle-check"></i></span>
               </div>
-              <!--              <v-color v-model="color" v-show="showColor" ref="colorPicker" class="color-picker"></v-color>-->
+            </div>
+            <div class="overlay-setting">
+              <span class="overlay-title">Align</span>
+              <div class="overlay-setting-item">
+                <multiselect v-model="imageInfo.objects[0].position"
+                             :options="horizontalPosition.param"></multiselect>
+              </div>
+            </div>
+            <div class="overlay-setting">
+              <span class="overlay-title">Transparency (%)</span>
+              <div class="overlay-setting-item">
+                <el-slider style="width: 200px;display: inline-block;"
+                           :min="0"
+                           :max="100"
+                           :show-tooltip="false"
+                           v-model="imageInfo.genral.transparency"
+                           :marks="marks">
+                </el-slider>
+                <span style="margin-left: 15px;">{{ imageInfo.genral.transparency }}</span>
+              </div>
+            </div>
+            <div class="overlay-setting"
+                 style="margin-top: 24px;">
+              <span class="overlay-title">Show</span>
+              <v-checkbox v-model="imageInfo.genral.enable"
+                          active-value="on"
+                          @click="setShow($event , 1)"
+                          inactive-value="off"></v-checkbox>
+            </div>
+          </v-collapse>
+          <v-collapse title="Text settings">
+            <div class="overlay-setting">
+              <span class="overlay-title">Text</span>
+              <div class="overlay-setting-item">
+                <input type="text"
+                       style="width: 100%;"
+                       class="setting-text"
+                       v-model="textInfo.objects[0].caption">
+              </div>
+            </div>
+            <div class="overlay-setting">
+              <span class="overlay-title">Size</span>
+              <div class="fontSize.val">
+                <multiselect v-model="textInfo.objects[0].szie"
+                             :options="fontSize.param"></multiselect>
+              </div>
+            </div>
+            <div class="overlay-setting">
+              <span class="overlay-title">Align</span>
+              <div class="overlay-setting-item">
+                <multiselect v-model="textInfo.objects[0].position"
+                             :options="horizontalPosition.param"></multiselect>
+              </div>
+            </div>
+            <div class="overlay-setting">
+              <span class="overlay-title">Color</span>
+              <div class="overlay-setting-item"
+                   style="position: relative">
+                <div class="color-desc">
+                  <p style="margin: 0"><span class="color-box"
+                          :style="{'background': color}"></span>
+                    {{color}}</p>
+                  <color-picker v-model="color"
+                                color-format="hex"
+                                :show-alpha="false"
+                                @change="closeColor"></color-picker>
+                </div>
+              </div>
 
             </div>
-
-          </div>
-          <div class="overlay-setting">
-            <span class="overlay-title">Transparency (%)</span>
-            <div class="overlay-setting-item">
-              <el-slider style="width: 200px;"
-                         :min="0"
-                         :max="100"
-                         :show-tooltip="false"
-                         v-model="textTransparency"
-                         :marks="marks">
-              </el-slider>
-              <span style="margin-left: 15px">{{ textTransparency }}</span>
+            <div class="overlay-setting">
+              <span class="overlay-title">Transparency (%)</span>
+              <div class="overlay-setting-item">
+                <el-slider style="width: 200px;"
+                           :min="0"
+                           :max="100"
+                           :show-tooltip="false"
+                           v-model="textInfo.genral.transparency"
+                           :marks="marks">
+                </el-slider>
+                <span style="margin-left: 15px">{{ textInfo.genral.transparency }}</span>
+              </div>
             </div>
-          </div>
-          <div class="overlay-setting"
-               style="margin-top: 24px;">
-            <span class="overlay-title">Show</span>
-            <v-checkbox v-model="showText"></v-checkbox>
-          </div>
-        </v-collapse>
+            <div class="overlay-setting"
+                 style="margin-top: 24px;">
+              <span class="overlay-title">Show</span>
+              <v-checkbox v-model="textInfo.genral.enable"
+                          @click="setShow($event , 2)"
+                          active-value="on"
+                          inactive-value="off"></v-checkbox>
+            </div>
+          </v-collapse>
+        </div>
+
       </div>
-      <!-- <div class="overlay-preview">
-        <h3 class="preview-title">Preview</h3>
-        <img src="../../assets/img/img.png"
-             alt="">
-      </div> -->
     </div>
+
+    <footer><button class="btn btn-primary"
+              @click="save">SAVE</button></footer>
   </div>
 </template>
 
@@ -134,16 +147,47 @@ export default {
   },
   data () {
     return {
+      imgError: false,
+      imgErrorMsg: '',
+      uploadComplete: false,
+      imgName: '',
+      imageInfo: {
+        genral:
+        {
+          enable: 'on',
+          timeout: 2,
+          transparency: 0
+        },
+        objects: [
+          {
+            type: 'image',
+            position: 'left_top',
+          }
+        ]
+      },
+      textInfo: {
+        genral:
+        {
+          enable: 'off',
+          timeout: 2,
+          transparency: 0
+        },
+        objects: [
+          {
+            type: 'text',
+            position: 'left_top',
+            caption: '',
+            szie: 'small',
+            color: '0xffffff'
+          }
+        ]
+      },
       num: 61,
       marks: {
         0: '0',
         100: '100'
       },
-      showText: true,
-      showImg: true,
       show: false,
-      imgPosition: 'left_top',
-      textAlign: 'left_top',
       horizontalPosition: {
         param: [
           {
@@ -201,14 +245,7 @@ export default {
           }
         ]
       },
-      displayOverlay: 'off',
-      overLayTransparency: 50,
-      imgTransparency: 50,
-      textTransparency: 50,
-      color: '#fff',
-      boxColor: '#fff',
-      colorHex: '255,255,255',
-      showColor: false
+      color: '#FFFFFF'
     }
   },
   mounted () {
@@ -222,12 +259,106 @@ export default {
     },
     closeColor (color) {
       this.boxColor = color
-      this.colorHex = color.match(/[^(\\)]+(?=\))/g)[0] || ''
+    },
+    browseImg (event) {
+      this.imgName = event.target.files[0]?.name || ''
+      if (this.imgName) {
+        const file = event.target.files[0]
+        if (file.size > 1024 * 1024) {
+          this.imgErrorMsg = 'The file size is less than 1MB '
+          this.imgError = true
+          return
+        }
+        if (file.type !== 'image/png') {
+          this.imgErrorMsg = 'The image format must be PNG'
+          this.imgError = true
+          return
+        }
+        this.imgError = false
+
+      } else {
+        this.imgError = false
+      }
+    },
+    setShow (e, num) {
+      const val = e === 'on' ? 'off' : 'on'
+      if (num === 1) {
+        this.textInfo.genral.enable = val
+      } else {
+        this.imageInfo.genral.enable = val
+      }
+    },
+    getTextInfo () {
+      this.$http
+        .get(
+          '/device/json?path=/overlay/overlay1_setting.json&t=' + Math.random()
+        )
+        .then(msg => {
+          this.textInfo = msg.data
+        })
+    },
+    getImgInfo () {
+      this.$http
+        .get(
+          '/device/json?path=/overlay/overlay2_setting.json&t=' + Math.random()
+        )
+        .then(msg => {
+          this.imageInfo = msg.data
+        })
+    },
+    save () {
+      this.saveTextInfo()
+      this.saveImgInfo()
+      this.saveImg()
+    },
+    saveTextInfo () {
+      this.textInfo.objects[0].color = this.color.replace("#", '0x')
+      this.$http.post('/device/json', {
+        path: '/overlay/overlay1_setting.json',
+        info: this.textInfo
+      })
+    },
+    saveImgInfo () {
+      this.$http.post('/device/json', {
+        path: '/overlay/overlay2_setting.json',
+        info: this.imageInfo
+      })
+    },
+    saveImg () {
+      if (!this.imgError && this.imgName) {
+        const file = this.$refs.upload.files[0]
+        const xhr = new XMLHttpRequest()
+        const formData = new FormData()
+        formData.append('file', file)
+        xhr.open('POST', '/upload/overlayimage')
+        xhr.onload = oevent => {
+          if (xhr.status === 200) {
+            this.imgName = ''
+            this.uploadComplete = true
+            setTimeout(() => {
+              this.uploadComplete = false
+            }, 2000)
+          }
+        }
+        xhr.send(formData)
+      }
     }
   }
 }
 </script>
 <style lang="less" scoped>
+.main-setting {
+  display: flex;
+  flex-direction: column;
+}
+.setting-model {
+  flex: 1;
+}
+.main-setting footer {
+  flex-shrink: 0;
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
 .overlay {
   display: flex;
 }

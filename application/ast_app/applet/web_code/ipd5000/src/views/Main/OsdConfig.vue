@@ -44,6 +44,10 @@
                    @change="channelFileChange"
                    style="display:none;width:0;height:0;">
           </li>
+          <li v-if="channelError"
+              style="color: #d50000;
+  font-size: 12px;
+  font-family: 'open sans bold';">{{channelErrorMsg}}</li>
           <li>
             <span class="channel-title">#ID</span>
             <span>Name</span>
@@ -272,7 +276,9 @@ export default {
         name: '',
         id: ''
       },
-      osdJson: {}
+      osdJson: {},
+      channelError: false,
+      channelErrorMsg: ''
     }
   },
   computed: {
@@ -328,11 +334,13 @@ export default {
       const file = e.target.files[0]
       if (file) {
         if (file.type !== 'application/json') {
-          alert('File format error!')
+          this.channelErrorMsg = 'File format error'
+          this.channelError = true
           return
         }
-        if (file.size >= 1024 * 1024) {
-          alert('The file size is less than 1MB!')
+        if (file.size > 1024 * 1024) {
+          this.channelErrorMsg = 'The file size is less than 1MB'
+          this.channelError = true
           return
         }
         const reader = new FileReader()
@@ -340,11 +348,15 @@ export default {
         reader.onload = (e) => {
           const text = JSON.parse(e.target.result)
           if (Array.isArray(text.channels_list)) {
+            this.channelError = false
             this.channelList = text.channels_list
           } else {
-            alert('File format error!')
+            this.channelErrorMsg = 'File format error'
+            this.channelError = true
           }
         }
+      } else {
+        this.channelError = false
       }
     },
     next (num) {

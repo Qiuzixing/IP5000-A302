@@ -44,13 +44,13 @@ const routes = [
         component: () => import('../views/Main/VideoWall.vue'),
         name: 'video-wall',
         meta: { title: 'Video Wall', desc: 'Main > Video Wall', icon: 'video-wall' }
+      },
+      {
+        path: 'overlay',
+        component: () => import('../views/Main/Overlay.vue'),
+        name: 'overlay',
+        meta: { title: 'Overlay', desc: 'Main > Overlay', icon: 'overlay' }
       }
-      // {
-      //   path: 'overlay',
-      //   component: () => import('../views/Main/Overlay.vue'),
-      //   name: 'overlay',
-      //   meta: { title: 'Overlay', desc: 'Main > Overlay', icon: 'overlay' }
-      // }
     ]
   },
   {

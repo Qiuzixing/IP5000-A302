@@ -355,7 +355,7 @@ export default {
     },
     beforeUpload (file) {
       if (!file.name.endsWith('.bin')) {
-        alert('Please choose the correct file!')
+        alert('Please choose the correct file')
         return false
       }
       this.uploadProgress = 0
