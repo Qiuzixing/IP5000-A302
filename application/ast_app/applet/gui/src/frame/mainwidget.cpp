@@ -46,7 +46,7 @@ MainWidget::MainWidget(QWidget *parent) : QWidget(parent)
     ,m_textOverlay(NULL)
     ,m_CmdOuttime(0)
     ,m_overlayStatus(false)
-    ,m_bKvmMode(false)
+    ,m_bKvmMode(true)
 {
     // 鼠标跟踪
     setMouseTracking(true);
@@ -104,7 +104,7 @@ MainWidget::MainWidget(QWidget *parent) : QWidget(parent)
     //  QString filename = "overlay2_setting.json";
     //  parseOverlayJson(filename);
 
-    QTimer::singleShot(1500,this,SLOT(slotShowOverlay()));
+    QTimer::singleShot(2000,this,SLOT(slotShowOverlay()));
 }
 
 MainWidget::~MainWidget()
@@ -244,7 +244,8 @@ void MainWidget::setOsdDispaly(bool status)
     if(status)
     {
         slotHideOverlay();
-        QTimer::singleShot(200,this,SLOT(showOsdMeun()));
+        m_osdMeun->parseChannelJson();
+        QTimer::singleShot(500,this,SLOT(showOsdMeun()));
     }
     else
         hideOsdMeun();
@@ -314,7 +315,7 @@ void MainWidget::syncConfig(QString path)
     {
         // 分辨率文件发生改变
         qDebug("Resolution Change!");
-        QTimer::singleShot(200,this,SLOT(getResolutionFromTiming()));
+        QTimer::singleShot(400,this,SLOT(getResolutionFromTiming()));
     }
     else if(path.compare(SLEEP_IMAGE_PATH) == 0)
     {
@@ -333,6 +334,7 @@ void MainWidget::syncConfig(QString path)
         m_osdMeun->parseMeunJson(MENUINFO_PATH);
         m_osdMeun->setListWidgetHeight();
         m_osdMeun->setMeunFont();
+        m_osdMeun->parseChannelJson();
 
         if(m_osdMeun->getdisplayStatus())
         {
@@ -342,7 +344,7 @@ void MainWidget::syncConfig(QString path)
 
             m_osdMeun->hide();
 
-            QTimer::singleShot(200,this,SLOT(showOsdMeun()));
+            QTimer::singleShot(500,this,SLOT(showOsdMeun()));
         }
         else
         {
@@ -366,7 +368,7 @@ void MainWidget::syncConfig(QString path)
 
             m_osdMeun->hide();
 
-            QTimer::singleShot(200,this,SLOT(showOsdMeun()));
+            QTimer::singleShot(400,this,SLOT(showOsdMeun()));
         }
         else
         {
@@ -671,6 +673,8 @@ void MainWidget::hideOsdMeun()
     if(m_osdMeun == NULL)
         return;
 
+    m_osdMeun->hideSettingPage();
+
     qDebug() << "main_0_4_1";
     qDebug() << "Meun Hide";
     m_osdMeun->move(-this->width(),(this->height() - m_osdMeun->height())/2);
@@ -687,7 +691,7 @@ void MainWidget::hideOsdMeun()
     g_bOSDMeunDisplay = false;
 
     // 隐藏OSD菜单时，继续显示常显Overlay
-    QTimer::singleShot(200,this,SLOT(showLongDisplay()));
+    QTimer::singleShot(400,this,SLOT(showLongDisplay()));
 }
 
 void MainWidget::showOsdMeun()

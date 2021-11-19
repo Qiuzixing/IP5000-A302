@@ -87,7 +87,25 @@ void OSDMeun::keyPressEvent(QKeyEvent *e)
             // 选中视频源item
             m_onSreachMode = false;
             m_inputEdit->clear();
-            emit selectItem(text);
+
+            QString itemtext = restoreString();
+            qDebug() << "itemtext:" << itemtext;
+
+
+            QMap<int,QString>::iterator it = channelMap.begin();
+            while(it != channelMap.end())
+            {
+                qDebug() << "it.value():" << it.value();
+                if(it.value().compare(itemtext) == 0)
+                {
+                    m_channelID = it.key();
+                    break;
+                }
+                it++;
+            }
+            qDebug() << "channelid:" << m_channelID;
+
+            m_Apply->click();
         }
     }
 
@@ -144,8 +162,10 @@ void OSDMeun::initPageNumList()
 
 void OSDMeun::initLayout()
 {
-    m_Select = new QPushButton("Video Select",this);
+    m_Select = new QLabel("Video Select",this);
     m_Select->setFixedSize(g_nOsdMenuWidth * g_fScaleScreen,g_nButtonHeight * g_fScaleScreen);
+    m_Select->setStyleSheet("QLabel{color:white;border:1px solid #a9a9a9;}");
+    m_Select->setAlignment(Qt::AlignCenter);
 
     m_Search = new QPushButton("Setting",this);
     m_Search->setFixedSize(g_nButtonWidth * g_fScaleScreen,g_nButtonHeight * g_fScaleScreen);
@@ -166,6 +186,8 @@ void OSDMeun::initLayout()
     m_inputEdit->setFixedSize(g_nButtonWidth * g_fScaleScreen,g_nButtonHeight * g_fScaleScreen);
 
     m_listWidget = new QListWidget(this);
+    m_listWidget->setStyleSheet("QListWidget{outline:0px;}");
+    m_listWidget->setStyleSheet("QListWidget::item:selected{background-color:#838383;}");
     m_listWidget->setFixedSize(g_nOsdMenuWidth * g_fScaleScreen,(m_pageChannels * g_nItemRowHeight) * g_fScaleScreen);
     m_listWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_listWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -182,6 +204,7 @@ void OSDMeun::initLayout()
     initButtonStyle();
 
     m_Search->setMenu(pageNumList);
+    m_Search->menu()->setStyleSheet("QMenu{background-color:rgba(169,169,169,0.8);color:#FFFFFF;}""QMenu::item:selected{background-color:#838383;}");
 
     QHBoxLayout *layout = new QHBoxLayout();
     layout->setContentsMargins(0,0,0,0);
@@ -233,12 +256,11 @@ void OSDMeun::setMeunFont()
 
 void OSDMeun::styleSheetControl(QPushButton *button)
 {
-    button->setStyleSheet("color:white");
+    button->setStyleSheet("QPushButton{color:white; outline: none;}");
 }
 
 void OSDMeun::initButtonStyle()
 {
-    styleSheetControl(m_Select);
     styleSheetControl(m_Search);
     styleSheetControl(m_Page_up);
     styleSheetControl(m_Page_down);
@@ -720,16 +742,6 @@ void OSDMeun::completeText(const QModelIndex &index)
     qDebug() << "channelid:" << m_channelID;
 
     g_nChannelId = m_channelID;
-
-    // 获取了点击的频道id, 设置频道切换或发送信号
-    QString strCmd = QString("#KDS-CHANNEL-SELECT video,%1\r").arg(m_channelID);
-    QByteArray byteCmd = strCmd.toLatin1();
-
-    qDebug() << "channel_byteCmd:" << byteCmd;
-    if(m_p3ktcp->sendCmdToP3k(byteCmd))
-    {
-        qDebug("Set ChannelID YES");
-    }
 }
 
 void OSDMeun::pageUpClicked()
@@ -769,7 +781,21 @@ void OSDMeun::exitClicked()
 
 void OSDMeun::applyClicked()
 {
+    // 获取当前选中项，发送到切换视频
+    if(m_listWidget->currentItem() != NULL)
+    {
+        // 获取了点击的频道id, 设置频道切换或发送信号
+        QString strCmd = QString("#KDS-CHANNEL-SELECT video,%1\r").arg(m_channelID);
+        QByteArray byteCmd = strCmd.toLatin1();
 
+        qDebug() << "channel_byteCmd:" << byteCmd;
+        if(m_p3ktcp->sendCmdToP3k(byteCmd))
+        {
+            qDebug("Set ChannelID YES");
+        }
+    }
+
+    m_Exit->click();
 }
 
 void OSDMeun::setPageChannels(QAction *action)
@@ -778,7 +804,39 @@ void OSDMeun::setPageChannels(QAction *action)
     qDebug() << "pagenums:" << nums;
     m_pageChannels = nums;
 
-    setListWidgetHeight();
+    //setListWidgetHeight();
+    writeOsdJson(m_pageChannels);
+}
+
+void OSDMeun::writeOsdJson(int pageChannels)
+{
+    Json::Reader reader;
+    Json::Value root;
+
+
+    // 二进制打开文件
+    ifstream in(MENUINFO_PATH,ios::binary);
+
+    if(!in.is_open())
+    {
+        qDebug() << "open osd.json failed";
+        return;
+    }
+
+    if(reader.parse(in,root))
+    {
+        root["channel_menu"]["max_channels_per_page"] = Json::Value(m_pageChannels);
+    }
+
+    in.close();
+
+    ofstream ou;
+    ou.open (MENUINFO_PATH, ios::trunc);
+    if (!ou.is_open())
+    {
+            cout << "open json file failed." << endl;
+    }
+    ou << root << endl;
 }
 
 void OSDMeun::setListWidgetHeight()
@@ -805,5 +863,5 @@ void OSDMeun::setListWidgetHeight()
 
  void OSDMeun::hideSettingPage()
  {
-     pageNumList->hide();
+    m_Search->menu()->hide();
  }

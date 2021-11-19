@@ -80,6 +80,9 @@ protected:
     virtual void keyPressEvent(QKeyEvent *e);
     virtual void focusOutEvent(QFocusEvent *e);
 
+    void updateListWidget(int pageChannels);
+
+private:
     void loadChannel(QStringList channelList);
     QFont loadFontSize();
     QString omittedString(QString i_str ,QString o_str); // 只显示前八个字符
@@ -91,8 +94,7 @@ protected:
     void initButtonStyle();
     void styleSheetControl(QPushButton *button);
 
-
-    void updateListWidget(int pageChannels);
+    void writeOsdJson(int pageChannels);
 
 private:
     QLineEdit *m_inputEdit;
@@ -121,7 +123,7 @@ private:
     QMenu *pageNumList;
     QList<QAction*> list;
 
-    QPushButton *m_Select;
+    QLabel *m_Select;
     QPushButton *m_Search;
     QPushButton *m_Page_up;
     QPushButton *m_Page_down;
