@@ -3763,7 +3763,7 @@ int EX_NTFYPhraser(Notify_S *s_NTFYInfo,char *tmpparam)
 {
     if(s_NTFYInfo->NCmd == NTFY_CEC_MSG)
     {
-        sprintf(tmpparam,"%d,%d,",s_NTFYInfo->NCmd,s_NTFYInfo->iParamNum);
+        sprintf(tmpparam,"1,%d,",s_NTFYInfo->iParamNum);
     }
     if(s_NTFYInfo->NCmd == NTFY_BUTTON)
     {

@@ -2280,7 +2280,7 @@ handle_e_cec_cmd_report()
 	_para1=${event#*::}
 
 	echo "cec_cmd=$_para1"
-	#p3k_notify cec_msg::$_para1
+	p3k_notify cec_msg::$_para1
 }
 
 handle_e_set_ttl()
