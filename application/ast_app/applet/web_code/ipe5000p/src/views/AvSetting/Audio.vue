@@ -151,7 +151,7 @@ export default {
       audioDestinationDesc2: [
         'HDMI',
         'Analog',
-        'HDMI && LAN',
+        'HDMI & LAN',
         'Dante'
       ],
       avSignal: {

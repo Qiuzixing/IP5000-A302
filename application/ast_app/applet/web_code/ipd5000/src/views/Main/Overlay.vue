@@ -6,8 +6,10 @@
           <v-collapse title="Overlay settings">
             <div class="overlay-setting">
               <span class="overlay-title">Display Overlay</span>
-              <button class="btn btn-plain-primary">START</button>
               <button class="btn btn-plain-primary"
+                      @click="showOverlay(1)">START</button>
+              <button class="btn btn-plain-primary"
+                      @click="showOverlay(0)"
                       style="margin-left:15px;">STOP</button>
             </div>
           </v-collapse>
@@ -161,7 +163,7 @@ export default {
         objects: [
           {
             type: 'image',
-            position: 'left_top',
+            position: 'left_top'
           }
         ]
       },
@@ -248,11 +250,17 @@ export default {
       color: '#FFFFFF'
     }
   },
-  mounted () {
+  created () {
+    this.getTextInfo()
+    this.getImgInfo()
   },
   methods: {
-    checkBitmapFile (file) {
-      console.log(file)
+    showOverlay (start) {
+      if (start) {
+        this.$socket.sendMsg('#KDS-START-OVERLAY ')
+      } else {
+        this.$socket.sendMsg('#KDS-STOP-OVERLAY ')
+      }
     },
     clickUpload () {
       this.$refs.upload.click()
@@ -275,7 +283,6 @@ export default {
           return
         }
         this.imgError = false
-
       } else {
         this.imgError = false
       }
@@ -312,7 +319,7 @@ export default {
       this.saveImg()
     },
     saveTextInfo () {
-      this.textInfo.objects[0].color = this.color.replace("#", '0x')
+      this.textInfo.objects[0].color = this.color.replace('#', '0x')
       this.$http.post('/device/json', {
         path: '/overlay/overlay1_setting.json',
         info: this.textInfo

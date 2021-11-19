@@ -34,9 +34,12 @@ Mock.mock('/display/display_sleep', (option) => {
     }
   }
 })
+Mock.mock('/log/log', (option) => {
+  return 'log 1232313213'
+})
 Mock.mock('/channel/channel_map', (option) => {
   return {
-    'channels list': [
+    channels_list: [
       { id: '1', name: 'ch1' },
       { id: '2', name: 'ch2' },
       { id: '3', name: 'ch3' },
@@ -70,21 +73,22 @@ Mock.mock('/osd/overlay', (option) => {
 Mock.mock('/usb/km_usb', (option) => {
   return {
     'USB-KVM_config': {
-    'kvm_usb_mode': '1',
-    'kvm_timeout_sec': 10,
-    'km_roaming': [
-      { "mac": '008414A0B026', "h": 2, "v":1},
-      { "mac": '08414A0B023', "h": 0, "v":1},
-      { mac: '08414A0B023', "h": 1, "v":1},
-      { "mac": '08414A0B023', "h": -1, "v":1},
-      { mac: '08414A0B023', "h": -1, "v":0},
-      { "mac": '08414A0B023', "h": 0, "v": 0},
-      { "mac": '08414A0B023', "h": 1, "v":0},
-      { "mac": '08414A0B023', "h": 2, "v":0},
-      { "mac": '08414A0B023', h: -1, "v":-1},
-      { "mac": '08414A0B023', h: 0, "v": -1},
-      { "mac": '08414A0B023', "h": 1, "v":-1},
-      { "mac": '08414A0B023', "h": 2, "v":-1}
-    ]}
+      kvm_usb_mode: '1',
+      kvm_timeout_sec: 10,
+      km_roaming: [
+        { mac: '008414A0B026', h: 2, v: 1 },
+        { mac: '08414A0B023', h: 0, v: 1 },
+        { mac: '08414A0B023', h: 1, v: 1 },
+        { mac: '08414A0B023', h: -1, v: 1 },
+        { mac: '08414A0B023', h: -1, v: 0 },
+        { mac: '08414A0B023', h: 0, v: 0 },
+        { mac: '08414A0B023', h: 1, v: 0 },
+        { mac: '08414A0B023', h: 2, v: 0 },
+        { mac: '08414A0B023', h: -1, v: -1 },
+        { mac: '08414A0B023', h: 0, v: -1 },
+        { mac: '08414A0B023', h: 1, v: -1 },
+        { mac: '08414A0B023', h: 2, v: -1 }
+      ]
+    }
   }
 })

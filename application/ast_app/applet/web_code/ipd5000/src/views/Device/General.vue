@@ -44,9 +44,18 @@
                      :options="exportAndImport.param"></multiselect>
         <button type="button"
                 class="btn btn-plain-primary"
+                @click="importConfig"
                 style="margin-left: 15px; margin-right: 15px;">IMPORT</button>
+
         <button type="button"
-                class="btn btn-plain-primary">EXPORT</button>
+                class="btn btn-plain-primary"
+                @click="exportConfig">EXPORT</button>
+        <input type="file"
+               ref="uploadConfig"
+               style="display:none;"
+               @change="browseConfig">
+        <span v-if="uploadComplete"
+              style="font-size:20px;margin-left:15px;color:#67c23a;"><i class="el-icon-circle-check"></i></span>
       </div>
       <div class="setting">
         <span class="setting-title">Locate Device</span>
@@ -160,6 +169,11 @@
            :key="index">{{item}}</p> -->
       </div>
     </el-dialog>
+    <iframe v-if="isExportConfig"
+            :src="'/settings/export?method='+ exportAndImport.val"
+            frameborder="0"
+            width="0"
+            height="0"></iframe>
   </div>
 </template>
 
@@ -175,12 +189,12 @@ export default {
       show: false,
       upgrade: false,
       exportAndImport: {
-        val: 'all',
+        val: '3',
         param: [
-          { value: 'ip', label: 'All Without IP' },
-          { value: 'stream', label: 'Streams' },
-          { value: 'av', label: 'AV Settings only' },
-          { value: 'all', label: 'All including IP' }
+          { value: '0', label: 'All Without IP' },
+          { value: '1', label: 'Streams' },
+          { value: '2', label: 'AV Settings only' },
+          { value: '3', label: 'All including IP' }
         ]
       },
       displayOverlay: 'off',
@@ -207,7 +221,9 @@ export default {
       isUpgrade: false,
       upgradeProgress: 0,
       uploadProgress: 0,
-      errMsg: ''
+      errMsg: '',
+      isExportConfig: false,
+      uploadComplete: false
     }
   },
   beforeCreate () {
@@ -388,6 +404,34 @@ export default {
         }, progress > 96 ? 1500 : 3500)
       }
       // this.upgradeInfo.unshift('Upload completed')
+    },
+    exportConfig () {
+      this.isExportConfig = false
+      this.methods = this.exportAndImport.val
+      setTimeout(() => {
+        this.isExportConfig = true
+      }, 500)
+    },
+    importConfig () {
+      this.$refs.uploadConfig.click()
+    },
+    browseConfig () {
+      const file = this.$refs.uploadConfig.files[0]
+      if (file) {
+        const xhr = new XMLHttpRequest()
+        const formData = new FormData()
+        formData.append('file', file)
+        xhr.open('POST', '/settings/import?method=' + this.exportAndImport.val)
+        xhr.onload = oevent => {
+          if (xhr.status === 200) {
+            this.uploadComplete = true
+            setTimeout(() => {
+              this.uploadComplete = false
+            }, 2000)
+          }
+        }
+        xhr.send(formData)
+      }
     }
   }
 }

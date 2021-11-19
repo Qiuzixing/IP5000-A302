@@ -16,9 +16,11 @@
       </div>
       <div class="setting">
         <span class="setting-title">Log</span>
-        <button class="btn btn-plain-primary">VIEW</button>
         <button class="btn btn-plain-primary"
-                style="margin-left: 25px">EXPORT</button>
+                @click="viewLog">VIEW</button>
+        <button class="btn btn-plain-primary"
+                style="margin-left: 25px"
+                @click="exportLog">EXPORT</button>
       </div>
     </div>
     <div class="setting-model">
@@ -44,6 +46,18 @@
         <span style="width: 200px;">{{ir.recv}}</span>
       </div>
     </div>
+    <iframe v-if="isExport"
+            src="/log/log"
+            frameborder="0"
+            width="0"
+            height="0"></iframe>
+    <el-dialog title="Log"
+               :visible.sync="showLogDialog"
+               width="800px">
+      <p>
+        {{logMsg}}
+      </p>
+    </el-dialog>
   </div>
 </template>
 
@@ -73,7 +87,10 @@ export default {
       ir: {
         recv: 0,
         send: 0
-      }
+      },
+      isExport: false,
+      showLogDialog: false,
+      logMsg: ''
     }
   },
   beforeCreate () {
@@ -127,6 +144,23 @@ export default {
       const month = date.getMonth() < 8 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1
       const day = date.getDate() < 9 ? '0' + date.getDate() : date.getDate()
       return day + '-' + month + '-' + year
+    },
+    exportLog () {
+      this.isExport = false
+      setTimeout(() => {
+        this.isExport = true
+      }, 500)
+    },
+    viewLog () {
+      this.logMsg = ''
+      this.showLogDialog = true
+      this.$http
+        .get(
+          '/log/log?t=' + Math.random()
+        )
+        .then(msg => {
+          this.logMsg = msg.data
+        })
     }
   }
 }

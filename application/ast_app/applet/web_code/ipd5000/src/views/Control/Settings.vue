@@ -41,14 +41,14 @@
           <div>
             <div class="res-title">
               <span>Command</span>
-              <span>Result</span>
+              <!-- <span>Result</span> -->
             </div>
             <div class="res-info">
               <div class="res-info-item"
                    v-for="(item, index) in cecResList"
                    :key="index">
                 <span>{{item.cmd}}</span>
-                <span>{{responseType[item.type]}}</span>
+                <!-- <span>{{responseType[item.type]}}</span> -->
               </div>
             </div>
           </div>
@@ -270,6 +270,11 @@ export default {
       }
       if (msg.search(/@KDS-IR-GW /i) !== -1) {
         this.handleIRGateway(msg)
+        return
+      }
+      if (msg.search(/@CEC-NTFY /i) !== -1) {
+        const cmd = msg.split(',').pop()
+        this.cecResList.unshift({ cmd, type: cmd })
         return
       }
       if (msg.search(/@COM-ROUTE /i) !== -1) {
