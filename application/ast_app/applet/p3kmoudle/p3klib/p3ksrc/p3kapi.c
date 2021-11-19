@@ -506,7 +506,10 @@ void * P3K_UdpInsideServer()
 			//组包
 			tmplen = P3K_SimpleRespCmdBurstification(&respCmdInfo, dstdata);
 			//发送数据
-            Sendtoclient(dstdata,tmplen,1000);
+			if(memcmp(userDefine,"err",strlen("err")))
+            {
+                Sendtoclient(dstdata,tmplen,1000);
+            }         
 		}
         else
         {

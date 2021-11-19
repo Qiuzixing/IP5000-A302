@@ -3759,10 +3759,27 @@ void GetUpgradeStatus(char* info, unsigned int size)
 
 
 
-int EX_NTFYPhraser(Notify_S *s_NTFYInfo)
+int EX_NTFYPhraser(Notify_S *s_NTFYInfo,char *tmpparam)
 {
-    
+    if(s_NTFYInfo->NCmd == NTFY_CEC_MSG)
+    {
+        sprintf(tmpparam,"%d,%d,",s_NTFYInfo->NCmd,s_NTFYInfo->iParamNum);
+    }
+    if(s_NTFYInfo->NCmd == NTFY_BUTTON)
+    {
+        if(buttonbool == 0){
+            return -1;
+        }
+    }
     printf("{s_NTFYInfo [%d][%d]}\n",s_NTFYInfo->NCmd,s_NTFYInfo->iParamNum);
     return 0;
 }
+
+int EX_TESTMODE()
+{
+    buttonbool = 1;
+    return 0;
+}
+
+
 

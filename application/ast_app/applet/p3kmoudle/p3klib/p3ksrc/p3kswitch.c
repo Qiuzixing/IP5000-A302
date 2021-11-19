@@ -96,6 +96,8 @@ static int P3K_CheckNTFYCMD(char*data)
 		{tmpDirec = NTFY_IR_MSG;}
     else if((!strcasecmp(data,"RS232_MSG")))
 		{tmpDirec = NTFY_RS232_MSG;}
+    else if((!strcasecmp(data,"BUTTON")))
+		{tmpDirec = NTFY_BUTTON;}
 	return tmpDirec;
 }
 
@@ -134,6 +136,9 @@ static int P3K_NTFYToStr(int type,char*data)
 				break;
             case NTFY_RS232_MSG:
 				strcpy(tmpbuf,"RS232-NTFY");
+				break;
+            case NTFY_BUTTON:
+				strcpy(tmpbuf,"BUTTON-NOTIFY");
 				break;
 			default:
 				strcpy(tmpbuf,"DEFAULT");
@@ -4529,20 +4534,39 @@ static int P3K_NTFY_PROC(char*reqparam,char*respParam,char*userdata)
         memcpy(s_NTFYInfo.strParam[count-2],str[count],strlen(str[count]));
     }
     s_NTFYInfo.iParamNum -= 2;
-    printf("{param=%s,%s}\n",str[2],str[3]);
-	u32ret = EX_NTFYPhraser(&s_NTFYInfo);
+	u32ret = EX_NTFYPhraser(&s_NTFYInfo,tmpparam);
     if(u32ret)
 	{
-		DBG_ErrMsg("EX_NTFYPhraser err\n");
+		strcpy(userdata,"err");
 	}
-    P3K_NTFYToStr(s_NTFYInfo.NCmd,userdata);
-    sprintf(tmpparam,"%d,%d,",s_NTFYInfo.NCmd,s_NTFYInfo.iParamNum);
-    for(count = 0;count < s_NTFYInfo.iParamNum;count++)
-    {
-        sprintf(tmpparam+strlen(tmpparam),"%s",s_NTFYInfo.strParam[count]);
+    else
+    {   
+        P3K_NTFYToStr(s_NTFYInfo.NCmd,userdata);
+        for(count = 0;count < s_NTFYInfo.iParamNum;count++)
+        {
+            sprintf(tmpparam+strlen(tmpparam),"%s",s_NTFYInfo.strParam[count]);
+        }
+        memcpy(respParam,tmpparam,strlen(tmpparam));
     }
+	return 0;
+}
+
+static int P3K_TESTMODE(char*reqparam,char*respParam,char*userdata)
+{
+	DBG_InfoMsg("P3K_TESTMODE\n");
+	int s32Ret = 0;
+	int port = 0;
+	int status = 0;
+    int rate = 0;
+	char tmpparam[MAX_PARAM_LEN] = {0};
+	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
+
+	s32Ret = EX_TESTMODE();
+    if(s32Ret)
+	{
+		DBG_ErrMsg("EX_TESTMODE err\n");
+	}
 	memcpy(respParam,tmpparam,strlen(tmpparam));
-    
 	return 0;
 }
 
@@ -4726,6 +4750,7 @@ int P3K_SilmpleReqCmdProcess(P3K_SimpleCmdInfo_S *cmdreq,P3K_SimpleCmdInfo_S *cm
 									{"BEACON-CONF",P3K_ConfBeaconInfo},
 									{"BEACON-CONF?",P3K_GetBeaconConf},
 									{"P3K-NOTIFY",P3K_NTFY_PROC},
+									{"TEST-MODE",P3K_TESTMODE},
 									{NULL,NULL}
 	};
 

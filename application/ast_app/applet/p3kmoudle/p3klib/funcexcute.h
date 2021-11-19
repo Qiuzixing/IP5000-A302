@@ -33,7 +33,7 @@ extern "C"{
 
 static int i_BEACON = BEACON_OFF;//BEACON标志位ON 为打开，OFF关闭
 static int BEACONThread = 0;
-
+static int buttonbool = 0;
 
 typedef enum _AudioInputMode_E
 {
@@ -201,6 +201,7 @@ typedef enum _NTFYCMD_E
 	NTFY_CEC_MSG,
 	NTFY_IR_MSG,
 	NTFY_RS232_MSG,
+	NTFY_BUTTON,
 }NTFYCmd_E;
 
 typedef struct   _NTFY_S
@@ -609,7 +610,8 @@ int EX_Beacon(int iPort_Id,int iStatus,int iTime);
 int EX_ConfBeaconInfo(char *muticastIP,int port);
 int EX_GetBeaconConf(char *muticastIP,int *port);
 int EX_GetBeacon(int *iPort_Id,int *iStatus,int *iTime);
-int EX_NTFYPhraser(Notify_S *s_NTFYInfo);
+int EX_NTFYPhraser(Notify_S *s_NTFYInfo,char *tmpparam);
+int EX_TESTMODE();
 
 void GetUpgradeStatus(char *info, unsigned int size);
 
