@@ -2,18 +2,30 @@
 #ifndef __IPE5000P_INFO_SETTING_H__
 #define __IPE5000P_INFO_SETTING_H__
 
+#define u8 unsigned char 
+
+#ifdef __cplusplus
+extern "C"{
+#endif
+
+static int DEV_STATUS_P();
+static void LAN_STATUS_P(int interface_id);
+static int HDMI_STATUS_P();
+static int CH_DEFINE_P();
+static int TEMPERATURE_P();
+static int DEV_INFO_P();
+static int DEV_SETTINGS_P();
+static int INPUT_SETTING_P();
+static int EDID_SETTING_P();
+static int HDCP_SETTING_P();
+static int CH_SELECT_P();
+
+
 int IPE5000P_MAIN_MENU_SHOW(void);
 
-static void IP_SETTING_MENU_SHOW_P(void);
-static void INPUT_SELECT_SHOW_P();
-static void EDID_SET_P(void);
-static void HDCP_SHOW_P();
-static void FIRMWARE_INFO_SHOW_P();
-static void DEVICE_STATUS_SHOW_P();
-static void LAN_MODE_MENU_SHOW_P(int lan_id);
-static void LAN_OPTION_SHOW_P(int lan_id, int enable);
-static void DHCP_LAN_INFO_SHOW_P(int lan_id, int offset, char *string, u8 lenth);
-static void LAN_INFO_SET_P(int lan_id, u8 offset, char *string, u8 lenth);
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif

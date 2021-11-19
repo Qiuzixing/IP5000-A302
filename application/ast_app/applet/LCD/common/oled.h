@@ -5,8 +5,8 @@
 
 
 
-#define OLED_CMD  0	
-#define OLED_DATA 1	
+#define OLED_CMD  0 
+#define OLED_DATA 1 
 
 void OLED_Init(void);
 
@@ -21,8 +21,8 @@ void clear_three_line();
 void light_whole_screen();
 void clear_whole_screen(void);
 
-void show_a_char(u8 x, u8 y, u8 chr, u8 cursor);
-void show_strings(u8 x, u8 y, const char *str, u8 lenth);
+void show_a_char(u8 x, u8 y, u8 chr, u8 cursor, u8 mode) ;
+void show_strings(u8 x, u8 y, const char *str, u8 lenth, u8 mode);
 
 void show_square_breakets(u8 x);
 void show_a_star(u8 x);

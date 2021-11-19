@@ -4,18 +4,26 @@
 
 #define u8 unsigned char 
 
+#ifdef __cplusplus
+extern "C"{
+#endif
+
+static int DEV_STATUS_E();
+static void LAN_STATUS_E(int interface_id);
+static int HDMI_STATUS_E();
+static int CH_DEFINE_E();
+static int TEMPERATURE_E();
+static int DEV_INFO_E();
+static int DEV_SETTINGS_E();
+static int EDID_SETTING_E();
+static int HDCP_SETTING_E();
+static int CH_SELECT_E();
+
 int IPE5000_MAIN_MENU_SHOW(void);
 
-static void IP_SETTING_MENU_SHOW_E(void);
-static void EDID_SET_E(void);
-static void HDCP_SHOW_E();
-static void FIRMWARE_INFO_SHOW_E();
-static void DEVICE_STATUS_SHOW_E();
-static void LAN_MODE_MENU_SHOW_E(int lan_id);
-static void LAN_OPTION_SHOW_E(int lan_id, int enable);
-static void DHCP_LAN_INFO_SHOW_E(int lan_id, int offset, char *string, u8 lenth);
-static void LAN_INFO_SET_E(int lan_id, u8 offset, char *string, u8 lenth);
-
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

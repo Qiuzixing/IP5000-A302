@@ -17,6 +17,39 @@
 
 int sock_fd;
 
+int send_p3k_cmd_wait_rsp(char *cmd, char *recv_buf, int size)
+{
+	int count;
+	int err = -1;
+	char send_buf[BUF_SIZE] = {0};
+
+	fd_set rfds;
+    struct timeval time = {2, 0};
+	FD_ZERO(&rfds);
+	FD_SET(sock_fd, &rfds);
+	
+	sprintf(send_buf, "%s\r", cmd);
+	count = send(sock_fd, send_buf, strlen(send_buf), 0);
+	if (count != strlen(send_buf))
+	{
+		printf("send %s error, fact num:[%d], will num:[%lu] \n", cmd, count, strlen(send_buf));
+		return -1;
+	}
+	
+	err = select(sock_fd + 1, &rfds, NULL, NULL, &time);
+	if (err > 0)
+	{
+		count = recv(sock_fd, recv_buf, size, 0);
+	}
+	else if (err == 0)
+	{
+		printf("wait [%s] respond timeout\n", cmd);
+	}
+
+	return 0;
+}
+
+
 int tcp_client_init(char *ip, int port)
 {
 	int err;
@@ -29,9 +62,9 @@ int tcp_client_init(char *ip, int port)
 
 	struct sockaddr_in serv_addr;
 	memset(&serv_addr, 0, sizeof(serv_addr)); 		 //每个字节都用0填充
-	serv_addr.sin_family = AF_INET;  				 //使用IPv4地址
-	serv_addr.sin_addr.s_addr = inet_addr(ip);  //具体的IP地址
-	serv_addr.sin_port = htons(mport); 				 //端口
+	serv_addr.sin_family = AF_INET;  				//使用IPv4地址
+	serv_addr.sin_addr.s_addr = inet_addr(ip);  	//具体的IP地址
+	serv_addr.sin_port = htons(mport); 				//端口
 
 	
 	err = connect(sock_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
@@ -46,27 +79,13 @@ int tcp_client_init(char *ip, int port)
 	}
 
 	//need send "#\r", start communication with p3k server
+
+	send_p3k_cmd_wait_rsp("#\r", recv_buf, sizeof(recv_buf));
+	/*
 	count = send(sock_fd, "#\r", strlen("#\r"), 0);
 	recv(sock_fd, recv_buf, sizeof(recv_buf), 0);
-
-	return 0;
-}
-
-int send_p3k_cmd_wait_rsp(char *cmd, char *recv_buf, int size)
-{
-	int count;
-	char send_buf[BUF_SIZE] = {0};
+	*/
 	
-	sprintf(send_buf, "%s\r", cmd);
-	count = send(sock_fd, send_buf, strlen(send_buf), 0);
-	if (count != strlen(send_buf))
-	{
-		printf("send %s error, fact num:[%d], will num:[%lu] \n", cmd, count, strlen(send_buf));
-		return -1;
-	}
-
-	count = recv(sock_fd, recv_buf, size, 0);
-
 	return 0;
 }
 

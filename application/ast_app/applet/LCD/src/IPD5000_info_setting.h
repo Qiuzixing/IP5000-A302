@@ -8,19 +8,20 @@
 extern "C"{
 #endif
 
+static int DEV_STATUS_D();
+static void LAN_STATUS_D(int interface_id);
+static int HDMI_STATUS_D();
+static int CHANNEL_SHOW_D();
+static int TEMPERATURE_D();
+static int DEV_INFO_D();
+static int DEV_SETTINGS_D();
+static int INPUT_SETTING_D();
+static int HDCP_SETTING_D();
+static int RESOL_SETTING_D();
+static int CH_SELECT_D();
 
 int IPD5000_MAIN_MENU_SHOW(void);
 
-static void IP_SETTING_MENU_SHOW_D(void);
-static void VIDEO_IN_SELECT_SHOW_D(void);
-static void VIDEO_OUT_RES_SHOW_D();
-static void HDCP_SHOW_D();
-static void FIRMWARE_INFO_SHOW_D();
-static void DEVICE_STATUS_SHOW_D();
-static void LAN_MODE_MENU_SHOW_D(int lan_id);
-static void LAN_OPTION_SHOW_D(int lan_id, int enable);
-static void DHCP_LAN_INFO_SHOW_D(int lan_id, int offset, char *string, u8 lenth);
-static void LAN_INFO_SET_D(int lan_id, u8 offset, char *string, u8 lenth);
 
 #ifdef __cplusplus
 }
