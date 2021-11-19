@@ -1236,6 +1236,7 @@ handle_e_button()
 {
 	case "$*" in
 		e_button_link_5)
+			p3k_notify button::long-reset
 			./reset_to_default.sh
 			reboot
 			#handle_e_button_link
@@ -1337,6 +1338,7 @@ handle_e_key()
 				return
 			fi
 			send_key_info 1
+			p3k_notify button::enter
 		;;
 		e_key_up_pressed)
 			if [ "$MODEL_NUMBER" = 'WP-SW2-EN7' ];then
@@ -1350,6 +1352,7 @@ handle_e_key()
 				return
 			fi
 			send_key_info 2
+			p3k_notify button::up
 		;;
 		e_key_down_pressed)
 			if [ "$MODEL_NUMBER" = 'WP-SW2-EN7' ];then
@@ -1363,18 +1366,21 @@ handle_e_key()
 				return
 			fi
 			send_key_info 3
+			p3k_notify button::down
 		;;
 		e_key_left_pressed)
 			if [ "$MODEL_NUMBER" = 'WP-SW2-EN7' ];then
 				return
 			fi
 			send_key_info 4
+			p3k_notify button::left
 		;;
 		e_key_right_pressed)
 			if [ "$MODEL_NUMBER" = 'WP-SW2-EN7' ];then
 				return
 			fi
 			send_key_info 5
+			p3k_notify button::right
 		;;
 		*)
 		;;
