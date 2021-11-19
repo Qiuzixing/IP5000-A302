@@ -258,10 +258,10 @@ export default {
         this.handleCECPort(msg)
         return
       }
-      if (msg.search(/@CEC-SND /i) !== -1) {
-        this.handleCECResponse(msg)
-        return
-      }
+      // if (msg.search(/@CEC-SND /i) !== -1) {
+      //   this.handleCECResponse(msg)
+      //   return
+      // }
       if (msg.search(/@UART /i) !== -1) {
         this.handleRS232Param(msg)
         return
@@ -272,6 +272,11 @@ export default {
       }
       if (msg.search(/@KDS-IR-GW /i) !== -1) {
         this.handleIRGateway(msg)
+        return
+      }
+      if (msg.search(/@CEC-NTFY /i) !== -1) {
+        const cmd = msg.split(',').pop()
+        this.cecResList.unshift({ cmd, type: cmd })
         return
       }
       if (msg.search(/@COM-ROUTE /i) !== -1) {

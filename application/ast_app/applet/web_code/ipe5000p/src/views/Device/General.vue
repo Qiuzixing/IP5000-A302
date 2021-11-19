@@ -44,6 +44,11 @@
                      :options="exportAndImport.param"></multiselect>
         <button type="button"
                 class="btn btn-plain-primary"
+                @click="importConfig"
+                style="margin-left: 15px; margin-right: 15px;">IMPORT</button>
+
+        <button type="button"
+                class="btn btn-plain-primary"
                 @click="exportConfig">EXPORT</button>
         <input type="file"
                ref="uploadConfig"
@@ -163,7 +168,7 @@
            :key="index">{{item}}</p> -->
       </div>
     </el-dialog>
-    <iframe v-if="isExportLog"
+    <iframe v-if="isExportConfig"
             :src="'/settings/export?method='+ exportAndImport.val"
             frameborder="0"
             width="0"
@@ -216,7 +221,7 @@ export default {
       upgradeProgress: 0,
       uploadProgress: 0,
       errMsg: '',
-      isExportLog: false,
+      isExportConfig: false,
       uploadComplete: false
     }
   },
@@ -399,11 +404,11 @@ export default {
       }
       // this.upgradeInfo.unshift('Upload completed')
     },
-    exportLog () {
-      this.isExportLog = false
+    exportConfig () {
+      this.isExportConfig = false
       this.methods = this.exportAndImport.val
       setTimeout(() => {
-        this.isExportLog = true
+        this.isExportConfig = true
       }, 500)
     },
     importConfig () {

@@ -68,12 +68,12 @@ export default {
   data () {
     return {
       syslog: '1',
-      logResetPolicy: '0',
+      logResetPolicy: '3',
       logResetPolicyParam: [{
-        value: '0',
+        value: '2',
         label: 'Daily'
       }, {
-        value: '1',
+        value: '3',
         label: 'Weekly'
       }],
       rs232: {

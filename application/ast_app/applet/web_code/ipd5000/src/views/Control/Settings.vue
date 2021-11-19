@@ -256,10 +256,10 @@ export default {
         this.handleCECPort(msg)
         return
       }
-      if (msg.search(/@CEC-SND /i) !== -1) {
-        this.handleCECResponse(msg)
-        return
-      }
+      // if (msg.search(/@CEC-SND /i) !== -1) {
+      //   this.handleCECResponse(msg)
+      //   return
+      // }
       if (msg.search(/@UART /i) !== -1) {
         this.handleRS232Param(msg)
         return
