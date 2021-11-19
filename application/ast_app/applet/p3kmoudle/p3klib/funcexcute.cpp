@@ -3516,6 +3516,37 @@ int EX_GetActiveCliNUm(void)
 int EX_SetLogEvent(int action,int period)
 {
 	DBG_InfoMsg("EX_SetLogEvent action = %d period= %d\n",action,period);
+
+	char sCmd[128] = "";
+	sprintf(sCmd,"e_log");
+
+	if(action == 1)
+		sprintf(sCmd,"e_log::start");
+	else if(action == 2)
+		sprintf(sCmd,"e_log::pause");
+	else if(action == 3)
+		sprintf(sCmd,"e_log::resume");
+	else if(action == 4)
+		sprintf(sCmd,"e_log::reset");
+	else
+	{
+		DBG_ErrMsg("action: %d\n",action);
+		return -1;
+	}
+
+	if(period == 2)
+		sprintf(sCmd,"%s::daily",sCmd);
+	else if(period == 3)
+		sprintf(sCmd,"%s::weekly",sCmd);
+	else
+	{
+		DBG_ErrMsg("period: %d\n",period);
+		return -1;
+	}
+
+	DBG_InfoMsg("ast_send_event %s\n",sCmd);
+	ast_send_event(0xFFFFFFFF,sCmd);
+
 	Cfg_Set_Log_Action(action,period);
 	return 0;
 }
