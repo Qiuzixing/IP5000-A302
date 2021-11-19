@@ -16,13 +16,15 @@ using namespace std;
 #define HTTPS_CERT              "/share/https/kramer_tls.pem"
 #define DEFAULT_HTTPS_CERT      "/data/configs/kds-7/secure/certificate_file_name/kramer_tls.pem"
 
+#define OVERLAY_JSON_FILE       "/data/configs/kds-7/overlay/overlay2_setting.json"
+#define OVERLAY_FILE_PATH       "/data/configs/kds-7/overlay"
+
 // 文件传输文件默认路径
 #define DEFAULT_FILE_PATH       "/data/configs/kds-7"
 #define CHANNEL_FILE_PATH       "/channel/channel_map.json"
 #define SLEEPIMAGE_FILE_PATH    "/display/sleep_image.jpg"
 #define EDID_FILE_PATH          "/edid/custom_edid.bin"
 #define LOG_FILE_PATH           "/log/log_file.txt"
-#define OVERLAY_FILE_PATH       "/osd/overlay_image.png"
 #define VIDEO_WALL_FILE_PATH    "/vw/video_wall_test_pattern.png"
 #define UPGRADE_FILE_PATH       "/dev/shm"
 

@@ -19,7 +19,7 @@
 #define UP_CHANNEL_URL          "/upload/channel"
 #define UP_EDID_URL             "/upload/edid"
 #define UP_SLEEPIMAGE_URL       "/upload/sleepimage"
-#define UP_OVERLAY_URL          "/upload/overlay_image"
+#define UP_OVERLAY_URL          "/upload/overlayimage"
 #define UP_SECURE_URL           "/upload/secure"
 #define UP_TESTPATTERN_URL      "/upload/testpattern"
 #define UP_UPGRADESOFTWARE      "/upload/upgradesoftware"
@@ -429,7 +429,7 @@ int CWeb::SecureHttpsSetHanndle(struct mg_connection *conn, void *cbdata)
 
         BC_INFO_LOG("SecureHttpsSetHanndle upload file OK");
         send_http_ok_rsp(conn);
-		
+
 		// reboot
         if(My_System("reboot") < 0)
         {
@@ -582,16 +582,45 @@ int CWeb::DownloadLogFileHandle(struct mg_connection *conn, void *cbdata)
 int CWeb::UpdateOverlayImageHandle(struct mg_connection *conn, void *cbdata)
 {
     struct T_FromInfo tFrom;
-    if(!SaveUploadFile(conn, DEFAULT_FILE_PATH "/osd", "overlay_image.png", &tFrom))
+    if(SaveUploadFile(conn, OVERLAY_FILE_PATH, NULL, &tFrom))
     {
-        BC_INFO_LOG("UpdateOverlayImageHandle upload file error");
-        send_http_error_rsp(conn);
+        string strConfigInfo = "";
+        if(COperation::GetJsonFile(OVERLAY_JSON_FILE, strConfigInfo))
+        {
+            Json::Value json;
+            Json::Reader reader;
+            if(!reader.parse(strConfigInfo, json))
+            {
+               BC_INFO_LOG("JsonDataHandle POST json parse failed");
+               send_http_error_rsp(conn);
+               return 1;
+            }
+
+            string strFile = OVERLAY_FILE_PATH;
+            strFile += "/";
+            strFile += tFrom.filename;
+
+            for(int i = 0; i < json["objects"].size(); i++)
+            {
+                if(!json["objects"][i]["path"].empty())
+                {
+                    json["objects"][i]["path"] = strFile.c_str();
+                }
+            }
+
+            Json::FastWriter fastwiter;
+            string strTmp = "";
+            strTmp = fastwiter.write(json);
+            if(COperation::SetJsonFile(strTmp.c_str(), OVERLAY_JSON_FILE))
+            {
+                send_http_ok_rsp(conn);
+                return 1;
+            }
+        }
     }
-    else
-    {
-        BC_INFO_LOG("UpdateOverlayImageHandle upload file OK");
-        send_http_ok_rsp(conn);
-    }
+
+    BC_INFO_LOG("UpdateOverlayImageHandle failed");
+    send_http_error_rsp(conn);
 
     return 1;
 }
