@@ -2051,7 +2051,8 @@ init_share_param_from_flash()
 			# hotkey 0: scroll lock
 			# hotkey 1: pause/break
 			# hotkey 2: insert
-			KMOIP_HOTKEYS='00 47 00 48 00 49 00 00 00 00 00 00 00 00 00 00'
+			#KMOIP_HOTKEYS='00 47 00 48 00 49 00 00 00 00 00 00 00 00 00 00'
+			KMOIP_HOTKEYS='00 40 00 41 00 42 00 39 00 00 00 00 00 00 00 00'
 		fi
 	fi
 
