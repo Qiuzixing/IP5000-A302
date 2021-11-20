@@ -99,6 +99,22 @@ void mute_control(const char *file_name,mute_value value)
 
 }
 
+static void set_hdmi_mute(mute_value value)
+{
+    uint16_t cmd = CMD_HDMI_AUDIO_CONTROL;
+    char hdmi_mute[] = "16:1:0";
+    char hdmi_unmute[] = "16:1:1";
+    if(value == MUTE)
+    {
+        do_handle_set_hdmi_mute(cmd,hdmi_mute);
+    }
+    else
+    {
+        do_handle_set_hdmi_mute(cmd,hdmi_unmute);
+    }
+    
+}
+
 static void set_gsv_insert_audio(insert_value value)
 {
     uint16_t cmd = CMD_HDMI_SET_AUDIO_INSERT_EXTRACT;
@@ -322,19 +338,22 @@ static void ipe5000_and_ipe5000w_hdmi_in_xxx_out(void)
     int i = 0;
     do_handle_set_gpio_val(cmd,it6802_out);
     set_io_select(IO_ANALOG_OUTMUTE);
+    set_hdmi_mute(MUTE);
     for(i = 0;i <= AUDIO_OUT_TYPE_NUM;i++)
     {
         switch(audio_inout_info.audio_out[i])
         {
             case AUDIO_OUT_ANALOG:
+                set_hdmi_mute(UNMUTE);
                 set_io_select(HDMI);
                 set_io_select(ANALOG_OUT);
                 break;
+            //Web HDMI_and_LAN merged into one API
             case AUDIO_OUT_LAN:
-                set_io_select(HDMI);
-                break;
             case AUDIO_OUT_HDMI:
+                set_io_select(HDMI);
                 set_gsv_insert_audio(NO_INSERT);
+                set_hdmi_mute(UNMUTE);
                 break;
             case AUDIO_OUT_NULL:
                 flag = 1;

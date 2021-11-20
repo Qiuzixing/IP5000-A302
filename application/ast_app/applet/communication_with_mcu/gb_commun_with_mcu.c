@@ -784,7 +784,7 @@ static void do_handle_uart_pass(uint16_t cmd,char *cmd_param)
     free(uart_pass);
 }
 
-static void do_handle_set_hdmi_mute(uint16_t cmd,char *cmd_param)
+void do_handle_set_hdmi_mute(uint16_t cmd,char *cmd_param)
 {
     struct CmdDataAudioControl ado_mode;
     memset((unsigned char *)&ado_mode, 0, sizeof(ado_mode));
