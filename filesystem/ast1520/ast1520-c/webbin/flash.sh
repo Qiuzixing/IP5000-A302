@@ -22,6 +22,9 @@ fi
 echo "FW_KERNEL_DEV=$FW_KERNEL_DEV"
 echo "FW_ROOTFS_DEV=$FW_ROOTFS_DEV"
 
+# 1 is only for error calc
+fw_total_size=1
+
 total_fw_size()
 {
 	fsize='0'
@@ -47,7 +50,7 @@ update_fw_status()
 	local _remain_size=$2
 	local _errno=$3
 	local _progress=0
-	if [ $fw_total_size -lt 0 ]; then
+	if [ $fw_total_size -le 0 ]; then
 		echo "err,$_progress,2" > $HTML_UPGRADE_STATUS.tmp
 		mv $HTML_UPGRADE_STATUS.tmp $HTML_UPGRADE_STATUS
 		exit 2
@@ -93,6 +96,9 @@ copy_file()
 		fi
 	done
 }
+
+remain_fw_size=`total_fw_size`
+fw_total_size=$remain_fw_size
 
 _p=`/usr/local/bin/io 0 1e6e207c`
 _IFS="$IFS";IFS=' ';set -- $_p;IFS="$_IFS"
@@ -141,8 +147,6 @@ case "$AST_PLATFORM" in
 		fail_out 1
 esac
 
-remain_fw_size=`total_fw_size`
-fw_total_size=$remain_fw_size
 # create json file
 update_fw_status "ongoing" $remain_fw_size 0
 
