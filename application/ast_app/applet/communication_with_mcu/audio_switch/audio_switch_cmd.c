@@ -102,8 +102,8 @@ void mute_control(const char *file_name,mute_value value)
 static void set_hdmi_mute(mute_value value)
 {
     uint16_t cmd = CMD_HDMI_AUDIO_CONTROL;
-    char hdmi_mute[] = "16:1:0";
-    char hdmi_unmute[] = "16:1:1";
+    char hdmi_mute[] = "16:1:1";
+    char hdmi_unmute[] = "16:1:0";
     if(value == MUTE)
     {
         do_handle_set_hdmi_mute(cmd,hdmi_mute);
