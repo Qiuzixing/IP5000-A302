@@ -12,6 +12,7 @@
     "axios": "^0.21.1",
     "core-js": "^3.6.5",
     "element-ui": "^2.15.3",
+    "file-saver": "^2.0.5",
     "normalize.css": "^8.0.1",
     "v-calendar": "^2.3.0",
     "vodal": "^2.4.0",

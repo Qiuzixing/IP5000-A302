@@ -1,4 +1,5 @@
-const version = 'V1.0.18'
+const version = 'V1.0.19'
+
 const path = require('path')
 function resolve (dir) {
   return path.join(__dirname, dir)
@@ -74,8 +75,9 @@ if (process.env.NODE_ENV !== 'production') {
         ws.send(`~nn@X-AV-SW-MODE out.hdmi.1.video.1,${parseInt(Math.random() * 3)}`)
         ws.send(`~nn@X-AV-SW-MODE out.hdmi.1.audio.1,${parseInt(Math.random() * 3)}`)
       } else if (message.startsWith('#X-PRIORITY?')) {
-        ws.send('~nn@X-PRIORITY out.stream.1.video, [in.usb_c.3.video,in.hdmi.1.video,in.hdmi.2.video]')
-        ws.send('~nn@X-PRIORITY out.stream.1.audio, [in.dante.1.audio,in.hdmi.1.audio,in.analog_audio.1.audio]')
+        // ws.send('~nn@X-PRIORITY out.stream.1.video, [in.usb_c.3.video,in.hdmi.1.video,in.hdmi.2.video]')
+        // ws.send('~nn@X-PRIORITY out.stream.1.audio, [in.dante.1.audio,in.hdmi.1.audio,in.analog_audio.1.audio]')
+        ws.send('~nn@X-PRIORITY out.stream.1.audio, [in.hdmi.1.audio]')
       } else if (message.startsWith('#HDCP-MOD? ')) {
         ws.send(`~nn@HDCP-MOD 1,${Math.round(Math.random())}`)
         ws.send(`~nn@HDCP-MOD 2,${Math.round(Math.random())}`)

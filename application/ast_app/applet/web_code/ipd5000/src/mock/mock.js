@@ -35,7 +35,7 @@ Mock.mock('/display/display_sleep', (option) => {
   }
 })
 Mock.mock('/log/log', (option) => {
-  return 'log 1232313213'
+  return 'log1232313213\n123\n123\n34'
 })
 Mock.mock('/channel/channel_map', (option) => {
   return {

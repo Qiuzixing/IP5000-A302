@@ -46,23 +46,18 @@
         <span style="width: 200px;">{{ir.recv}}</span>
       </div>
     </div>
-    <iframe v-if="isExport"
-            src="/log/log"
-            frameborder="0"
-            width="0"
-            height="0"></iframe>
     <el-dialog title="Log"
                :visible.sync="showLogDialog"
                width="800px">
-      <p>
-        {{logMsg}}
-      </p>
+      <pre style="margin:0;font-family:'open sans regular';">
+        <code style="margin:0;font-family:'open sans regular';">{{'\n' +logMsg}}</code>
+      </pre>
     </el-dialog>
   </div>
 </template>
 
 <script>
-
+import { saveAs } from 'file-saver'
 export default {
   name: 'status',
   data () {
@@ -146,10 +141,14 @@ export default {
       return day + '-' + month + '-' + year
     },
     exportLog () {
-      this.isExport = false
-      setTimeout(() => {
-        this.isExport = true
-      }, 500)
+      this.$http
+        .get(
+          '/log/log?t=' + Math.random()
+        )
+        .then(msg => {
+          const blob = new Blob([msg.data], { type: 'text/plain;charset=utf-8' })
+          saveAs(blob, 'log.txt')
+        })
     },
     viewLog () {
       this.logMsg = ''

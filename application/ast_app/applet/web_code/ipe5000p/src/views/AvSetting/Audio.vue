@@ -19,7 +19,8 @@
         <multiselect v-model="audioMode.val"
                      :options="audioMode.param"></multiselect>
       </div>
-      <custom-sort v-model="lists"
+      <custom-sort v-if="this.$global.deviceType == 0 && direction === 'out'"
+                   v-model="lists"
                    :listMap="listMap"
                    :disabled="audioMode.val !== '1'"></custom-sort>
       <div class="setting"
@@ -336,6 +337,12 @@ export default {
       this.checkAudioSocuceSelect()
       if (this.$global.deviceType) {
         if (val === 'out') {
+          this.lists.indexOf('in.analog_audio.1.audio') !== -1 && this.lists.splice(this.lists.indexOf('in.analog_audio.1.audio'), 1)
+        } else {
+          this.lists.indexOf('in.analog_audio.1.audio') === -1 && this.lists.push('in.analog_audio.1.audio')
+        }
+      } else {
+        if (val === 'in') {
           this.lists.indexOf('in.analog_audio.1.audio') !== -1 && this.lists.splice(this.lists.indexOf('in.analog_audio.1.audio'), 1)
         } else {
           this.lists.indexOf('in.analog_audio.1.audio') === -1 && this.lists.push('in.analog_audio.1.audio')

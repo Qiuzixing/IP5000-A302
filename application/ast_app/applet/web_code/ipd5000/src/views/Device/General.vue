@@ -443,6 +443,7 @@ export default {
 .upgrade-info {
   font-family: "open sans semiblold";
   color: #4d4d4f;
-  margin: 8px 0;
+  font-size: 14px;
+  margin: 10px 0;
 }
 </style>
