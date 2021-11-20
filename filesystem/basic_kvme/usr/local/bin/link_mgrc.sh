@@ -954,7 +954,7 @@ handle_e_reconnect()
 		_who='z'
 		# Bruce170828. Apply speedy V switching trick as default behavior.
 		{
-			ast_send_event -1 e_reconnect::$_ch_select::v
+			ast_send_event -1 e_reconnect::$_ch_select::va
 			sleep 1
 			ast_send_event -1 e_reconnect::$_ch_select::Z
 		} &
@@ -966,7 +966,7 @@ handle_e_reconnect()
 				_who='vuasrpc'
 			;;
 			Z)
-				_who='uasrpc'
+				_who='usrpc'
 			;;
 			*)
 				# ignore
