@@ -1522,7 +1522,16 @@ handle_e_p3k_video()
 		e_p3k_video_hdcp_mode::?*)
 			echo "e_p3k_video_hdcp_mode ($event) received"
 			_para2="$3"
-			ipc @m_lm_set s set_hdcp_cap:0-2:$_para2
+			if [ $_para2 = '0' ];then
+				P3KCFG_HDCP_1_ON='off'
+				P3KCFG_HDCP_2_ON='off'
+				P3KCFG_HDCP_3_ON='off'
+			else
+				P3KCFG_HDCP_1_ON='on'
+				P3KCFG_HDCP_2_ON='on'
+				P3KCFG_HDCP_3_ON='on'
+			fi
+			set_hdcp_status
 		;;
 		*)
 		echo "ERROR!!!! Invalid event ($event) received"
@@ -2678,23 +2687,53 @@ init_param_from_p3k_cfg()
 	echo "CEC_SEND_DIR=$CEC_SEND_DIR"
 }
 
+set_hdcp_status()
+{
+	case "$MODEL_NUMBER" in
+		KDS-EN7)
+			if [ $P3KCFG_HDCP_1_ON = 'on' ];then
+				ipc @m_lm_set s set_hdcp_cap:0:3
+			else
+				ipc @m_lm_set s set_hdcp_cap:0:0
+			fi
+		;;
+		KDS-SW3-EN7)
+			if [ $P3KCFG_HDCP_1_ON = 'on' ];then
+				ipc @m_lm_set s set_hdcp_cap:0:3
+			else
+				ipc @m_lm_set s set_hdcp_cap:0:0
+			fi
+			if [ $P3KCFG_HDCP_2_ON = 'on' ];then
+				ipc @m_lm_set s set_hdcp_cap:1:3
+			else
+				ipc @m_lm_set s set_hdcp_cap:1:0
+			fi
+			if [ $P3KCFG_HDCP_3_ON = 'on' ];then
+				ipc @m_lm_set s set_hdcp_cap:2:3
+			else
+				ipc @m_lm_set s set_hdcp_cap:2:0
+			fi
+		;;
+		WP-SW2-EN7)
+			if [ $P3KCFG_HDCP_1_ON = 'on' ];then
+				ipc @m_lm_set s set_hdcp_cap:0:3
+			else
+				ipc @m_lm_set s set_hdcp_cap:0:0
+			fi
+			if [ $P3KCFG_HDCP_2_ON = 'on' ];then
+				ipc @m_lm_set s set_hdcp_cap:1:3
+			else
+				ipc @m_lm_set s set_hdcp_cap:1:0
+			fi
+		;;
+		*)
+		;;
+	esac
+}
+
 set_variable_power_on_status()
 {
-	if [ $P3KCFG_HDCP_1_ON = 'on' ];then
-		ipc @m_lm_set s set_hdcp_cap:0:1
-	else
-		ipc @m_lm_set s set_hdcp_cap:0:0
-	fi
-	if [ $P3KCFG_HDCP_2_ON = 'on' ];then
-		ipc @m_lm_set s set_hdcp_cap:1:1
-	else
-		ipc @m_lm_set s set_hdcp_cap:1:0
-	fi
-	if [ $P3KCFG_HDCP_3_ON = 'on' ];then
-		ipc @m_lm_set s set_hdcp_cap:2:1
-	else
-		ipc @m_lm_set s set_hdcp_cap:2:0
-	fi
+	set_hdcp_status
 
 	if [ $P3KCFG_AV_MUTE = 'off' ];then
 		ipc @m_lm_set s set_hdmi_mute:16:1:0

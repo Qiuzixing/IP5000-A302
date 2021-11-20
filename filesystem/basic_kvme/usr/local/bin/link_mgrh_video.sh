@@ -734,6 +734,23 @@ start_vlm()
 		esac
 	fi
 
+	case "$MODEL_NUMBER" in
+		KDS-EN7)
+			ipc @m_lm_set s get_hdcp_status:0
+		;;
+		KDS-SW3-EN7)
+			ipc @m_lm_set s get_hdcp_status:0
+			ipc @m_lm_set s get_hdcp_status:1
+			ipc @m_lm_set s get_hdcp_status:2
+		;;
+		WP-SW2-EN7)
+			ipc @m_lm_set s get_hdcp_status:0
+			ipc @m_lm_set s get_hdcp_status:1
+		;;
+		*)
+		;;
+	esac
+
 	if [ $P3KCFG_EDID_MODE = 'passthrough' ];then
 		handle_edid -c $P3KCFG_EDID_NET_SRC -t $rx_tcp_port -m 1
 		handle_edid -c $P3KCFG_EDID_NET_SRC -t $rx_tcp_port &
