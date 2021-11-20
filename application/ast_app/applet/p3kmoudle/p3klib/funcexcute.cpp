@@ -2166,6 +2166,11 @@ int EX_GetVideoViewReslotion(int mode, int index, int nativeFlag,int * res)
 	mysystem(cmd1,buf1,64);
 	mysystem(cmd2,buf2,64);
 
+	if(strcmp(" [1920]X[2160] [60]",buf1) == 0)
+	{
+		strcpy(buf1, " [3840]X[2160] [60]");
+	}
+
 	if(strcmp("Progressive",buf2) == 0)
 		sprintf(buf1,"%s [P]",buf1);
 	else
