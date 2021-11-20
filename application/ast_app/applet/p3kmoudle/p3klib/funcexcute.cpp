@@ -986,6 +986,7 @@ int EX_GetMethod(void)
 
 int EX_SetOsdDisplay(int    mode )
 {
+	char buf[64] = "";
 	State_E osd_mode = OFF;
 	if(mode == 0)
 		osd_mode = OFF;
@@ -999,11 +1000,11 @@ int EX_SetOsdDisplay(int    mode )
 
 	Cfg_Set_OSD_Diaplay(osd_mode);
 
-	char setOSDDisplayCmd[BUFSIZE] = {0};
-	char * str = "SET_OSD_DISPLAY";
-	sprintf(setOSDDisplayCmd,"%s %d",str,mode);
-	int ret = sendCmdtoGUI(setOSDDisplayCmd);
-	DBG_InfoMsg(">>EX_SetOsdDisplay %d\n",ret);
+	if (2 == mode)
+	{
+		// 当且仅单为2的时候，调用快键显示OSD
+		mysystem("echo Hotkey3 > /var/info_local", buf, sizeof(buf));
+	}
 	//osd mode {0	¨C off,1	¨C on,2	¨C display now,}
 	return 0;
 }

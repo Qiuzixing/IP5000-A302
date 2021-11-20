@@ -33,6 +33,7 @@ OSDMeun::OSDMeun(QWidget *parent)
     ,m_currentPage(1)
     ,m_onSreachMode(false)
     ,m_displayStatus(false)
+    ,m_displayConfig(false)
     ,m_pageChannels(5)
 {
     // 解析菜单参数
@@ -452,11 +453,11 @@ void OSDMeun::parseMeunJson(QString jsonpath)
 
         if(EnabledStr.compare("on") == 0)
         {
-            m_displayStatus = true;
+            m_displayConfig = true;
         }
         else if(EnabledStr.compare("off") == 0)
         {
-            m_displayStatus = false;
+            m_displayConfig = false;
         }
 
         cout << "size:" << size << endl;

@@ -65,7 +65,7 @@ MainWidget::MainWidget(QWidget *parent) : QWidget(parent)
     qDebug() << "main_3:" << g_bDeviceSleepMode;
 
     // 初始化OSD菜单
-     initOsdMeun();
+    initOsdMeun();
 
     // 初始化页面切换
     initPanelStack();
@@ -336,15 +336,9 @@ void MainWidget::syncConfig(QString path)
         m_osdMeun->setMeunFont();
         m_osdMeun->parseChannelJson();
 
-        if(m_osdMeun->getdisplayStatus())
+        if(m_osdMeun->getdisplayConfig())
         {
-            // OSD菜单显示时隐藏所有overlay
-            qDebug() << "show meun hide overlay";
-            slotHideOverlay();
-
-            m_osdMeun->hide();
-
-            QTimer::singleShot(500,this,SLOT(showOsdMeun()));
+            // Display依靠P3K不能依靠配置文件，会导致上电后直接显示OSD菜单
         }
         else
         {
@@ -360,15 +354,9 @@ void MainWidget::syncConfig(QString path)
 
         m_osdMeun->parseChannelJson();
 
-        if(m_osdMeun->getdisplayStatus())
+        if(m_osdMeun->getdisplayConfig())
         {
-            // OSD菜单显示时隐藏所有overlay
-            qDebug() << "show meun hide overlay";
-            slotHideOverlay();
-
-            m_osdMeun->hide();
-
-            QTimer::singleShot(400,this,SLOT(showOsdMeun()));
+            // Display依靠P3K不能依靠配置文件，会导致上电后直接显示OSD菜单
         }
         else
         {
@@ -488,10 +476,10 @@ void MainWidget::getResolutionFromTiming()
             g_bDeviceSleepMode = true;
             update();
         }
-            // 显示休眠界面，更新
-            startSleepMode();
-            update();
-        }
+        // 显示休眠界面，更新
+        startSleepMode();
+        update();
+    }
 
     // 文件会被删除所以需要重新监控
     watch->addPath(RESOLUTION_CONFIG);
@@ -537,17 +525,16 @@ void MainWidget::handleKvmMsg(bool enable)
 {
     if(!enable)
     {
-        if(m_osdMeun->getdisplayStatus())
+        if(m_osdMeun->getdisplayConfig())
         {
             m_bKvmMode = false;
             showOsdMeun();
         }
-        freeKMControl();
     }
     else
     {
-         m_bKvmMode = true;
-         hideOsdMeun();
+        m_bKvmMode = true;
+        hideOsdMeun();
     }
 }
 
@@ -683,15 +670,13 @@ void MainWidget::hideOsdMeun()
     qDebug() << "main_0_4_1_2";
 
     // 隐藏菜单后释放KM
-    if(!m_bKvmMode)
-    {
-        freeKMControl();
-    }
+    freeKMControl();
 
     g_bOSDMeunDisplay = false;
 
     // 隐藏OSD菜单时，继续显示常显Overlay
     QTimer::singleShot(400,this,SLOT(showLongDisplay()));
+    m_osdMeun->setdisplayStatus(false);
 }
 
 void MainWidget::showOsdMeun()
@@ -702,16 +687,14 @@ void MainWidget::showOsdMeun()
     m_osdMeun->resize(m_osdMeun->width(),height());
     m_osdMeun->setVisible(false);
 
-    if(m_bKvmMode)
-    {
-        getKMControl();
-    }
+    getKMControl();
 
     // 防遮挡，显示在最顶层
     m_osdMeun->activateWindow();
     m_osdMeun->raise();
 
     moveOsdMeun(m_osdMeun->getShowPosition());
+    m_osdMeun->setdisplayStatus(true);
 }
 
 void MainWidget::moveOsdMeun(int position)

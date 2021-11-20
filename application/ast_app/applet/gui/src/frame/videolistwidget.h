@@ -36,6 +36,7 @@ public:
     int getCurrentPage(){return m_currentPage;}
     int getShowPosition(){return m_showPosition;}
     int getdisplayStatus(){return m_displayStatus;}
+    int getdisplayConfig(){return m_displayConfig;}
 
     void startTimer(){osdOverTimer.start(m_overTime);};
     void stopTimer(){osdOverTimer.stop();}
@@ -50,8 +51,9 @@ public:
     void setListWidgetHeight();
     void setMeunFont();
     void setButtonFont();
+    int setdisplayStatus(bool cfg){m_displayStatus = cfg;}
 
-     void hideSettingPage();
+    void hideSettingPage();
 
 signals:
     void selectItem(const QString &text);
@@ -113,6 +115,7 @@ private:
     int m_maxChannels;
     int m_channelID;
     bool m_displayStatus;
+    bool m_displayConfig;
     int m_deviceTimeout;
 
     int m_showPosition;
