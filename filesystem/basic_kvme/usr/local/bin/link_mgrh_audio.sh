@@ -436,10 +436,20 @@ start_alm()
 		echo 100 > /sys/devices/platform/1500_i2s/analog_in_vol
 		echo 1 > /sys/class/leds/linein_mute/brightness
 		echo 1 > /sys/class/leds/lineout_mute/brightness
+		ipc @m_lm_set s set_hdmi_mute:16:1:0
+		if [ $MODEL_NUMBER = 'KDS-SW3-EN7' ];then
+			ipc @m_lm_set s set_hdmi_mute:17:1:0
+			echo 0 > /sys/class/leds/dante_mute/brightness
+		fi
 	else
 		echo 0 > /sys/devices/platform/1500_i2s/analog_in_vol
 		echo 0 > /sys/class/leds/linein_mute/brightness
 		echo 0 > /sys/class/leds/lineout_mute/brightness
+		ipc @m_lm_set s set_hdmi_mute:16:1:1
+		if [ $MODEL_NUMBER = 'KDS-SW3-EN7' ];then
+			ipc @m_lm_set s set_hdmi_mute:17:1:1
+			echo 1 > /sys/class/leds/dante_mute/brightness
+		fi
 	fi
 
 	if [ $UGP_FLAG = 'success' ];then

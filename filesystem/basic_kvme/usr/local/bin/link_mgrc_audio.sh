@@ -585,10 +585,12 @@ start_alm()
 		echo 100 > /sys/devices/platform/1500_i2s/analog_in_vol
 		echo 1 > /sys/class/leds/linein_mute/brightness
 		echo 1 > /sys/class/leds/lineout_mute/brightness
+		ipc @m_lm_set s set_hdmi_mute:16:1:0
 	else
 		echo 0 > /sys/devices/platform/1500_i2s/analog_in_vol
 		echo 0 > /sys/class/leds/linein_mute/brightness
 		echo 0 > /sys/class/leds/lineout_mute/brightness
+		ipc @m_lm_set s set_hdmi_mute:16:1:1
 	fi
 }
 
