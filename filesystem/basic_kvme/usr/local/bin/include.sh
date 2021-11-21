@@ -60,7 +60,7 @@ OSD_FROM_GUI='y'
 JUMBO_MTU='8000'
 IEEE8021X_PATH='/data/configs/kds-7/secure'
 IEEE8021X_JSON_PATH="$IEEE8021X_PATH/ieee802_1x_setting.json"
-LOG_JSON_PATH=="/data/configs/kds-7/log/log_setting.json"
+LOG_JSON_PATH="/data/configs/kds-7/log/log_setting.json"
 
 #. ip_mapping.sh
 . bash/utilities.sh
