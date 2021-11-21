@@ -25,6 +25,8 @@ mknod /dev/mtdblkroparam b 31 9
 #echo "Extracting rootfs patch..."
 #tar zxf /dev/mtdblkrootfsp -C /
 
+echo no > /sys/devices/platform/watchdog/enable
+
 e2fsck -p /dev/mtdblkdata
 e2fsck -y /dev/mtdblkdata
 mount /dev/mtdblkdata /data
