@@ -870,9 +870,12 @@ refresh_enabled_service_list()
 
 handle_e_reconnect_on_boot()
 {
-	refresh_enabled_service_list
-
-	do_e_reconnect
+	if [ "$P3KCFG_AV_ACTION" = 'play' ];then
+		refresh_enabled_service_list
+		do_e_reconnect
+	else
+		to_s_idle
+	fi
 }
 
 handle_e_reconnect_all()
@@ -1445,9 +1448,6 @@ handle_e_ip_got()
 		usleep 10000
 		web &
 
-		if [ "$P3KCFG_AV_ACTION" = 'stop' ];then
-			e e_stop_link
-		fi
 		case $MODEL_NUMBER in
 			KDS-DEC7)
 				if [ $P3KCFG_FP_LOCK_ON = 'off' ];then
@@ -1730,6 +1730,7 @@ handle_e_eth_link_on()
 		return
 	fi
 
+	init_param_from_p3k_cfg
 	set_mtu
 	stop_eth_link_off_timer
 	case "$STATE" in
@@ -1747,7 +1748,9 @@ handle_e_eth_link_on()
 			{ avahi-daemon -k 2>/dev/null; sleep 1; avahi-daemon -D; } &
 
 			if [ "$ACCESS_ON" = 'y' ]; then
-				handle_e_reconnect_refresh
+				if [ "$P3KCFG_AV_ACTION" = 'play' ];then
+					handle_e_reconnect_refresh
+				fi
 			else
 				inform_gui "Press the link button to connect"
 			fi

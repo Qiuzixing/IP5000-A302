@@ -303,7 +303,11 @@ handle_e_sys_init_ok()
 			link_mgrh_cec.sh
 		fi
 
-		do_ready_to_go
+		if [ "$P3KCFG_AV_ACTION" = 'play' ];then
+			do_ready_to_go
+		else
+			to_s_idle
+		fi
 
 		set_igmp_leave_force
 	fi
@@ -741,9 +745,6 @@ handle_e_ip_got()
 		p3ktcp &
 		usleep 10000
 		web &
-		if [ "$P3KCFG_AV_ACTION" = 'stop' ];then
-			e e_stop_link
-		fi
 		case $MODEL_NUMBER in
 			KDS-SW3-EN7)
 					if [ $P3KCFG_FP_LOCK_ON = 'off' ];then
@@ -815,6 +816,7 @@ handle_e_eth_link_on()
 		echo "Network link is down again"
 		return
 	fi
+	init_param_from_p3k_cfg
 	set_mtu
 
 	case "$STATE" in
@@ -833,7 +835,9 @@ handle_e_eth_link_on()
 			# Eth link mode may change. Should update profile based on new Eth link mode.
 			apply_profile_config `select_v_input refresh`
 			if [ "$ACCESS_ON" = 'y' ]; then
-				handle_e_reconnect_refresh
+				if [ "$P3KCFG_AV_ACTION" = 'play' ];then
+					handle_e_reconnect_refresh
+				fi
 			fi
 		;;
 		*)
