@@ -13,11 +13,8 @@ extern "C"{
 
 int init_p3k_client(char *ip, int port);
 int get_specified_string_from_file(const char *file, char *channel_list[1000]);
-<<<<<<< HEAD
 int Decode_Get_Chenel_List(char *list[1000]);
 
-=======
->>>>>>> 1cc50a553ba25919b4221eb37fc5a96e9915eb69
 
 int GET_IP(int NET_ID, char *IP, char *MASK, char *GATEWAY);
 int SET_IP(int NET_ID, char *IP, char *MASK, char *GATEWAY);

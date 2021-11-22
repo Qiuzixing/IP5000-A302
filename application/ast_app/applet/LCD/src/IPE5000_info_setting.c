@@ -95,7 +95,6 @@ const char* DEV_INFO_LIST_E[] = {
 
 const char* DEV_SETTINGS_LIST_E[] = {
     "DEV SETTINGS", "EDID SETTING", "HDCP SETTING", "CH DEFINE",
-<<<<<<< HEAD
 };
 // END LEVEL 2
 
@@ -123,42 +122,6 @@ char *CH_LIST_E[100] = {"NO SIGNAL",};
 const char* MAIN_MENU_strings_E[] = {
     "MAIN MENU", "VIDEO SELECT", "IP SETTING", "HDCP SETTING",
     "VIDEO OUT RES", "FIRMWARE INFO", "DEVICE STATUS",
-=======
->>>>>>> 1cc50a553ba25919b4221eb37fc5a96e9915eb69
-};
-// END LEVEL 2
-
-
-// LEVEL 3
-char RESOL_BUF_E[20]       = {0};
-char HDCP_STATUS_BUF_E[20] = {0};
-const char* HDMI_STATUS_LIST_E[] = {
-    "HDMI STATUS", (const char*)RESOL_BUF_E, (const char*)HDCP_STATUS_BUF_E,
-};
-
-char EDID_BUF_E[10][20] = {"EDID SETTING",{0},{0},{0},{0},{0},{0},{0},{0},{0}};
-
-const char *EDID_LIST_E[] = {(const char *)EDID_BUF_E[0], (const char *)EDID_BUF_E[1],(const char *)EDID_BUF_E[2],(const char *)EDID_BUF_E[3],(const char *)EDID_BUF_E[4],
-                       (const char *)EDID_BUF_E[5],(const char *)EDID_BUF_E[6],(const char *)EDID_BUF_E[7],(const char *)EDID_BUF_E[8],(const char *)EDID_BUF_E[9]};
-
-<<<<<<< HEAD
-const char* IP_SET_strings_E[] = {
-    "IP SETTING", "LAN1 SETTING", "LAN2 SETTING",
-};
-    
-=======
-const char *HDCP_LIST_E[] = {"HDCP SETTING", "ON", "OFF"};
->>>>>>> 1cc50a553ba25919b4221eb37fc5a96e9915eb69
-
-int CH_TATOL_NUM_E = 0;
-char *CH_LIST_E[100] = {"NO SIGNAL",};
-// END LEVEL 3
-
-
-#if 0
-const char* MAIN_MENU_strings_E[] = {
-    "MAIN MENU", "VIDEO SELECT", "IP SETTING", "HDCP SETTING",
-    "VIDEO OUT RES", "FIRMWARE INFO", "DEVICE STATUS",
 };
 
 const char* IP_SET_strings_E[] = {
@@ -166,10 +129,6 @@ const char* IP_SET_strings_E[] = {
 };
     
 
-
-const char* LAN_OPTION_strings_E[] = {
-    "LAN INFO", "LAN ADDR", "LAN MASK", "LAN GATEWAY",
-};
 
 const char* LAN_OPTION_strings_E[] = {
     "LAN INFO", "LAN ADDR", "LAN MASK", "LAN GATEWAY",
@@ -531,7 +490,6 @@ static int recv_init_E()
 {
     int err = 0;
     pthread_mutex_init(&g_lock_E, NULL);
-<<<<<<< HEAD
 
 	err = msg_queue_create();
     if (err == -1)
@@ -540,9 +498,6 @@ static int recv_init_E()
         return -1;
     }
 	
-=======
-    
->>>>>>> 1cc50a553ba25919b4221eb37fc5a96e9915eb69
     err = msg_queue_destroy();
     if (err != 0)
     {
@@ -805,7 +760,7 @@ static void LAN_STATUS_E(int interface_id)
         switch (key)
         {
             case LEFT_KEY: 
-            {  
+            {  
                 return;
             }
         }
@@ -814,7 +769,7 @@ static void LAN_STATUS_E(int interface_id)
 
 // 1.3 DEV STATUS -> HDMI STATUS
 static int HDMI_STATUS_E()
-{
+{
     //1.resolution
     GET_ACTUAL_RESOLUTION(RESOL_BUF_E);
     
@@ -876,7 +831,6 @@ static int CH_DEFINE_E()
             }
         }
     }
-<<<<<<< HEAD
 
 }
 
@@ -943,39 +897,11 @@ static int DEV_INFO_E()
         switch (key)
         {
             case LEFT_KEY:  //返回上一级目录
-=======
-
-}
-
-// 1.5 DEV STATUS -> TEMPERATURE
-static int TEMPERATURE_E()
-{
-    int err = -1;
-    char temp[20] = {0};
-    
-    err = GET_TEMPERATURE(temp);
-    if (err == -1)
-        return -1;
-
-    clear_whole_screen();
-    show_strings(0, 16, "TEMPERATURE", strlen("TEMPERATURE") ,1);
-    show_strings(2, 16, temp, strlen(temp) ,1);
-    
-    int key = 0;
-    while (1)
-    { 
-        key = recv_key_info_E();
-
-        switch (key)
-        {
-            case LEFT_KEY:
->>>>>>> 1cc50a553ba25919b4221eb37fc5a96e9915eb69
             {
                 return 0;
             }
         }
     }
-<<<<<<< HEAD
 }
 
 
@@ -988,21 +914,6 @@ static int DEV_SETTINGS_E()
     int x = 2; //方括号位置
     int last_page = 0;
 
-=======
-    
-}
-
-
-// 2. DEV INFO
-static int DEV_INFO_E()
-{
-    u8 count = sizeof(DEV_INFO_LIST_E)/(sizeof(char*));
-    
-    int p = 4; 
-    int y = 8;
-    int x = 2; //方括号位置
-    int last_page = 0;
->>>>>>> 1cc50a553ba25919b4221eb37fc5a96e9915eb69
     
     info_param param;
     param.x = x;
@@ -1010,7 +921,6 @@ static int DEV_INFO_E()
     param.p = p;
     param.last_page = last_page;
 
-<<<<<<< HEAD
     clear_whole_screen();
     show_strings(0, y, DEV_SETTINGS_LIST_E[0], strlen(DEV_SETTINGS_LIST_E[0]), 1); 
     show_menu_info_E(y, 1, DEV_SETTINGS_SHOWWING_E, DEV_SETTINGS_LIST_E, count>4? 3 : count-1);
@@ -1079,30 +989,10 @@ static int DEV_INFO_E()
             }
             case LEFT_KEY:
             {   
-=======
-    //get device info
-    GET_FW_VERSION(FW_VERSION_E);
-    GET_BL_VERSION(BL_VERSION_E);
-    GET_HW_VERSION(HW_VERSION_E);
-    
-    clear_whole_screen();
-    show_strings(0, y, DEV_INFO_LIST_E[0], strlen(DEV_INFO_LIST_E[0]), 1); 
-    show_menu_info_E(y, 1, DEV_INFO_SHOWWING_E, DEV_INFO_LIST_E, count>4? 3 : count-1);
-
-    int key = 0;
-    while (1)
-    {
-        key = recv_key_info_E();
-        switch (key)
-        {
-            case LEFT_KEY:  //返回上一级目录
-            {
->>>>>>> 1cc50a553ba25919b4221eb37fc5a96e9915eb69
                 return 0;
             }
         }
     }
-<<<<<<< HEAD
 
 }
 
@@ -1193,125 +1083,6 @@ static int EDID_SETTING_E()
 
 static int HDCP_SETTING_E()
 {
-=======
-}
-
-
-// 3  DEV SETTINGS
-static int DEV_SETTINGS_E()
-{
-    u8 count = sizeof(DEV_SETTINGS_LIST_E)/(sizeof(char*)); //DEV_STATUS_E的元素个数
-    int p = 4; 
-    int y = 16;
-    int x = 2; //方括号位置
-    int last_page = 0;
-
-    
-    info_param param;
-    param.x = x;
-    param.y = y;
-    param.p = p;
-    param.last_page = last_page;
-
-    clear_whole_screen();
-    show_strings(0, y, DEV_SETTINGS_LIST_E[0], strlen(DEV_SETTINGS_LIST_E[0]), 1); 
-    show_menu_info_E(y, 1, DEV_SETTINGS_SHOWWING_E, DEV_SETTINGS_LIST_E, count>4? 3 : count-1);
-    show_square_breakets(x);
-    
-    int key = 0;
-    while (1)
-    { 
-        key = recv_key_info_E();
-
-        switch (key)
-        {
-            case UP_KEY:
-            case DOWN_KEY:
-            {
-                param = down_up_respond_E(count, param, DEV_SETTINGS_SHOWWING_E, DEV_SETTINGS_LIST_E, key);
-                break;
-            }
-            
-            case RIGHT_KEY:
-            case ENTER_KEY:
-            {
-                do {
-                    
-                    if (DEV_SETTINGS_SHOWWING_E[param.x/2] == DEV_SETTINGS_LIST_E[1]) // EDID SETTING 
-                    {
-                        EDID_SETTING_E();
-                        break;
-                    }
-                    
-                    if (DEV_SETTINGS_SHOWWING_E[param.x/2] == DEV_SETTINGS_LIST_E[2]) // HDCP SETTING
-                    {
-                        HDCP_SETTING_E();
-                        break;
-                    }
-    
-                    if (DEV_SETTINGS_SHOWWING_E[param.x/2] == DEV_SETTINGS_LIST_E[3]) // CH DEFINE
-                    {
-                        CH_SELECT_E();
-                        break;
-                    }
-                    
-                }while(0);
-
-                clear_whole_screen();
-                //从子目录出来， 恢复显示这一级目录
-                int i = 0;
-                show_strings(0, y, DEV_SETTINGS_SHOWWING_E[0], strlen(DEV_SETTINGS_SHOWWING_E[0]), 1); 
-                for (i = 1; i < 4; i++)
-                {
-                    if (DEV_SETTINGS_SHOWWING_E[i] != NULL)
-                        show_strings(i*2, y, DEV_SETTINGS_SHOWWING_E[i], strlen(DEV_SETTINGS_SHOWWING_E[i]), 1); 
-                }
-                show_square_breakets(param.x);
-
-                for (i = 3; i > 0; i--)
-                {
-                    if (strlen(DEV_SETTINGS_SHOWWING_E[i]) != 1) 
-                    {
-                        move_limit_E = i*2;
-                        break;
-                    }
-                }
-                
-                break;
-            }
-            case LEFT_KEY:
-            {   
-                return 0;
-            }
-        }
-    }
-
-}
-
-/*
-static int get_buf_num_E(char *buf[20], int lenth)
-{
-    int i = 0;
-    int num = 0;
-    for (i = 0; i < lenth; i++)
-    {
-        if (strlen(buf[i] > 0))
-        {
-            num++;
-        }
-    }
-    return num; 
-}
-*/
-static int EDID_SETTING_E()
-{
-    char buf[20] = {0};
-    u8 count = GET_EDID_LIST(EDID_BUF_E);
-    printf("count=%d\n", count);
-    GET_EDID(buf);
-    
-
->>>>>>> 1cc50a553ba25919b4221eb37fc5a96e9915eb69
     int p = 4; 
     int y = 16; //有*要显示
     int x = 2; //方括号位置
@@ -1322,7 +1093,6 @@ static int EDID_SETTING_E()
     param.y = y;
     param.p = p;
     param.last_page = last_page;
-<<<<<<< HEAD
 
     int star_x = 2;
     char mode[20] = {0};
@@ -1346,31 +1116,12 @@ static int EDID_SETTING_E()
     show_a_star(star_x);
 
     int key = 0;
-=======
-        
-    clear_whole_screen();  //新一级的目录，清屏
-    show_strings(0, y, EDID_LIST_E[0], strlen(EDID_LIST_E[0]), 1); 
-    show_menu_info_E(y, 1, EDID_SHOWWING_E, EDID_LIST_E, count>4? 3 : count-1);
-    show_square_breakets(x);
-
-    int i = 0;
-    for (i = 1; i < 4; i++)
-    {   
-        if (strstr(EDID_SHOWWING_E[i], buf) != NULL)
-        {
-            show_a_star(2*i);
-        }       
-    }
-
-    int key = 0; 
->>>>>>> 1cc50a553ba25919b4221eb37fc5a96e9915eb69
     while (1)
     {
         key = recv_key_info_E();
         switch (key)
         {
             case DOWN_KEY:
-<<<<<<< HEAD
             {
             	star_x += 2;
                 if (star_x > 4)
@@ -1405,120 +1156,6 @@ static int EDID_SETTING_E()
                     show_a_star(star_x);
                     SET_HDCP_MODE("OFF");
                 }
-=======
-            case UP_KEY:
-            {
-                param = down_up_respond_E(count, param, EDID_SHOWWING_E, EDID_LIST_E, key);
-                for (i = 1; i < 4; i++)
-                {   
-                    if (strstr(EDID_SHOWWING_E[i], buf) != NULL)
-                    {
-                        show_a_star(2*i);
-                    }       
-                }
-                break;
-            }
-            
-            case RIGHT_KEY: //标记*号
-            case ENTER_KEY:
-            {
-                show_a_star(param.x); 
-                SET_EDID(EDID_SHOWWING_E[param.x/2][0]);
->>>>>>> 1cc50a553ba25919b4221eb37fc5a96e9915eb69
-                break;
-            }
-            
-            case LEFT_KEY:
-            {
-                return 0;
-            }
-        }
-<<<<<<< HEAD
-    }   
-}
-
-static int CH_SELECT_E()
-{
-=======
-    }
-    
-}
-
-static int HDCP_SETTING_E()
-{
-    int p = 4; 
-    int y = 16; //有*要显示
-    int x = 2; //方括号位置
-    int last_page = 0;
-    
-    info_param param;
-    param.x = x;
-    param.y = y;
-    param.p = p;
-    param.last_page = last_page;
-
-    int star_x = 2;
-    char mode[20] = {0};
-    GET_HDCP_MODE(mode);
-    if (strstr(mode, "ON") != NULL)
-    {
-        star_x = 2;
-    }
-    else if (strstr(mode, "OFF") != NULL)
-    {
-        star_x = 4;
-    }
-
-    clear_whole_screen();  //新一级的目录，清屏
-    int i = 0;
-    for (i = 0; i < 3; i++)
-    {
-        show_strings(i*2, y, HDCP_LIST_E[i], strlen(HDCP_LIST_E[i]), 1);
-    }
-    show_square_breakets(star_x);
-    show_a_star(star_x);
-
-    int key = 0;
-    while (1)
-    {
-        key = recv_key_info_E();
-        switch (key)
-        {
-            case DOWN_KEY:
-            {
-                if (x == 2)
-                {
-                    x = 4;
-                    show_square_breakets(x);
-                }
-                break;
-            }
-            
-            case UP_KEY:
-            {
-                if (x == 4)
-                {
-                    x = 2;
-                    show_square_breakets(x);
-                }
-                
-                break;
-            }
-            
-            case RIGHT_KEY:
-            case ENTER_KEY:
-            {               
-                if (x == 2)
-                {
-                    show_a_star(x);
-                    SET_HDCP_MODE("ON");
-                }
-                
-                else if (x == 4)            
-                {                   
-                    show_a_star(x);
-                    SET_HDCP_MODE("OFF");
-                }
                 break;
             }
             
@@ -1532,7 +1169,6 @@ static int HDCP_SETTING_E()
 
 static int CH_SELECT_E()
 {
->>>>>>> 1cc50a553ba25919b4221eb37fc5a96e9915eb69
     int x = 2; 
     int y = 16;
     char channel_id[20] = {0};

@@ -23,7 +23,7 @@ default:clean build_lcd build_send
 	mkdir -p $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 	cp -f $(LCD)  $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 	cp -f $(SEND)  $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
-	
+
 build_lcd:$(OBJS1)
 	$(CC) $^ -o $(LCD) $(LDFLAGS)
 	

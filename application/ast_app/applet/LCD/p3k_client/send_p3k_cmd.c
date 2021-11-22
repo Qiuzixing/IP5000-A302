@@ -5,10 +5,7 @@
 #include "tcp_client.h"
 #include "send_p3k_cmd.h"
 
-<<<<<<< HEAD
 // 77
-=======
->>>>>>> 1cc50a553ba25919b4221eb37fc5a96e9915eb69
 static const char* ResolutionList[] = {
     "NO SIGNAL",
     "640X480P60",
@@ -90,11 +87,7 @@ static const char* ResolutionList[] = {
 };
 
 //#define FIRMWARE_INFO_FILE    "/etc/board_info.json"
-<<<<<<< HEAD
 #define DECODE_CHANNEL_MAP         "/data/configs/kds-7/channel/channel_map.json"
-=======
-#define VIDEO_INFO_FILE         "/data/configs/kds-7/channel/channel_map.json"
->>>>>>> 1cc50a553ba25919b4221eb37fc5a96e9915eb69
 
 //#define FIRMWARE_SYMBOL           "version\": "
 
@@ -124,11 +117,7 @@ static const char* ResolutionList[] = {
 
 #define     HDCP_MODE_SET_CMD       "#HDCP-MOD 1,"
 #define     HDCP_MODE_GET_CMD       "#HDCP-MOD? 1"
-<<<<<<< HEAD
 #define     HDCP_MODE_RECV_HEAD     "@HDCP-MOD 1,"
-=======
-#define     HDCP_MODE_RECV_HEAD     "@HDCPMOD 1,"
->>>>>>> 1cc50a553ba25919b4221eb37fc5a96e9915eb69
 
 
 
@@ -166,11 +155,7 @@ static const char* ResolutionList[] = {
 
 //temperature
 #define     TEMP_GET_CMD            "#HW-TEMP? 0,0"
-<<<<<<< HEAD
 #define     TEMP_RECV_HEAD          "@HW-TEMP 0,"
-=======
-#define     TEMP_RECV_HEAD          "@HW-TEMP 0, "
->>>>>>> 1cc50a553ba25919b4221eb37fc5a96e9915eb69
 
 //version
 #define     FW_VER_GET_CMD          "#VERSION?"
@@ -199,7 +184,6 @@ int init_p3k_client(char *ip, int port)
     return err;
 }
 
-<<<<<<< HEAD
 int Decode_Get_Chenel_List(char *list[1000])
 {
 	int num = 0;
@@ -257,11 +241,6 @@ int Decode_Get_Chenel_List(char *list[1000])
 int get_specified_string_from_file(const char *file, char *channel_list[100]) 
 {
 
-=======
-int get_specified_string_from_file(const char *file, char *channel_list[100]) 
-{
-    printf("get_specified entry \n");
->>>>>>> 1cc50a553ba25919b4221eb37fc5a96e9915eb69
     int i = 0, n = 0;
     char *str = NULL;
     FILE *fd = NULL;
@@ -281,15 +260,9 @@ int get_specified_string_from_file(const char *file, char *channel_list[100])
         memset(recv_buf, 0, SIZE0);
         fgets(recv_buf, SIZE0, fd);
 
-<<<<<<< HEAD
         if (str = strstr(recv_buf, "id\":"))
         {
             str += strlen("id\":");
-=======
-        if (str = strstr(recv_buf, "id\" :"))
-        {
-            str += strlen("id\" :");
->>>>>>> 1cc50a553ba25919b4221eb37fc5a96e9915eb69
             while(str[0] == ' ')
             {
                 str++;
@@ -620,11 +593,8 @@ int GET_HDCP_STATUS(char *hdcp_status)
     return 0;
 }
 
-<<<<<<< HEAD
 // 0-HDCP OFF,   1-HDCP ON 
 
-=======
->>>>>>> 1cc50a553ba25919b4221eb37fc5a96e9915eb69
 int GET_HDCP_MODE(char *mode)
 {
     int res = 0;
@@ -634,20 +604,11 @@ int GET_HDCP_MODE(char *mode)
     if (res == -1)
         return -1;
 
-<<<<<<< HEAD
 	strcpy(mode, recv_buf);
 
     return 0;
 }
 
-=======
-    strcpy(mode, recv_buf);
-    
-    return 0;
-}
-
-// 0-HDCP OFF,   1-HDCP ON 
->>>>>>> 1cc50a553ba25919b4221eb37fc5a96e9915eb69
 int  SET_HDCP_MODE(char *mode)
 {
     int res = 0;
@@ -736,20 +697,14 @@ int set_INPUT_INFO(int num)
 }
 #endif
 
-<<<<<<< HEAD
 /*
-=======
->>>>>>> 1cc50a553ba25919b4221eb37fc5a96e9915eb69
 int CHANNEL_LIST(char *info_buf[100])
 {
     int err;
     err = get_specified_string_from_file(VIDEO_INFO_FILE, info_buf);
     return err;
 }
-<<<<<<< HEAD
 */
-=======
->>>>>>> 1cc50a553ba25919b4221eb37fc5a96e9915eb69
 
 /*
 int select_voide_channel(int num)
@@ -831,11 +786,7 @@ int GET_CHANNEL_ID()
     if (res == -1)
         return -1;
 
-<<<<<<< HEAD
     id = atoi(recv_buf);
-=======
-    id = recv_buf[0] - '0';
->>>>>>> 1cc50a553ba25919b4221eb37fc5a96e9915eb69
     return id;
 }
 
@@ -857,12 +808,8 @@ int GET_TEMPERATURE(char *temp)
     if (res == -1)
         return -1;
 
-<<<<<<< HEAD
 	sprintf(temp, "%s %s", recv_buf, "C");
     //strcpy(temp, recv_buf);
-=======
-    strcpy(temp, recv_buf);
->>>>>>> 1cc50a553ba25919b4221eb37fc5a96e9915eb69
     
     return 0;
 }
@@ -1032,11 +979,7 @@ int GET_ACTUAL_RESOLUTION(char *resol_buf)
     printf("recv:[%s]\n", recv_buf);
     res = atoi(recv_buf);
 
-<<<<<<< HEAD
     if ((res >= 0) && (res <= 77))
-=======
-    if ((res > 0) && (res < 76))
->>>>>>> 1cc50a553ba25919b4221eb37fc5a96e9915eb69
     {
         lenth = strlen(ResolutionList[res]);
         strncpy(resol_buf, ResolutionList[res], lenth);
