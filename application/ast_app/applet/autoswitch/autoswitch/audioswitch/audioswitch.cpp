@@ -319,6 +319,10 @@ bool AudioSwitch::parseConfigFile()
 
                 if (switchJson.isMember("source_select")) {
                     QString portStr = switchJson["source_select"].asCString();
+                    qDebug () << "source_select str:" << portStr;
+                    if (portStr.toLower() == "none") {
+                        portStr = "no";
+                    }
                     if (audioList.contains(portStr)) {
                         manualPort = audioList.indexOf(portStr);
                     }
