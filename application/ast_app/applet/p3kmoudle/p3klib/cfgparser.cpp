@@ -233,10 +233,20 @@ int Cfg_Init_Audio(void)
 	g_audio_info.switch_mode = CONNECT_LAST;
 	g_audio_info.input_pri[0] = AUDIO_IN_HDMI;
 	g_audio_info.input_pri[1] = AUDIO_IN_ANALOG;
-	g_audio_info.input_pri[2] = AUDIO_IN_DANTE;
+
+	if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+		g_audio_info.input_pri[2] = AUDIO_IN_DANTE;
+	else
+		g_audio_info.input_pri[2] = AUDIO_IN_NONE;
+
 	g_audio_info.dst_port[0] = PORT_STREAM;
 	g_audio_info.dst_port[1] = PORT_HDMI;
-	g_audio_info.dst_port[2] = PORT_DANTE;
+
+	if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+		g_audio_info.dst_port[2] = PORT_DANTE;
+	else
+		g_audio_info.dst_port[2] = PORT_NONE;
+
 	g_audio_info.dst_port[3] = PORT_NONE;
 	g_audio_info.source = AUDIO_IN_HDMI;
 	sprintf(g_audio_info.dante_name,"dante");
@@ -318,8 +328,14 @@ int Cfg_Init_Audio(void)
 
 			if(!root[JSON_PRIORITY].empty())
 			{
+				g_audio_info.input_pri[0] = AUDIO_IN_NONE;
+				g_audio_info.input_pri[1] = AUDIO_IN_NONE;
+				g_audio_info.input_pri[2] = AUDIO_IN_NONE;
+
 				Json::Value& JsonPriorityArray = root[JSON_PRIORITY];
 				//printf("JsonPriorityArray.size() = %d\n",JsonPriorityArray.size());
+
+				int jjj = 0;
 
 				for(unsigned int i = 0; i < JsonPriorityArray.size(); i++)
 				{
@@ -328,17 +344,30 @@ int Cfg_Init_Audio(void)
 
 					if(input == JSON_AUDIO_DANTE)
 					{
-						g_audio_info.input_pri[i] = AUDIO_IN_DANTE;
+						if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+						{
+							g_audio_info.input_pri[jjj] = AUDIO_IN_DANTE;
+							jjj++;
+						}
 						continue;
 					}
 					else if(input == JSON_AUDIO_ANALOG)
 					{
-						g_audio_info.input_pri[i] = AUDIO_IN_ANALOG;
+						if(g_audio_info.direction == DIRECTION_IN)
+						{
+							g_audio_info.input_pri[jjj] = AUDIO_IN_ANALOG;
+							jjj++;
+						}
 						continue;
 					}
 					else if(input == JSON_AUDIO_HDMI)
 					{
-						g_audio_info.input_pri[i] = AUDIO_IN_HDMI;
+						g_audio_info.input_pri[jjj] = AUDIO_IN_HDMI;
+						jjj++;
+						continue;
+					}
+					else
+					{
 						continue;
 					}
 				}
@@ -346,6 +375,12 @@ int Cfg_Init_Audio(void)
 
 			if(!root[JSON_AUDIO_DEST].empty())
 			{
+				g_audio_info.dst_port[0] = PORT_NONE;
+				g_audio_info.dst_port[1] = PORT_NONE;
+				g_audio_info.dst_port[2] = PORT_NONE;
+				g_audio_info.dst_port[3] = PORT_NONE;
+
+				int jjj = 0;
 				Json::Value& JsonDstArray = root[JSON_AUDIO_DEST];
 				//printf("JsonDstArray.size() = %d\n",JsonDstArray.size());
 
@@ -360,29 +395,41 @@ int Cfg_Init_Audio(void)
 					if(output == JSON_AUDIO_DANTE)
 					{
 						if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
-							g_audio_info.dst_port[i] = PORT_DANTE;
-
+						{
+							g_audio_info.dst_port[jjj] = PORT_DANTE;
+							jjj++;
+						}
 						continue;
 					}
 					else if(output == JSON_AUDIO_ANALOG)
 					{
-						g_audio_info.dst_port[i] = PORT_ANALOG_AUDIO;
+						if(g_audio_info.direction == DIRECTION_OUT)
+						{
+							g_audio_info.dst_port[jjj] = PORT_ANALOG_AUDIO;
+							jjj++;
+						}
+
 						continue;
 					}
 					else if(output == JSON_AUDIO_HDMI)
 					{
-
 						if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
-							g_audio_info.dst_port[i] = PORT_HDMI;
+						{
+							g_audio_info.dst_port[jjj] = PORT_HDMI;
+							jjj++;
+						}
 						continue;
 					}
 					else if(output == JSON_AUDIO_LAN)
 					{
-						g_audio_info.dst_port[i] = PORT_STREAM;
+						g_audio_info.dst_port[jjj] = PORT_STREAM;
+						jjj++;
 						continue;
 					}
 					else
-						break;
+					{
+						continue;
+					}
 				}
 			}
 
@@ -390,11 +437,23 @@ int Cfg_Init_Audio(void)
 			{
 				string input = root[JSON_SOURCE_SELECT].asString();
 				if(input == JSON_AUDIO_DANTE)
-					g_audio_info.source = AUDIO_IN_DANTE;
+				{
+					if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+						g_audio_info.source = AUDIO_IN_DANTE;
+					else
+						g_audio_info.source = AUDIO_IN_NONE;
+				}
 				else if(input == JSON_AUDIO_ANALOG)
-					g_audio_info.source = AUDIO_IN_ANALOG;
+				{
+					if(g_audio_info.direction == DIRECTION_IN)
+						g_audio_info.source = AUDIO_IN_ANALOG;
+					else
+						g_audio_info.source = AUDIO_IN_NONE;
+				}
 				else if(input == JSON_AUDIO_HDMI)
 					g_audio_info.source = AUDIO_IN_HDMI;
+				else
+					g_audio_info.source = AUDIO_IN_NONE;
 
 			}
 
@@ -402,7 +461,6 @@ int Cfg_Init_Audio(void)
 			{
 				if(!root[JSON_DANTE_NAME].empty())
 				{
-
 					string name = root[JSON_DANTE_NAME].asString();
 					sprintf(g_audio_info.dante_name,name.c_str());
 				}
@@ -420,7 +478,7 @@ int Cfg_Init_Audio(void)
 
 	fclose(fp);
 
-	if(bDanteUpdate == 1)
+	if((strcmp(g_version_info.model,IPE_P_MODULE) == 0)&&(bDanteUpdate == 1))
 		Cfg_Update(AUDIO_INFO);
 
 	return 0;
@@ -1738,22 +1796,26 @@ int Cfg_Init_Network(void)
 					if(!rs232_port[JSON_NETWORK_VLAN].empty())
 						g_network_info.rs232_vlan = rs232_port[JSON_NETWORK_VLAN].asInt();
 				}
-				if(!port[JSON_NETWORK_DANTE].empty())
+
+				if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
 				{
-					Json::Value& dante_port = port[JSON_NETWORK_DANTE];
-
-					if(!dante_port[JSON_NETWORK_PORT].empty())
+					if(!port[JSON_NETWORK_DANTE].empty())
 					{
-						string port = dante_port[JSON_NETWORK_PORT].asString();
-						if(port == JSON_NETWORK_ETH0)
-							g_network_info.dante_port = 0;
-						else
-							g_network_info.dante_port = 1;
+						Json::Value& dante_port = port[JSON_NETWORK_DANTE];
+
+						if(!dante_port[JSON_NETWORK_PORT].empty())
+						{
+							string port = dante_port[JSON_NETWORK_PORT].asString();
+							if(port == JSON_NETWORK_ETH0)
+								g_network_info.dante_port = 0;
+							else
+								g_network_info.dante_port = 1;
+						}
+
+						if(!dante_port[JSON_NETWORK_VLAN].empty())
+							g_network_info.rs232_vlan = dante_port[JSON_NETWORK_VLAN].asInt();
+
 					}
-
-					if(!dante_port[JSON_NETWORK_VLAN].empty())
-						g_network_info.rs232_vlan = dante_port[JSON_NETWORK_VLAN].asInt();
-
 				}
 			}
 
@@ -2611,99 +2673,155 @@ int Cfg_Update_Audio(void)
 	{
 		Json::Value JsonPriorityArray;
 		JsonPriorityArray.resize(3);
+		int jjj = 0;
 		for(int i = 0; i < 3; i++)
 		{
-			Json::Value& JasonPri = JsonPriorityArray[i];
+
+			Json::Value& JasonPri = JsonPriorityArray[jjj];
 
 			if(g_audio_info.input_pri[i] == AUDIO_IN_HDMI)
+			{
 				JasonPri = JSON_AUDIO_HDMI;
+				jjj++;
+			}
 			else if(g_audio_info.input_pri[i] == AUDIO_IN_ANALOG)
+			{
 				JasonPri = JSON_AUDIO_ANALOG;
+				jjj++;
+			}
 			else if(g_audio_info.input_pri[i] == AUDIO_IN_DANTE)
+			{
 				JasonPri = JSON_AUDIO_DANTE;
+				jjj++;
+			}
 			else
 				continue;
 		}
+
+		JsonPriorityArray.resize(jjj);
 
 		root[JSON_PRIORITY] = JsonPriorityArray;
 
 		Json::Value JsonDestArray;
 		JsonDestArray.resize(4);
+		jjj = 0;
 		for(int i = 0; i < 4; i++)
 		{
-			Json::Value& JsonDst = JsonDestArray[i];
+			Json::Value& JsonDst = JsonDestArray[jjj];
 
 			if(g_audio_info.dst_port[i] == PORT_HDMI)
+			{
 				JsonDst = JSON_AUDIO_HDMI;
+				jjj++;
+			}
 			else if(g_audio_info.dst_port[i] == PORT_ANALOG_AUDIO)
+			{
 				JsonDst = JSON_AUDIO_ANALOG;
+				jjj++;
+			}
 			else if(g_audio_info.dst_port[i] == PORT_DANTE)
+			{
 				JsonDst = JSON_AUDIO_DANTE;
+				jjj++;
+			}
 			else if(g_audio_info.dst_port[i] == PORT_STREAM)
+			{
 				JsonDst = JSON_AUDIO_LAN;
+				jjj++;
+			}
 			else
 			{
-				JsonDestArray.resize(i);
-				break;
+				continue;
 			}
 		}
+		JsonDestArray.resize(jjj);
 		root[JSON_AUDIO_DEST] = JsonDestArray;
 
 		if(g_audio_info.source == AUDIO_IN_HDMI)
 			root[JSON_SOURCE_SELECT] = JSON_AUDIO_HDMI;
 		else if(g_audio_info.source == AUDIO_IN_ANALOG)
-			root[JSON_SOURCE_SELECT] = JSON_AUDIO_ANALOG;
-		else
+		{
+			if(g_audio_info.direction == DIRECTION_IN)
+				root[JSON_SOURCE_SELECT] = JSON_AUDIO_ANALOG;
+			else
+				root[JSON_SOURCE_SELECT] = JSON_AUDIO_HDMI;
+		}
+		else if(g_audio_info.source == AUDIO_IN_DANTE)
+		{
 			root[JSON_SOURCE_SELECT] = JSON_AUDIO_DANTE;
+		}
+		else
+			root[JSON_SOURCE_SELECT] = JSON_AUDIO_HDMI;
+
 
 		if(g_bCfg == 0)
 		{
 			if(strlen(g_audio_info.dante_name) > 0)
 				root[JSON_DANTE_NAME] = g_audio_info.dante_name;
 		}
+
 	}
-	else
+	else // IPE5000W & IPE5000
 	{
+		int jjj = 0;
 		Json::Value JsonPriorityArray;
 		JsonPriorityArray.resize(2);
 		for(int i = 0; i < 2; i++)
 		{
-			Json::Value& JasonPri = JsonPriorityArray[i];
+			Json::Value& JasonPri = JsonPriorityArray[jjj];
 
 			if(g_audio_info.input_pri[i] == AUDIO_IN_HDMI)
+			{
 				JasonPri = JSON_AUDIO_HDMI;
+				jjj++;
+			}
 			else if(g_audio_info.input_pri[i] == AUDIO_IN_ANALOG)
+			{
 				JasonPri = JSON_AUDIO_ANALOG;
+				jjj++;
+			}
 			else
 				continue;
 		}
+		JsonPriorityArray.resize(jjj);
 
 		root[JSON_PRIORITY] = JsonPriorityArray;
 
 		Json::Value JsonDestArray;
 		JsonDestArray.resize(3);
+		jjj = 0;
 		for(int i = 0; i < 3; i++)
 		{
-			Json::Value& JsonDst = JsonDestArray[i];
+			Json::Value& JsonDst = JsonDestArray[jjj];
 
-			/*if(g_audio_info.dst_port[i] == PORT_HDMI)
-				JsonDst = JSON_AUDIO_HDMI;
-			else */if(g_audio_info.dst_port[i] == PORT_ANALOG_AUDIO)
+			if(g_audio_info.dst_port[i] == PORT_ANALOG_AUDIO)
+			{
 				JsonDst = JSON_AUDIO_ANALOG;
+				jjj++;
+			}
 			else if(g_audio_info.dst_port[i] == PORT_STREAM)
+			{
 				JsonDst = JSON_AUDIO_LAN;
+				jjj++;
+			}
 			else
 			{
-				JsonDestArray.resize(i);
-				break;
+				continue;
 			}
 		}
+
+		JsonDestArray.resize(jjj);
 		root[JSON_AUDIO_DEST] = JsonDestArray;
 
 		if(g_audio_info.source == AUDIO_IN_HDMI)
 			root[JSON_SOURCE_SELECT] = JSON_AUDIO_HDMI;
 		else
-			root[JSON_SOURCE_SELECT] = JSON_AUDIO_ANALOG;
+		{
+			if(g_audio_info.direction == DIRECTION_IN)
+				root[JSON_SOURCE_SELECT] = JSON_AUDIO_ANALOG;
+			else
+				root[JSON_SOURCE_SELECT] = JSON_AUDIO_HDMI;
+		}
 
 	}
 
@@ -3539,12 +3657,15 @@ int Cfg_Update_Network(void)
  	rs232[JSON_NETWORK_VLAN] = g_network_info.rs232_vlan;
  	port[JSON_NETWORK_RS232] = rs232;
 
-	if(g_network_info.dante_port == 0)
-		dante[JSON_NETWORK_PORT] = JSON_NETWORK_ETH0;
-	else
-		dante[JSON_NETWORK_PORT] = JSON_NETWORK_ETH1;
- 	dante[JSON_NETWORK_VLAN] = g_network_info.dante_vlan;
- 	port[JSON_NETWORK_DANTE] = dante;
+	if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+	{
+		if(g_network_info.dante_port == 0)
+			dante[JSON_NETWORK_PORT] = JSON_NETWORK_ETH0;
+		else
+			dante[JSON_NETWORK_PORT] = JSON_NETWORK_ETH1;
+	 	dante[JSON_NETWORK_VLAN] = g_network_info.dante_vlan;
+	 	port[JSON_NETWORK_DANTE] = dante;
+	}
 
 	root[JSON_NETWORK_PORT_SET] = port;
 
@@ -3846,13 +3967,45 @@ int Cfg_Set_Autoswitch_Priority(SignalType_E type,int port1, int port2,int port3
 	DBG_InfoMsg("Cfg_Set_Autoswitch_Priority\n");
 	if(type == SIGNAL_VIDEO)
 	{
-		g_autoswitch_info.input_pri[0] = port1;
-		g_autoswitch_info.input_pri[1] = port2;
-		g_autoswitch_info.input_pri[2] = port3;
-		Cfg_Update(AUTOSWITCH_INFO);
+		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+		{
+			g_autoswitch_info.input_pri[0] = port1;
+			g_autoswitch_info.input_pri[1] = port2;
+			g_autoswitch_info.input_pri[2] = port3;
+			Cfg_Update(AUTOSWITCH_INFO);
+		}
+		else if(strcmp(g_version_info.model,IPE_W_MODULE) == 0)
+		{
+			g_autoswitch_info.input_pri[0] = port1;
+			g_autoswitch_info.input_pri[1] = port2;
+			Cfg_Update(AUTOSWITCH_INFO);
+		}		
+		else
+		{
+			DBG_ErrMsg("This is not switcher\n");
+			return -1;
+
+		}
 	}
 	else if(type == SIGNAL_AUDIO)
 	{
+		if(g_audio_info.direction == DIRECTION_OUT)
+		{
+			if((port1 == AUDIO_IN_ANALOG)||(port2 == AUDIO_IN_ANALOG)||(port3 == AUDIO_IN_ANALOG))
+			{
+				DBG_ErrMsg("analog is out\n");
+				return -1;
+			}
+		}
+		else if(strcmp(g_version_info.model,IPE_P_MODULE) != 0)
+		{
+			if((port1 == AUDIO_IN_DANTE)||(port2 == AUDIO_IN_DANTE)||(port3 == AUDIO_IN_DANTE))
+			{
+				DBG_ErrMsg("This is not switcher\n");
+				return -1;
+			}
+
+		}
 		g_audio_info.input_pri[0] = (AudioInputMode_E)port1;
 		g_audio_info.input_pri[1] = (AudioInputMode_E)port2;
 		g_audio_info.input_pri[2] = (AudioInputMode_E)port3;
@@ -3899,8 +4052,16 @@ int Cfg_Set_Autoswitch_Source(SignalType_E type,int port)
 	}
 	else if(type == SIGNAL_AUDIO)
 	{
-		g_audio_info.source = (AudioInputMode_E)port;
-		Cfg_Update(AUDIO_INFO);
+		if((port == AUDIO_IN_ANALOG)&&(g_audio_info.direction == DIRECTION_IN))
+		{
+			g_audio_info.source = (AudioInputMode_E)port;
+			Cfg_Update(AUDIO_INFO);
+		}
+		else
+		{
+			DBG_ErrMsg("AUDIO_IN_ANALOG is out\n");
+			return -1;
+		}
 	}
 	else
 	{
@@ -3940,7 +4101,18 @@ int Cfg_Set_Audio_Dest(int count, PortSignalType_E* port)
 
 	for(int i = 0; i < count; i++)
 	{
-		g_audio_info.dst_port[i] = port[i];
+		if(port[i] == PORT_NONE)
+			break;
+		else if((port[i] == PORT_DANTE)&&(strcmp(g_version_info.model,IPE_P_MODULE) != 0))
+		{
+			break;
+		}
+		else if((port[i] == PORT_ANALOG_AUDIO)&&(g_audio_info.direction == DIRECTION_IN))
+		{
+			break;
+		}
+		else
+			g_audio_info.dst_port[i] = port[i];
 	}
 
 	Cfg_Update(AUDIO_INFO);
@@ -4141,12 +4313,19 @@ int Cfg_Set_Dev_HostName(int id, char* name)
 	}
 	else if(id == 1)//dante name
 	{
-		if(strlen(name) <= 31)
-			strcpy(g_audio_info.dante_name,name);
-		else
-			memcpy(g_audio_info.dante_name,name,31);
+		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+		{
+			if(strlen(name) <= 31)
+				strcpy(g_audio_info.dante_name,name);
+			else
+				memcpy(g_audio_info.dante_name,name,31);
 
-		Cfg_Update(AUDIO_INFO);
+			Cfg_Update(AUDIO_INFO);
+		}
+		else
+		{
+			DBG_ErrMsg("This is not switcher\n");
+		}
 	}
 	else
 	{
@@ -4165,7 +4344,10 @@ int Cfg_Get_Dev_HostName(int id, char* name)
 	}
 	else if(id == 1)//dante name
 	{
-		strcpy(name,g_audio_info.dante_name);
+		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+			strcpy(name,g_audio_info.dante_name);
+		else
+			DBG_ErrMsg("This is not switcher \n");
 	}
 	else
 	{
@@ -4674,7 +4856,17 @@ int Cfg_Set_Net_GW_Port(NetGWType_E type, int port) //type:p3k,rs232,dante
 	else if(type == Net_RS232) //RS232
 		g_network_info.rs232_port = port;
 	else if(type == Net_DANTE) //Dante
-		g_network_info.dante_port = port;
+	{
+		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+		{
+			g_network_info.dante_port = port;
+		}
+		else
+		{
+			DBG_WarnMsg("This is not switcher!!!\n");
+			return -1;
+		}
+	}
 	else
 	{
 		DBG_WarnMsg("Cfg_Set_Net_GW_Port type:%d is Wrong!!!\n",type);
@@ -4692,7 +4884,17 @@ int Cfg_Get_Net_GW_Port(NetGWType_E type, int* port)
 	else if(type == Net_RS232) //RS232
 		*port = g_network_info.rs232_port;
 	else if(type == Net_DANTE) //Dante
-		*port = g_network_info.dante_port;
+	{
+		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+		{
+			*port = g_network_info.dante_port;
+		}
+		else
+		{
+			DBG_WarnMsg("This is not switcher!!!\n");
+			return -1;
+		}
+	}
 	else
 	{
 		DBG_WarnMsg("Cfg_Get_Net_GW_Port type:%d is Wrong!!!\n",type);
@@ -4709,7 +4911,17 @@ int Cfg_Set_Net_GW_Vlan(NetGWType_E type, int vlan) //type:p3k,rs232,dante
 	else if(type == Net_RS232) //RS232
 		g_network_info.rs232_vlan = vlan;
 	else if(type == Net_DANTE) //Dante
-		g_network_info.dante_vlan = vlan;
+	{
+		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+		{
+			g_network_info.dante_vlan = vlan;
+		}
+		else
+		{
+			DBG_WarnMsg("This is not switcher!!!\n");
+			return -1;
+		}
+	}
 	else
 	{
 		DBG_WarnMsg("Cfg_Set_Net_GW_Vlan type:%d is Wrong!!!\n",type);
@@ -4727,7 +4939,17 @@ int Cfg_Get_Net_GW_Vlan(NetGWType_E type, int* vlan)
 	else if(type == Net_RS232) //RS232
 		*vlan = g_network_info.rs232_vlan;
 	else if(type == Net_DANTE) //Dante
-		*vlan = g_network_info.dante_vlan;
+	{
+		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+		{
+			*vlan = g_network_info.dante_vlan;
+		}
+		else
+		{
+			DBG_WarnMsg("This is not switcher!!!\n");
+			return -1;
+		}
+	}
 	else
 	{
 		DBG_WarnMsg("Cfg_Get_Net_GW_Vlan type:%d is Wrong!!!\n",type);

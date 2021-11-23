@@ -294,7 +294,17 @@ int  EX_SetAudSrcMode(int mode)
 		}
 	}
 	else if(mode == 4)
-		sprintf(sCmd,"e_p3k_audio_src::dante");
+	{
+		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+		{
+			sprintf(sCmd,"e_p3k_audio_src::dante");
+		}
+		else
+		{
+			DBG_WarnMsg("This is not switcher!!!\n");
+			return -1;
+		}
+	}
 	else
 	{
 		DBG_ErrMsg(" !!! Error mode:%d \n",mode);
@@ -324,7 +334,12 @@ int  EX_GetAudSrcMode(int *mode)
 	else if(strstr(buf,"dante") != 0)
 	{
 		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
-		 *mode = 4;
+		 	*mode = 4;
+		else
+		{
+			DBG_WarnMsg("This is not switcher!!!\n");
+			return -1;
+		}
 	}
 
 //	Cfg_Get_Autoswitch_Source(SIGNAL_AUDIO,mode);
@@ -885,6 +900,16 @@ int EX_SetGatewayPort(int iGw_Type,int iNetw_Id)
 {
 	DBG_InfoMsg("iGw_Type=%d\n",iGw_Type);
 
+	if(iGw_Type == Net_DANTE)
+	{
+		if(strcmp(g_version_info.model,IPE_P_MODULE)!= 0)
+		{
+			DBG_WarnMsg("This is not switcher!!!\n");
+			return -1;
+		}
+	}
+
+
 	if(((iGw_Type == Net_P3K)||(iGw_Type == Net_RS232)||(iGw_Type == Net_DANTE))
 		&&((iNetw_Id == 0)||(iNetw_Id == 1)))
 	{
@@ -906,6 +931,16 @@ int EX_GetGatewayPort(int iGw_Type)
 {
 	int iNetw_Id = 0;
 	DBG_InfoMsg("iGw_Type=%d\n",iGw_Type);
+
+	if(iGw_Type == Net_DANTE)
+	{
+		if(strcmp(g_version_info.model,IPE_P_MODULE)!= 0)
+		{
+			DBG_WarnMsg("This is not switcher!!!\n");
+			return -1;
+		}
+	}
+
 	if((iGw_Type == Net_P3K)||(iGw_Type == Net_RS232)||(iGw_Type == Net_DANTE))
 	{
 		Cfg_Get_Net_GW_Port((NetGWType_E)iGw_Type,&iNetw_Id);
@@ -925,6 +960,15 @@ int EX_GetVlanTag(int iGw_Type)
 	int iTag = 11;
 	DBG_InfoMsg("iGw_Type=%d\n",iGw_Type);
 
+	if(iGw_Type == Net_DANTE)
+	{
+		if(strcmp(g_version_info.model,IPE_P_MODULE)!= 0)
+		{
+			DBG_WarnMsg("This is not switcher!!!\n");
+			return -1;
+		}
+	}
+
 	if((iGw_Type == Net_P3K)||(iGw_Type == Net_RS232)||(iGw_Type == Net_DANTE))
 	{
 		Cfg_Get_Net_GW_Vlan((NetGWType_E)iGw_Type,&iTag);
@@ -941,6 +985,15 @@ int EX_GetVlanTag(int iGw_Type)
 int EX_SetVlanTag(int iGw_Type,int iTag)
 {
 	DBG_InfoMsg("iGw_Type=%d\n",iGw_Type);
+
+	if(iGw_Type == Net_DANTE)
+	{
+		if(strcmp(g_version_info.model,IPE_P_MODULE)!= 0)
+		{
+			DBG_WarnMsg("This is not switcher!!!\n");
+			return -1;
+		}
+	}
 
 	if((iGw_Type == 0)||(iGw_Type == 1)||(iGw_Type == 2))
 	{
@@ -1260,9 +1313,16 @@ int EX_GetChannelName(char * date)
 
 int EX_GetDanteName(char * date)
 {
-
-	char name[32] = "KDS-7-MAC";
-	memcpy(date,name,strlen(name));
+	if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+	{
+		char name[32] = "KDS-7-MAC";
+		memcpy(date,name,strlen(name));
+	}
+	else
+	{
+		DBG_ErrMsg(" !!! This is not switcher\n");
+		return -1;
+	}
 	return 0;
 }
 
@@ -1405,7 +1465,7 @@ int EX_GetAutoSwitchMode(PortInfo_S*info,AVConnectMode_E *mode)
 int EX_SetAutoSwitchPriority(AudioInfo_S * info,AudioInfo_S * gain,int count)
 {
 	DBG_InfoMsg("EX_SetAutoSwitchPriority,Count = %d\n",count);
-	if(count == 0)
+	if((count == 0)||(count >4))
 	{
 		DBG_WarnMsg(" !!! Error Count = %d\n",count);
 		return 0;
@@ -1427,30 +1487,32 @@ int EX_SetAutoSwitchPriority(AudioInfo_S * info,AudioInfo_S * gain,int count)
 	else if(gain[0].signal == SIGNAL_AUDIO)
 	{
 		sprintf(sCmd,"e_p3k_audio_pri");
+		int jjj = 1;
 
 		for(int i = 1; i < count;i++)
 		{
 			if(gain[i].portFormat == PORT_HDMI)
 			{
 				sprintf(sCmd,"%s::hdmi",sCmd);
-				port[i] = AUDIO_IN_HDMI;
+				port[jjj] = AUDIO_IN_HDMI;
+				jjj++;
 			}
 			else if(gain[i].portFormat == PORT_ANALOG_AUDIO)
 			{
+				if(g_audio_info.direction == DIRECTION_IN)
 				{
 					sprintf(sCmd,"%s::analog",sCmd);
-					port[i] = AUDIO_IN_ANALOG;
+					port[jjj] = AUDIO_IN_ANALOG;
+					jjj++;
 				}
 			}
 			else if(gain[i].portFormat == PORT_DANTE)
 			{
 				if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
 				{
-					if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
-					{
-						sprintf(sCmd,"%s::dante",sCmd);
-						port[i] = AUDIO_IN_DANTE;
-					}
+					sprintf(sCmd,"%s::dante",sCmd);
+					port[jjj] = AUDIO_IN_DANTE;
+					jjj++;
 				}
 			}
 		}
@@ -1510,29 +1572,32 @@ int EX_GetAutoSwitchPriority(AudioInfo_S * gain,int count)
 				}
 				else
 				{
-					gain[i].direction = DIRECTION_IN;
-					gain[i].signal = SIGNAL_AUDIO;
+					gain[num+1].direction = DIRECTION_IN;
+					gain[num+1].signal = SIGNAL_AUDIO;
 					if(port[i] == AUDIO_IN_HDMI)
 					{
-						gain[i].portFormat = PORT_HDMI;
-						gain[i].portIndex = 1;
+						gain[num+1].portFormat = PORT_HDMI;
+						gain[num+1].portIndex = 1;
 						num++;
 					}
 					else if(port[i] == AUDIO_IN_ANALOG)
 					{
-						gain[i].portFormat = PORT_ANALOG_AUDIO;
-						gain[i].portIndex = 1;
-						num++;
+						if(g_audio_info.direction == DIRECTION_IN)
+						{
+							gain[num+1].portFormat = PORT_ANALOG_AUDIO;
+							gain[num+1].portIndex = 1;
+							num++;
+						}
 					}
 					else if(port[i] == AUDIO_IN_DANTE)
 					{
-						gain[i].portFormat = PORT_DANTE;
-						gain[i].portIndex = 1;
+						gain[num+1].portFormat = PORT_DANTE;
+						gain[num+1].portIndex = 1;
 						num++;
 					}
 					else
 					{
-						num = i + 1;
+						//num = i + 1;
 					 	break;
 					}
 				}
@@ -1560,29 +1625,32 @@ int EX_GetAutoSwitchPriority(AudioInfo_S * gain,int count)
 					}
 					else
 					{
-						num = i + 1;
+						//num = i + 1;
 					 	break;
 					}
 				}
-				else
+				else if((type == SIGNAL_AUDIO)&&(strcmp(g_version_info.model,IPE_MODULE) == 0))
 				{
-					gain[i].direction = DIRECTION_IN;
-					gain[i].signal = SIGNAL_AUDIO;
+					gain[num+1].direction = DIRECTION_IN;
+					gain[num+1].signal = SIGNAL_AUDIO;
 					if(port[i] == AUDIO_IN_HDMI)
 					{
-						gain[i].portFormat = PORT_HDMI;
-						gain[i].portIndex = 1;
+						gain[num+1].portFormat = PORT_HDMI;
+						gain[num+1].portIndex = 1;
 						num++;
 					}
 					else if(port[i] == AUDIO_IN_ANALOG)
 					{
-						gain[i].portFormat = PORT_ANALOG_AUDIO;
-						gain[i].portIndex = 1;
-						num++;
+						if(g_audio_info.direction == DIRECTION_IN)
+						{
+							gain[num+1].portFormat = PORT_ANALOG_AUDIO;
+							gain[num+1].portIndex = 1;
+							num++;
+						}
 					}
 					else
 					{
-						num = i + 1;
+					//	num = i + 1;
 					 	break;
 					}
 				}
@@ -2772,6 +2840,7 @@ int EX_SetDNSName(int id,char*name)
 	if(id == 1)
 	{
 #ifdef CONFIG_P3K_HOST
+		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
 		{	if(strlen(name)>0)
 			{
 				if(strcmp(g_audio_info.dante_name,name) == 0)
@@ -2788,6 +2857,11 @@ int EX_SetDNSName(int id,char*name)
 					ast_send_event(0xFFFFFFFF,sCmd);
 				}
 			}
+		}
+		else
+		{
+			DBG_WarnMsg(" !!! This is not switcher\n");
+			return -1;
 		}
 #else
 		DBG_WarnMsg(" !!! This is Decoder\n");
@@ -2824,7 +2898,13 @@ int EX_GetDNSName(int id,char*name)
 	}
 	else if(id == 1)
 	{
-		Cfg_Get_Dev_HostName(1,name);
+		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+			Cfg_Get_Dev_HostName(1,name);
+		else
+		{
+			DBG_WarnMsg(" !!! This is not switcher\n");
+			return -1;
+		}
 	}
 	else
 	{
