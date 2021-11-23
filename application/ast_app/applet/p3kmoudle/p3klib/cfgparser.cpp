@@ -452,6 +452,8 @@ int Cfg_Init_Audio(void)
 				}
 				else if(input == JSON_AUDIO_HDMI)
 					g_audio_info.source = AUDIO_IN_HDMI;
+				else if(input == JSON_AUDIO_NONE)
+					g_audio_info.source = AUDIO_IN_NONE;
 				else
 					g_audio_info.source = AUDIO_IN_NONE;
 
@@ -2744,14 +2746,14 @@ int Cfg_Update_Audio(void)
 			if(g_audio_info.direction == DIRECTION_IN)
 				root[JSON_SOURCE_SELECT] = JSON_AUDIO_ANALOG;
 			else
-				root[JSON_SOURCE_SELECT] = JSON_AUDIO_HDMI;
+				root[JSON_SOURCE_SELECT] = JSON_AUDIO_NONE;
 		}
 		else if(g_audio_info.source == AUDIO_IN_DANTE)
 		{
 			root[JSON_SOURCE_SELECT] = JSON_AUDIO_DANTE;
 		}
 		else
-			root[JSON_SOURCE_SELECT] = JSON_AUDIO_HDMI;
+			root[JSON_SOURCE_SELECT] = JSON_AUDIO_NONE;
 
 
 		if(g_bCfg == 0)
@@ -2815,13 +2817,15 @@ int Cfg_Update_Audio(void)
 
 		if(g_audio_info.source == AUDIO_IN_HDMI)
 			root[JSON_SOURCE_SELECT] = JSON_AUDIO_HDMI;
-		else
+		else if(g_audio_info.source == AUDIO_IN_ANALOG)
 		{
 			if(g_audio_info.direction == DIRECTION_IN)
 				root[JSON_SOURCE_SELECT] = JSON_AUDIO_ANALOG;
 			else
-				root[JSON_SOURCE_SELECT] = JSON_AUDIO_HDMI;
+				root[JSON_SOURCE_SELECT] = JSON_AUDIO_NONE;
 		}
+		else
+			root[JSON_SOURCE_SELECT] = JSON_AUDIO_NONE;
 
 	}
 
@@ -4052,15 +4056,36 @@ int Cfg_Set_Autoswitch_Source(SignalType_E type,int port)
 	}
 	else if(type == SIGNAL_AUDIO)
 	{
-		if((port == AUDIO_IN_ANALOG)&&(g_audio_info.direction == DIRECTION_IN))
+		if((port == AUDIO_IN_HDMI)||(port == AUDIO_IN_NONE))
 		{
 			g_audio_info.source = (AudioInputMode_E)port;
 			Cfg_Update(AUDIO_INFO);
 		}
-		else
+		else if(port == AUDIO_IN_ANALOG)
 		{
-			DBG_ErrMsg("AUDIO_IN_ANALOG is out\n");
-			return -1;
+			if(g_audio_info.direction == DIRECTION_IN)
+			{
+				g_audio_info.source = (AudioInputMode_E)port;
+				Cfg_Update(AUDIO_INFO);
+			}
+			else
+			{
+				DBG_ErrMsg("AUDIO_IN_ANALOG is out\n");
+				return -1;
+			}
+		}
+		else if(port == AUDIO_IN_DANTE)
+		{
+			if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+			{
+				g_audio_info.source = (AudioInputMode_E)port;
+				Cfg_Update(AUDIO_INFO);
+			}
+			else
+			{
+				DBG_ErrMsg("!!!This is not switcher\n");
+				return -1;
+			}
 		}
 	}
 	else

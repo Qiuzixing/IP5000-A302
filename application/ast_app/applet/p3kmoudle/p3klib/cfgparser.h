@@ -149,6 +149,8 @@ extern "C" {
 #define JSON_AUDIO_ANALOG		"analog"
 #define JSON_AUDIO_HDMI			"hdmi"
 #define JSON_AUDIO_LAN			"lan"
+#define JSON_AUDIO_NONE			"none"
+
 #define JSON_AUDIO_DEST			"destination_select"
 #define JSON_SOURCE_SELECT		"source_select"
 #define JSON_DANTE_NAME			"dante_name"

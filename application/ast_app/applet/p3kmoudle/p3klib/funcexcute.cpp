@@ -290,8 +290,12 @@ int  EX_SetAudSrcMode(int mode)
 		else
 		{
 			DBG_WarnMsg(" !!! Error g_audio_info.direction == DIRECTION_OUT \n");
-			return 0;
+			return -1;
 		}
+	}
+	else if(mode == 2)	 //no
+	{
+		sprintf(sCmd,"e_p3k_audio_src::no");
 	}
 	else if(mode == 4)
 	{
@@ -341,6 +345,8 @@ int  EX_GetAudSrcMode(int *mode)
 			return -1;
 		}
 	}
+	else if(strstr(buf,"no") != 0)
+		*mode = 2;
 
 //	Cfg_Get_Autoswitch_Source(SIGNAL_AUDIO,mode);
 	return 0;
