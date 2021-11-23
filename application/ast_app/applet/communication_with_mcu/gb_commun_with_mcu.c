@@ -66,6 +66,7 @@ audio_inout_info_struct audio_inout_info;
 uint8_t board_type_flag = IPE5000P;
 uint8_t last_hdmi_in_index = 0;
 uint8_t auto_av_report_flag = CLOSE_REPROT;
+uint8_t current_play_port = HDMIRX1;
 
 const ipc_cmd_struct ipc_cmd_list[] =
     {
@@ -407,6 +408,7 @@ static void do_handle_input_source(uint16_t cmd,char *cmd_param)
     {
         vdo_source.txPort = atoi(tx_port_num);
         vdo_source.rxPort = atoi(rx_port_num);
+        current_play_port = vdo_source.rxPort;
         printf("vdo_source.txPort:%d\nvdo_source.rxPort:%d\n",vdo_source.txPort,vdo_source.rxPort);
         APP_Comm_Send(cmd, (U8*)&vdo_source, sizeof(vdo_source));
         uint16_t gpio_cmd = CMD_GPIO_SET_VAL;

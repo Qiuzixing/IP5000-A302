@@ -42,7 +42,7 @@ int uartfd;
 #endif
 extern int uart_fd;
 extern int sock_fd;
-
+extern uint8_t current_play_port;
 /*------------------------------------------------------------------
  * Func : CommandInterfaceWrite
  * Func : 调用底层发送数据接口
@@ -402,8 +402,12 @@ static void a30_led_link_control(struct CmdDataLinkStatus *vdo_link)
                     }
                     else
                     {
-                        system("echo none > /sys/class/leds/led_link_g/trigger");
-                        system("echo 1 > /sys/class/leds/led_link_g/brightness");
+                        if(current_play_port == vdo_link->port)
+                        {
+                            system("echo none > /sys/class/leds/led_link_g/trigger");
+                            system("echo 1 > /sys/class/leds/led_link_g/brightness");
+                        }
+
                     }
                 }
             }
