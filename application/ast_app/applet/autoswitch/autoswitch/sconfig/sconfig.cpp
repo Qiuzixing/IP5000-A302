@@ -412,13 +412,14 @@ bool setInputSource(int argc, char *argv[])
     return setInputSourceMsg(sock, argv[2]);
 }
 
-//sconfig --audio-input {dante|analog|hdmi}
+//sconfig --audio-input {dante|analog|hdmi|no}
 bool setAudioSource(int argc, char *argv[])
 {
     if (!(!strcasecmp(argv[2], "dante")
          || !strcasecmp(argv[2], "analog")
+         || !strcasecmp(argv[2], "no")
          || !strcasecmp(argv[2], "hdmi"))) {
-        std::cout << "sconfig --audio-input {dante|analog|hdmi}\n";
+        std::cout << "sconfig --audio-input {dante|analog|hdmi|no}\n";
         return false;
     }
 

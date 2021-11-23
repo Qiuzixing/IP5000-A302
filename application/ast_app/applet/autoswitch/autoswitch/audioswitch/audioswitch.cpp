@@ -37,7 +37,7 @@ AudioSwitch::AudioSwitch(QObject *parent)
             this, SLOT(audioPlugOutTimeout()));
 }
 
-//QStringList audioList = {"dante", "analog", "hdmi"};
+//QStringList audioList = {"dante", "analog", "hdmi", "no"};
 QStringList audioList;
 //QStringList modeList = {"filo", "priority", "manual"};
 QStringList modeList;
@@ -61,6 +61,7 @@ void AudioSwitch::init()
     audioList.append("dante");
     audioList.append("analog");
     audioList.append("hdmi");
+    audioList.append("no");
 
     modeList.append("filo");
     modeList.append("priority");
@@ -278,6 +279,19 @@ bool AudioSwitch::parseConfigFile()
                 qDebug() << "priority isMember: " << switchJson.isMember("priority");
                 qDebug() << "source_select isMember: " << switchJson.isMember("source_select");
                 qDebug() << "destination_select isMember: " << switchJson.isMember("destination_select");
+
+                if (switchJson.isMember("destination_select")) {
+                    Json::Value dstJson = switchJson["destination_select"];
+                    QStringList dstList;
+                    for (int cnt = 0; cnt < dstJson.size(); ++cnt) {
+                        QString s = dstJson[cnt].asCString();
+                        dstList.append(s);
+                    }
+                    output = dstList.join(" ");
+                    qDebug() << "destination_select:" << dstList;
+                    setCurrentOutput(output);
+                }
+
                 if (switchJson.isMember("analog_direction")) {
                     QString analogDirection = switchJson["analog_direction"].asCString();
                     qDebug() << "analog_direction:" << analogDirection;
@@ -344,17 +358,7 @@ bool AudioSwitch::parseConfigFile()
                     }
                 }
 
-                if (switchJson.isMember("destination_select")) {
-                    Json::Value dstJson = switchJson["destination_select"];
-                    QStringList dstList;
-                    for (int cnt = 0; cnt < dstJson.size(); ++cnt) {
-                        QString s = dstJson[cnt].asCString();
-                        dstList.append(s);
-                    }
-                    output = dstList.join(" ");
-                    qDebug() << "destination_select:" << dstList;
-                    setCurrentOutput(output);
-                }
+                
             } else {
                 qDebug() << "invalid json file" << AUDIO_CONFIG_FILE_PATH;
             }
@@ -445,13 +449,13 @@ bool AudioSwitch::getAudioAnalog(sockaddr_un &cliaddr, socklen_t len)
     return ret;
 }
 
-//sconfig --audio-input {dante|analog|hdmi}
+//sconfig --audio-input {dante|analog|hdmi|no}
 bool AudioSwitch::setCurrentInput(const QString &args)
 {
     bool ret = false;
     qDebug() << __PRETTY_FUNCTION__;
     QString str = args.trimmed().toLower();
-    QRegExp exp("^(dante|analog|hdmi)$");
+    QRegExp exp("^(dante|analog|hdmi|no)$");
     if (-1 == exp.indexIn(str)) {
         qDebug() << "setCurrentInput arg error:" << args;
         return ret;
@@ -463,7 +467,7 @@ bool AudioSwitch::setCurrentInput(const QString &args)
     return ret;
 }
 
-//sconfig --audio-output {dante|analog|hdmi|lan}
+//sconfig --audio-output {dante|analog|hdmi|lan|no}
 bool AudioSwitch::setCurrentOutput(const QString &args)
 {
     bool ret = true;
