@@ -279,9 +279,9 @@ int  EX_SetAudSrcMode(int mode)
 
 #ifdef CONFIG_P3K_HOST
 	char sCmd[64] = "";
-	if(mode == 0)
+	if(mode == 0)	//hdmi
 		sprintf(sCmd,"e_p3k_audio_src::hdmi");
-	else if(mode == 1)
+	else if(mode == 1)	//analog
 	{
 		if(g_audio_info.direction == DIRECTION_IN)
 		{
@@ -289,7 +289,10 @@ int  EX_SetAudSrcMode(int mode)
 		}
 		else
 		{
+			sprintf(sCmd,"e_p3k_audio_src::no");
 			DBG_WarnMsg(" !!! Error g_audio_info.direction == DIRECTION_OUT \n");
+			ast_send_event(0xFFFFFFFF,sCmd);
+			Cfg_Set_Autoswitch_Source(SIGNAL_AUDIO,mode);
 			return -1;
 		}
 	}
@@ -305,7 +308,10 @@ int  EX_SetAudSrcMode(int mode)
 		}
 		else
 		{
+			sprintf(sCmd,"e_p3k_audio_src::no");
 			DBG_WarnMsg("This is not switcher!!!\n");
+			ast_send_event(0xFFFFFFFF,sCmd);
+			Cfg_Set_Autoswitch_Source(SIGNAL_AUDIO,mode);
 			return -1;
 		}
 	}
@@ -334,7 +340,12 @@ int  EX_GetAudSrcMode(int *mode)
 	if(strstr(buf,"hdmi") != 0)
 		*mode = 0;
 	else if(strstr(buf,"analog") != 0)
-		*mode = 1;
+	{
+		if(g_audio_info.direction == DIRECTION_IN)
+			*mode = 1;
+		else
+			*mode = 2;
+	}
 	else if(strstr(buf,"dante") != 0)
 	{
 		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)

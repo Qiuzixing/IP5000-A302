@@ -644,9 +644,10 @@ static int P3K_SetAudioInputMode(char*reqparam,char*respParam,char*userdata)
 	mode = atoi(str[0]);
 	//��������
 	s32Ret = EX_SetAudSrcMode(mode);
-	if(s32Ret)
+	if(s32Ret != 0)
 	{
 		DBG_ErrMsg("EX_SetAudSrcMode err\n");
+		mode = 2;
 	}
 
 	//�ظ������cmd ��cmd������
