@@ -2898,7 +2898,7 @@ if [ $UGP_FLAG = 'success' ];then
 			#set type_b or type_c(66) pin to default to type_b;0:type_c ; 1:type_b
 			#set cec_sel(68) pin to default to it6802;0:hdmi_out-hdmi_in; 1:it6802-hdmi_in
 			ipc @m_lm_set s set_gpio_config:4:70:1:65:1:72:1:68:1
-			ipc @m_lm_set s set_gpio_val:4:70:0:65:0:72:1:68:1
+			ipc @m_lm_set s set_gpio_val:4:70:1:65:0:72:1:68:1
 		;;
 		KDS-SW3-EN7)
 			#set lineio_sel pin to default to line_out;0:line_out;1:line_in

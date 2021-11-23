@@ -294,6 +294,8 @@ void audio_switch(void)
         case AUDIO_IN_HDMI:
             hdmi_in_xxx_out();
             break;
+        case AUDIO_IN_NONE:     //Set all switches to 1 to turn off all audio sources
+            break;
         default:
             break;
     }
@@ -368,6 +370,11 @@ static void ipe5000_and_ipe5000w_hdmi_in_xxx_out(void)
     }
 }
 
+static ipe5000_and_ipe5000w_none_in_xxx_out(void)
+{
+    set_hdmi_mute(MUTE);
+}
+
 void ipe5000_and_ipe5000w_autoaudio_control(void)
 {
     switch(audio_inout_info.audio_in)
@@ -377,6 +384,9 @@ void ipe5000_and_ipe5000w_autoaudio_control(void)
             break;
         case AUDIO_IN_HDMI:
             ipe5000_and_ipe5000w_hdmi_in_xxx_out();
+            break;
+        case AUDIO_IN_NONE:
+            ipe5000_and_ipe5000w_none_in_xxx_out();
             break;
         default:
             break;

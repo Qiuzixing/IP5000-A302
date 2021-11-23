@@ -851,7 +851,7 @@ static void do_handle_audio_out(char *cmd_param)
     audio_inout_info.audio_out[i] = AUDIO_OUT_NULL;
     if(auto_av_report_flag == OPEN_REPROT && audio_inout_info.audio_in != AUDIO_IN_NULL)
     {
-        handle_audio();
+        //handle_audio();
     }
 }
 

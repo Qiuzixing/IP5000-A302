@@ -60,7 +60,7 @@ typedef enum
     AUDIO_IN_DANTE = 0,
     AUDIO_IN_ANALOG ,
     AUDIO_IN_HDMI,
-    AUDIO_IN_LAN,
+    AUDIO_IN_NONE,
 
     AUDIO_IN_NULL = 0xff
 }audio_in_type;
