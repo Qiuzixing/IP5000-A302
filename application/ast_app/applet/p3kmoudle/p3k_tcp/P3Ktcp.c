@@ -23,6 +23,7 @@ typedef struct _TimeOut_S
 {
 	int  soket;
 	int flag ;
+    int InOrOut;
 	struct _TimeOut_S * next;
 }TimeOut_S;
 TimeOut_S * sTimeOut = NULL;
@@ -235,6 +236,7 @@ void Create_TimeHead(TimeOut_S ** head)
 {
 	TimeOut_S * tmp = (TimeOut_S *)malloc(sizeof(TimeOut_S));
 	tmp->flag =0;
+    tmp->InOrOut = 0;
 	tmp->soket = 0;
 	tmp->next =NULL;
 	*head = tmp;
@@ -356,6 +358,27 @@ void * LoginTimtOut(void * fd)
 	pthread_exit(NULL);
 }
 
+void UnInitTcpSocket(TimeOut_S * head)
+{
+    TimeOut_S * tmp = sTimeOut->next;
+	TimeOut_S * rec = sTimeOut;
+	while(tmp != NULL)
+	{
+        if(tmp->InOrOut == 0)
+		{
+			DeleteById_LinkList(g_connectionlist_info,tmp->soket);
+            close(tmp->soket);
+			rec->next = tmp->next;
+			free(tmp);
+			//break;
+			//return;
+		}
+		tmp = tmp->next;
+		rec = rec->next;
+	}
+	return;
+}
+
 void Delete_TcpLink(TimeOut_S * head,int socket)
 {
 	TimeOut_S * tmp = sTimeOut->next;
@@ -440,7 +463,6 @@ int Tcp_NetRecvMsg(NetCliInfo_T *cli)
 			info = hd;
 
 	}
-
 	if(!memcmp(cli->recvmsg,"#\r",strlen(cli->recvmsg)) && Cheak_TcpStartLink(sTimeOut,cli->recvSocket) == 0&&(bSeur == 1))// && flagS == 0)
 	{
 		//printf("###  %d\n",cli->recvSocket);
@@ -453,6 +475,15 @@ int Tcp_NetRecvMsg(NetCliInfo_T *cli)
 		{
 			TimeOut_S * pnew = (TimeOut_S *)malloc(sizeof(TimeOut_S));
 			pnew->flag = 0;
+            if(cli->recvPort == 6001)
+            {
+                printf("......in link\n");
+                pnew->InOrOut = 1;
+            }
+            else{
+                printf(".....out link\n");
+                pnew->InOrOut = 0;
+            }
 			pnew->soket = cli->recvSocket;
 			pnew->next = NULL;
 			HeadInsert(sTimeOut,pnew);
@@ -468,6 +499,30 @@ int Tcp_NetRecvMsg(NetCliInfo_T *cli)
 			pthread_create(&pth_time, NULL, LoginTimtOut, &cli->recvSocket);
 		}
 	}
+    else if(!memcmp(cli->recvmsg,"#\r",strlen(cli->recvmsg)) && Cheak_TcpStartLink(sTimeOut,cli->recvSocket) == 0&&(bSeur == 0))
+      {
+            TimeOut_S * pnew = (TimeOut_S *)malloc(sizeof(TimeOut_S));
+			pnew->flag = 1;
+            if(cli->recvPort == 6001)
+            {
+                printf("......in link\n");
+                pnew->InOrOut = 1;
+            }
+            else{
+                printf(".....out link\n");
+                pnew->InOrOut = 0;
+            }
+			pnew->soket = cli->recvSocket;
+			pnew->next = NULL;
+			HeadInsert(sTimeOut,pnew);
+            
+            Connection_Info * pnewconnection = (Connection_Info *)malloc(sizeof(Connection_Info));
+            pnewconnection->port = cli->fromPort;
+            strcpy(pnewconnection->ip,cli->fromIP);
+            pnewconnection->next = NULL;
+            pnewconnection->pre = NULL;
+            HeadInsert_LinkList(g_connectionlist_info,pnewconnection);
+        }  
 
 	if(bSeur == 1)
 	{
@@ -538,8 +593,8 @@ void * TcpCmd_cb(void * fd)
         }
         else
         {
+            UnInitTcpSocket(sTimeOut);
             SOCKET_DestroyTcpServer(Tcp_NetGetNetReristHandle());
-            Tcp_P3KHandleListUnInit();
             Tcp_NetInit(g_network_info.tcp_port);
             return;
         }
@@ -549,30 +604,26 @@ void * TcpCmd_cb(void * fd)
 
 int Tcp_NetInit(int port)
 {
-	Create_TimeHead(&sTimeOut);
-
-	printf("Tcp_NetInit\n");
-	HandleManageInitHead(&(gs_cliHandleMng.listHandleHead));
-
-	P3K_ApiInit();
 	SocketWorkInfo_S * handle = Tcp_NetGetNetReristHandle();
 	handle->readcb =Tcp_NetRecvMsg;
 	handle->closecb = Tcp_NetClose;
 	handle->serverport = port;
 //	handle->getNetCabInfo = Tcp_NetGetNetCab;
-	
+	SOCKET_CreateTcpServer(handle);
     pthread_t TcpCmd;
 	pthread_create(&TcpCmd, NULL, TcpCmd_cb, handle);
     pthread_detach(TcpCmd);
-    SOCKET_CreateTcpServer(handle);
     
-
 	return 0;
 }
 
 int Tcp_NNetInit()
 {
 //绑定127.0.0.1:6001端口用于内部通信
+	Create_TimeHead(&sTimeOut);
+    HandleManageInitHead(&gs_cliHandleMng.listHandleHead);
+	P3K_ApiInit();
+
     SocketWorkInfo_S*handle1 = Tcp_NetGetNetReristHandle1();
     handle1->readcb =Tcp_NetRecvMsg;
     handle1->closecb = Tcp_NetClose;
@@ -605,13 +656,14 @@ int main (int argc, char const *argv[])
     Cfg_Init_Network();
     int portNumber;
 
+    Tcp_NNetInit();
 	if(argc == 3)
 	{
 		if(!memcmp(argv[2],"-l",strlen("-l")))
 		{
 			sTcpLogin.iFlag = 1;
 		}
-		Tcp_NetInit(atoi(argv[1]));
+		//Tcp_NetInit(atoi(argv[1]));
 	}
 	else
 	{   
@@ -620,7 +672,7 @@ int main (int argc, char const *argv[])
 		sTcpLogin.iFlag = 0;
 		flagS = 1;
 	}
-    Tcp_NNetInit();
+    
     g_connectionlist_info = malloc(sizeof(ConnectionList_S));
     Create_LinkList(g_connectionlist_info);
 	char ch =0;
