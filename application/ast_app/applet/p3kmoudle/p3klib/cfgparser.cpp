@@ -1613,7 +1613,7 @@ int Cfg_Init_Network(void)
 	g_network_info.udp_port = 50000;
 	g_network_info.method = Net_MULTICAST;
 	sprintf(g_network_info.multicast_ip,"225.0.100.0");
-	g_network_info.multicast_ttl = 0;
+	g_network_info.multicast_ttl = 64;
 	g_network_info.p3k_port = 0;
 	g_network_info.p3k_vlan = 0;
 	g_network_info.rs232_port = 0;

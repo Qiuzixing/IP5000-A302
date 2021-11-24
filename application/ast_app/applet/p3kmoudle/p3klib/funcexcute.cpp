@@ -1972,17 +1972,18 @@ int EX_SetDecoderAVChannelId(ChSelect_S * id)
     
 	char sCmd[64] = "";
 	sprintf(sCmd,"e_reconnect::%04d",id->ch_id);
-  //  for(i = 0;i < id->i_signalnum;i ++)
-  //  {
-  //	    if(id->signal[i] == SIGNAL_IR)
-  //		sprintf(sCmd,"%s::r",sCmd);
-  //	    DBG_InfoMsg("ast_send_event %s\n",sCmd);
-  //	    ast_send_event(0xFFFFFFFF,sCmd);
-  //  }
+ /*   for(i = 0;i < id->i_signalnum;i ++)
+    {
+	    if(id->signal[i] == SIGNAL_IR)
+		sprintf(sCmd,"%s::r",sCmd);
+	    DBG_InfoMsg("ast_send_event %s\n",sCmd);
+	    ast_send_event(0xFFFFFFFF,sCmd);
+    }
+
 
 	if(id->signal == SIGNAL_IR)
 		sprintf(sCmd,"%s::r",sCmd);
-
+*/
 	DBG_InfoMsg("ast_send_event %s\n",sCmd);
 	ast_send_event(0xFFFFFFFF,sCmd);
 #else
