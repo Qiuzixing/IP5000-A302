@@ -1562,6 +1562,9 @@ handle_e_p3k_audio_src()
 		KDS-SW3-EN7)
 			sconfig --audio-input "$_switch_input"
 		;;
+		WP-SW2-EN7)
+			sconfig --audio-input "$_switch_input"
+		;;
 		*)
 		;;
 	esac

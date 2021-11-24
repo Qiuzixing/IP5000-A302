@@ -468,6 +468,8 @@ start_alm()
 				ipc @m_lm_set s get_link_status:2
 			;;
 			WP-SW2-EN7)
+				#The audio detection pin is not connected to the hardware in this version, so automatic switching is temporarily useless
+				audioswitch &
 				ipc @m_lm_set s get_link_status:0
 				ipc @m_lm_set s get_link_status:1
 			;;
