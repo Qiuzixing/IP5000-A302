@@ -237,7 +237,8 @@ typedef struct   _EdidName_S
 
 typedef struct   _ChSelect_S
 {
-	SignalType_E  signal;
+	SignalType_E  signal[20];
+    int i_signalnum;
 	int ch_id;
 }ChSelect_S;
 

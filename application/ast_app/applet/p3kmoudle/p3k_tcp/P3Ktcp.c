@@ -641,7 +641,67 @@ int Tcp_NetUnInit()
 	return 0;
 }
 
+ int  PhraserParam(char *param,int len,	char str[][4] )
+{
+	int tmpLen = 0 ;
+	int i = 0;
+	char *tmpdata = param;
+	char *tmpdata1 = param;
 
+	if(param == NULL ||len <=0)
+	{
+		return -1;
+	}
+	while(tmpdata != NULL)
+	{
+		tmpdata = strchr(tmpdata,'.');
+		if(tmpdata != NULL)
+		{
+			tmpLen = tmpdata-tmpdata1;
+			memcpy(str[i],tmpdata1,tmpLen);
+			i++;
+			if(len > tmpdata-param+1)
+			{
+				tmpdata1 = tmpdata+1;
+				tmpdata = tmpdata +1;
+		       }
+			else
+			{
+				break;
+			}
+		}
+	}
+	memcpy(str[i],tmpdata1,strlen(tmpdata1));
+	i++;
+	return i;
+}
+
+
+int check_isIp(char* IP)
+{
+    if(strlen(IP) < 7 || strlen(IP) > 15)
+        return -1;
+    char str[4][4] ={0};
+    int count = 0;
+    count = PhraserParam(IP,strlen(IP),str);
+    if(count != 4)
+        return -1;
+    int ip1 = atoi(str[0]);
+    int ip2 = atoi(str[1]);
+    int ip3 = atoi(str[2]);
+    int ip4 = atoi(str[3]);
+    if(0 < ip1 && ip1 <= 255 && 0 <= ip2 && ip2 <= 255 && 0 <= ip3 && ip3 <= 255 && 0 <= ip4 && ip4 <= 255)
+    {
+        char tmpip[16] = "";
+        sprintf(tmpip,"%d.%d.%d.%d",ip1,ip2,ip3,ip4);
+        printf("listen_ip[%s]\n",tmpip);
+        memcpy(g_InitIP,tmpip,strlen(tmpip));
+    }
+    else{
+        return -1;
+    }
+    return 0;
+}
 
 int main (int argc, char const *argv[])
 {
@@ -652,6 +712,14 @@ int main (int argc, char const *argv[])
 		Cfg_Init();
 		return 0;
 	}
+    else if((argc == 2))
+    {
+        int ret = check_isIp(argv[1]);
+        if(ret!=0){
+            printf("Param Error!\n");
+            return 0;
+        }
+    }
 
     Cfg_Init_Network();
     int portNumber;

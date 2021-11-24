@@ -1963,15 +1963,22 @@ int EX_GetEncoderAVChannelId(int *id)
 int EX_SetDecoderAVChannelId(ChSelect_S * id)
 {
 	DBG_InfoMsg(" EX_SetDecoderAVChannelId id =%d\n",id->ch_id);
+    int i = 0;
+    for(i = 0;i < id->i_signalnum;i ++)
+    {
+	    printf("%d...",id->signal[i]);
+    }
 #ifdef CONFIG_P3K_CLIENT
+    
 	char sCmd[64] = "";
 	sprintf(sCmd,"e_reconnect::%04d",id->ch_id);
-
-	if(id->signal == SIGNAL_IR)
+    for(i = 0;i < id->i_signalnum;i ++)
+    {
+	    if(id->signal[i] == SIGNAL_IR)
 		sprintf(sCmd,"%s::r",sCmd);
-
-	DBG_InfoMsg("ast_send_event %s\n",sCmd);
-	ast_send_event(0xFFFFFFFF,sCmd);
+	    DBG_InfoMsg("ast_send_event %s\n",sCmd);
+	    ast_send_event(0xFFFFFFFF,sCmd);
+    }
 #else
 	DBG_WarnMsg(" !!! This is Encoder\n");
 #endif
@@ -1979,8 +1986,9 @@ int EX_SetDecoderAVChannelId(ChSelect_S * id)
 }
 int EX_GetDecoderAVChannelId(ChSelect_S * id)
 {
-	DBG_InfoMsg(">>%d\n",id->signal);
-
+	//DBG_InfoMsg(">>%d\n",id->signal);
+	printf(">>>>>%d\n",id->signal[id->i_signalnum-1]);
+    id->ch_id = 10;
 	char* cmd1 = "astparam g ch_select_v";
 	char buf1[64] = "";
 

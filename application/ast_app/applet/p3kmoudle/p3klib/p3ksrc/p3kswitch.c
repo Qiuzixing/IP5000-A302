@@ -355,19 +355,19 @@ static int P3K_CheckSignalType(char*data)
 {
 	int tmpFormat = SIGNAL_VIDEO;
 	//char *tmp = data;
-	if(!strcasecmp(data,"audio"))
+	if(!strcasecmp(data,"audio") || !strcasecmp(data,"[audio") || !strcasecmp(data,"audio]"))
 	{	tmpFormat = SIGNAL_AUDIO;}
-	else if(!strcasecmp(data,"video"))
+	else if(!strcasecmp(data,"video")|| !strcasecmp(data,"[video") || !strcasecmp(data,"video]"))
 	{	tmpFormat = SIGNAL_VIDEO;}
-	else if(!strcasecmp(data,"ir"))
+	else if(!strcasecmp(data,"ir")|| !strcasecmp(data,"[ir") || !strcasecmp(data,"ir]"))
 	{	tmpFormat = SIGNAL_IR;}
-	else if(!strcasecmp(data,"usb"))
+	else if(!strcasecmp(data,"usb")|| !strcasecmp(data,"[usb") || !strcasecmp(data,"usb]"))
 	{	tmpFormat = SIGNAL_USB;}
-	else if(!strcasecmp(data,"arc"))
+	else if(!strcasecmp(data,"arc")|| !strcasecmp(data,"[arc") || !strcasecmp(data,"arc]"))
 	{	tmpFormat = SIGNAL_ARC;}
-	else if(!strcasecmp(data,"rs232"))
+	else if(!strcasecmp(data,"rs232")|| !strcasecmp(data,"[rs232") || !strcasecmp(data,"rs232]"))
 	{	tmpFormat = SIGNAL_RS232;}
-	else if(!strcasecmp(data,"av_test_pattern"))
+	else if(!strcasecmp(data,"av_test_pattern")|| !strcasecmp(data,"[av_test_pattern") || !strcasecmp(data,"av_test_pattern]"))
 	{   tmpFormat = SIGNAL_TEST;}
 	return tmpFormat;
 }
@@ -1257,13 +1257,17 @@ static int P3K_SetChannleSelection(char*reqparam,char*respParam,char*userdata)
 	ChSelect_S sSelect = {0};
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
-	sSelect.signal = P3K_CheckSignalType(str[0]);
-	sSelect.ch_id= atoi(str[1]);
-
+    for(chn = 0;chn < count-1;chn ++)
+    {
+	    sSelect.signal[chn] = P3K_CheckSignalType(str[chn]);
+    }
+	sSelect.ch_id= atoi(str[count-1]);
+    sSelect.i_signalnum = count-1;
 	s32Ret = EX_SetDecoderAVChannelId(&sSelect);
 	if(s32Ret)
 	{
-		DBG_ErrMsg("EX_SetDecoderAVChannelId err\n");
+		DBG_ErrMsg("EX_SetDecoderAVChannelId err\n");        
+        sprintf(reqparam+strlen(reqparam),",err_004");
 	}
 	memcpy(respParam,reqparam,strlen(reqparam));
 	return 0;
@@ -1279,15 +1283,16 @@ static int P3K_GetChannleSelection(char*reqparam,char*respParam,char*userdata)
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
-	sSelect.signal = P3K_CheckSignalType(str[0]);
-
+	//sSelect.signal = P3K_CheckSignalType(str[0]);
+    sSelect.signal[0] = P3K_CheckSignalType(str[0]);
+    sSelect.i_signalnum = count;
 	s32Ret =  EX_GetDecoderAVChannelId(&sSelect);
 	if(s32Ret)
 	{
 		DBG_ErrMsg("EX_GetDecoderAVChannelId err\n");
 	}
-	P3K_SignaleTypeToStr(sSelect.signal,str1);
-	sprintf(tmpparam,"%s,%d",str1,sSelect.ch_id);
+    P3K_SignaleTypeToStr(sSelect.signal[sSelect.i_signalnum-1],str1);
+    sprintf(tmpparam+strlen(tmpparam),"%s,%d",str1,sSelect.ch_id);
 	memcpy(respParam,tmpparam,strlen(tmpparam));
 	return 0;
 }
@@ -1974,7 +1979,8 @@ static int P3K_SetMacAddr(char*reqparam,char*respParam,char*userdata)
 	int id = 0;
 	int count = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-
+    char tmpparam[MAX_PARAM_LEN] = {0};
+    
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	if(count == 1)
 	{
@@ -1988,7 +1994,12 @@ static int P3K_SetMacAddr(char*reqparam,char*respParam,char*userdata)
 	{
 		DBG_ErrMsg("EX_SetMacAddr err\n");
 	}
-	memcpy(respParam,reqparam,strlen(reqparam));
+    strcpy(tmpparam,reqparam);
+    if(s32Ret == -1)
+    {
+        sprintf(reqparam+strlen(reqparam),",err_004");
+    }
+	memcpy(respParam,tmpparam,strlen(tmpparam));
 	return 0;
 }
 static int P3K_GetMacAddr(char*reqparam,char*respParam,char*userdata)

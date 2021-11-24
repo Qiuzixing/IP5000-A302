@@ -52,8 +52,10 @@ typedef struct _NetServerParam_S{
 	NetTcpSerCloseCbFun closecb;
 }NetServerParam_S;
 
- static int bTsockFlag;
- static int uTsockFlag;
+char   g_InitIP[16]; 
+static int bTsockFlag;
+static int uTsockFlag;
+
 static  int GetSockInfo(int  socked, char *ipaddr,int *port)
 {
 	struct sockaddr_in  sockAddr;
@@ -259,7 +261,13 @@ READ_ERROR:
 	memset(&server_addr,0,sizeof(server_addr));
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_port = htons(port);
-	server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    if(strlen(g_InitIP) > 7)
+    {
+        server_addr.sin_addr.s_addr = inet_addr(g_InitIP);
+    }
+    else{
+	    server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    }
 	//server_addr.sin_addr.s_addr = inet_addr("0.0.0.0");
 	sockfd = socket(AF_INET,SOCK_STREAM,0);
 	if(sockfd < 0)

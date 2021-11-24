@@ -42,6 +42,7 @@ typedef struct _SocketWorkInfo_S
 	NetCabGetInfocbFun    getNetCabInfo;
 }SocketWorkInfo_S;
 
+extern char 	g_InitIP[16];//.......Æô¶¯IP
 
 
 //server
