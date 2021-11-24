@@ -1310,7 +1310,7 @@ int EX_GetUPGTime(char * day,char * time)
 //	memcpy(time,str1,strlen(str1));
 
 	DBG_InfoMsg(" EX_GetUPGTime\n");
-	sscanf(g_version_info.upg_time,"%s,%s",day,time);
+	sscanf(g_version_info.upg_time,"%[^,],%s",day,time);
 
 	return 0;
 }
