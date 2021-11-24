@@ -2536,7 +2536,9 @@ int Cfg_Create_Channel(void)
 		return -1;
 	}
 
-	string strChanList = root1.toStyledString();
+	Json::FastWriter fast_writer;
+
+	string strChanList = fast_writer.write(root1);
 	fwrite(strChanList.c_str(),1,strChanList.size(),fp);
 
 	fflush(fp);

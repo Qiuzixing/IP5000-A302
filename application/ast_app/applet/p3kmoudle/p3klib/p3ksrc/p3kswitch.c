@@ -1997,10 +1997,10 @@ static int P3K_SetMacAddr(char*reqparam,char*respParam,char*userdata)
 	}
 	
     strcpy(tmpparam,reqparam);
-    if(s32Ret == -1)
-    {
-        sprintf(reqparam+strlen(reqparam),",err_004");
-    }
+//    if(s32Ret == -1)
+//    {
+ //       sprintf(reqparam+strlen(reqparam),",err_004");
+ //   }
 	memcpy(respParam,tmpparam,strlen(tmpparam));
 	return 0;
 }
