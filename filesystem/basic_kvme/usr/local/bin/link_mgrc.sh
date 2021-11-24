@@ -2611,14 +2611,18 @@ web_mute_slider_handle()
 		echo 100 > /sys/devices/platform/1500_i2s/analog_in_vol
 		echo 1 > /sys/class/leds/linein_mute/brightness
 	    echo 1 > /sys/class/leds/lineout_mute/brightness
-		ipc @m_lm_set s set_hdmi_mute:16:1:0
+		if [ $UGP_FLAG = 'success' ];then
+			ipc @m_lm_set s set_hdmi_mute:16:1:0
+		fi
 	else
 		#mute,Because the linein mute sound is still a little, you can directly turn the volume to 0 as mute
 		P3KCFG_AV_MUTE='on'
 		echo 0 > /sys/devices/platform/1500_i2s/analog_in_vol
 		echo 0 > /sys/class/leds/linein_mute/brightness
 	    echo 0 > /sys/class/leds/lineout_mute/brightness
-		ipc @m_lm_set s set_hdmi_mute:16:1:1
+		if [ $UGP_FLAG = 'success' ];then
+			ipc @m_lm_set s set_hdmi_mute:16:1:1
+		fi
 	fi
 }
 
@@ -2983,10 +2987,14 @@ handle_e_p3k_switch_in()
 
 	case "$1" in
 		HDMI)
-			ipc @m_lm_set s set_input_source:16:1
+			if [ $UGP_FLAG = 'success' ];then
+				ipc @m_lm_set s set_input_source:16:1
+			fi
 		;;
 		STREAM)
-			ipc @m_lm_set s set_input_source:16:0
+			if [ $UGP_FLAG = 'success' ];then
+				ipc @m_lm_set s set_input_source:16:0
+			fi
 		;;
 		*)
 			echo "ERROR: Unknown param ($1)!?"
