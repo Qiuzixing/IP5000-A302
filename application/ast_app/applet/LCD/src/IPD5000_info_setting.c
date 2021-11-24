@@ -517,7 +517,7 @@ int IPD5000_MAIN_MENU_SHOW(void)
     init_p3k_client("127.0.0.1", 6001);
 
     CH_TATOL_NUM_D = Decode_Get_Chenel_List(CH_LIST_D);
-    printf("CH_TATOL_NUM_E = %d\n", CH_TATOL_NUM_D);
+    //printf("CH_TATOL_NUM_E = %d\n", CH_TATOL_NUM_D);
     
     u8 count = sizeof(MAIN_MENU_LIST_D)/(sizeof(char*));
     int p = 4; 
@@ -1110,7 +1110,7 @@ static int HDCP_SETTING_D()
     int star_x = 2;
     char mode[20] = {0};
     GET_HDCP_MODE(mode);
-	printf("mode[0] = %c\n", mode[0]);
+	//printf("mode[0] = %c\n", mode[0]);
     if (mode[0] == '1')
     {
         star_x = 2;

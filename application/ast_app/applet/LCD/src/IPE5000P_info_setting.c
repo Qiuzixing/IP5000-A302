@@ -1006,7 +1006,7 @@ static int INPUT_SETTING_P()
     }
     
     u8 count = sizeof(INPUT_VIDEO_SOURCE_TYPE_P)/(sizeof(char*));
-    printf("count=%d\n", count);
+    //printf("count=%d\n", count);
     
     int p = 4; 
     int y = 16;

@@ -541,7 +541,7 @@ int IPE5000_MAIN_MENU_SHOW(void)
     init_p3k_client("127.0.0.1", 6001);
 
     CH_TATOL_NUM_E = get_specified_string_from_file(CHANNEL_MAP, CH_LIST_E);
-    printf("CH_TATOL_NUM_E = %d\n", CH_TATOL_NUM_E);
+    //printf("CH_TATOL_NUM_E = %d\n", CH_TATOL_NUM_E);
         
     
     u8 count = sizeof(MAIN_MENU_LIST_E)/(sizeof(char*));
@@ -740,7 +740,7 @@ static void LAN_STATUS_E(int interface_id)
 {
     char addr[15] = {0}, mask[15] = {0}, gateway[15] = {0};
     GET_IP(interface_id, addr, mask, gateway);
-    printf("addr:[%s]\n", addr);
+    //printf("addr:[%s]\n", addr);
     
     clear_whole_screen();
     if (interface_id == LAN1_ID_E)
@@ -1015,7 +1015,7 @@ static int EDID_SETTING_E()
 {
     char buf[20] = {0};
     u8 count = GET_EDID_LIST(EDID_BUF_E);
-    printf("count=%d\n", count);
+    //printf("count=%d\n", count);
     GET_EDID(buf);
     
 

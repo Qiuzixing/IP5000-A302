@@ -577,13 +577,13 @@ int GET_HDCP_STATUS(char *hdcp_status)
     res = recv_buf[0]- '0';
     if (res == 0)
     {
-        strcpy(hdcp_status, "OFF");
-        hdcp_status[3] = '\0';
+        strcpy(hdcp_status, "HDCP OFF");
+        hdcp_status[strlen("HDCP OFF")] = '\0';
     }
     else if (res == 1)
     {
-        strcpy(hdcp_status, "ON");
-        hdcp_status[2] = '\0';
+        strcpy(hdcp_status, "HDCP ON");
+        hdcp_status[strlen("HDCP ON")] = '\0';
     }
     else
     {
@@ -809,7 +809,6 @@ int GET_TEMPERATURE(char *temp)
         return -1;
 
 	sprintf(temp, "%s %s", recv_buf, "C");
-    //strcpy(temp, recv_buf);
     
     return 0;
 }
@@ -818,11 +817,20 @@ int GET_FW_VERSION(char *FW_VER)
 {
     int res = 0;
     char recv_buf[LITTLE_SIZE] = {0};
+	char buf[LITTLE_SIZE] = {0};
     res = send_cmd_common(FW_VER_GET_CMD , FW_RECV_HEAD, NULL, recv_buf);
     if (res == -1)
         return -1;
 
-    strcpy(FW_VER, recv_buf);
+	sprintf(buf, "FW: %s", recv_buf);
+	if (strlen(buf) > 15)
+	{
+		strncpy(FW_VER, buf, 15);
+	}
+	else
+	{
+		strcpy(FW_VER, buf);
+	}
     
     return 0;
 }
@@ -831,11 +839,20 @@ int GET_BL_VERSION(char *BL_VER)
 {
     int res = 0;
     char recv_buf[LITTLE_SIZE] = {0};
+	char buf[LITTLE_SIZE] = {0};
     res = send_cmd_common(BL_VER_GET_CMD, BL_RECV_HEAD, NULL, recv_buf);
     if (res == -1)
         return -1;
 
-    strcpy(BL_VER, recv_buf);
+	sprintf(buf, "BL: %s", recv_buf);
+	if (strlen(buf) > 15)
+	{
+		strncpy(BL_VER, buf, 15);
+	}
+	else
+	{
+		strcpy(BL_VER, buf);
+	}
     
     return 0;
 }
@@ -844,11 +861,20 @@ int GET_HW_VERSION(char *HW_VER)
 {
     int res = 0;
     char recv_buf[LITTLE_SIZE] = {0};
+	char buf[LITTLE_SIZE] = {0};
     res = send_cmd_common(HW_VER_GET_CMD, HW_RECV_HEAD, NULL, recv_buf);
     if (res == -1)
         return -1;
 
-    strcpy(HW_VER, recv_buf);
+	sprintf(buf, "HW: %s", recv_buf);
+	if (strlen(buf) > 15)
+	{
+		strncpy(HW_VER, buf, 15);
+	}
+	else
+	{
+		strcpy(HW_VER, buf);
+	}
     
     return 0;
 }
@@ -976,7 +1002,7 @@ int GET_ACTUAL_RESOLUTION(char *resol_buf)
     if (res == -1)
         return -1;
 
-    printf("recv:[%s]\n", recv_buf);
+    //printf("recv:[%s]\n", recv_buf);
     res = atoi(recv_buf);
 
     if ((res >= 0) && (res <= 77))
