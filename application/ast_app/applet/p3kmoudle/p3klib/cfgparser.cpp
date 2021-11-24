@@ -2254,16 +2254,26 @@ int Cfg_Create_OverlaySetting(void)
 	char path[128] = "";
 	sprintf(path,"%s%s%s",CONF_PATH,g_module,OVERLAY_PATH);
 
-	//Check overlay
-	int nAccessRet = Cfg_Check_File(path);
+	//Check overlay path
+	int nAccessRet = access(path,F_OK | R_OK | W_OK);
+	if(0 > nAccessRet)
+	{
+		DBG_ErrMsg("nAccessRet %s Failed\n",path);
+		system("cp -rf /share/overlay /data/configs/kds-7/");
+		return -1;
+	}
+
+	/*int nAccessRet = Cfg_Check_File(path);
+
 	if(0 == nAccessRet)
 	{
 		DBG_InfoMsg("Cfg_Check_File %s Suceess\n",path);
 		//printf("nAccessRet %s Suceess\n",path);
 		return 0;
 	}
+	*/
 
-	system("cp -rf /share/overlay /data/configs/kds-7/");
+
 
 	return 0;
 }
@@ -2490,10 +2500,12 @@ int Cfg_Create_Channel(void)
 	sprintf(path,"%s%s%s",CONF_PATH,g_module,CHANNEL_MAP_FILE);
 
 	//Check Video cfg
-	int nAccessRet = Cfg_Check_File(path);
+	//int nAccessRet = Cfg_Check_File(path);
+
+	int nAccessRet = access(path,F_OK | R_OK | W_OK);
 	if(0 == nAccessRet)
 	{
-		//printf("nAccessRet %s Suceess\n",path);
+		printf("nAccessRet %s Suceess\n",path);
 		return 0;
 	}
 
