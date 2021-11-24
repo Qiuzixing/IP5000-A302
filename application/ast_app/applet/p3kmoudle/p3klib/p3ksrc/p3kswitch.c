@@ -1993,7 +1993,9 @@ static int P3K_SetMacAddr(char*reqparam,char*respParam,char*userdata)
 	if(s32Ret)
 	{
 		DBG_ErrMsg("EX_SetMacAddr err\n");
+		sprintf(reqparam+strlen(reqparam),",err_004");
 	}
+	
     strcpy(tmpparam,reqparam);
     if(s32Ret == -1)
     {
