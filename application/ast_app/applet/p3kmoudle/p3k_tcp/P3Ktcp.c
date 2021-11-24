@@ -483,17 +483,16 @@ int Tcp_NetRecvMsg(NetCliInfo_T *cli)
             else{
                 printf(".....out link\n");
                 pnew->InOrOut = 0;
+                Connection_Info * pnewconnection = (Connection_Info *)malloc(sizeof(Connection_Info));
+                pnewconnection->port = cli->fromPort;
+                strcpy(pnewconnection->ip,cli->fromIP);
+                pnewconnection->next = NULL;
+                pnewconnection->pre = NULL;
+                HeadInsert_LinkList(g_connectionlist_info,pnewconnection);
             }
 			pnew->soket = cli->recvSocket;
 			pnew->next = NULL;
 			HeadInsert(sTimeOut,pnew);
-            
-            Connection_Info * pnewconnection = (Connection_Info *)malloc(sizeof(Connection_Info));
-            pnewconnection->port = cli->fromPort;
-            strcpy(pnewconnection->ip,cli->fromIP);
-            pnewconnection->next = NULL;
-            pnewconnection->pre = NULL;
-            HeadInsert_LinkList(g_connectionlist_info,pnewconnection);
             
 			pthread_t pth_time;
 			pthread_create(&pth_time, NULL, LoginTimtOut, &cli->recvSocket);
@@ -511,17 +510,16 @@ int Tcp_NetRecvMsg(NetCliInfo_T *cli)
             else{
                 printf(".....out link\n");
                 pnew->InOrOut = 0;
+                Connection_Info * pnewconnection = (Connection_Info *)malloc(sizeof(Connection_Info));
+                pnewconnection->port = cli->fromPort;
+                strcpy(pnewconnection->ip,cli->fromIP);
+                pnewconnection->next = NULL;
+                pnewconnection->pre = NULL;
+                HeadInsert_LinkList(g_connectionlist_info,pnewconnection);
             }
 			pnew->soket = cli->recvSocket;
 			pnew->next = NULL;
 			HeadInsert(sTimeOut,pnew);
-            
-            Connection_Info * pnewconnection = (Connection_Info *)malloc(sizeof(Connection_Info));
-            pnewconnection->port = cli->fromPort;
-            strcpy(pnewconnection->ip,cli->fromIP);
-            pnewconnection->next = NULL;
-            pnewconnection->pre = NULL;
-            HeadInsert_LinkList(g_connectionlist_info,pnewconnection);
         }  
 
 	if(bSeur == 1)

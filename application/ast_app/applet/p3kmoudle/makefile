@@ -14,7 +14,7 @@ P3KNOTY = ./p3k_notify/
 default: build
 	@echo "Done"
 	
-build : p3ktcp
+build :clean p3ktcp
 	mkdir -p $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/ 
 	cp -f $(P3KTCP)p3ktcp $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 	cp -f $(P3KNOTY)p3k_notify $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
