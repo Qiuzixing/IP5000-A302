@@ -72,7 +72,7 @@ int Cfg_Check_File(char * path)
 
 	Json::Reader reader;
 	Json::Value root1;
-	char pBuf[1024] = "";
+	char pBuf[4096] = "";
 	FILE *fp;
 	fp = fopen(path, "r");
 	if (fp == NULL) {
@@ -80,7 +80,25 @@ int Cfg_Check_File(char * path)
 		return -1;
 	}
 
-	fread(pBuf,1,sizeof(pBuf),fp);
+	int nRet = 0,nOffset = 0;
+	while(1)
+	{
+		printf("nOffset == %d sizeof(pBuf) = %d\n",nOffset,sizeof(pBuf));
+		nRet = fread(pBuf+nOffset,1,sizeof(pBuf)-nOffset,fp);
+		printf("nRet == %d\n",nRet);
+		if(nRet <= 0)
+		{
+			break;
+		}
+		else
+		{
+			nOffset += nRet;
+
+			if(nOffset >= sizeof(pBuf))
+				break;
+		}
+
+	}
 
 	if(reader.parse(pBuf, root1)== false)
 	{
@@ -2413,12 +2431,7 @@ int Cfg_Create_KVMSetting(void)
 	root[JSON_USB_KVM_COL] = 1;
 
 	Json::Value JsonRoamArray;
-	JsonRoamArray.resize(1);
-	Json::Value JsonRoam;
-	JsonRoam[JSON_USB_KVM_MAC] = "";
-	JsonRoam[JSON_USB_KVM_H] = "";
-	JsonRoam[JSON_USB_KVM_V] = "";
-	JsonRoamArray[0] = JsonRoam;
+	JsonRoamArray.resize(0);
 
 	root[JSON_USB_KVM_ROAMING] = JsonRoamArray;
 
@@ -2502,10 +2515,18 @@ int Cfg_Create_Channel(void)
 	//Check Video cfg
 	//int nAccessRet = Cfg_Check_File(path);
 
-	int nAccessRet = access(path,F_OK | R_OK | W_OK);
+	/*int nAccessRet = access(path,F_OK | R_OK | W_OK);
 	if(0 == nAccessRet)
 	{
 		printf("nAccessRet %s Suceess\n",path);
+		return 0;
+	}
+	*/
+	int nAccessRet = Cfg_Check_File(path);
+	if(0 == nAccessRet)
+	{
+		DBG_InfoMsg("Cfg_Check_File %s Suceess\n",path);
+		//printf("nAccessRet %s Suceess\n",path);
 		return 0;
 	}
 
@@ -5211,6 +5232,37 @@ int Cfg_Set_Dec_Usb_KVM()
 				{
 					Json::Value& JsonKVM = JsonKVMArray[i];
 
+					string str_mac,str_x,str_y;
+					if(!JsonKVM[JSON_USB_KVM_MAC].empty())
+					{
+						string str_mac = JsonKVM[JSON_USB_KVM_MAC].asString();
+						if(str_mac.size() == 0)
+						{
+							printf("str_mac = no string \n");
+							continue;
+						}
+					}
+
+					if(!JsonKVM[JSON_USB_KVM_H].empty())
+					{
+						string str_x = JsonKVM[JSON_USB_KVM_H].asString();
+						if(str_x.size() == 0)
+						{
+							printf("str_x = no string \n");
+							continue;
+						}
+					}
+
+					if(!JsonKVM[JSON_USB_KVM_V].empty())
+					{
+						string str_y = JsonKVM[JSON_USB_KVM_V].asString();
+						if(str_y.size() == 0)
+						{
+							printf("str_y = no string \n");
+							continue;
+						}
+					}
+
 					if((!JsonKVM[JSON_USB_KVM_MAC].empty())&&(!JsonKVM[JSON_USB_KVM_H].empty())&&(!JsonKVM[JSON_USB_KVM_V].empty()))
 					{
 						string mac = JsonKVM[JSON_USB_KVM_MAC].asString();
@@ -5219,11 +5271,11 @@ int Cfg_Set_Dec_Usb_KVM()
 
 						printf("JsonKVMArray[%d]:[mac: %s][x: %d][y: %d]\n",i,mac.c_str(),x,y);
 
-						if((x == 0)&&(y == 0))
+						/*if((x == 0)&&(y == 0))
 						{
 							DBG_InfoMsg("This is master [x: %d][y: %d]\n",x,y);
 						}
-						else if(mac.size()>1)
+						else */if(mac.size()>1)
 						{
 							if(strlen(param) == 0)
 								sprintf(param,"%s,%d,%d",mac.c_str(),x,y);
@@ -5231,6 +5283,7 @@ int Cfg_Set_Dec_Usb_KVM()
 								sprintf(param,"%s:%s,%d,%d",param,mac.c_str(),x,y);
 						}
 					}
+
 
 				}
 
