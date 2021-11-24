@@ -17,10 +17,12 @@
       <div class="setting">
         <span class="setting-title">Log</span>
         <button class="btn btn-plain-primary"
-                @click="viewLog">VIEW</button>
+                @click="viewLog">VIEW
+        </button>
         <button class="btn btn-plain-primary"
                 style="margin-left: 25px"
-                @click="exportLog">EXPORT</button>
+                @click="exportLog">EXPORT
+        </button>
       </div>
     </div>
     <div class="setting-model">
@@ -32,25 +34,25 @@
       </div>
       <div class="setting">
         <span class="setting-title">RS-232</span>
-        <span style="width: 200px;">{{rs232.send}}</span>
-        <span style="width: 200px;">{{rs232.recv}}</span>
+        <span style="width: 200px;">{{ rs232.send }}</span>
+        <span style="width: 200px;">{{ rs232.recv }}</span>
       </div>
       <div class="setting">
         <span class="setting-title">CEC</span>
-        <span style="width: 200px;">{{cec.send}}</span>
-        <span style="width: 200px;">{{cec.recv}}</span>
+        <span style="width: 200px;">{{ cec.send }}</span>
+        <span style="width: 200px;">{{ cec.recv }}</span>
       </div>
       <div class="setting">
         <span class="setting-title">IR</span>
-        <span style="width: 200px;">{{ir.send}}</span>
-        <span style="width: 200px;">{{ir.recv}}</span>
+        <span style="width: 200px;">{{ ir.send }}</span>
+        <span style="width: 200px;">{{ ir.recv }}</span>
       </div>
     </div>
     <el-dialog title="Log"
                :visible.sync="showLogDialog"
-               width="800px">
-      <pre style="margin:0;font-family:'open sans regular';">
-        <code style="margin:0;font-family:'open sans regular';">{{'\n' +logMsg}}</code>
+               width="900px">
+      <pre class="log-text">
+        <code>{{ '\n' + logMsg }}</code>
       </pre>
     </el-dialog>
   </div>
@@ -58,6 +60,7 @@
 
 <script>
 import { saveAs } from 'file-saver'
+
 export default {
   name: 'status',
   data () {
@@ -168,7 +171,18 @@ export default {
 .text-center {
   text-align: center;
 }
+
 .setting-title {
   width: 200px;
+}
+
+.log-text {
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+
+  code {
+    font-family: "open sans regular";
+  }
 }
 </style>

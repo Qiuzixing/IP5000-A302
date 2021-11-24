@@ -264,7 +264,6 @@ export default {
           image.onload = () => {
             const width = image.width
             const height = image.height
-            console.log(width, height)
             if (!(width === 1280 && height === 720)) {
               this.imgError = true
             } else {
@@ -272,7 +271,7 @@ export default {
               const formData = new FormData()
               formData.append('file', file)
               xhr.open('POST', '/upload/sleepimage')
-              xhr.onload = oevent => {
+              xhr.onload = () => {
                 if (xhr.status === 200) {
                   this.imgName = ''
                   this.uploadComplete = true

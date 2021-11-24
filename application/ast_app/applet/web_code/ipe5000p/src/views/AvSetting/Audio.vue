@@ -3,15 +3,17 @@
     <div class="setting-model"
          style="margin-bottom: 0">
       <div class="radio-setting"
-           v-if="this.$global.deviceType !=2">
+           v-if="this.$global.deviceType !==2">
         <span class="setting-title">Analog Audio Direction IN/OUT</span>
         <div>
           <radio-component v-model="direction"
                            label="in"
-                           @change="changeAudioDirection">IN</radio-component>
+                           @change="changeAudioDirection">IN
+          </radio-component>
           <radio-component v-model="direction"
                            label="out"
-                           @change="changeAudioDirection">OUT</radio-component>
+                           @change="changeAudioDirection">OUT
+          </radio-component>
         </div>
       </div>
       <div class="setting">
@@ -19,15 +21,15 @@
         <multiselect v-model="audioMode.val"
                      :options="audioMode.param"></multiselect>
       </div>
-      <custom-sort v-if="this.$global.deviceType == 0 && direction === 'out'"
+      <custom-sort v-if="!(this.$global.deviceType === 0 && direction === 'out')"
                    v-model="lists"
                    :listMap="listMap"
                    :disabled="audioMode.val !== '1'"></custom-sort>
       <div class="setting"
            style="margin-top: 25px;"
-           v-if="this.$global.deviceType == 1">
+           v-if="this.$global.deviceType === 1">
         <span class="setting-title">Audio Source Selection</span>
-        <multiselect :disabled="audioMode.val != '0'"
+        <multiselect :disabled="audioMode.val !== '0'"
                      v-model="audioSource.val"
                      :options="audioSource.param"></multiselect>
       </div>
@@ -36,7 +38,7 @@
            style="margin-top: 25px;">
         <span class="setting-title">Audio Source Selection</span>
         <multiselect v-model="audioSource.val"
-                     :disabled="audioMode.val != '0'"
+                     :disabled="audioMode.val !== '0'"
                      :options="audioSource.encoderParam"></multiselect>
       </div>
       <div class="setting">
@@ -48,42 +50,42 @@
       </div>
       <div class="setting-model">
         <h3 class="setting-title">Audio Destination</h3>
-        <template v-if="this.$global.deviceType == 0">
+        <template v-if="this.$global.deviceType === 0">
           <div :key="item.name"
                v-for="(item, index) in audioDestinationDesc2"
                style="margin-bottom: 15px;">
             <checkbox-component :label="item"
-                                v-if="!(index ==1 && direction=='in' || index == 3 || index == 0) "
+                                v-if="!(index ===1 && direction==='in' || index === 3 || index === 0) "
                                 v-model="audioDestination[index]"
                                 :active-value="1"
-                                :inactive-value="0" />
+                                :inactive-value="0"/>
           </div>
         </template>
-        <template v-if="this.$global.deviceType == 1">
+        <template v-if="this.$global.deviceType === 1">
           <div :key="item.name"
                v-for="(item, index) in audioDestinationDesc"
                style="margin-bottom: 15px;">
             <checkbox-component :label="item"
-                                v-if="!(index ==1 && direction=='in')"
+                                v-if="!(index ===1 && direction==='in')"
                                 v-model="audioDestination[index]"
                                 :active-value="1"
-                                :inactive-value="0" />
+                                :inactive-value="0"/>
           </div>
         </template>
-        <template v-if="this.$global.deviceType == 2">
+        <template v-if="this.$global.deviceType === 2">
           <div :key="item.name"
                v-for="(item, index) in audioDestinationDesc"
                style="margin-bottom: 15px;">
             <checkbox-component :label="item"
-                                v-if="!(index ==1 || index == 3)"
+                                v-if="!(index ===0 || index ===1 || index === 3)"
                                 v-model="audioDestination[index]"
                                 :active-value="1"
-                                :inactive-value="0" />
+                                :inactive-value="0"/>
           </div>
         </template>
       </div>
       <div class="setting"
-           v-if="this.$global.deviceType == 1">
+           v-if="this.$global.deviceType === 1">
         <span class="setting-title">Dante/AES-67 Name</span>
         <input type="text"
                class="setting-text"
@@ -91,8 +93,11 @@
                v-model="danteName">
       </div>
     </div>
-    <footer><button class="btn btn-primary"
-              @click="save">SAVE</button></footer>
+    <footer>
+      <button class="btn btn-primary"
+              @click="save">SAVE
+      </button>
+    </footer>
   </div>
 </template>
 
@@ -101,6 +106,7 @@ import { debounce } from 'lodash'
 import customSort from '@/components/custom-sort'
 import radioComponent from '@/components/radio.vue'
 import checkboxComponent from '@/components/checkbox.vue'
+
 export default {
   name: 'auto-switch',
   components: {
@@ -114,23 +120,53 @@ export default {
       audioMode: {
         val: '2',
         param: [
-          { value: '2', label: 'Last Connected' },
-          { value: '1', label: 'Priority' },
-          { value: '0', label: 'Manual' }
+          {
+            value: '2',
+            label: 'Last Connected'
+          },
+          {
+            value: '1',
+            label: 'Priority'
+          },
+          {
+            value: '0',
+            label: 'Manual'
+          }
         ]
       },
       audioSource: {
         val: '0',
         param: [
-          { value: '0', label: 'HDMI' },
-          { value: '1', label: 'Analog' },
-          { value: '2', label: 'None' },
-          { value: '4', label: 'Dante' }
+          {
+            value: '0',
+            label: 'HDMI'
+          },
+          {
+            value: '1',
+            label: 'Analog'
+          },
+          {
+            value: '2',
+            label: 'None'
+          },
+          {
+            value: '4',
+            label: 'Dante'
+          }
         ],
         encoderParam: [
-          { value: '0', label: 'HDMI' },
-          { value: '1', label: 'Analog' },
-          { value: '2', label: 'None' }
+          {
+            value: '0',
+            label: 'HDMI'
+          },
+          {
+            value: '1',
+            label: 'Analog'
+          },
+          {
+            value: '2',
+            label: 'None'
+          }
         ]
       },
       playStop: 'play',
@@ -214,38 +250,82 @@ export default {
     handleDirection (msg) {
       if (msg.search(/audio/i) !== -1) {
         this.direction = msg.split(',')[1].toLowerCase()
-        this.checkAudioSocuceSelect()
+        this.checkAudioSourceSelect()
       }
     },
-    checkAudioSocuceSelect () {
+    checkAudioSourceSelect () {
       if (this.$global.deviceType) {
         if (this.direction === 'out') {
           this.audioSource.param = [
-            { value: '0', label: 'HDMI' },
-            { value: '1', label: 'Analog', $isDisabled: true },
-            { value: '2', label: 'None' },
-            { value: '4', label: 'Dante' }
+            {
+              value: '0',
+              label: 'HDMI'
+            },
+            {
+              value: '1',
+              label: 'Analog',
+              $isDisabled: true
+            },
+            {
+              value: '2',
+              label: 'None'
+            },
+            {
+              value: '4',
+              label: 'Dante'
+            }
           ]
         } else {
           this.audioSource.param = [
-            { value: '0', label: 'HDMI' },
-            { value: '1', label: 'Analog' },
-            { value: '2', label: 'None' },
-            { value: '4', label: 'Dante' }
+            {
+              value: '0',
+              label: 'HDMI'
+            },
+            {
+              value: '1',
+              label: 'Analog'
+            },
+            {
+              value: '2',
+              label: 'None'
+            },
+            {
+              value: '4',
+              label: 'Dante'
+            }
           ]
         }
       } else {
         if (this.direction === 'out') {
           this.audioSource.encoderParam = [
-            { value: '0', label: 'HDMI' },
-            { value: '1', label: 'Analog', $isDisabled: true },
-            { value: '2', label: 'None' }
+            {
+              value: '0',
+              label: 'HDMI'
+            },
+            {
+              value: '1',
+              label: 'Analog',
+              $isDisabled: true
+            },
+            {
+              value: '2',
+              label: 'None'
+            }
           ]
         } else {
           this.audioSource.encoderParam = [
-            { value: '0', label: 'HDMI' },
-            { value: '1', label: 'Analog' },
-            { value: '2', label: 'None' }
+            {
+              value: '0',
+              label: 'HDMI'
+            },
+            {
+              value: '1',
+              label: 'Analog'
+            },
+            {
+              value: '2',
+              label: 'None'
+            }
           ]
         }
       }
@@ -269,14 +349,16 @@ export default {
     },
     handleSwitchPriority (msg) {
       if (msg.search(/audio/g) !== -1) {
-        const arr = msg.match(/[^([]+(?=\])/g)[0].replace(/\s/g, '').split(',')
+        const arr = msg.match(/[^([]+(?=])/g)[0].replace(/\s/g, '').split(',')
         if (this.$global.deviceType === 2) {
           if (arr.indexOf('in.dante.1.audio') > -1) {
             arr.splice(arr.indexOf('in.dante.1.audio'), 1)
           }
         } else {
           if (this.direction === 'out') {
-            arr.splice(arr.indexOf('in.analog_audio.1.audio'), 1)
+            if (arr.indexOf('in.analog_audio.1.audio') > -1) {
+              arr.splice(arr.indexOf('in.analog_audio.1.audio'), 1)
+            }
           }
         }
         this.lists = arr
@@ -284,7 +366,7 @@ export default {
     },
     handleAudioDestination (msg) {
       const arr = [0, 0, 0, 0]
-      const isSelectSource = msg.match(/[^([]+(?=\])/g) ? msg.match(/[^([]+(?=\])/g)[0].replace(/\s/g, '').split(',') : []
+      const isSelectSource = msg.match(/[^([]+(?=])/g) ? msg.match(/[^([]+(?=])/g)[0].replace(/\s/g, '').split(',') : []
       isSelectSource.forEach(item => {
         arr[parseInt(item)] = 1
       })
@@ -319,7 +401,7 @@ export default {
       this.setAudioDestination()
       if (this.audioMode.val === '1') {
         const data = this.lists.slice()
-        if (this.direction === 'out') {
+        if (this.direction === 'out' && this.$global.deviceType) {
           data.push('in.analog_audio.1.audio')
         }
         this.$socket.sendMsg(`#X-PRIORITY out.hdmi.1.audio,[${data.join(',')}]`)
@@ -334,19 +416,11 @@ export default {
       trailing: true
     }),
     changeAudioDirection (val) {
-      this.checkAudioSocuceSelect()
-      if (this.$global.deviceType) {
-        if (val === 'out') {
-          this.lists.indexOf('in.analog_audio.1.audio') !== -1 && this.lists.splice(this.lists.indexOf('in.analog_audio.1.audio'), 1)
-        } else {
-          this.lists.indexOf('in.analog_audio.1.audio') === -1 && this.lists.push('in.analog_audio.1.audio')
-        }
+      this.checkAudioSourceSelect()
+      if (val === 'out') {
+        this.lists.indexOf('in.analog_audio.1.audio') !== -1 && this.lists.splice(this.lists.indexOf('in.analog_audio.1.audio'), 1)
       } else {
-        if (val === 'in') {
-          this.lists.indexOf('in.analog_audio.1.audio') !== -1 && this.lists.splice(this.lists.indexOf('in.analog_audio.1.audio'), 1)
-        } else {
-          this.lists.indexOf('in.analog_audio.1.audio') === -1 && this.lists.push('in.analog_audio.1.audio')
-        }
+        this.lists.indexOf('in.analog_audio.1.audio') === -1 && this.lists.push('in.analog_audio.1.audio')
       }
     }
   }
@@ -357,26 +431,33 @@ export default {
   display: flex;
   flex-direction: column;
 }
+
 .setting-model {
   flex: 1;
 }
+
 .main-setting footer {
   flex-shrink: 0;
   margin-top: 15px;
   margin-bottom: 15px;
 }
+
 .main-setting .setting-title {
   width: 350px;
 }
+
 .vs__dropdown-toggle {
   width: 180px;
 }
+
 .sort-handle {
   cursor: pointer;
 }
+
 .sort-seq {
   margin: 0 5px;
 }
+
 //.list-group-item{
 //  border-top: 1px solid #4D4D4F;
 //  margin-bottom: 10px;

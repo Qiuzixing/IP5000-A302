@@ -1,7 +1,7 @@
 <template>
   <div class="main-setting">
     <div class="setting-model">
-      <div class="setting">
+      <div class="setting" v-if="this.$global.deviceType">
         <span class="setting-title">Menu Timeout (sec)</span>
         <el-input-number v-model="osdConfig.timeout_sec"
                          controls-position="right"
@@ -84,12 +84,12 @@
           </div>
         </div>
       </div>
-      <div class="setting">
+      <div class="setting" v-if="this.$global.deviceType">
         <span class="setting-title">Menu Font Size</span>
         <multiselect v-model="osdConfig.font_size"
                      :options="osdSize.param"></multiselect>
       </div>
-      <div class="setting">
+      <div class="setting" v-if="this.$global.deviceType">
         <span class="setting-title">Menu Position</span>
         <multiselect v-model="osdConfig.position"
                      :options="osdPosition.param"></multiselect>
@@ -98,7 +98,7 @@
       <!--        <span class="setting-title">Channel Lineup</span>-->
       <!--        -->
       <!--      </div>-->
-      <div class="setting">
+      <div class="setting" v-if="this.$global.deviceType">
         <span class="setting-title">Display Device Information</span>
         <v-switch v-model="osdInfo"
                   active-value="1"

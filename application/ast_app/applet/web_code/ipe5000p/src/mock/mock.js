@@ -11,7 +11,9 @@ Mock.mock('/switch/auto_switch_delays', (option) => {
     }
   }
 })
-
+Mock.mock('/log/log', (option) => {
+  return 'log12323131222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222213\n123\n123\n34'
+})
 Mock.mock('/av_signal', (option) => {
   return {
     'AV Signal': {

@@ -50,12 +50,13 @@
         <span class="setting-title">NTP Time Server Address</span>
         <input type="text"
                class="setting-text"
+               :disabled="ntpMode === '0'"
                v-model="ntpServer">
       </div>
       <div class="setting">
         <span class="setting-title">NTP Daily Sync Hour</span>
         <multiselect v-model="ntpDailySync"
-                     :options="ntpParam"></multiselect>
+                     :options="ntpParam" :disabled="ntpMode === '0'"></multiselect>
       </div>
     </div>
     <footer>

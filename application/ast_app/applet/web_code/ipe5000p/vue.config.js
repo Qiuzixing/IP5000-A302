@@ -1,4 +1,4 @@
-const version = 'V1.0.19'
+const version = 'V1.0.22'
 
 const path = require('path')
 function resolve (dir) {
@@ -85,10 +85,10 @@ if (process.env.NODE_ENV !== 'production') {
       } else if (message.startsWith('#CS-CONVERT? ')) {
         ws.send(`~nn@CS-CONVERT 1,${Math.round(Math.random())}`)
       } else if (message.startsWith('#PORT-DIRECTION? ')) {
-        ws.send('~01@NET-STAT [(TCP:80,0.0.0.0:0),LISTEN],[(TCP:5000,0.0.0.0:0),LISTEN],[(TCP:80,192.168.114.3:52400),ESTABLISHED],[(TCP:5000,192.168.1.100:51647),ESTABLISHED]')
-      } else if (message.startsWith('NET-STAT ')) {
         ws.send('~nn@PORT-DIRECTION both.ir,1.ir,IN')
         ws.send('~nn@PORT-DIRECTION both.analog.1.audio,OUT')
+      } else if (message.startsWith('NET-STAT ')) {
+        ws.send('~01@NET-STAT [(TCP:80,0.0.0.0:0),LISTEN],[(TCP:5000,0.0.0.0:0),LISTEN],[(TCP:80,192.168.114.3:52400),ESTABLISHED],[(TCP:5000,192.168.1.100:51647),ESTABLISHED]')
       } else if (message.startsWith('#KDS-AUD-OUTPUT? ')) {
         ws.send('~nn@KDS-AUD-OUTPUT [1,2,3]')
       } else if (message.startsWith('#LOCK-EDID? ')) {

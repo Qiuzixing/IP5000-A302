@@ -44,7 +44,7 @@
                 @click="setChannelName">APPLY</button>
       </div>
       <div class="setting">
-        <span class="setting-title">Volume (dB)</span>
+        <span class="setting-title">Volume</span>
         <el-slider @change="setVolume"
                    style="width: 200px"
                    :min="0"
