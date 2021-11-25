@@ -75,7 +75,6 @@ static int P3K_PhraserWithSeparator(char separator,char * param, int len, char s
 static int P3K_CheckNTFYCMD(char*data)
 {
 	int tmpDirec = NTFY_AUDIO;
-
 	if((!strcasecmp(data,"AUDIO")))
 		{tmpDirec = NTFY_AUDIO;}
 	else if((!strcasecmp(data,"VIDEO")))
@@ -98,6 +97,8 @@ static int P3K_CheckNTFYCMD(char*data)
 		{tmpDirec = NTFY_RS232_MSG;}
     else if((!strcasecmp(data,"BUTTON")))
 		{tmpDirec = NTFY_BUTTON;}
+    else if((!strcasecmp(data,"INPUT/OUTPUT")))
+		{tmpDirec = NTFY_INPUT_OUTPUT;}
 	return tmpDirec;
 }
 
@@ -139,6 +140,9 @@ static int P3K_NTFYToStr(int type,char*data)
 				break;
             case NTFY_BUTTON:
 				strcpy(tmpbuf,"BUTTON-NOTIFY");
+				break;
+            case NTFY_INPUT_OUTPUT:
+				strcpy(tmpbuf,"SIGNALS-LIST");
 				break;
 			default:
 				strcpy(tmpbuf,"DEFAULT");
@@ -367,6 +371,8 @@ static int P3K_CheckSignalType(char*data)
 	{	tmpFormat = SIGNAL_ARC;}
 	else if(!strcasecmp(data,"rs232")|| !strcasecmp(data,"[rs232") || !strcasecmp(data,"rs232]"))
 	{	tmpFormat = SIGNAL_RS232;}
+    else if(!strcasecmp(data,"cec")|| !strcasecmp(data,"[cec") || !strcasecmp(data,"cec]"))
+	{	tmpFormat = SIGNAL_CEC;}
 	else if(!strcasecmp(data,"av_test_pattern")|| !strcasecmp(data,"[av_test_pattern") || !strcasecmp(data,"av_test_pattern]"))
 	{   tmpFormat = SIGNAL_TEST;}
 	return tmpFormat;
@@ -410,6 +416,9 @@ static int P3K_SignaleTypeToStr(int signaltype,char*data)
 			break;
 		case SIGNAL_RS232:
 			strcpy(tmpbuf,"rs232");
+			break;
+        case SIGNAL_CEC:
+			strcpy(tmpbuf,"cec");
 			break;
 		default:
 			strcpy(tmpbuf,"video");
@@ -4546,6 +4555,7 @@ static int P3K_NTFY_PROC(char*reqparam,char*respParam,char*userdata)
     for(count = 2;count < s_NTFYInfo.iParamNum;count++)
     {
         memcpy(s_NTFYInfo.strParam[count-2],str[count],strlen(str[count]));
+        printf("..%s\n",s_NTFYInfo.strParam[count-2]);
     }
     s_NTFYInfo.iParamNum -= 2;
 	u32ret = EX_NTFYPhraser(&s_NTFYInfo,tmpparam);

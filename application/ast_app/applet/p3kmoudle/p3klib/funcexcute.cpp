@@ -3919,6 +3919,27 @@ int EX_NTFYPhraser(Notify_S *s_NTFYInfo,char *tmpparam)
         if(buttonbool == 0){
             return -1;
         }
+    }    
+    if(s_NTFYInfo->NCmd == NTFY_INPUT_OUTPUT)
+    {
+        int i = 0;
+        char siglist[10][MAX_SIGNALE_LEN] = {0};
+        int ret = EX_GetSignalList(&siglist[0],10);
+        if(ret > 10)
+            return -1;
+        else
+        {
+            sprintf(tmpparam+strlen(tmpparam),"[");
+            for(i = 0;i < ret;i++)
+            {
+                strncat(tmpparam,siglist[i],MAX_SIGNALE_LEN);
+        		if(i <  (ret-1))
+        		{
+        			strncat(tmpparam,",",1);
+        		}
+            }
+            sprintf(tmpparam+strlen(tmpparam),"]");
+        }
     }
     printf("{s_NTFYInfo [%d][%d]}\n",s_NTFYInfo->NCmd,s_NTFYInfo->iParamNum);
     return 0;

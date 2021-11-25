@@ -97,6 +97,7 @@ typedef enum _SignalType_E
 	SIGNAL_IR,
 	SIGNAL_USB,
 	SIGNAL_ARC,
+	SIGNAL_CEC,
 	SIGNAL_TEST,
 }SignalType_E;
 typedef enum _HDCPMode_E
@@ -202,6 +203,7 @@ typedef enum _NTFYCMD_E
 	NTFY_IR_MSG,
 	NTFY_RS232_MSG,
 	NTFY_BUTTON,
+	NTFY_INPUT_OUTPUT,
 }NTFYCmd_E;
 
 typedef struct   _NTFY_S

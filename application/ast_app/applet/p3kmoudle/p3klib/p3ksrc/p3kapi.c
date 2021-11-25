@@ -491,11 +491,12 @@ void * P3K_UdpInsideServer()
 	while(1)
 	{  
 		memset(recvBuf,0,sizeof(recvBuf));
+        memset(&cmd,0,sizeof(P3K_SimpleCmdInfo_S));
 		int s = recvfrom(g_Udp_Inside_Socket, recvBuf, sizeof(recvBuf)-1,0,(struct sockaddr*)&client,&len);
 		if(s > 0 && !memcmp(recvBuf,"#P3K-NOTIFY",strlen("#P3K-NOTIFY")))
 		{
             memcpy(cmd.command,"P3K-NOTIFY",strlen("P3K-NOTIFY"));
-            strcpy(cmd.param,recvBuf+12);
+            memcpy(cmd.param,recvBuf+12,strlen(recvBuf)-13);
             s32Ret = P3K_SilmpleReqCmdProcess(&cmd,&respCmdInfo,userDefine);
             strcpy(respCmdInfo.command,userDefine);
 			if(s32Ret != 0)
