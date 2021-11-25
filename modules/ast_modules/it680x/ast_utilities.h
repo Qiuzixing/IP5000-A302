@@ -55,10 +55,14 @@
  * @fmt:
  * @args:
  */
+#if 0
 #define uinfo(fmt, args...)					\
 	do {							\
 		printk(KERN_INFO "IT680x: " fmt , ## args);	\
 	} while(0)
+#else
+#define uinfo(fmt, args...) 
+#endif
 
 static inline void udump(void *buf, int bufflen)
 {
