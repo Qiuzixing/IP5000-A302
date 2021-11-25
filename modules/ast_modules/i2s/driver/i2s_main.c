@@ -3258,6 +3258,12 @@ int i2s_init(void)
 	}
 #endif
 
+#ifdef CONFIG_ARCH_AST1500_HOST
+	/* qzx 2021.11.25:The original factory will start the thread only when Rx is connected to TX, 
+					which will lead to audio_out has no sound when Rx is not connected, so you can force the process to start
+	*/
+	start_i2s_thread(&rx_data_t);
+#endif
 	if (platform_device_register(&pdev) < 0) {
 		I2S_err("platform_driver_register err\n");
 		BUG();

@@ -458,11 +458,9 @@ start_alm()
 		case "$MODEL_NUMBER" in
 			KDS-EN7)
 				audioswitch &
-				echo out_analog > /sys/devices/platform/1500_i2s/io_select
 			;;
 			KDS-SW3-EN7)
 				audioswitch &
-				ipc @m_lm_set s audio_out:0:1:2:3
 				ipc @m_lm_set s get_link_status:0
 				ipc @m_lm_set s get_link_status:1
 				ipc @m_lm_set s get_link_status:2
