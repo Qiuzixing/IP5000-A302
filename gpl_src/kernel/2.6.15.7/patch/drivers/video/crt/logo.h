@@ -49,7 +49,7 @@ struct s_bmp_file {
 #define MEMORY_TEST 0
 
 #if LOGO_FROM_FLASH
-#define LOGO_OFFSET (ASPEED_SMC_FLASH_BASE+0xFC0000)
+#define LOGO_OFFSET (ASPEED_SMC_FLASH_BASE+0x1FC0000)
 #define LOGO_SIZE (0x20000) //128KB
 
 static unsigned char logo_file[] = {
