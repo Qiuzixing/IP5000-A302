@@ -541,7 +541,7 @@ handle_e_sys_ip_chg()
 	route add -net 224.0.0.0 netmask 240.0.0.0 dev eth0
 	echo 2 > /proc/sys/net/ipv4/conf/eth0/force_igmp_version
 
-	avahi-daemon -k
+	#avahi-daemon -k
 	pkill -9 heartbeat
 	pkill -9 node_responser
 	pkill -9 name_service
@@ -553,7 +553,7 @@ handle_e_sys_ip_chg()
 	pkill -9 ldap_daemon
 	pkill -9 p3ktcp
 
-	avahi-daemon -D
+	#avahi-daemon -D
 	name_service -tclient
 	inetd &
 	#httpd -h /www &
@@ -1048,7 +1048,7 @@ handle_e_chg_hostname()
 	local _host_name=$1
 	astparam s hostname_customized $_host_name
 	astparam save
-	/sbin/avahi-daemon -k 2>/dev/null
+	#/sbin/avahi-daemon -k 2>/dev/null
 	#start avahi-daemon
 	# The $HOSTNAME_ID is now decided in refresh_hostname_params()
 	refresh_4bits_ch
@@ -1066,7 +1066,7 @@ handle_e_chg_hostname()
 	echo $HOSTNAME > /etc/hostname
 	hostname -F /etc/hostname
 
-	/sbin/avahi-daemon -D
+	#/sbin/avahi-daemon -D
 	update_node_info HOSTNAME $HOSTNAME
 	#update_node_info CH_SELECT $CH_SELECT
 }
@@ -1436,7 +1436,7 @@ handle_e_ip_got()
 
 		#avahi-daemon will be restarted in to_s_idle(). Skip here.
 		#Bruce120718. Now use -SIGUSR2 to flush mDNS, so load avahi-d here.
-		avahi-daemon -D
+		#avahi-daemon -D
 		name_service -tclient
 
 		# Start inetd
@@ -1745,7 +1745,7 @@ handle_e_eth_link_on()
 			# avahi-daemon -k
 			# From my test, wait for 1 second after link on and load avahi-daemon can
 			# resolve the problem that "can't find the host after link down for 10 minutes (SMC switch)".
-			{ avahi-daemon -k 2>/dev/null; sleep 1; avahi-daemon -D; } &
+			# { avahi-daemon -k 2>/dev/null; sleep 1; avahi-daemon -D; } &
 
 			if [ "$ACCESS_ON" = 'y' ]; then
 				if [ "$P3KCFG_AV_ACTION" = 'play' ];then

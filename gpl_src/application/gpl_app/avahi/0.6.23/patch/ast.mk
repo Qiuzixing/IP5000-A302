@@ -42,7 +42,7 @@ install:
 	cp -af $(PREFIX)/lib/libavahi* $(ROOTFS)/lib
 	#cp -af $(PREFIX)/lib/pkgconfig/avahi* $(ROOTFS)/lib/pkgconfig
 	cp -arf $(PREFIX)/lib/avahi $(ROOTFS)/lib
-	cp -f $(PREFIX)/sbin/avahi* $(ROOTFS)/sbin
+	cp -f $(PREFIX)/sbin/avahi-autoipd $(ROOTFS)/sbin
 	#cp -rf /etc/avahi $(rootfs)/etc
 	cp -rf $(PREFIX)/share/avahi $(ROOTFS)/share
 
