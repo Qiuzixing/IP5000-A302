@@ -313,9 +313,8 @@ static void ipe5000_and_ipe5000w_analog_in_xxx_out(void)
         switch(audio_inout_info.audio_out[i])
         {
             case AUDIO_OUT_HDMI:
-                set_gsv_insert_audio(INSERT);
-                break;
             case AUDIO_OUT_LAN:
+                set_gsv_insert_audio(INSERT);
                 do_handle_set_gpio_val(cmd,ast1520_out);
                 set_io_select(ANALOG_IN);
                 break;
