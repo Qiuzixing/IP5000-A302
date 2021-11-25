@@ -47,6 +47,7 @@ MainWidget::MainWidget(QWidget *parent) : QWidget(parent)
     ,m_CmdOuttime(0)
     ,m_overlayStatus(false)
     ,m_bKvmMode(true)
+    ,m_bReinit(false)
 {
     // 鼠标跟踪
     setMouseTracking(true);
@@ -104,12 +105,25 @@ MainWidget::MainWidget(QWidget *parent) : QWidget(parent)
     //  QString filename = "overlay2_setting.json";
     //  parseOverlayJson(filename);
 
+
+    // 直接设置隐藏不生效
+    QTimer::singleShot(100,this,SLOT(hideMouse()));
+
     QTimer::singleShot(2000,this,SLOT(slotShowOverlay()));
+
+    connect(&getInfoTimer,SIGNAL(timeout()),this,SLOT(getResolutionFromTiming()));
+    this->getInfoTimer.start(2000);
 }
 
 MainWidget::~MainWidget()
 {
 
+}
+
+void MainWidget::hideMouse()
+{
+    // 隐藏光标
+    this->setCursor(Qt::BlankCursor);
 }
 
 
@@ -243,8 +257,9 @@ void MainWidget::setOsdDispaly(bool status)
 {
     if(status)
     {
-        slotHideOverlay();
         m_osdMeun->parseChannelJson();
+        slotHideOverlay();
+        hideOsdMeun();
         QTimer::singleShot(500,this,SLOT(showOsdMeun()));
     }
     else
@@ -315,7 +330,12 @@ void MainWidget::syncConfig(QString path)
     {
         // 分辨率文件发生改变
         qDebug("Resolution Change!");
-        QTimer::singleShot(400,this,SLOT(getResolutionFromTiming()));
+        watch->removePath(RESOLUTION_CONFIG);
+        m_bReinit = true;
+        hideOsdMeun();
+        watch->addPath(RESOLUTION_CONFIG);
+//        qApp->exit(RESTART_APP);
+//        QTimer::singleShot(400,this,SLOT(getResolutionFromTiming()));
     }
     else if(path.compare(SLEEP_IMAGE_PATH) == 0)
     {
@@ -334,7 +354,6 @@ void MainWidget::syncConfig(QString path)
         m_osdMeun->parseMeunJson(MENUINFO_PATH);
         m_osdMeun->setListWidgetHeight();
         m_osdMeun->setMeunFont();
-        m_osdMeun->parseChannelJson();
 
         if(m_osdMeun->getdisplayConfig())
         {
@@ -367,7 +386,7 @@ void MainWidget::syncConfig(QString path)
 
 void MainWidget::getResolutionFromTiming()
 {
-    watch->removePath(RESOLUTION_CONFIG);
+//    watch->removePath(RESOLUTION_CONFIG);
 
     QString strCmd = "cat /sys/devices/platform/videoip/timing_info";
     QProcess p;
@@ -375,12 +394,9 @@ void MainWidget::getResolutionFromTiming()
     p.waitForFinished();
     QString strResult = p.readAllStandardOutput();
 
-    if(strResult.isEmpty())
-        return;
+    //qDebug() << "MainWidget::strResult:" << strResult;
 
-    qDebug() << "MainWidget::strResult:" << strResult;
-
-    if(!strResult.startsWith("Not"))
+    if(strResult.contains("Capture"))
     {
         // 解析输出源的分辨率应用到OSD
          QString startStr = "Capture";
@@ -426,6 +442,7 @@ void MainWidget::getResolutionFromTiming()
 
         if(width != g_nScreenWidth)
         {
+            getInfoTimer.stop();
             float wScale = static_cast<float> (width) / g_nStdScreenWidth;
             float hScale = static_cast<float> (height) / g_nStdScreenHeight;
             g_fScaleScreen = qMin(wScale, hScale);
@@ -433,27 +450,22 @@ void MainWidget::getResolutionFromTiming()
             g_nScreenWidth = width;
             g_nScreenHeight = height;
 
-            resize(g_nScreenWidth,g_nScreenHeight);
+            this->setFixedSize(g_nScreenWidth,g_nScreenHeight);
 
-            //m_osdMeun->deleteLater();
-            if(m_osdMeun != NULL)
-            {
-                m_osdMeun->setVisible(false);
+            m_bReinit = true;
+            hideOsdMeun();
+            destroyOsdAndOverlay();
 
-                destroyOsdAndOverlay();
-                // m_osdMeun->deleteLater();
-                initOsdMeun();
-                initOverlay();
-            }
-
+            reInit();
             g_bDeviceSleepMode = false;
-            update();
+            getInfoTimer.start(2000);
         }
     }
     else
     {
-        if(g_nframebufferWidth != g_nScreenWidth)
+        if(g_nScreenWidth != g_nframebufferWidth)
         {
+            getInfoTimer.stop();
             float wScale = static_cast<float> (g_nframebufferWidth) / g_nStdScreenWidth;
             float hScale = static_cast<float> (g_nframebufferHeight) / g_nStdScreenHeight;
             g_fScaleScreen = qMin(wScale, hScale);
@@ -461,28 +473,31 @@ void MainWidget::getResolutionFromTiming()
             g_nScreenWidth = g_nframebufferWidth;
             g_nScreenHeight = g_nframebufferHeight;
 
-            resize(g_nScreenWidth,g_nScreenHeight);
+            this->setFixedSize(g_nScreenWidth,g_nScreenHeight);
 
-            if(m_osdMeun != NULL)
-            {
-                hideOsdMeun();
+            m_bReinit = true;
+            hideOsdMeun();
+            destroyOsdAndOverlay();
 
-                destroyOsdAndOverlay();
-
-                initOsdMeun();
-                initOverlay();
-            }
+            reInit();
 
             g_bDeviceSleepMode = true;
-            update();
+            getInfoTimer.start(2000);
         }
         // 显示休眠界面，更新
-        startSleepMode();
-        update();
+//        startSleepMode();
+//        update();
     }
 
     // 文件会被删除所以需要重新监控
-    watch->addPath(RESOLUTION_CONFIG);
+//    watch->addPath(RESOLUTION_CONFIG);
+}
+
+void MainWidget::reInit()
+{
+    initOsdMeun();
+    initOverlay();
+    update();
 }
 
 void MainWidget::destroyOsdAndOverlay()
@@ -514,7 +529,7 @@ void MainWidget::isNoSignal()
 //    p.waitForFinished();
 //    QString strResult = p.readAllStandardOutput();
 
-//    if(strResult.startsWith("Not"))
+//    if(strResult)
 //    {
 //        getInfoTimer.stop();
 //        qApp->exit(RESTART_APP);
@@ -528,6 +543,7 @@ void MainWidget::handleKvmMsg(bool enable)
         if(m_osdMeun->getdisplayConfig())
         {
             m_bKvmMode = false;
+            m_osdMeun->parseChannelJson();
             showOsdMeun();
         }
     }
@@ -629,13 +645,12 @@ void MainWidget::initOverlay()
 //  set show overlay
 void MainWidget::slotShowOverlay()
 {
+    setTransparency(80);
+
     // 添加文件监控
     QStringList paths ;
 
-    paths << RESOLUTION_CONFIG;
-    paths << SLEEP_IMAGE_PATH;
-    paths << MENUINFO_PATH;
-    paths << CHANNELS_LIST_PATH;
+    paths << MENUINFO_PATH << CHANNELS_LIST_PATH << RESOLUTION_CONFIG;
 
     watch = new QFileSystemWatcher;
     watch->addPaths(paths);
@@ -675,7 +690,9 @@ void MainWidget::hideOsdMeun()
     g_bOSDMeunDisplay = false;
 
     // 隐藏OSD菜单时，继续显示常显Overlay
+    if(!m_bReinit)
     QTimer::singleShot(400,this,SLOT(showLongDisplay()));
+
     m_osdMeun->setdisplayStatus(false);
 }
 
@@ -683,9 +700,6 @@ void MainWidget::showOsdMeun()
 {
     if(m_osdMeun == NULL)
         return;
-
-    m_osdMeun->resize(m_osdMeun->width(),height());
-    m_osdMeun->setVisible(false);
 
     getKMControl();
 
@@ -699,7 +713,7 @@ void MainWidget::showOsdMeun()
 
 void MainWidget::moveOsdMeun(int position)
 {
-    g_bOSDMeunDisplay = true;
+    m_osdMeun->setVisible(false);
 
     if(!g_bDeviceSleepMode)
     {
@@ -710,6 +724,8 @@ void MainWidget::moveOsdMeun(int position)
     int ypos = 0;
 
     // 移动到指定位置
+    moveFramebuffer(position);
+
     switch (position)
     {
         case CENTER:
@@ -771,12 +787,10 @@ void MainWidget::moveOsdMeun(int position)
     qDebug() << "xpos:" << xpos;
     qDebug() << "ypos:" << ypos;
 
-    moveFramebuffer(position);
     m_osdMeun->move(xpos,ypos);
-    setTransparency(80);
-    m_osdMeun->startTimer();
-
     m_osdMeun->setVisible(true);
+
+    m_osdMeun->startTimer();
 }
 
 void MainWidget::updateOsdMenu()

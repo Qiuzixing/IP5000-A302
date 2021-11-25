@@ -52,6 +52,9 @@ public slots:
     void moveOsdMeun(int position);
     void updateOsdMenu();
 
+    void hideMouse();
+    void reInit();
+
     void slotShowOverlay();
     void slotHideOverlay();
 
@@ -125,6 +128,8 @@ private:
 
     int m_nVideoWall_ID;
     int m_nVideoWall_R;
+
+    bool m_bReinit;
 };
 
 #endif // MAINWIDGET_H
