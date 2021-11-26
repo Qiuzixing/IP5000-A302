@@ -99,6 +99,8 @@ static int P3K_CheckNTFYCMD(char*data)
 		{tmpDirec = NTFY_BUTTON;}
     else if((!strcasecmp(data,"INPUT/OUTPUT")))
 		{tmpDirec = NTFY_INPUT_OUTPUT;}
+    else if((!strcasecmp(data,"con_list")))
+		{tmpDirec = NTFY_CON_LIST;}
 	return tmpDirec;
 }
 
@@ -124,10 +126,10 @@ static int P3K_NTFYToStr(int type,char*data)
 				strcpy(tmpbuf,"AUDIO_SWITCH-NTFY");
 				break;
             case NTFY_INPUT:
-				strcpy(tmpbuf,"INPUT-NTFY");
+				strcpy(tmpbuf,"SIGNALS-LIST");
 				break;
             case NTFY_OUTPUT:
-				strcpy(tmpbuf,"OUTPUT-NTFY");
+				strcpy(tmpbuf,"SIGNALS-LIST");
 				break;
             case NTFY_CEC_MSG:
 				strcpy(tmpbuf,"CEC-NTFY");
@@ -143,6 +145,9 @@ static int P3K_NTFYToStr(int type,char*data)
 				break;
             case NTFY_INPUT_OUTPUT:
 				strcpy(tmpbuf,"SIGNALS-LIST");
+				break;
+            case NTFY_CON_LIST:
+				strcpy(tmpbuf,"NET-STAT");
 				break;
 			default:
 				strcpy(tmpbuf,"DEFAULT");

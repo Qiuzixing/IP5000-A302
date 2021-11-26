@@ -204,6 +204,7 @@ typedef enum _NTFYCMD_E
 	NTFY_RS232_MSG,
 	NTFY_BUTTON,
 	NTFY_INPUT_OUTPUT,
+	NTFY_CON_LIST,
 }NTFYCmd_E;
 
 typedef struct   _NTFY_S

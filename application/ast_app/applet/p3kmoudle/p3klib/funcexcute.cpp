@@ -3920,7 +3920,7 @@ int EX_NTFYPhraser(Notify_S *s_NTFYInfo,char *tmpparam)
             return -1;
         }
     }    
-    if(s_NTFYInfo->NCmd == NTFY_INPUT_OUTPUT)
+    if(s_NTFYInfo->NCmd == NTFY_INPUT || s_NTFYInfo->NCmd == NTFY_OUTPUT)
     {
         int i = 0;
         char siglist[10][MAX_SIGNALE_LEN] = {0};
@@ -3940,6 +3940,27 @@ int EX_NTFYPhraser(Notify_S *s_NTFYInfo,char *tmpparam)
             }
             sprintf(tmpparam+strlen(tmpparam),"]");
         }
+    }
+    if(s_NTFYInfo->NCmd == NTFY_CON_LIST)
+    {
+        char connectionlist[10][MAX_SIGNALE_LEN] = {0};
+    	int i = 0;
+    	int ret = EX_GetConnectionList(&connectionlist[0],10);
+    	if(ret > 10)
+    	{
+    		DBG_WarnMsg("P3K_GetConnectionList num=%d over 10\n",ret);
+    		ret =10;
+    	}
+    	for(i = 0;i < ret ;i++)
+    	{
+    		printf(" ret = %d ,sig=%s\n",ret,connectionlist[i]);
+    		strncat(tmpparam,connectionlist[i],MAX_SIGNALE_LEN);
+    		if(i <  (ret-1))
+    		{
+    			strncat(tmpparam,",",1);
+
+    		}
+    	}
     }
     printf("{s_NTFYInfo [%d][%d]}\n",s_NTFYInfo->NCmd,s_NTFYInfo->iParamNum);
     return 0;

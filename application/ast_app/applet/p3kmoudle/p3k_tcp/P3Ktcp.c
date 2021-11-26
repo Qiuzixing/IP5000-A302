@@ -68,6 +68,39 @@ static HandleList_S* Tcp_NetGetMngHandleHead()
 	return &(gs_cliHandleMng.listHandleHead);
 }
 
+int SendToConList(char * data)
+{
+    int sock_fd = socket(AF_INET,SOCK_DGRAM,0);
+	if(sock_fd < 0)
+		perror("");
+	//??¡®???
+	struct sockaddr_in myaddr;
+	myaddr.sin_family=AF_INET;
+	myaddr.sin_port = htons(8080);
+	myaddr.sin_addr.s_addr = 0;//¨¦€?¨¦¡­???¡ã??€  ?¡ã??¡ë€??¡ë?????¡ã??€¨¦€?¨¦€???¡®???
+	if(bind(sock_fd,(struct sockaddr*)&myaddr,sizeof(myaddr))<0)
+		perror("bind");
+
+	struct sockaddr_in addr;// ipv4?£¤¡ª??£¤?-¡ª??¡ã??€??¡°?????¡° 
+	addr.sin_family =AF_INET;
+	addr.sin_port = htons(60001);  //????????¡§??¡¥??¡ê
+	inet_pton(AF_INET,"127.0.0.1",&addr.sin_addr.s_addr); //????????¡§???ip
+	struct sockaddr_in server_addr;
+	socklen_t len = sizeof(server_addr);
+	char ip[16]="";
+	char buf[1024]="";
+    memset(buf,0,sizeof(buf));
+    sprintf(buf,"#P3K-NOTIFY %s\r",data);
+    int ret = sendto(sock_fd,buf,strlen(buf),0,(struct sockaddr*)&addr,sizeof(addr));
+    if(ret > 0)
+    {
+        printf("snedto %d",ret);
+    }
+	close(sock_fd);
+
+	return 0;
+}
+
 void Create_LinkList(ConnectionList_S *list)
 {
     Connection_Info *p_head = malloc(sizeof(Connection_Info));
@@ -367,6 +400,8 @@ void UnInitTcpSocket(TimeOut_S * head)
         if(tmp->InOrOut == 0)
 		{
 			DeleteById_LinkList(g_connectionlist_info,tmp->soket);
+            char * data = "con_list";
+            SendToConList(data);
             close(tmp->soket);
 			rec->next = tmp->next;
 			free(tmp);
@@ -391,6 +426,8 @@ void Delete_TcpLink(TimeOut_S * head,int socket)
 			//Tcp_NetClose(*(int *)fd);
 			//close(*(int *)fd);
 			DeleteById_LinkList(g_connectionlist_info,socket);
+            char * data = "con_list";
+            SendToConList(data);
 			rec->next = tmp->next;
 			free(tmp);
 			break;
@@ -489,6 +526,8 @@ int Tcp_NetRecvMsg(NetCliInfo_T *cli)
                 pnewconnection->next = NULL;
                 pnewconnection->pre = NULL;
                 HeadInsert_LinkList(g_connectionlist_info,pnewconnection);
+                char * data = "con_list";
+                SendToConList(data);
             }
 			pnew->soket = cli->recvSocket;
 			pnew->next = NULL;
@@ -516,6 +555,8 @@ int Tcp_NetRecvMsg(NetCliInfo_T *cli)
                 pnewconnection->next = NULL;
                 pnewconnection->pre = NULL;
                 HeadInsert_LinkList(g_connectionlist_info,pnewconnection);
+                char * data = "con_list";
+                SendToConList(data);
             }
 			pnew->soket = cli->recvSocket;
 			pnew->next = NULL;
