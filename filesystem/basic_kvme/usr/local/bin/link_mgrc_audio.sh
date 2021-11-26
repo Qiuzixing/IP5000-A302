@@ -561,6 +561,27 @@ event_loop()
 	echo ""
 }
 
+audio_setting_init()
+{
+	if [ $P3KCFG_AV_MUTE = 'off' ];then
+		echo 100 > /sys/devices/platform/1500_i2s/analog_in_vol
+		echo 1 > /sys/class/leds/linein_mute/brightness
+		echo 1 > /sys/class/leds/lineout_mute/brightness
+		if [ $UGP_FLAG = 'success' ];then
+			ipc @m_lm_set s set_hdmi_mute:16:1:0
+		fi
+	else
+		echo 0 > /sys/devices/platform/1500_i2s/analog_in_vol
+		echo 0 > /sys/class/leds/linein_mute/brightness
+		echo 0 > /sys/class/leds/lineout_mute/brightness
+		if [ $UGP_FLAG = 'success' ];then
+			ipc @m_lm_set s set_hdmi_mute:16:1:1
+		fi
+	fi
+
+	echo $P3KCFG_ANAOUT_VOLUME > /sys/devices/platform/1500_i2s/analog_out_vol
+}
+
 start_alm()
 {
 	cd /usr/local/bin
@@ -581,21 +602,7 @@ start_alm()
 	# start event loop
 	event_loop &
 
-	if [ $P3KCFG_AV_MUTE = 'off' ];then
-		echo 100 > /sys/devices/platform/1500_i2s/analog_in_vol
-		echo 1 > /sys/class/leds/linein_mute/brightness
-		echo 1 > /sys/class/leds/lineout_mute/brightness
-		if [ $UGP_FLAG = 'success' ];then
-			ipc @m_lm_set s set_hdmi_mute:16:1:0
-		fi
-	else
-		echo 0 > /sys/devices/platform/1500_i2s/analog_in_vol
-		echo 0 > /sys/class/leds/linein_mute/brightness
-		echo 0 > /sys/class/leds/lineout_mute/brightness
-		if [ $UGP_FLAG = 'success' ];then
-			ipc @m_lm_set s set_hdmi_mute:16:1:1
-		fi
-	fi
+	audio_setting_init
 }
 
 start_alm

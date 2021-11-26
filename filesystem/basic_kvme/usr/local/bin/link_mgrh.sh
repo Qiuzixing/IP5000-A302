@@ -2648,18 +2648,25 @@ init_param_from_p3k_cfg()
 		if echo "$P3KCFG_AV_ACTION" | grep -q "null" ; then
 			P3KCFG_AV_ACTION='play'
 		fi
+
+		P3KCFG_ANAOUT_VOLUME=`jq -r '.av_setting.volume' $av_setting`
+		if echo "$P3KCFG_ANAOUT_VOLUME" | grep -q "null" ; then
+			P3KCFG_ANAOUT_VOLUME='80'
+		fi
 	else
 		P3KCFG_HDCP_1_ON='on'
 		P3KCFG_HDCP_2_ON='on'
 		P3KCFG_HDCP_3_ON='on'
 		P3KCFG_AV_MUTE='off'
 		P3KCFG_AV_ACTION='play'
+		P3KCFG_ANAOUT_VOLUME='80'
 	fi
 	echo "P3KCFG_HDCP_1_ON=$P3KCFG_HDCP_1_ON"
 	echo "P3KCFG_HDCP_2_ON=$P3KCFG_HDCP_2_ON"
 	echo "P3KCFG_HDCP_3_ON=$P3KCFG_HDCP_3_ON"
 	echo "P3KCFG_AV_MUTE=$P3KCFG_AV_MUTE"
 	echo "P3KCFG_AV_ACTION=$P3KCFG_AV_ACTION"
+	echo "P3KCFG_ANAOUT_VOLUME=$P3KCFG_ANAOUT_VOLUME"
 
 	if [ -f "$gateway_setting" ];then
 		P3KCFG_IR_DIR=`jq -r '.gateway.ir_direction' $gateway_setting`

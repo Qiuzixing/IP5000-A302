@@ -412,6 +412,40 @@ adc_pin_mux_gpio()
 	io 1 0x1E6E20A0 $reg_value
 }
 
+audio_setting_init()
+{
+	if [ $P3KCFG_AV_MUTE = 'off' ];then
+		echo 100 > /sys/devices/platform/1500_i2s/analog_in_vol
+		echo 1 > /sys/class/leds/linein_mute/brightness
+		echo 1 > /sys/class/leds/lineout_mute/brightness
+		ipc @m_lm_set s set_hdmi_mute:16:1:0
+		if [ $MODEL_NUMBER = 'KDS-SW3-EN7' ];then
+			ipc @m_lm_set s set_hdmi_mute:17:1:0
+			echo 0 > /sys/class/leds/dante_mute/brightness
+		fi
+	else
+		echo 0 > /sys/devices/platform/1500_i2s/analog_in_vol
+		echo 0 > /sys/class/leds/linein_mute/brightness
+		echo 0 > /sys/class/leds/lineout_mute/brightness
+		ipc @m_lm_set s set_hdmi_mute:16:1:1
+		if [ $MODEL_NUMBER = 'KDS-SW3-EN7' ];then
+			ipc @m_lm_set s set_hdmi_mute:17:1:1
+			echo 1 > /sys/class/leds/dante_mute/brightness
+		fi
+	fi
+
+	case "$MODEL_NUMBER" in
+		KDS-EN7)
+			echo $P3KCFG_ANAOUT_VOLUME > /sys/devices/platform/1500_i2s/analog_out_vol	
+		;;
+		KDS-SW3-EN7)
+			echo $P3KCFG_ANAOUT_VOLUME > /sys/devices/platform/1500_i2s/analog_out_vol
+		;;
+		*)
+		;;
+	esac
+}
+
 start_alm()
 {
 	cd /usr/local/bin
@@ -432,25 +466,7 @@ start_alm()
 	# start event loop
 	event_loop &
 	
-	if [ $P3KCFG_AV_MUTE = 'off' ];then
-		echo 100 > /sys/devices/platform/1500_i2s/analog_in_vol
-		echo 1 > /sys/class/leds/linein_mute/brightness
-		echo 1 > /sys/class/leds/lineout_mute/brightness
-		ipc @m_lm_set s set_hdmi_mute:16:1:0
-		if [ $MODEL_NUMBER = 'KDS-SW3-EN7' ];then
-			ipc @m_lm_set s set_hdmi_mute:17:1:0
-			echo 0 > /sys/class/leds/dante_mute/brightness
-		fi
-	else
-		echo 0 > /sys/devices/platform/1500_i2s/analog_in_vol
-		echo 0 > /sys/class/leds/linein_mute/brightness
-		echo 0 > /sys/class/leds/lineout_mute/brightness
-		ipc @m_lm_set s set_hdmi_mute:16:1:1
-		if [ $MODEL_NUMBER = 'KDS-SW3-EN7' ];then
-			ipc @m_lm_set s set_hdmi_mute:17:1:1
-			echo 1 > /sys/class/leds/dante_mute/brightness
-		fi
-	fi
+	audio_setting_init
 
 	if [ $UGP_FLAG = 'success' ];then
 		ipc @m_lm_set s open_report
