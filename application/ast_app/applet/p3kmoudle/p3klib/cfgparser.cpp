@@ -83,9 +83,9 @@ int Cfg_Check_File(char * path)
 	int nRet = 0,nOffset = 0;
 	while(1)
 	{
-		printf("nOffset == %d sizeof(pBuf) = %d\n",nOffset,sizeof(pBuf));
+//		printf("nOffset == %d sizeof(pBuf) = %d\n",nOffset,sizeof(pBuf));
 		nRet = fread(pBuf+nOffset,1,sizeof(pBuf)-nOffset,fp);
-		printf("nRet == %d\n",nRet);
+//		printf("nRet == %d\n",nRet);
 		if(nRet <= 0)
 		{
 			break;
@@ -344,11 +344,12 @@ int Cfg_Init_Audio(void)
 
 			}
 
+			g_audio_info.input_pri[0] = AUDIO_IN_NONE;
+			g_audio_info.input_pri[1] = AUDIO_IN_NONE;
+			g_audio_info.input_pri[2] = AUDIO_IN_NONE;
 			if(!root[JSON_PRIORITY].empty())
 			{
-				g_audio_info.input_pri[0] = AUDIO_IN_NONE;
-				g_audio_info.input_pri[1] = AUDIO_IN_NONE;
-				g_audio_info.input_pri[2] = AUDIO_IN_NONE;
+
 
 				Json::Value& JsonPriorityArray = root[JSON_PRIORITY];
 				//printf("JsonPriorityArray.size() = %d\n",JsonPriorityArray.size());
@@ -391,13 +392,12 @@ int Cfg_Init_Audio(void)
 				}
 			}
 
+			g_audio_info.dst_port[0] = PORT_NONE;
+			g_audio_info.dst_port[1] = PORT_NONE;
+			g_audio_info.dst_port[2] = PORT_NONE;
+			g_audio_info.dst_port[3] = PORT_NONE;
 			if(!root[JSON_AUDIO_DEST].empty())
 			{
-				g_audio_info.dst_port[0] = PORT_NONE;
-				g_audio_info.dst_port[1] = PORT_NONE;
-				g_audio_info.dst_port[2] = PORT_NONE;
-				g_audio_info.dst_port[3] = PORT_NONE;
-
 				int jjj = 0;
 				Json::Value& JsonDstArray = root[JSON_AUDIO_DEST];
 				//printf("JsonDstArray.size() = %d\n",JsonDstArray.size());
