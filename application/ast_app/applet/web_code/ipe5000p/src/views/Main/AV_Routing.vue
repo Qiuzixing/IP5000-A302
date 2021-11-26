@@ -43,7 +43,7 @@
                 style="margin-left: 24px;"
                 @click="setChannelName">APPLY</button>
       </div>
-      <div class="setting">
+      <div class="setting" v-if="this.$global.deviceType !== 2">
         <span class="setting-title">Volume</span>
         <el-slider @change="setVolume"
                    style="width: 200px"

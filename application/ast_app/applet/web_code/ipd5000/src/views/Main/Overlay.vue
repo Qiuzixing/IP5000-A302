@@ -7,10 +7,12 @@
             <div class="overlay-setting">
               <span class="overlay-title">Display Overlay</span>
               <button class="btn btn-plain-primary"
-                      @click="showOverlay(1)">START</button>
+                      @click="showOverlay(1)">START
+              </button>
               <button class="btn btn-plain-primary"
                       @click="showOverlay(0)"
-                      style="margin-left:15px;">STOP</button>
+                      style="margin-left:15px;">STOP
+              </button>
             </div>
           </v-collapse>
           <v-collapse title="Image settings">
@@ -18,11 +20,11 @@
               <span class="overlay-title">Image</span>
               <div class="overlay-setting-item overlay-img">
                 <span class="file-name"
-                      style="display: inline-block;overflow: hidden;">{{imgName}}</span>
+                      style="display: inline-block;overflow: hidden;">{{ imgName }}</span>
                 <span class="
                     upload-icon"
                       @click="clickUpload">
-                  <icon-svg icon-class="upload_img" />
+                  <icon-svg icon-class="upload_img"/>
                 </span>
                 <input type="file"
                        ref="upload"
@@ -31,7 +33,7 @@
                        style="display: none;">
                 <span class="range-alert"
                       v-if="imgError"
-                      style="white-space: nowrap;">{{imgErrorMsg}}</span>
+                      style="white-space: nowrap;">{{ imgErrorMsg }}</span>
                 <span v-if="uploadComplete"
                       style="font-size:20px;margin-left:15px;color:#67c23a;"><i class="el-icon-circle-check"></i></span>
               </div>
@@ -95,8 +97,8 @@
                    style="position: relative">
                 <div class="color-desc">
                   <p style="margin: 0"><span class="color-box"
-                          :style="{'background': color}"></span>
-                    {{color}}</p>
+                                             :style="{'background': color}"></span>
+                    {{ color }}</p>
                   <color-picker v-model="color"
                                 color-format="hex"
                                 :show-alpha="false"
@@ -132,8 +134,11 @@
       </div>
     </div>
 
-    <footer><button class="btn btn-primary"
-              @click="save">SAVE</button></footer>
+    <footer>
+      <button class="btn btn-primary"
+              @click="save">SAVE
+      </button>
+    </footer>
   </div>
 </template>
 
@@ -155,11 +160,11 @@ export default {
       imgName: '',
       imageInfo: {
         genral:
-        {
-          enable: 'on',
-          timeout: 2,
-          transparency: 0
-        },
+          {
+            enable: 'on',
+            timeout: 2,
+            transparency: 0
+          },
         objects: [
           {
             type: 'image',
@@ -169,11 +174,11 @@ export default {
       },
       textInfo: {
         genral:
-        {
-          enable: 'off',
-          timeout: 2,
-          transparency: 0
-        },
+          {
+            enable: 'off',
+            timeout: 2,
+            transparency: 0
+          },
         objects: [
           {
             type: 'text',
@@ -193,40 +198,40 @@ export default {
       horizontalPosition: {
         param: [
           {
-            value: 'left_top',
-            label: 'Left top'
+            value: 'top_left',
+            label: 'Top left'
           },
           {
-            value: 'left_centered',
-            label: 'Left center'
+            value: 'top_right',
+            label: 'Top right'
           },
           {
-            value: 'left_bottom',
-            label: 'Left bottom'
+            value: 'top_center',
+            label: 'Top center'
           },
           {
-            value: 'centered_top',
-            label: 'Center top'
+            value: 'bottom_left',
+            label: 'Bottom left'
           },
           {
-            value: 'centered_centered',
-            label: 'Center center'
+            value: 'bottom_right',
+            label: 'Bottom right'
           },
           {
-            value: 'centered_bottom',
-            label: 'Center bottom'
+            value: 'bottom_center',
+            label: 'Bottom center'
           },
           {
-            value: 'right_top',
-            label: 'Right top'
+            value: 'left',
+            label: 'Left'
           },
           {
-            value: 'right_centered',
-            label: 'Right center'
+            value: 'right',
+            label: 'Right'
           },
           {
-            value: 'right_bottom',
-            label: 'Right bottom'
+            value: 'center',
+            label: 'Center'
           }
         ]
       },
@@ -257,7 +262,8 @@ export default {
   methods: {
     showOverlay (start) {
       if (start) {
-        this.$socket.sendMsg('#KDS-START-OVERLAY ')
+        const msg = this.imageInfo.genral.enable === 'on' ? 'overlay2_setting' : 'overlay1_setting'
+        this.$socket.sendMsg(`#KDS-START-OVERLAY ${msg},0`)
       } else {
         this.$socket.sendMsg('#KDS-STOP-OVERLAY ')
       }
@@ -358,14 +364,17 @@ export default {
   display: flex;
   flex-direction: column;
 }
+
 .setting-model {
   flex: 1;
 }
+
 .main-setting footer {
   flex-shrink: 0;
   margin-top: 15px;
   margin-bottom: 15px;
 }
+
 .overlay {
   display: flex;
 }
@@ -396,7 +405,7 @@ export default {
   .overlay-title {
     width: 176px;
     font-family: "open sans semiblold", -apple-system, BlinkMacSystemFont,
-      "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
 
   .overlay-img {
