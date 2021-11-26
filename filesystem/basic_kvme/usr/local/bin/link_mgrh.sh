@@ -14,6 +14,7 @@ device_setting="/data/configs/kds-7/device/device_setting.json"
 edid_setting="/data/configs/kds-7/edid/edid_setting.json"
 av_setting="/data/configs/kds-7/av_setting/av_setting.json"
 gateway_setting="/data/configs/kds-7/gateway/gateway.json"
+network_setting="/data/configs/kds-7/network/network_setting.json"
 rx_tcp_port='8888'
 
 stop_all_service()
@@ -2692,6 +2693,16 @@ init_param_from_p3k_cfg()
 	echo "P3KCFG_IR_DIR=$P3KCFG_IR_DIR"
 	echo "CEC_GATWAY=$CEC_GATWAY"
 	echo "CEC_SEND_DIR=$CEC_SEND_DIR"
+
+	if [ -f "$network_setting" ];then
+		P3KCFG_TTL=`jq -r '.network_setting.multicast.ttl' $network_setting`
+		if echo "$P3KCFG_TTL" | grep -q "null" ; then
+			P3KCFG_TTL='64'
+		fi
+	else
+		P3KCFG_TTL='64'
+	fi
+	echo "P3KCFG_TTL=$P3KCFG_TTL"
 }
 
 set_hdcp_status()
@@ -2755,6 +2766,8 @@ set_variable_power_on_status()
 			echo 1 > /sys/class/leds/dante_mute/brightness
 		fi
 	fi
+
+	echo $P3KCFG_TTL > /proc/sys/net/ipv4/ip_default_ttl
 }
 
 signal_handler()
@@ -2937,6 +2950,9 @@ if [ $UGP_FLAG = 'success' ];then
 			set_variable_power_on_status
 		;;
 		KDS-SW3-EN7)
+			set_variable_power_on_status
+		;;
+		WP-SW2-EN7)
 			set_variable_power_on_status
 		;;
 		*)

@@ -14,6 +14,7 @@ device_setting="/data/configs/kds-7/device/device_setting.json"
 av_setting="/data/configs/kds-7/av_setting/av_setting.json"
 gateway_setting="/data/configs/kds-7/gateway/gateway.json"
 auto_switch_setting="/data/configs/kds-7/switch/auto_switch_setting.json"
+network_setting="/data/configs/kds-7/network/network_setting.json"
 # 0: This value does not exist.
 # 1: GUI screen
 # 2: Decode screen
@@ -3669,15 +3670,29 @@ init_param_from_p3k_cfg()
 		P3KCFG_SWITCH_IN='stream'
 	fi
 	echo "P3KCFG_SWITCH_IN=$P3KCFG_SWITCH_IN"
+
+	if [ -f "$network_setting" ];then
+		P3KCFG_TTL=`jq -r '.network_setting.multicast.ttl' $network_setting`
+		if echo "$P3KCFG_TTL" | grep -q "null" ; then
+			P3KCFG_TTL='64'
+		fi
+	else
+		P3KCFG_TTL='64'
+	fi
+	echo "P3KCFG_TTL=$P3KCFG_TTL"
 }
 
 set_variable_power_on_status()
 {
-	if [ $P3KCFG_AV_MUTE = 'off' ];then
-		ipc @m_lm_set s set_hdmi_mute:16:1:0
-	else
-		ipc @m_lm_set s set_hdmi_mute:16:1:1
+	if [ $UGP_FLAG = 'success' ];then
+		if [ $P3KCFG_AV_MUTE = 'off' ];then
+			ipc @m_lm_set s set_hdmi_mute:16:1:0
+		else
+			ipc @m_lm_set s set_hdmi_mute:16:1:1
+		fi
 	fi
+
+	echo $P3KCFG_TTL > /proc/sys/net/ipv4/ip_default_ttl
 }
 
 signal_handler()
@@ -3811,9 +3826,7 @@ fi
 #Initialize I2C bus3(temperature sensor)
 init_temperature_sensor
 
-if [ $UGP_FLAG = 'success' ];then
-	set_variable_power_on_status
-fi
+set_variable_power_on_status
 
 # TBD remove? screen switch doesn't check HAS_CRT anymore
 #if [ -f "$DISPLAY_SYS_PATH"/screen ]; then
