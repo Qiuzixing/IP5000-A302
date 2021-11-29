@@ -21,26 +21,13 @@ default:
 
 config:
 	cp wpa_supplicant/defconfig wpa_supplicant/.config 
-	sed -i '29 s/CONFIG_DRIVER_WEXT=y/#CONFIG_DRIVER_WEXT=y/' wpa_supplicant/.config
-	sed -i '32 s/CONFIG_DRIVER_NL80211=y/#CONFIG_DRIVER_NL80211=y/' wpa_supplicant/.config
-	sed -i '370 s/CONFIG_CTRL_IFACE_DBUS_NEW/#CONFIG_CTRL_IFACE_DBUS_NEW/' wpa_supplicant/.config
-	sed -i '373 s/CONFIG_CTRL_IFACE_DBUS_INTRO=y/#CONFIG_CTRL_IFACE_DBUS_INTRO=y/' wpa_supplicant/.config
-	sed -i '509 s/CONFIG_AP=y/#CONFIG_AP=y/' wpa_supplicant/.config
-	sed -i '514 s/CONFIG_P2P=y/#CONFIG_P2P=y/' wpa_supplicant/.config 
-	sed -i '522 s/CONFIG_WIFI_DISPLAY=y/#CONFIG_WIFI_DISPLAY=y/' wpa_supplicant/.config
-
 	sed -i '17i\CFLAGS += -I $(PREFIX)\/include' wpa_supplicant/.config  
-	sed -i '18i\CFLAGS += -I $(PREFIX)\/include\/libnl3\/netlink' wpa_supplicant/.config
 	sed -i '19i\LIBS += -L $(PREFIX)\/lib' wpa_supplicant/.config
 	sed -i '20i\LIBS_p += -L $(PREFIX)\/lib' wpa_supplicant/.config
 	sed -i '21i\CC = $(CROSS_COMPILE)gcc' wpa_supplicant/.config
 	sed -i '22i\AR = $(CROSS_COMPILE)ar' wpa_supplicant/.config
 	sed -i '23i\LD = $(CROSS_COMPILE)ld' wpa_supplicant/.config
 	
-	#cd $(PREFIX)/include/libnl3/netlink/ && (mv errno.h errno2.h || cd $(PREFIX)/include/libnl3/netlink/)
-	#cd $(PREFIX)/include/libnl3/netlink/ && sed -i '31 s/errno.h/errno2.h/' netlink.h
-	#cd $(PREFIX)/include/libnl3/netlink/ && sed -i '31 s/errno2.h//2' netlink.h
-
 build:
 	make -C wpa_supplicant
 	make -C wpa_supplicant install DESTDIR=$(PREFIX)
