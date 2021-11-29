@@ -371,6 +371,12 @@ control_net_and_board_led_status()
 	status_light_up $tmp $?
 }
 
+ipe5000w_led_tmp_define()
+{
+	BOARD_ON_R="led_on_g"
+	BOARD_ON_G="led_on_r"
+}
+
 kill_process()
 {
 	#2021.10.12 qzx:If the process starts with parameters, the pkill -9 process_name cannot be killed.You must use kill -9 to kill the process started with parameters

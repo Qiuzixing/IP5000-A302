@@ -2961,6 +2961,7 @@ if [ $UGP_FLAG = 'success' ];then
 		;;
 		WP-SW2-EN7)
 			set_variable_power_on_status
+			ipe5000w_led_tmp_define
 		;;
 		*)
 		;;
