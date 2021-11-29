@@ -44,7 +44,7 @@ QSet<int> MainWidget::osdIdSet;
 MainWidget::MainWidget(QWidget *parent) : QWidget(parent)
     ,m_imageOverlay(NULL)
     ,m_textOverlay(NULL)
-    ,m_CmdOuttime(0)
+    ,m_CmdOuttime(-1)
     ,m_overlayStatus(false)
     ,m_bKvmMode(true)
     ,m_bReinit(false)
@@ -78,14 +78,14 @@ MainWidget::MainWidget(QWidget *parent) : QWidget(parent)
     if(!g_bDeviceSleepMode)
     {
         //    m_panelStack->close();
-        m_sleepPanel->setVisible(false);
+        //    m_sleepPanel->setVisible(false);
         //    connect(&getInfoTimer,SIGNAL(timeout()),this,SLOT(isNoSignal()));
         //    this->getInfoTimer.start(1000);
     }
 
     qDebug() << "main_4";
 
-    // 分割图片test
+    //    分割图片test
     //    QString path = "/share/image.png";
     //    segmentationPic(path);
     //    segmentationPic(path);
@@ -97,14 +97,6 @@ MainWidget::MainWidget(QWidget *parent) : QWidget(parent)
     UdpRecv->start();
 
     connect(UdpRecv,SIGNAL(RecvData(QByteArray)),this,SLOT(onRecvData(QByteArray)));
-
-    // 测试OSD菜单显示
-    // showOsdMeun();
-
-    // 测试overlay显示
-    //  QString filename = "overlay2_setting.json";
-    //  parseOverlayJson(filename);
-
 
     // 直接设置隐藏不生效
     QTimer::singleShot(100,this,SLOT(hideMouse()));
@@ -197,19 +189,14 @@ void MainWidget::onRecvData(QByteArray data)
             return;
         }
 
-        QString filename = argList.at(1);
-
-        // 测试用之后可删
-        if(filename.compare("overlay") == 0)
-        {
-            filename = "overlay2_setting.json";
-        }
+        QString filename = argList.at(1) + ".json";
 
         if(!argList.at(2).isEmpty())
         {
             int timeout = argList.at(2).toInt();
             m_CmdOuttime = timeout;
         }
+
         // 解析overlay
         parseOverlayJson(filename);
     }
@@ -334,8 +321,6 @@ void MainWidget::syncConfig(QString path)
         m_bReinit = true;
         hideOsdMeun();
         watch->addPath(RESOLUTION_CONFIG);
-//        qApp->exit(RESTART_APP);
-//        QTimer::singleShot(400,this,SLOT(getResolutionFromTiming()));
     }
     else if(path.compare(SLEEP_IMAGE_PATH) == 0)
     {
@@ -386,8 +371,6 @@ void MainWidget::syncConfig(QString path)
 
 void MainWidget::getResolutionFromTiming()
 {
-//    watch->removePath(RESOLUTION_CONFIG);
-
     QString strCmd = "cat /sys/devices/platform/videoip/timing_info";
     QProcess p;
     p.start("bash", QStringList() <<"-c" << strCmd);
@@ -409,7 +392,7 @@ void MainWidget::getResolutionFromTiming()
          tmpStr = tmpStr.left(epos);
 
          QStringList list = tmpStr.split(" ");
-         qDebug() << "list:" << list;
+//         qDebug() << "list:" << list;
 
          if(list.isEmpty())
              return;
@@ -420,7 +403,7 @@ void MainWidget::getResolutionFromTiming()
              if(list.at(index).startsWith("["))
              {
                 orderStr = list.at(index);
-                qDebug() << "ordStr:" << orderStr;
+//                qDebug() << "ordStr:" << orderStr;
                 break;
              }
          }
@@ -434,11 +417,11 @@ void MainWidget::getResolutionFromTiming()
             return;
 
         int width = widthStr.toInt();
-        qDebug() << "widthStr:" << widthStr;
+//        qDebug() << "widthStr:" << widthStr;
 
         QString heightStr = list.at(1).mid(1,list.at(1).length()-2);
         int height = heightStr.toInt();
-        qDebug() << "heightStr:" << heightStr;
+//        qDebug() << "heightStr:" << heightStr;
 
         if(width != g_nScreenWidth)
         {
@@ -454,6 +437,7 @@ void MainWidget::getResolutionFromTiming()
 
             m_bReinit = true;
             hideOsdMeun();
+            slotHideOverlay();
             destroyOsdAndOverlay();
 
             reInit();
@@ -477,6 +461,7 @@ void MainWidget::getResolutionFromTiming()
 
             m_bReinit = true;
             hideOsdMeun();
+            slotHideOverlay();
             destroyOsdAndOverlay();
 
             reInit();
@@ -484,13 +469,7 @@ void MainWidget::getResolutionFromTiming()
             g_bDeviceSleepMode = true;
             getInfoTimer.start(2000);
         }
-        // 显示休眠界面，更新
-//        startSleepMode();
-//        update();
     }
-
-    // 文件会被删除所以需要重新监控
-//    watch->addPath(RESOLUTION_CONFIG);
 }
 
 void MainWidget::reInit()
@@ -542,9 +521,13 @@ void MainWidget::handleKvmMsg(bool enable)
     {
         if(m_osdMeun->getdisplayConfig())
         {
+            g_bOSDMeunDisplay = true;
             m_bKvmMode = false;
+
+            // hide overlay
+            slotHideOverlay();
             m_osdMeun->parseChannelJson();
-            showOsdMeun();
+            QTimer::singleShot(500,this,SLOT(showOsdMeun()));
         }
     }
     else
@@ -558,11 +541,11 @@ void MainWidget::startSleepMode()
 {
     qDebug() << "main_0_3";
 
-    if(m_sleepPanel != NULL)
-    {
-        m_panelStack->setCurrentWidget(m_sleepPanel);
-        m_sleepPanel->setVisible(true);
-    }
+//    if(m_sleepPanel != NULL)
+//    {
+//        m_panelStack->setCurrentWidget(m_sleepPanel);
+//        m_sleepPanel->setVisible(true);
+//    }
 
      qDebug() << "main_0_4";
 
@@ -640,13 +623,12 @@ void MainWidget::initOverlay()
         return;
 
     parseOverlayJson("overlay2_setting.json");
+    m_bFirst = false;
 }
 
 //  set show overlay
 void MainWidget::slotShowOverlay()
 {
-    setTransparency(80);
-
     // 添加文件监控
     QStringList paths ;
 
@@ -694,12 +676,15 @@ void MainWidget::hideOsdMeun()
     QTimer::singleShot(400,this,SLOT(showLongDisplay()));
 
     m_osdMeun->setdisplayStatus(false);
+    m_bReinit = false;
 }
 
 void MainWidget::showOsdMeun()
 {
     if(m_osdMeun == NULL)
         return;
+
+    m_osdMeun->setVisible(true);
 
     getKMControl();
 
@@ -713,8 +698,6 @@ void MainWidget::showOsdMeun()
 
 void MainWidget::moveOsdMeun(int position)
 {
-    m_osdMeun->setVisible(false);
-
     if(!g_bDeviceSleepMode)
     {
         m_sleepPanel->setInfoEnable(false);
@@ -722,9 +705,6 @@ void MainWidget::moveOsdMeun(int position)
 
     int xpos = 0;
     int ypos = 0;
-
-    // 移动到指定位置
-    moveFramebuffer(position);
 
     switch (position)
     {
@@ -761,7 +741,7 @@ void MainWidget::moveOsdMeun(int position)
         case BOTTOM_MID:
         {
             xpos = (g_nframebufferWidth-m_osdMeun->width())/2;
-            ypos = g_nframebufferHeight-m_osdMeun->height();
+            ypos = g_nframebufferHeight-m_osdMeun->height()- OSD_YPOS;
             break;
         }
         case BOTTOM_RIGHT:
@@ -788,7 +768,9 @@ void MainWidget::moveOsdMeun(int position)
     qDebug() << "ypos:" << ypos;
 
     m_osdMeun->move(xpos,ypos);
-    m_osdMeun->setVisible(true);
+    // 移动到指定位置
+    moveFramebuffer(position);
+    setTransparency(80);
 
     m_osdMeun->startTimer();
 }
@@ -878,7 +860,7 @@ void MainWidget::showOverlay(OSDLabel *overlay,int position)
          case BOTTOM_MID:
          {
              xpos = (g_nframebufferWidth-text->width())/2;
-             ypos = g_nframebufferHeight-text->height();
+             ypos = g_nframebufferHeight-text->height()- OSD_YPOS;
              break;
          }
          case BOTTOM_RIGHT:
@@ -993,7 +975,11 @@ void MainWidget::parseOverlayJson(QString jsonpath)
             m_overlayStatus = false;
         }
 
-        m_CmdOuttime = Timeout;
+        if(Timeout == 0)
+        {
+            m_CmdOuttime = 0;
+        }
+
         m_Transparency = Transparency;
         qDebug() << "m_Transparency" << m_Transparency;
 
@@ -1051,7 +1037,11 @@ void MainWidget::parseOverlayJson(QString jsonpath)
 
                     // 互斥
                     if(m_textOverlay != NULL)
+                    {
                         m_textOverlay->hide();
+                        delete m_textOverlay;
+                        m_textOverlay= NULL;
+                    }
 
                     if(m_bFirst)
                     {
@@ -1149,7 +1139,11 @@ void MainWidget::parseOverlayJson(QString jsonpath)
 
                     // 互斥
                     if(m_imageOverlay != NULL)
+                    {
                         m_imageOverlay->hide();
+                        delete  m_imageOverlay;
+                        m_imageOverlay = NULL;
+                    }
 
                     if(m_bFirst)
                     {
