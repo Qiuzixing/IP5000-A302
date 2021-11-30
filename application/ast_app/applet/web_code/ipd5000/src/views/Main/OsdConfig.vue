@@ -36,11 +36,13 @@
                     @click="browseChannelList">IMPORT</button>
             <button class="btn btn-plain-primary"
                     type="button"
+                    @click="exportChannel"
                     style="margin-left: 24px">
               EXPORT
             </button>
             <input type="file"
                    ref="channelList"
+                   accept="application/json"
                    @change="channelFileChange"
                    style="display:none;width:0;height:0;">
           </li>
@@ -185,6 +187,7 @@
 </template>
 
 <script>
+import { saveAs } from 'file-saver'
 export default {
   name: 'osd',
   data () {
@@ -324,6 +327,18 @@ export default {
         .then(msg => {
           if (msg.data.channels_list) {
             this.channelList = msg.data.channels_list
+          }
+        })
+    },
+    exportChannel () {
+      this.$http
+        .get(
+          '/device/json?path=/channel/channel_map.json&t=' + Math.random()
+        )
+        .then(msg => {
+          if (msg.data.channels_list) {
+            const blob = new Blob([JSON.stringify(msg.data)], { type: 'text/plain;charset=utf-8' })
+            saveAs(blob, 'channel_map.json')
           }
         })
     },
@@ -480,7 +495,7 @@ export default {
   padding: 0;
   border: 1px solid #4d4d4f;
   width: 400px;
-  height: 400px;
+  height: 420px;
   border-radius: 5px;
 
   li {

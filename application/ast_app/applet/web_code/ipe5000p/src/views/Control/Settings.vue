@@ -331,7 +331,7 @@ export default {
       }
     },
     saveBaudRate () {
-      if (this.rs232Port) {
+      if (this.rs232GW) {
         this.$socket.sendMsg(`#COM-ROUTE-ADD 1,1,${this.rs232Port},1,1`)
       }
       this.$socket.sendMsg(`#UART 1,${this.baudRate},${this.dataBits},${this.parity},${this.stopBits}`)
