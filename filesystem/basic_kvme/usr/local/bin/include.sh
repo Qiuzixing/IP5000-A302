@@ -4162,7 +4162,6 @@ init_wpa_supplicant_conf_eap_tls()
 {
 	local EAP_METOHD
 	cat > /etc/wpa_supplicant.conf << EOF
-ctrl_interface=/var/run/wpa_supplicant
 network={
 	key_mgmt=IEEE8021X
 	eap=TLS
@@ -4178,7 +4177,6 @@ EOF
 init_wpa_supplicant_conf_eap_mschapv2()
 {
 	cat > /etc/wpa_supplicant.conf << EOF
-ctrl_interface=/var/run/wpa_supplicant
 network={
 	key_mgmt=IEEE8021X
 	eap=PEAP
