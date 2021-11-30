@@ -4263,3 +4263,12 @@ handle_e_log()
 			;;
 	esac
 }
+
+init_json_cfg_path()
+{
+	mkdir -p $IEEE8021X_PATH/certificate_file_name
+	mkdir -p $IEEE8021X_PATH/tls_ca_certificate
+	mkdir -p $IEEE8021X_PATH/tls_client_certificate
+	mkdir -p $IEEE8021X_PATH/tls_private_key
+	mkdir -p $IEEE8021X_PATH/webconfig
+}

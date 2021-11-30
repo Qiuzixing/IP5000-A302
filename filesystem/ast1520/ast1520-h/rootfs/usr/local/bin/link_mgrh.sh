@@ -2862,7 +2862,7 @@ init_version_file
 init_info_file
 init_p3k_cfg_file
 init_param_from_p3k_cfg
-
+init_json_cfg_path
 # $AST_PLATFORM = ast1500hv4 or ptv1500hv2 or pce1500hv3
 echo ""
 echo "#### platform info:$AST_PLATFORM ####"
