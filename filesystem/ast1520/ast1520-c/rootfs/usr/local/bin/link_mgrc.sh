@@ -15,6 +15,7 @@ av_setting="/data/configs/kds-7/av_setting/av_setting.json"
 gateway_setting="/data/configs/kds-7/gateway/gateway.json"
 auto_switch_setting="/data/configs/kds-7/switch/auto_switch_setting.json"
 network_setting="/data/configs/kds-7/network/network_setting.json"
+time_setting="/data/configs/kds-7/time/time_setting.json"
 # 0: This value does not exist.
 # 1: GUI screen
 # 2: Decode screen
@@ -481,6 +482,9 @@ handle_e_sys_init_ok()
 		#refresh_ch_params
 
 		handle_e_log
+		if [ "$P3KCFG_NTP_SRV_MODE" = 'on' ]; then
+			handle_e_p3k_ntp_on e_p3k_ntp_enable_on::$P3KCFG_NTP_SRV_ADDR::$P3KCFG_NTP_SYNC_HOUR
+		fi
 		# Export LM params to /var/lm. So that sub-LM can import.
 		handle_e_var
 
@@ -3688,6 +3692,19 @@ init_param_from_p3k_cfg()
 		P3KCFG_TTL='64'
 	fi
 	echo "P3KCFG_TTL=$P3KCFG_TTL"
+
+	if [ -f "$time_setting" ];then
+		P3KCFG_NTP_SRV_MODE=`jq -r '.time_setting.ntp_server.mode' $time_setting`
+		P3KCFG_NTP_SRV_ADDR=`jq -r '.time_setting.ntp_server.ip_address' $time_setting`
+		P3KCFG_NTP_SYNC_HOUR=`jq -r '.time_setting.ntp_server.daily_sync_hour' $time_setting`
+	else
+		P3KCFG_NTP_SRV_MODE='off'
+		P3KCFG_NTP_SRV_ADDR='0.0.0.0'
+		P3KCFG_NTP_SYNC_HOUR='0'
+	fi
+	echo "P3KCFG_NTP_SRV_MODE=$P3KCFG_NTP_SRV_MODE"
+	echo "P3KCFG_NTP_SRV_ADDR=$P3KCFG_NTP_SRV_ADDR"
+	echo "P3KCFG_NTP_SYNC_HOUR=$P3KCFG_NTP_SYNC_HOUR"
 }
 
 set_variable_power_on_status()
