@@ -1424,6 +1424,14 @@ int EX_GetAudParam(PortInfo_S*info,AudioSignalInfo_S*param)
 		param->sampleRate = SAMPLE_RATE_44100;
 	else if(rate == 48)
 		param->sampleRate = SAMPLE_RATE_48000;
+	else if(rate == 88)
+		param->sampleRate = SAMPLE_RATE_88200;
+	else if(rate == 96)
+		param->sampleRate = SAMPLE_RATE_96000;
+	else if(rate == 176)
+		param->sampleRate = SAMPLE_RATE_176400;
+	else if(rate == 192)
+		param->sampleRate = SAMPLE_RATE_192000;
 
 	return 0;
 }
@@ -2057,9 +2065,13 @@ int EX_SetColorSpaceConvertMode(int index,int convertMode)
 	DBG_InfoMsg("EX_SetColorSpaceConvertMode id = %d mode =%d\n",index,convertMode);
 #ifdef CONFIG_P3K_CLIENT
 	char sCmd[64] = "";
-	if((convertMode == 0)||(convertMode == 1))
+	if(convertMode == 0)
 	{
-		sprintf(sCmd,"e_p3k_video_rgb::%d",convertMode);
+		sprintf(sCmd,"e_p3k_video_rgb::0");
+	}
+	else if(convertMode == 1)
+	{
+		sprintf(sCmd,"e_p3k_video_rgb::5");
 	}
 	else
 	{

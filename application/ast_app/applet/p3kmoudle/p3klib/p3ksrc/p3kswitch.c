@@ -458,11 +458,23 @@ static int P3K_AudioSampleRateToStr(int samplerate,char*data)
 	memset(tmpbuf,0,sizeof(tmpbuf));
 	switch(samplerate)
 	{
-		case SAMPLE_RATE_44100:
-			strcpy(tmpbuf,"44.1K");
+		case SAMPLE_RATE_192000:
+			strcpy(tmpbuf,"192K");
+			break;
+		case SAMPLE_RATE_176400:
+			strcpy(tmpbuf,"176.4K");
+			break;
+		case SAMPLE_RATE_96000:
+			strcpy(tmpbuf,"96K");
+			break;
+		case SAMPLE_RATE_88200:
+			strcpy(tmpbuf,"88.2K");
 			break;
 		case SAMPLE_RATE_48000:
 			strcpy(tmpbuf,"48K");
+			break;
+		case SAMPLE_RATE_44100:
+			strcpy(tmpbuf,"44.1K");
 			break;
 		case SAMPLE_RATE_32000:
 			strcpy(tmpbuf,"32K");
