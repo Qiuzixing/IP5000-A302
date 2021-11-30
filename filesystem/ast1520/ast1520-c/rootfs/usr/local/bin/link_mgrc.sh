@@ -2827,6 +2827,7 @@ handle_e_p3k_cec()
 
 handle_e_p3k_upgrade()
 {
+	rm /www/tmp.*
 	cd /dev/shm/
 	if ! tar -zxvf ./IP5000-A30_upgrade.tar.gz; then
 		echo "err,0,2" > "/www/fw_status.txt"
@@ -3702,6 +3703,13 @@ set_variable_power_on_status()
 	echo $P3KCFG_TTL > /proc/sys/net/ipv4/ip_default_ttl
 }
 
+clear_unused_files()
+{
+	rm -f /sbin/e2fsck
+	rm -rf /usr/share/ip5000_a30
+	rm -rf /usr/share/ipe5000w_a30
+}
+
 signal_handler()
 {
 	echo ""
@@ -3770,6 +3778,7 @@ init_version_file
 init_info_file
 init_p3k_cfg_file
 init_param_from_p3k_cfg
+clear_unused_files
 
 # $AST_PLATFORM = ast1500cv4 or ptv1500cv2 or pce1500cv3
 echo ""
