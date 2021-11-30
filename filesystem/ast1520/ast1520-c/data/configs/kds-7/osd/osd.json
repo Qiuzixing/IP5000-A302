@@ -3,7 +3,7 @@
            "timeout_sec": 100,
            "position": "top_center",
            "font_size": "small",
-           "max_channels per page": 10,
+           "max_channels_per_page": 10,
            "max_channels": 999
     }
 }
