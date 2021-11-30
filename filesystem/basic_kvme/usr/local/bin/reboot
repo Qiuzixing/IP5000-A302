@@ -4,8 +4,12 @@
 echo 0 > /sys/devices/platform/1500_i2s/analog_out_vol
 # save configs to flash
 sync
+sleep 1
 sync
+sleep 1
 sync
+sleep 1
 sync
-
+umount /data
+sleep 1
 /bin/busybox reboot
