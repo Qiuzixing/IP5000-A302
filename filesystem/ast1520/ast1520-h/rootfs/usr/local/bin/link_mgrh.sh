@@ -2188,6 +2188,8 @@ handle_e_soip_gw_on()
 	shift 2
 	_para1="$1"
 
+	SOIP_GUEST_ON='y'
+	update_node_info SOIP_GUEST_ON $SOIP_GUEST_ON
 	astparam s soip_guest_on y
 	astparam s soip_type 2
 	astparam s soip_port $_para1
@@ -2201,6 +2203,8 @@ handle_e_soip_gw_off()
 {
 	echo "handle_e_soip_gw_off."
 
+	SOIP_GUEST_ON='n'
+	update_node_info SOIP_GUEST_ON $SOIP_GUEST_ON
 	astparam s soip_guest_on n
 	astparam save
 
