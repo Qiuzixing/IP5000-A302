@@ -3670,7 +3670,7 @@ init_param_from_p3k_cfg()
 	echo "CEC_SEND_DIR=$CEC_SEND_DIR"
 
 	if [ -f "$auto_switch_setting" ];then
-		P3KCFG_SWITCH_IN=`jq -r '.gateway.ir_direction' $auto_switch_setting`
+		P3KCFG_SWITCH_IN=`jq -r '.auto_switch_setting.source_select' $auto_switch_setting`
 		if echo "$P3KCFG_SWITCH_IN" | grep -q "null" ; then
 			P3KCFG_SWITCH_IN='stream'
 		fi
