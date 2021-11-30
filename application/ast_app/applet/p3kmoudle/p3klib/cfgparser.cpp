@@ -5295,6 +5295,10 @@ int Cfg_Set_Dec_Usb_KVM()
 
 				DBG_InfoMsg("%s\n",cmd);
 			}
+			else
+			{
+				system("astparam s kmoip_roaming_layout;astparam save");
+			}
 
 			if(!root[JSON_USB_KVM_TIMEOUT].empty())
 			{
