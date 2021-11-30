@@ -3778,7 +3778,6 @@ init_version_file
 init_info_file
 init_p3k_cfg_file
 init_param_from_p3k_cfg
-clear_unused_files
 
 # $AST_PLATFORM = ast1500cv4 or ptv1500cv2 or pce1500cv3
 echo ""
@@ -3874,6 +3873,9 @@ update_node_info STATE $STATE
 echo 1 > /proc/sys/vm/overcommit_memory
 
 VIDEO_MODE='V_MODE_UNKNOWN'
+
+clear_unused_files
+
 # Start state machine in another process scope
 state_machine &
 

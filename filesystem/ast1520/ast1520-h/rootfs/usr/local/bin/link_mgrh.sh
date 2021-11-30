@@ -2842,7 +2842,6 @@ init_version_file
 init_info_file
 init_p3k_cfg_file
 init_param_from_p3k_cfg
-clear_unused_files
 
 # $AST_PLATFORM = ast1500hv4 or ptv1500hv2 or pce1500hv3
 echo ""
@@ -2987,6 +2986,8 @@ update_node_info STATE $STATE
 
 # Disable OOM Killer
 echo 1 > /proc/sys/vm/overcommit_memory
+
+clear_unused_files
 
 # Start state machine in another process scope
 state_machine &
