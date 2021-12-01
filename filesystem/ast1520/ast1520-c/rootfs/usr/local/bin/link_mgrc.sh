@@ -2990,7 +2990,7 @@ handle_e_p3k_switch_in()
 	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
 
 	shift 2
-
+	echo 0 > /sys/class/leds/lineout_mute/brightness
 	case "$1" in
 		HDMI)
 			if [ $UGP_FLAG = 'success' ];then
@@ -3008,6 +3008,11 @@ handle_e_p3k_switch_in()
 	esac
 	
 	echo "set p3k switch input!!! $1"
+	#The test results show that 3S is switching without noise
+	sleep 3
+	if [ $P3KCFG_AV_MUTE = 'off' ];then
+		echo 1 > /sys/class/leds/lineout_mute/brightness
+	fi
 	
 }
 
@@ -3710,6 +3715,12 @@ init_param_from_p3k_cfg()
 set_variable_power_on_status()
 {
 	if [ $UGP_FLAG = 'success' ];then
+		if [ $P3KCFG_SWITCH_IN = 'hdmi_in1' ];then
+			ipc @m_lm_set s set_input_source:16:1
+		else
+			ipc @m_lm_set s set_input_source:16:0
+		fi
+
 		if [ $P3KCFG_AV_MUTE = 'off' ];then
 			ipc @m_lm_set s set_hdmi_mute:16:1:0
 		else
@@ -3846,9 +3857,6 @@ if [ $UGP_FLAG = 'success' ];then
 			#set cec_sel pin(68) to default to sii9316;1:sii9136-hdmi_out;0:hdmi_in-hdmi_out
 			ipc @m_lm_set s set_gpio_config:3:65:1:70:1:68:1
 			ipc @m_lm_set s set_gpio_val:3:70:0:65:0:68:1
-			if [ $P3KCFG_SWITCH_IN = 'hdmi_in1' ];then
-				ipc @m_lm_set s set_input_source:16:1
-			fi
 		;;
 		*)
 		;;
