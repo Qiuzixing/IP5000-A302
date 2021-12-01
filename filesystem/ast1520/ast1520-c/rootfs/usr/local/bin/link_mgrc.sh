@@ -2612,6 +2612,11 @@ web_mute_slider_handle()
 {
 	if [ $1 != '1' ];then
 		#unmute
+		if [ $MODEL_NUMBER = 'WP-DEC7' ];then
+			echo auto > /sys/devices/platform/1500_i2s/io_select
+			#Sleep 1s remove pop sound
+			sleep 1
+		fi
 		P3KCFG_AV_MUTE='off'
 		echo 100 > /sys/devices/platform/1500_i2s/analog_in_vol
 		echo 1 > /sys/class/leds/linein_mute/brightness
@@ -2623,8 +2628,11 @@ web_mute_slider_handle()
 		#mute,Because the linein mute sound is still a little, you can directly turn the volume to 0 as mute
 		P3KCFG_AV_MUTE='on'
 		echo 0 > /sys/devices/platform/1500_i2s/analog_in_vol
+		echo 0 > /sys/class/leds/lineout_mute/brightness
 		echo 0 > /sys/class/leds/linein_mute/brightness
-	    echo 0 > /sys/class/leds/lineout_mute/brightness
+		if [ $MODEL_NUMBER = 'WP-DEC7' ];then
+			echo analog > /sys/devices/platform/1500_i2s/io_select
+		fi
 		if [ $UGP_FLAG = 'success' ];then
 			ipc @m_lm_set s set_hdmi_mute:16:1:1
 		fi
