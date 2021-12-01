@@ -17,6 +17,7 @@ gateway_setting="/data/configs/kds-7/gateway/gateway.json"
 network_setting="/data/configs/kds-7/network/network_setting.json"
 time_setting="/data/configs/kds-7/time/time_setting.json"
 rx_tcp_port='8888'
+analog_out_volum='87'
 
 stop_all_service()
 {
@@ -1731,6 +1732,7 @@ handle_e_p3k_audio()
 
 	case "$event" in
 		e_p3k_audio_level::?*)
+			analog_out_volum=$_para1
 			ipc @a_lm_set s ae_level:$_para1
 		;;
 		e_p3k_audio_dir::?*)
@@ -2308,6 +2310,20 @@ handle_e_cec_cmd_report()
 	p3k_notify cec_msg::$_para1
 }
 
+handle_e_analog_control()
+{
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+
+	if [ $1 = '0' ];then
+		echo 0 > /sys/devices/platform/1500_i2s/analog_out_vol
+	else
+		echo 1 > /sys/class/leds/lineout_mute/brightness
+		echo $analog_out_volum > /sys/devices/platform/1500_i2s/analog_out_vol
+	fi
+}
+
 handle_e_set_ttl()
 {
 	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
@@ -2405,6 +2421,9 @@ state_machine()
 			;;
 			e_ipe5000w_led*)
 				handle_e_ipe5000w_led_chose "$event"
+			;;
+			e_analog_control*)
+				handle_e_analog_control "$event"
 			;;
 			e_set_ttl*)
 				handle_e_set_ttl "$event"
@@ -2669,6 +2688,7 @@ init_param_from_p3k_cfg()
 		P3KCFG_AV_ACTION='play'
 		P3KCFG_ANAOUT_VOLUME='80'
 	fi
+	analog_out_volum=$P3KCFG_ANAOUT_VOLUME
 	echo "P3KCFG_HDCP_1_ON=$P3KCFG_HDCP_1_ON"
 	echo "P3KCFG_HDCP_2_ON=$P3KCFG_HDCP_2_ON"
 	echo "P3KCFG_HDCP_3_ON=$P3KCFG_HDCP_3_ON"

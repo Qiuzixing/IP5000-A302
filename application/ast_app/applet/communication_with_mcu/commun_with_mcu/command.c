@@ -23,6 +23,7 @@
 #include "../dante_example_code/app/example/example_rx_uhip.h"
 #include "../set_hdcp_status.h"
 #include "../create_socket.h"
+#include "../audio_switch/audio_switch_cmd.h"
 int APP_Comm_Recv(CmdProtocolParam * param);
 int APP_Comm_Send(U16 CMD,U8 *buf, int len);
 extern int ipc_querycmd_index;
@@ -470,6 +471,7 @@ int APP_Comm_Recv(CmdProtocolParam * param)
     memset(&ipc_msg, 0, sizeof(ipc_msg));
     uint8_t dante_data_buf[DANTE_UART_BUFFER] = {0};
     U16 uart_data_len = 0;
+    static uint8_t analog_out_mute_flag = UNMUTE;
     switch(param->CMD)
     {
         case CMD_UPDATE_MCU_STATUS:
@@ -600,6 +602,27 @@ int APP_Comm_Recv(CmdProtocolParam * param)
             dante_state = UNKNOW_DANTE_STATUS;
             break;
         case EVENT_HDMI_AUDIO_STATUS:
+            memset(&ado_status, 0, sizeof(ado_status));
+            memcpy(&ado_status, (struct CmdDataAudioStatus *)param->Data, sizeof(ado_status));
+            if(auto_av_report_flag == OPEN_REPROT)
+            {
+                if((analog_out_mute_flag == UNMUTE) && (ado_status.audioCoding != AUDIO_CODING_LPCM))
+                {
+                    mute_control(ANALOG_OUT_MUTE,MUTE);
+                    system("e e_analog_control::0");
+                    analog_out_mute_flag = MUTE;
+                }
+                else if((analog_out_mute_flag == MUTE) && (ado_status.audioCoding == AUDIO_CODING_LPCM))
+                {
+                    system("e e_analog_control::1");
+                    //mute_control(ANALOG_OUT_MUTE,UNMUTE);
+                    analog_out_mute_flag = UNMUTE;
+                }
+            }
+
+            printf("audio port[0x%x] fromPort[0x%x] isStable[0x%x] isMute[0x%x] audioCoding[0x%x] sampleFreq[0x%x] sampleDepth[0x%x] channels[0x%x]\n", 
+                    ado_status.port, ado_status.fromPort, ado_status.isStable, ado_status.isMute,
+                    ado_status.audioCoding, ado_status.sampleFreq, ado_status.sampleDepth, ado_status.channels);
             break;
         case EVENT_KEY_STATUS:
             memcpy(&key_value, &param->Data, param->DataLen);
