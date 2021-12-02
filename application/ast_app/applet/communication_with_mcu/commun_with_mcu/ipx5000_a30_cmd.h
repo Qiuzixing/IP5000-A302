@@ -78,6 +78,7 @@ typedef signed char     int8_t;
 typedef signed short    int16_t;
 typedef signed int      int32_t; 
 typedef signed char     bool_t;
+#define CEC_CMD_MAX_LENTH   20
 
 #pragma pack(1)
 enum IPX5000_A30_CMD {
@@ -138,6 +139,11 @@ enum IPX5000_A30_CMD {
     EVENT_GPIO_VAL,
     CMD_GPIO_GET_VAL,
     CMD_GPIO_SET_VAL,
+
+    //CEC command
+    EVENT_CEC_RECEIVE_MEASSAGE = STM32_CMD_START_RANGE + 0x60,
+    EVENT_CEC_SEND_STATUS,
+    CMD_SEND_CECMESSAGE,
 };
 
 enum MCUStatus {
@@ -603,6 +609,13 @@ struct CmdDataGpioList {
      * variable length array, allocate memory as needed.
      */
     uint8_t gpioPin[0];
+};
+
+struct CmdDataCecMessage {
+    uint8_t len;
+    uint8_t stauts;
+    uint8_t rsvd[2];
+    uint8_t content[CEC_CMD_MAX_LENTH];
 };
 
 #pragma pack()

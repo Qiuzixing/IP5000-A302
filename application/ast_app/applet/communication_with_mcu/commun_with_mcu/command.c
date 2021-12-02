@@ -32,6 +32,11 @@ int dante_state = UNKNOW_DANTE_STATUS;
 extern uint8_t board_type_flag;
 extern uint8_t last_hdmi_in_index;
 extern uint8_t auto_av_report_flag;
+extern uint8_t cec_report_flag;
+#define A_MAX_PAYLOAD 1024
+#define NOTIFY_APP_MSG_FORMAT	"e e_cec_cmd_report::"
+#define CEC_CMD_MAX_NUM		100
+
 int Cmdfd;
 CommandInterfaceFun Cmdfun;
 U8 CmdinitFlag=0;//0->nomal  1->init   防止没有初始化就发送指令 
@@ -464,6 +469,11 @@ int APP_Comm_Recv(CmdProtocolParam * param)
     struct CmdDataGpioList *gpio_list= NULL;
     struct CmdDataUartPassthrough *uart_pass = NULL;
     struct CmdDataKey key_value;
+    //cec cmd
+    struct CmdDataCecMessage cec_msg;
+    char msg[A_MAX_PAYLOAD] = {0};
+    int index = 0;
+    char num_to_hex[3] = {0};
 
     socket_msg send_socket_msg;
     int i = 0;
@@ -638,6 +648,48 @@ int APP_Comm_Recv(CmdProtocolParam * param)
             {
                 /* code */
             }
+            break;
+        case EVENT_CEC_RECEIVE_MEASSAGE:
+            if(cec_report_flag == OPEN_REPROT)
+            {
+                memcpy(&cec_msg, (const char*)param->Data, sizeof(struct CmdDataCecMessage));
+                if(cec_msg.len > CEC_CMD_MAX_NUM)
+                {
+                    printf("warning:cec_buf too max,no report\n");
+                    return 0;
+                }
+                snprintf(msg, A_MAX_PAYLOAD, "%s",NOTIFY_APP_MSG_FORMAT);
+		        index = strlen(NOTIFY_APP_MSG_FORMAT);
+                for(i = 0;i < cec_msg.len;i++)
+                {
+                    snprintf(num_to_hex,3,"%.2x",cec_msg.content[i]);
+                    msg[index++] = num_to_hex[0];
+                    msg[index++] = num_to_hex[1];
+                    msg[index++] = ':';
+                }
+                msg[--index] = '\0';
+                printf("msg = %s\n",msg);
+                system(msg);
+            }
+            break;
+        case EVENT_CEC_SEND_STATUS:
+#if 0
+            memcpy(&cec_msg, (const char*)param->Data, sizeof(struct CmdDataCecMessage));
+            printf("EVENT_CEC_SEND_STATUS\n");
+            printf("Len : %d cmd: ",cec_msg.len);
+            for(i = 0; i < cec_msg.len; i++)
+            {
+                printf("0x%x ",cec_msg.content[i]);
+            }
+            if(cec_msg.stauts == 0x12)
+            {
+                printf("Cec cmd succeed send !\n");
+            }
+            else if(cec_msg.stauts == 0x22)
+            {
+                printf("Cec cmd failed send !\n");
+            }
+#endif
             break;
         default:
             printf("warning:unknown mcu cmd:param->CMD = 0x%x\n",param->CMD);

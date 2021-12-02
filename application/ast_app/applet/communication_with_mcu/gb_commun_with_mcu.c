@@ -67,6 +67,7 @@ uint8_t board_type_flag = IPE5000P;
 uint8_t last_hdmi_in_index = 0;
 uint8_t auto_av_report_flag = CLOSE_REPROT;
 uint8_t current_play_port = HDMIRX1;
+uint8_t cec_report_flag = CLOSE_REPROT;
 
 const ipc_cmd_struct ipc_cmd_list[] =
     {
@@ -107,7 +108,10 @@ const ipc_cmd_struct ipc_cmd_list[] =
         {IPC_SET_LED_CONTROL,           "set_led_control",          sizeof("set_led_control"),      CMD_LED_CONTROL,                    SEND_CMD},
         //audio_autoswitch
         {IPC_AUDIO_IN,                  "audio_in",                 sizeof("audio_in"),             0,                                  SEND_CMD},
-        {IPC_AUDIO_OUT,                 "audio_out",                sizeof("audio_out"),            0,                                  SEND_CMD}
+        {IPC_AUDIO_OUT,                 "audio_out",                sizeof("audio_out"),            0,                                  SEND_CMD},
+        //cec command
+        {IPC_CEC_SEND,                  "cec_send",                 sizeof("cec_send"),             CMD_SEND_CECMESSAGE,                SEND_CMD},
+        {IPC_CEC_CMD_REPORT,            "cec_report",               sizeof("cec_report"),           0,                                  SEND_CMD}
     }; 
 
 static int setserial(int s, struct termios *cfg, int speed, int data, unsigned char parity, int stopb)
@@ -857,6 +861,72 @@ static void do_handle_audio_out(char *cmd_param)
     }
 }
 
+char hex_to_int(char hex_num)
+{
+    if(hex_num>= 'a' && hex_num <= 'f')
+    {
+        hex_num = hex_num - 'a' + 10;
+    }
+    else
+    {
+        hex_num = hex_num - '0';
+    }
+    return hex_num;
+}
+
+int char_to_int(char *num)
+{
+    int int_num = 0;
+    int_num = 16 * hex_to_int(num[0]) + hex_to_int(num[1]);
+            
+    return int_num;
+}
+
+static void do_handle_cec_send(uint16_t cmd,char *cmd_param)
+{
+    struct CmdDataCecMessage cec_msg = {0};
+    char *cmd_len = strtok(cmd_param,":");
+    char *param = NULL;
+    uint8_t i = 0;
+    if(cmd_len != NULL)
+    {
+        cec_msg.len = atoi(cmd_len);
+        if(cec_msg.len > CEC_CMD_MAX_LENTH )
+        {
+            printf("warn:Illegal parameter, discard directly\n");
+            return ;
+        }
+    }
+
+    for(i = 0;i < cec_msg.len;i++)
+    {
+        param = strtok(NULL,":");
+        if(param == NULL)
+        {
+            return;
+        }
+        cec_msg.content[i] = char_to_int(param);
+        //printf("cec_msg.content[i]=0x%x\n",cec_msg.content[i]);
+    }
+    APP_Comm_Send(cmd, (U8 *)&cec_msg, sizeof(struct CmdDataCecMessage));
+}
+
+static void do_handle_cec_report(char *cmd_param)
+{
+    char *flag = strtok(cmd_param,":");
+    if(flag != NULL)
+    {
+        if(atoi(flag) == 1)
+        {
+            cec_report_flag = OPEN_REPROT;
+        }
+        else
+        {
+            cec_report_flag = CLOSE_REPROT;
+        }
+    }
+}
+
 static void do_handle_ipc_cmd(int index,char *cmd_param)
 {
     uint32_t uctemp = CMD_NULL_DATA;
@@ -943,6 +1013,13 @@ static void do_handle_ipc_cmd(int index,char *cmd_param)
         break;
     case IPC_AUDIO_OUT:
         do_handle_audio_out(cmd_param);
+        break;
+    //cec command
+    case IPC_CEC_SEND:
+        do_handle_cec_send(ipc_cmd_list[index].a30_cmd,cmd_param);
+        break;
+    case IPC_CEC_CMD_REPORT:
+        do_handle_cec_report(cmd_param);
         break;
     default:
         break;

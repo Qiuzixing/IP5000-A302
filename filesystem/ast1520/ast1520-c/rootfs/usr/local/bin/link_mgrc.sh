@@ -2753,13 +2753,13 @@ handle_e_p3k_ir()
 enable_hdmi_in_cec_report()
 {
 	echo 0 > /sys/devices/platform/cec/cec_report
-	#ipc @m_lm_set s close_cec_report
+	ipc @m_lm_set s cec_report:1
 }
 
 enable_hdmi_out_cec_report()
 {
 	echo 1 > /sys/devices/platform/cec/cec_report
-	#ipc @m_lm_set s open_cec_report
+	ipc @m_lm_set s cec_report:0
 }
 
 handle_ce_gw()
@@ -2807,7 +2807,8 @@ handle_ce_send()
 	local _para1=$1
 	case $CEC_SEND_DIR in
 		hdmi_in)
-			echo "To be done"
+			array=(${_para1//:/ })
+			ipc @m_lm_set s cec_send:${#array[@]}:$1
 		;;
 		hdmi_out)
 			cec_send $1
