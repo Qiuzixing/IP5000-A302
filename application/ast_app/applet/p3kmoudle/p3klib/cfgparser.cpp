@@ -13,6 +13,8 @@
 #include "debugtool.h"
 
 Channel_Info 		g_channel_info;
+Channel_Select		g_channel_select;
+
 Audio_Info			g_audio_info;
 Video_Info			g_video_info;
 AutoSwitch_Info		g_autoswitch_info;
@@ -147,8 +149,182 @@ int Cfg_Init_Channel(void)
 	DBG_InfoMsg("Cfg_Init_Channel\n");
 #ifdef CONFIG_P3K_CLIENT
 	DBG_InfoMsg("This is Decoder\n");
-	return 0;
-#endif
+
+	char path[128] = "";
+	sprintf(path,"%s%s%s",CONF_PATH,g_module,CHANNEL_SEL_FILE);
+
+	g_channel_select.video 	= 1;
+	g_channel_select.audio 	= 1;
+	g_channel_select.rs232 	= 1;
+	g_channel_select.ir 	= 1;
+	g_channel_select.usb 	= 1;
+	g_channel_select.cec	= 1;
+
+	//Check Channel cfg
+	int nAccessRet = Cfg_Check_File(path);
+	if(0 > nAccessRet)
+	{
+		DBG_ErrMsg("Cfg_Check_File %s Failed\n",path);
+
+		char buf1[16] = "";
+
+		mysystem("astparam g ch_select_v",buf1,16);
+
+		if(strstr(buf1,"not defined") != 0)
+		{
+			g_channel_select.video = 1;
+			DBG_WarnMsg("Cfg_Init_Channel not defined\n");
+		}
+		else
+		{
+			g_channel_select.video = atoi(buf1);
+			DBG_InfoMsg("Cfg_Init_Channel id = %d\n",g_channel_select.video);
+		}
+
+		memset(buf1,0,16);
+		mysystem("astparam g ch_select_a",buf1,16);
+
+		if(strstr(buf1,"not defined") != 0)
+		{
+			g_channel_select.audio = 1;
+			DBG_WarnMsg("Cfg_Init_Channel not defined\n");
+		}
+		else
+		{
+			g_channel_select.audio = atoi(buf1);
+			DBG_InfoMsg("Cfg_Init_Channel id = %d\n",g_channel_select.audio);
+		}
+
+		memset(buf1,0,16);
+		mysystem("astparam g ch_select_s",buf1,16);
+
+		if(strstr(buf1,"not defined") != 0)
+		{
+			g_channel_select.rs232 = 1;
+			DBG_WarnMsg("Cfg_Init_Channel not defined\n");
+		}
+		else
+		{
+			g_channel_select.rs232 = atoi(buf1);
+			DBG_InfoMsg("Cfg_Init_Channel id = %d\n",g_channel_select.rs232);
+		}
+
+		memset(buf1,0,16);
+		mysystem("astparam g ch_select_r",buf1,16);
+
+		if(strstr(buf1,"not defined") != 0)
+		{
+			g_channel_select.ir = 1;
+			DBG_WarnMsg("Cfg_Init_Channel not defined\n");
+		}
+		else
+		{
+			g_channel_select.ir = atoi(buf1);
+			DBG_InfoMsg("Cfg_Init_Channel id = %d\n",g_channel_select.ir);
+		}
+
+		memset(buf1,0,16);
+		mysystem("astparam g ch_select_u",buf1,16);
+
+		if(strstr(buf1,"not defined") != 0)
+		{
+			g_channel_select.usb = 1;
+			DBG_WarnMsg("Cfg_Init_Channel not defined\n");
+		}
+		else
+		{
+			g_channel_select.usb = atoi(buf1);
+			DBG_InfoMsg("Cfg_Init_Channel id = %d\n",g_channel_select.usb);
+		}
+
+		memset(buf1,0,16);
+		mysystem("astparam g ch_select_c",buf1,16);
+
+		if(strstr(buf1,"not defined") != 0)
+		{
+			g_channel_select.cec = 1;
+			DBG_WarnMsg("Cfg_Init_Channel not defined\n");
+		}
+		else
+		{
+			g_channel_select.cec = atoi(buf1);
+			DBG_InfoMsg("Cfg_Init_Channel id = %d\n",g_channel_select.cec);
+		}
+
+		//create channel cfg from default value
+		Cfg_Update(CHANNEL_INFO);
+		return 0;
+	}
+
+	//Read	channel cfg
+	Json::Reader reader;
+	Json::Value root1;
+	char pBuf[1024] = "";
+	FILE *fp;
+	fp = fopen(path, "r");
+	if (fp == NULL) {
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
+		return -1;
+	}
+
+	fread(pBuf,1,sizeof(pBuf),fp);
+
+	if(reader.parse(pBuf, root1))
+	{
+		if(!root1[JSON_CHANNEL_SELECT].empty())
+		{
+			Json::Value& root = root1[JSON_CHANNEL_SELECT];
+
+			//init g_channel_info
+			if(!root[JSON_CHAN_VIDEO].empty())
+				if(root[JSON_CHAN_VIDEO].isInt())
+					g_channel_select.video = root[JSON_CHAN_VIDEO].asInt();
+
+			if(!root[JSON_CHAN_AUDIO].empty())
+				if(root[JSON_CHAN_AUDIO].isInt())
+					g_channel_select.audio = root[JSON_CHAN_AUDIO].asInt();
+
+			if(!root[JSON_CHAN_RS232].empty())
+				if(root[JSON_CHAN_RS232].isInt())
+					g_channel_select.rs232 = root[JSON_CHAN_RS232].asInt();
+
+			if(!root[JSON_CHAN_IR].empty())
+				if(root[JSON_CHAN_IR].isInt())
+					g_channel_select.ir = root[JSON_CHAN_IR].asInt();
+
+			if(!root[JSON_CHAN_USB].empty())
+				if(root[JSON_CHAN_USB].isInt())
+					g_channel_select.usb = root[JSON_CHAN_USB].asInt();
+
+			if(!root[JSON_CHAN_CEC].empty())
+				if(root[JSON_CHAN_CEC].isInt())
+					g_channel_select.cec = root[JSON_CHAN_CEC].asInt();
+
+		}
+	}
+
+	fclose(fp);
+
+	if(g_bCfg == 1)
+	{
+		char cmd1[64] = "";
+
+		sprintf(cmd1,"astparam s ch_select_v %04d",g_channel_select.video);
+		system(cmd1);
+		sprintf(cmd1,"astparam s ch_select_a %04d",g_channel_select.audio);
+		system(cmd1);
+		sprintf(cmd1,"astparam s ch_select_s %04d",g_channel_select.rs232);
+		system(cmd1);
+		sprintf(cmd1,"astparam s ch_select_r %04d",g_channel_select.ir);
+		system(cmd1);
+		sprintf(cmd1,"astparam s ch_select_u %04d",g_channel_select.usb);
+		system(cmd1);
+		sprintf(cmd1,"astparam s ch_select_c %04d",g_channel_select.cec);
+		system(cmd1);
+
+	}
+
+#else
 
 	char path[128] = "";
 	sprintf(path,"%s%s%s",CONF_PATH,g_module,CHANNEL_DEF_FILE);
@@ -162,13 +338,24 @@ int Cfg_Init_Channel(void)
 	{
 		DBG_ErrMsg("Cfg_Check_File %s Failed\n",path);
 
+		char* cmd1 = "astparam g ch_select";
+		char buf1[64] = "";
+
+		mysystem(cmd1,buf1,64);
+
+		if(strstr(buf1,"not defined") != 0)
+		{
+			g_channel_info.channel_id = 1;
+			DBG_WarnMsg("Cfg_Init_Channel not defined\n");
+		}
+		else
+		{
+			g_channel_info.channel_id = atoi(buf1);
+			DBG_InfoMsg("Cfg_Init_Channel id = %d\n",g_channel_info.channel_id);
+		}
+
 		//create channel cfg from default value
 		Cfg_Update(CHANNEL_INFO);
-		return 0;
-	}
-
-	if(g_bCfg == 1)
-	{
 		return 0;
 	}
 
@@ -211,6 +398,18 @@ int Cfg_Init_Channel(void)
 	}
 
 	fclose(fp);
+
+	if(g_bCfg == 1)
+	{
+		char cmd1[64] = "";
+		char buf1[64] = "";
+
+		sprintf(cmd1,"astparam s ch_select %04d",g_channel_info.channel_id);
+
+		mysystem(cmd1,buf1,64);
+
+	}
+#endif
 
 	return 0;
 }
@@ -512,6 +711,10 @@ int Cfg_Init_Video(void)
 	sprintf(path,"%s%s%s",CONF_PATH,g_module,AV_SIGNAL_FILE);
 
 	g_video_info.force_rgb = 1;
+	g_video_info.scale_mode = 0;
+	g_video_info.res_type = 0;
+
+
 
 	//Check Video cfg
 	int nAccessRet = Cfg_Check_File(path);
@@ -548,11 +751,9 @@ int Cfg_Init_Video(void)
 		{
 			Json::Value& root = root1[JSON_AV_SIGNAL];
 
-			//init g_autoswitch_info
 			if(!root[JSON_AV_RGB].empty())
 			{
 				string mode = root[JSON_AV_RGB].asString();
-				//printf("g_video_info.force_rgb = %s\n",mode.c_str());
 
 				if(mode == JSON_PARAM_OFF)
 				{
@@ -564,10 +765,48 @@ int Cfg_Init_Video(void)
 				}
 			}
 
+			if(!root[JSON_AV_OUT_RES].empty())
+			{
+				string res = root[JSON_AV_OUT_RES].asString();
+
+				if(res == "2160p30")
+				{
+					g_video_info.scale_mode = 1;
+					g_video_info.res_type = 74;
+				}
+				else if(res == "2160p25")
+				{
+					g_video_info.scale_mode = 1;
+					g_video_info.res_type = 73;
+				}
+				else if(res == "1080p60")
+				{
+					g_video_info.scale_mode = 1;
+					g_video_info.res_type = 16;
+				}
+				else if(res == "1080p50")
+				{
+					g_video_info.scale_mode = 1;
+					g_video_info.res_type = 31;
+				}
+				else if(res == "720p60")
+				{
+					g_video_info.scale_mode = 1;
+					g_video_info.res_type = 4;
+				}
+				else
+				{
+					g_video_info.scale_mode = 0;
+					g_video_info.res_type = 0;
+				}
+			}
+
 		}
 	}
 
 	fclose(fp);
+
+
 	return 0;
 }
 
@@ -986,10 +1225,22 @@ int Cfg_Init_Device(void)
 	g_device_info.fp_lock = OFF;
 	g_device_info.standby_time = 30;
 	GetBoardInfo(BOARD_MAC, g_device_info.mac_addr, 32);
-	GetBoardInfo(BOARD_HOSTNAME, g_device_info.hostname, 32);
+	//GetBoardInfo(BOARD_HOSTNAME, g_device_info.hostname, 32);
 	GetBoardInfo(BOARD_SN, g_device_info.sn, 32);
 
-	//Check log cfg
+	char buf1[64] = "";
+
+	mysystem("astparam g hostname_customized",buf1,64);
+
+	if(strstr(buf1,"not defined") != 0)
+	{
+		GetBoardInfo(BOARD_HOSTNAME, g_device_info.hostname, MAX_DEV_NAME_LEN);
+	}
+	else
+	{
+		strcpy(g_device_info.hostname,buf1);
+	}
+		//Check log cfg
 	int nAccessRet = Cfg_Check_File(path);
 	if(0 > nAccessRet)
 	{
@@ -997,11 +1248,6 @@ int Cfg_Init_Device(void)
 
 		//create channel cfg from default value
 		Cfg_Update(DEVICE_INFO);
-		return 0;
-	}
-
-	if(g_bCfg == 1)
-	{
 		return 0;
 	}
 
@@ -1041,7 +1287,25 @@ int Cfg_Init_Device(void)
 
 			if(!root[JSON_DEV_STANDBY_TIME].empty())
 			{
-				g_device_info.standby_time = root[JSON_DEV_STANDBY_TIME].asInt();
+				if(root[JSON_DEV_STANDBY_TIME].isInt())
+					g_device_info.standby_time = root[JSON_DEV_STANDBY_TIME].asInt();
+			}
+
+			if(!root[JSON_DEV_HOSTNAME].empty())
+			{
+				string hostname = root[JSON_DEV_HOSTNAME].asString();
+
+				if(hostname.size() > 1)
+				{
+					strcpy(g_device_info.hostname,hostname.c_str());
+
+					if(g_bCfg == 1)
+					{
+						char cmd[128] = "";
+						sprintf(cmd,"astparam s hostname_customized %s",g_device_info.hostname);
+						system(cmd);
+					}
+				}
 			}
 		}
 	}
@@ -1349,6 +1613,166 @@ int Cfg_Init_User(void)
 	fclose(fp);		return 0;
 }
 
+int Cfg_Init_VW_fromParam(void)
+{
+	char* cmd1 = "astparam g vw_stretch_type";
+	char buf1[64] = "";
+
+	mysystem(cmd1,buf1,64);
+
+	if(strstr(buf1,"not defined") != 0)
+	{
+		g_videowall_info.stretch_type = 0;
+	}
+	else
+	{
+		int type = atoi(buf1);
+		if(type == 2)
+		{
+			g_videowall_info.stretch_type = 0;
+		}
+		else
+		{
+			g_videowall_info.stretch_type = 1;
+		}
+	}
+
+	DBG_InfoMsg("Cfg_Init_VW_fromParam stretch_type = %d\n",g_videowall_info.stretch_type);
+
+	memset(buf1,0,64);
+	mysystem("astparam g vw_rotate",buf1,64);
+
+	if(strstr(buf1,"not defined") != 0)
+		g_videowall_info.rotation = ROTATION_0;
+	else
+	{
+		int rotation = atoi(buf1);
+
+		if(rotation == 3)
+			g_videowall_info.rotation = ROTATION_180;
+		else if(rotation == 6)
+			g_videowall_info.rotation = ROTATION_270;
+		else if(rotation == 5)
+			g_videowall_info.rotation = ROTATION_90;
+		else
+			g_videowall_info.rotation = ROTATION_0;
+	}
+
+	DBG_InfoMsg("Cfg_Init_VW_fromParam rotation = %d\n",g_videowall_info.rotation);
+
+	memset(buf1,0,64);
+	mysystem("astparam g vw_pos_max_row",buf1,64);
+
+	if(strstr(buf1,"not defined") != 0)
+		g_videowall_info.vertical_count = 1;
+	else{
+		g_videowall_info.vertical_count = atoi(buf1) + 1;
+
+		if(g_videowall_info.vertical_count > 16)
+			g_videowall_info.vertical_count = 16;
+	}
+
+	memset(buf1,0,64);
+	mysystem("astparam g vw_pos_max_col",buf1,64);
+
+	if(strstr(buf1,"not defined") != 0)
+		g_videowall_info.horizontal_count = 1;
+	else{
+		g_videowall_info.horizontal_count = atoi(buf1) + 1;
+
+		if(g_videowall_info.horizontal_count > 16)
+			g_videowall_info.horizontal_count = 16;
+	}
+
+
+	memset(buf1,0,64);
+	mysystem("astparam g vw_row",buf1,64);
+	int row = 0;
+	if(strstr(buf1,"not defined") != 0)
+		row = 1;
+	else{
+		row = atoi(buf1);
+
+		if(row > 16)
+			row = 16;
+	}
+
+	memset(buf1,0,64);
+	mysystem("astparam g vw_column",buf1,64);
+	int col =0;
+	if(strstr(buf1,"not defined") != 0)
+		col = 1;
+	else{
+		col = atoi(buf1);
+
+		if(col > 16)
+			col = 16;
+	}
+	g_videowall_info.relative_position = row * g_videowall_info.horizontal_count + col + 1;
+
+	DBG_InfoMsg("Cfg_Init_VW_fromParam vw_column = %d\n",g_videowall_info.horizontal_count);
+
+
+	return 0;
+}
+
+int Cfg_InitParam_VW_fromJson(void)
+{
+	char cmd1[64] = "";
+
+	if(g_videowall_info.stretch_type == 0)
+		system("astparam s vw_stretch_type 2");
+	else
+		system("astparam s vw_stretch_type 1");
+
+	if(g_videowall_info.rotation == ROTATION_180)
+		system("astparam s vw_rotate 3");
+	else if(g_videowall_info.rotation == ROTATION_270)
+		system("astparam s vw_rotate 6");
+	else if(g_videowall_info.rotation == ROTATION_90)
+		system("astparam s vw_rotate 5");
+	else
+		system("astparam s vw_rotate 0");
+
+	if((g_videowall_info.vertical_count >= 0)&&(g_videowall_info.vertical_count <= 16))
+	{
+		memset(cmd1,0,64);
+		sprintf(cmd1,"astparam s vw_max_row %d",g_videowall_info.vertical_count-1);
+		system(cmd1);
+
+		memset(cmd1,0,64);
+		sprintf(cmd1,"astparam s vw_pos_max_row %d",g_videowall_info.vertical_count-1);
+		system(cmd1);
+	}
+
+	if((g_videowall_info.horizontal_count >= 0)&&(g_videowall_info.horizontal_count <= 16))
+	{
+		memset(cmd1,0,64);
+		sprintf(cmd1,"astparam s vw_max_column %d",g_videowall_info.horizontal_count-1);
+		system(cmd1);
+
+		memset(cmd1,0,64);
+		sprintf(cmd1,"astparam s vw_pos_max_col %d",g_videowall_info.horizontal_count-1);
+		system(cmd1);
+	}
+
+	int row = (g_videowall_info.relative_position-1) / g_videowall_info.vertical_count;
+	int col = (g_videowall_info.relative_position-1) % g_videowall_info.vertical_count;
+
+
+	if((row >= 0)&&(row <= 15)&&(col >= 0)&&(col <= 15))
+	{
+		memset(cmd1,0,64);
+		sprintf(cmd1,"astparam s vw_row %d",row);
+		system(cmd1);
+		memset(cmd1,0,64);
+		sprintf(cmd1,"astparam s vw_column %d",col);
+		system(cmd1);
+	}
+
+	return 0;
+}
+
 int Cfg_Init_VideoWall(void)
 {
 	DBG_InfoMsg("Cfg_Init_VideoWall\n");
@@ -1377,13 +1801,10 @@ int Cfg_Init_VideoWall(void)
 	{
 		DBG_ErrMsg("Cfg_Check_File %s Failed\n",path);
 
+		Cfg_Init_VW_fromParam();
+
 		//create channel cfg from default value
 		Cfg_Update(VIDEOWALL_INFO);
-		return 0;
-	}
-
-	if(g_bCfg == 1)
-	{
 		return 0;
 	}
 
@@ -1469,6 +1890,152 @@ int Cfg_Init_VideoWall(void)
 	}
 	fclose(fp);
 
+
+	if(g_bCfg == 1)
+	{
+		Cfg_InitParam_VW_fromJson();
+		return 0;
+	}
+
+	return 0;
+}
+
+int Cfg_Init_GW_fromParam()
+{
+	//	astparam s soip_guest_on y
+	//  astparam s soip_type 2
+	//  astparam s soip_port $_para1
+
+	char* cmd1 = "astparam g soip_guest_on";
+	char buf1[64] = "";
+
+	mysystem(cmd1,buf1,64);
+
+	if(strstr(buf1,"not defined") != 0)
+	{
+		g_gateway_info.rs232_mode = ON;
+	}
+	else if(strstr(buf1,"y") != 0)
+	{
+		g_gateway_info.rs232_mode = ON;
+	}
+	else
+	{
+		g_gateway_info.rs232_mode = OFF;
+	}
+	DBG_InfoMsg("Cfg_Init_GW_fromParam rs232_mode = %d\n",g_gateway_info.rs232_mode);
+
+	memset(buf1,0,64);
+	mysystem("astparam g soip_port",buf1,64);
+
+	if(strstr(buf1,"not defined") != 0)
+	{
+		g_gateway_info.rs232_port = 5001;
+	}
+	else
+	{
+		g_gateway_info.rs232_port = atoi(buf1);
+	}
+	DBG_InfoMsg("Cfg_Init_GW_fromParam rs232_mode = %d\n",g_gateway_info.rs232_port);
+
+	memset(buf1,0,64);
+	mysystem("astparam g s0_baudrate",buf1,64);
+
+	if(strstr(buf1,"not defined") != 0)
+	{
+		g_gateway_info.rs232_param.rate = 115200;
+		g_gateway_info.rs232_param.bitWidth = 8;
+		g_gateway_info.rs232_param.parity = PARITY_NONE;
+		g_gateway_info.rs232_param.stopBitsMode = 1;
+	}
+	else
+	{
+		int tmp1,tmp2,tmp4;
+		char tmp3;
+		int count = sscanf(buf1,"%d-%d%c%d",&tmp1,&tmp2,&tmp3,&tmp4);
+		if(count != 4)
+		{
+			g_gateway_info.rs232_param.rate = 115200;
+			g_gateway_info.rs232_param.bitWidth = 8;
+			g_gateway_info.rs232_param.parity = PARITY_NONE;
+			g_gateway_info.rs232_param.stopBitsMode = 1;
+		}
+		else
+		{
+			g_gateway_info.rs232_param.rate = tmp1;
+			g_gateway_info.rs232_param.bitWidth = tmp2;
+			g_gateway_info.rs232_param.stopBitsMode = tmp4;
+
+			if(tmp3 == 'o')
+				g_gateway_info.rs232_param.parity = PARITY_ODD;
+			else if(tmp3 == 'e')
+				g_gateway_info.rs232_param.parity = PARITY_EVEN;
+			else
+				g_gateway_info.rs232_param.parity = PARITY_NONE;
+
+		}
+		//printf("g_gateway_info.rs232_param.stopBitsMode\n",g_gateway_info.rs232_param.stopBitsMode);
+
+	}
+
+
+	if((g_gateway_info.rs232_param.bitWidth<5)||(g_gateway_info.rs232_param.bitWidth>8))
+	{
+		g_gateway_info.rs232_param.bitWidth = 8;
+	}
+
+	if((g_gateway_info.rs232_param.rate != 9600)
+	&&(g_gateway_info.rs232_param.rate != 19200)
+	&&(g_gateway_info.rs232_param.rate != 38400)
+	&&(g_gateway_info.rs232_param.rate != 57600)
+	&&(g_gateway_info.rs232_param.rate != 115200))
+	{
+		g_gateway_info.rs232_param.rate = 115200;
+	}
+
+	int tmp = (int)(g_gateway_info.rs232_param.stopBitsMode*10);
+	if((g_gateway_info.rs232_param.stopBitsMode != 1)
+		&&(g_gateway_info.rs232_param.stopBitsMode != 2))
+	{
+		g_gateway_info.rs232_param.stopBitsMode = 1;
+	}
+	return 0;
+}
+
+int Cfg_InitParam_GW_fromJson()
+{
+	char cmd1[64] = "";
+
+	if(g_gateway_info.rs232_mode == ON)
+	{
+		system("astparam s soip_guest_on y");
+		system("astparam s soip_type 2");
+
+		sprintf(cmd1,"astparam s soip_port %d",g_gateway_info.rs232_port);
+		system(cmd1);
+	}
+
+	else
+	{
+		system("astparam s soip_guest_on n");
+		system("astparam s soip_type 2");
+
+		sprintf(cmd1,"astparam s soip_port %d",g_gateway_info.rs232_port);
+		system(cmd1);
+	}
+
+	memset(cmd1,0,64);
+	if(g_gateway_info.rs232_param.parity == PARITY_ODD)
+		sprintf(cmd1,"astparam s s0_baudrate %d-%do%d",g_gateway_info.rs232_param.rate,g_gateway_info.rs232_param.bitWidth,g_gateway_info.rs232_param.stopBitsMode);
+	else if(g_gateway_info.rs232_param.parity == PARITY_EVEN)
+		sprintf(cmd1,"astparam s s0_baudrate %d-%de%d",g_gateway_info.rs232_param.rate,g_gateway_info.rs232_param.bitWidth,g_gateway_info.rs232_param.stopBitsMode);
+	else
+		sprintf(cmd1,"astparam s s0_baudrate %d-%dn%d",g_gateway_info.rs232_param.rate,g_gateway_info.rs232_param.bitWidth,g_gateway_info.rs232_param.stopBitsMode);
+
+	system(cmd1);
+
+	//printf("Cfg_InitParam_GW_fromJson %d %s\n",g_gateway_info.rs232_param.stopBitsMode,cmd1);
+
 	return 0;
 }
 
@@ -1500,13 +2067,9 @@ int Cfg_Init_Gateway(void)
 	{
 		DBG_ErrMsg("Cfg_Check_File %s Failed\n",path);
 
+		Cfg_Init_GW_fromParam();
 		//create autoswitch cfg from default value
 		Cfg_Update(GATEWAY_INFO);
-		return 0;
-	}
-
-	if(g_bCfg == 1)
-	{
 		return 0;
 	}
 
@@ -1654,11 +2217,127 @@ int Cfg_Init_Gateway(void)
 						}
 					}
 				}
+
 			}
 		}
 	}
 
 	fclose(fp);
+
+	if(g_bCfg == 1)
+	{
+		Cfg_InitParam_GW_fromJson();
+		return 0;
+	}
+
+	return 0;
+}
+
+int Cfg_Init_NW_fromParam()
+{
+	char* cmd1 = "astparam g soip_guest_on";
+	char buf1[64] = "";
+
+	memset(buf1,0,64);
+	mysystem("astparam g ip_mode",buf1,64);
+
+	if(strstr(buf1,"not defined") != 0)
+	{
+		g_network_info.eth_info[0].dhcp_enable = 1;
+		g_network_info.eth_info[1].dhcp_enable = 1;
+	}
+	else if(strstr(buf1,"static") != 0)
+	{
+		int i = 0;
+		g_network_info.eth_info[i].dhcp_enable = 0;
+
+		memset(buf1,0,64);
+		mysystem("astparam g ipaddr",buf1,64);
+
+		memset(g_network_info.eth_info[i].ipAddr,0,MAX_IP_ADDR_LEN);
+		if(strstr(buf1,"not defined") != 0)
+		{
+#ifdef CONFIG_P3K_HOST
+			sprintf(g_network_info.eth_info[i].ipAddr,"169.254.0.222");
+#else
+			sprintf(g_network_info.eth_info[i].ipAddr,"169.254.0.111");
+#endif
+		}
+		else
+		{
+			sprintf(g_network_info.eth_info[i].ipAddr,buf1);
+		}
+
+
+		memset(buf1,0,64);
+		mysystem("astparam g netmask",buf1,64);
+
+		memset(g_network_info.eth_info[i].mask,0,MAX_IP_ADDR_LEN);
+		if(strstr(buf1,"not defined") != 0)
+		{
+			sprintf(g_network_info.eth_info[i].mask,"255.255.0.0");
+		}
+		else
+		{
+			sprintf(g_network_info.eth_info[i].mask,buf1);
+		}
+
+		memset(buf1,0,64);
+		mysystem("astparam g gatewayip",buf1,64);
+
+		memset(g_network_info.eth_info[i].gateway,0,MAX_IP_ADDR_LEN);
+		if(strstr(buf1,"not defined") != 0)
+		{
+			sprintf(g_network_info.eth_info[i].gateway,"169.254.0.254");
+		}
+		else
+		{
+			sprintf(g_network_info.eth_info[i].gateway,buf1);
+		}
+	}
+	else
+	{
+		g_network_info.eth_info[0].dhcp_enable = 1;
+		g_network_info.eth_info[1].dhcp_enable = 1;
+	}
+
+	memset(buf1,0,64);
+	mysystem("astparam g multicast_on",buf1,64);
+
+	if(strstr(buf1,"not defined") != 0)
+		g_network_info.method = Net_MULTICAST;
+	else if(strcmp(buf1,"n") == 0)
+		g_network_info.method = Net_UNICAST;
+	else
+		g_network_info.method = Net_MULTICAST;
+
+	return 0;
+}
+
+int Cfg_InitParam_NW_fromJson()
+{
+	char cmd1[64] = "";
+
+	if(g_network_info.eth_info[0].dhcp_enable == 1)
+	{
+		system("astparam s ip_mode dhcp");
+	}
+	else
+	{
+		system("astparam s ip_mode static");
+
+		sprintf(cmd1,"astparam s ipaddr %s",g_network_info.eth_info[0].ipAddr);
+		system(cmd1);
+		sprintf(cmd1,"astparam s netmask %s",g_network_info.eth_info[0].mask);
+		system(cmd1);
+		sprintf(cmd1,"astparam s gatewayip %s",g_network_info.eth_info[0].gateway);
+		system(cmd1);
+	}
+
+	if(g_network_info.method == Net_MULTICAST)
+		system("astparam s multicast_on y");
+	else
+		system("astparam s multicast_on n");
 
 	return 0;
 }
@@ -1695,13 +2374,9 @@ int Cfg_Init_Network(void)
 	{
 		DBG_ErrMsg("Cfg_Check_File %s Failed\n",path);
 
+		Cfg_Init_NW_fromParam();
 		//create autoswitch cfg from default value
 		Cfg_Update(NETWORK_INFO);
-		return 0;
-	}
-
-	if(g_bCfg == 1)
-	{
 		return 0;
 	}
 
@@ -1938,7 +2613,14 @@ int Cfg_Init_Network(void)
 		}
 	}
 
-	fclose(fp);		return 0;
+	fclose(fp);
+
+	if(g_bCfg == 1)
+	{
+		Cfg_InitParam_NW_fromJson();
+		return 0;
+	}
+	return 0;
 }
 
 int Cfg_Init_Log(void)
@@ -2137,6 +2819,128 @@ int Cfg_Create_AutoswitchDelay(void)
 	return 0;
 }
 
+int Cfg_Init_AV_FromParam(void)
+{
+	return 0;
+}
+
+int Cfg_InitParam_AV_FromJson(void)
+{
+	char path[128] = "";
+	sprintf(path,"%s%s%s",CONF_PATH,g_module,AV_SIGNAL_FILE);
+
+
+	//Read	avsignal cfg
+	Json::Reader reader;
+	Json::Value root1;
+	char pBuf[1024] = "";
+	FILE *fp;
+	fp = fopen(path, "r");
+	if (fp == NULL) {
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
+		return -1;
+	}
+
+	fread(pBuf,1,sizeof(pBuf),fp);
+
+	if(reader.parse(pBuf, root1))
+	{
+		if(!root1[JSON_AV_SIGNAL].empty())
+		{
+			Json::Value& root = root1[JSON_AV_SIGNAL];
+
+#ifdef CONFIG_P3K_HOST
+			if(!root[JSON_AV_MAX_BITRATE].empty())
+			{
+				char cmd[256] = "";
+				string bitrate =  root[JSON_AV_MAX_BITRATE].asString();
+
+				if(bitrate == JSON_AV_BEST_EFFORT)
+				{
+					sprintf(cmd,"astparam s profile auto");
+					system(cmd);
+				}
+				else if((bitrate == "10")||(bitrate == "50")||(bitrate == "100")||(bitrate == "150")||(bitrate == "200"))
+				{
+					sprintf(cmd,"astparam s profile %sM",bitrate.c_str());
+					system(cmd);
+				}
+				else
+				{
+					DBG_WarnMsg("JSON_AV_MAX_BITRATE Param: %s	Error!!!",bitrate.c_str());
+				}
+
+				//printf("%s\n",cmd);
+			}
+
+			if(!root[JSON_AV_FRAME_RATE].empty())
+			{
+				char cmd[256] = "";
+
+				if(root[JSON_AV_FRAME_RATE].isInt())
+				{
+					int frame = root[JSON_AV_FRAME_RATE].asInt();
+
+					if((frame <= 100)&&(frame >= 0))
+					{
+						int param = frame * 60 / 100;
+						sprintf(cmd,"astparam s v_frame_rate %d",param);
+						system(cmd);
+					}
+					else
+					{
+						DBG_WarnMsg("JSON_AV_FRAME_RATE Param: %d  Error!!!",frame);
+					}
+
+					//printf("%s\n",cmd);
+				}
+			}
+#else
+			if(!root[JSON_AV_RGB].empty())
+			{
+				char cmd[256] = "";
+				string forcergb = root[JSON_AV_RGB].asString();
+
+				if(forcergb == JSON_PARAM_ON)
+				{
+					sprintf(cmd,"astparam s v_hdmi_force_rgb_output 5");
+					system(cmd);
+				}
+				else
+				{
+					sprintf(cmd,"astparam s v_hdmi_force_rgb_output 0");
+					system(cmd);
+				}
+
+				//printf("%s\n",cmd);
+			}
+
+			if(!root[JSON_AV_OUT_RES].empty())
+			{
+				string res = root[JSON_AV_OUT_RES].asString();
+
+				if(res == "2160p30")
+					system("astparam s v_output_timing_convert 8000005F");
+				else if(res == "2160p25")
+					system("astparam s v_output_timing_convert 8000005E");
+				else if(res == "1080p60")
+					system("astparam s v_output_timing_convert 80000010");
+				else if(res == "1080p50")
+					system("astparam s v_output_timing_convert 8000001F");
+				else if(res == "720p60")
+					system("astparam s v_output_timing_convert 80000004");
+				else
+					system("astparam s v_output_timing_convert 0");
+			}
+#endif
+		}
+	}
+
+	fclose(fp);
+
+	return 0;
+}
+
 // /av_signal/av_signal.json
 int Cfg_Create_AVSignal(void)
 {
@@ -2151,6 +2955,7 @@ int Cfg_Create_AVSignal(void)
 	{
 		DBG_InfoMsg("Cfg_Check_File %s Suceess\n",path);
 		//printf("nAccessRet %s Suceess\n",path);
+		Cfg_InitParam_AV_FromJson();
 		return 0;
 	}
 
@@ -2162,6 +2967,83 @@ int Cfg_Create_AVSignal(void)
 	root[JSON_AV_COLOR_DEPTH] = JSON_AV_BYPASS;
 	root[JSON_AV_RGB] = JSON_PARAM_OFF;
 	root[JSON_AV_AUD_GUARD] = 90;
+	root[JSON_AV_OUT_RES] = JSON_AV_PASSTHRU;
+
+	char buf1[64] = "";
+
+	memset(buf1,0,64);
+
+#ifdef CONFIG_P3K_HOST
+	mysystem("astparam g profile",buf1,64);
+
+	if(strstr(buf1,"not defined") != 0)
+		root[JSON_AV_MAX_BITRATE] = JSON_AV_BEST_EFFORT;
+	else if(strstr(buf1,"auto") != 0)
+		root[JSON_AV_MAX_BITRATE] = JSON_AV_BEST_EFFORT;
+	else if(strstr(buf1,"10M") != 0)
+		root[JSON_AV_MAX_BITRATE] = "10";
+	else if(strstr(buf1,"50M") != 0)
+		root[JSON_AV_MAX_BITRATE] = "50";
+	else if(strstr(buf1,"100M") != 0)
+		root[JSON_AV_MAX_BITRATE] = "100";
+	else if(strstr(buf1,"150M") != 0)
+		root[JSON_AV_MAX_BITRATE] = "150";
+	else if(strstr(buf1,"200M") != 0)
+		root[JSON_AV_MAX_BITRATE] = "200";
+	else
+		root[JSON_AV_MAX_BITRATE] = JSON_AV_BEST_EFFORT;
+
+	memset(buf1,0,64);
+	mysystem("astparam g v_frame_rate",buf1,64);
+
+	if(strstr(buf1,"not defined") != 0)
+	{
+		root[JSON_AV_FRAME_RATE] = 100;
+	}
+	else
+	{
+		int frame = atoi(buf1);
+		if((frame >=0) &&(frame <=60))
+		{
+			int param = frame * 100 / 60;
+			root[JSON_AV_FRAME_RATE] = param;
+		}
+		else
+			root[JSON_AV_FRAME_RATE] = 100;
+	}
+
+#else
+	mysystem("astparam g v_hdmi_force_rgb_output",buf1,64);
+
+	if(strstr(buf1,"not defined") != 0)
+		root[JSON_AV_RGB] = JSON_PARAM_ON;
+	else
+	{
+		int mode = atoi(buf1);
+		if(mode == 0)
+			root[JSON_AV_RGB] = JSON_PARAM_OFF;
+		else
+			root[JSON_AV_RGB] = JSON_PARAM_ON;
+	}
+
+	mysystem("astparam g v_output_timing_convert",buf1,64);
+
+	if(strstr(buf1,"not defined") != 0)
+		root[JSON_AV_OUT_RES] = JSON_AV_PASSTHRU;
+	else if(strstr(buf1,"8000005F") != 0)
+		root[JSON_AV_OUT_RES] = "2160p30";
+	else if(strstr(buf1,"8000005E") != 0)
+		root[JSON_AV_OUT_RES] = "2160p25";
+	else if(strstr(buf1,"80000010") != 0)
+		root[JSON_AV_OUT_RES] = "1080p60";
+	else if(strstr(buf1,"8000001F") != 0)
+		root[JSON_AV_OUT_RES] = "1080p50";
+	else if(strstr(buf1,"80000004") != 0)
+		root[JSON_AV_OUT_RES] = "720p60";
+	else
+		root[JSON_AV_OUT_RES] = JSON_AV_PASSTHRU;
+
+#endif
 
 
 	Json::Value root1;
@@ -2456,6 +3338,178 @@ int Cfg_Create_SecuritySetting(void)
 	return 0;
 }
 
+int Cfg_Init_KVM_FromParam(void)
+{
+	return 0;
+}
+
+int Cfg_InitParam_KVM_FromJson(void)
+{
+	DBG_InfoMsg("Cfg_InitParam_KVM_FromJson\n");
+
+#ifdef CONFIG_P3K_HOST
+	DBG_WarnMsg("This is Encoder\n");
+	return 0;
+#endif
+
+	char path[128] = "";
+	sprintf(path,"%s%s%s",CONF_PATH,g_module,KVM_FILE);
+
+	//Read	kvm cfg
+	Json::Reader reader;
+	Json::Value root1;
+	char pBuf[2048] = "";
+	FILE *fp;
+	fp = fopen(path, "r");
+	if (fp == NULL) {
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
+		return -1;
+	}
+
+	int nRet = 0,nOffset = 0;
+	while(1)
+	{
+		//printf("nOffset == %d sizeof(pBuf) = %d\n",nOffset,sizeof(pBuf));
+		nRet = fread(pBuf+nOffset,1,sizeof(pBuf)-nOffset,fp);
+		//printf("nRet == %d\n",nRet);
+		if(nRet <= 0)
+		{
+			break;
+		}
+		else
+		{
+			nOffset += nRet;
+
+			if(nOffset >= sizeof(pBuf))
+				break;
+		}
+	}
+
+	if(reader.parse(pBuf, root1))
+	{
+		if(!root1[JSON_USB_KVM_CONFIG].empty())
+		{
+			Json::Value& root = root1[JSON_USB_KVM_CONFIG];
+
+			if(!root[JSON_USB_KVM_MODE].empty())
+			{
+				char cmd[256] = "";
+				string mode =  root[JSON_USB_KVM_MODE].asString();
+
+				if(mode == JSON_USB_KVM_KM)
+				{
+					sprintf(cmd,"astparam s no_kmoip n");
+					system(cmd);
+				}
+				else if(mode == JSON_USB_KVM_USB)
+				{
+					sprintf(cmd,"astparam s no_kmoip y");
+					system(cmd);
+				}
+
+				DBG_InfoMsg("%s\n",cmd);
+			}
+
+			if(!root[JSON_USB_KVM_ROAMING].empty())
+			{
+				Json::Value& JsonKVMArray = root[JSON_USB_KVM_ROAMING];
+
+				char cmd1[512] = "";
+				char param[512] = "";
+
+				for(unsigned int i = 0; i < JsonKVMArray.size(); i++)
+				{
+					Json::Value& JsonKVM = JsonKVMArray[i];
+
+					string str_mac,str_x,str_y;
+					if(!JsonKVM[JSON_USB_KVM_MAC].empty())
+					{
+						string str_mac = JsonKVM[JSON_USB_KVM_MAC].asString();
+						if(str_mac.size() == 0)
+						{
+							printf("str_mac = no string \n");
+							continue;
+						}
+					}
+
+					if(!JsonKVM[JSON_USB_KVM_H].empty())
+					{
+						string str_x = JsonKVM[JSON_USB_KVM_H].asString();
+						if(str_x.size() == 0)
+						{
+							printf("str_x = no string \n");
+							continue;
+						}
+					}
+
+					if(!JsonKVM[JSON_USB_KVM_V].empty())
+					{
+						string str_y = JsonKVM[JSON_USB_KVM_V].asString();
+						if(str_y.size() == 0)
+						{
+							printf("str_y = no string \n");
+							continue;
+						}
+					}
+
+					if((!JsonKVM[JSON_USB_KVM_MAC].empty())&&(!JsonKVM[JSON_USB_KVM_H].empty())&&(!JsonKVM[JSON_USB_KVM_V].empty()))
+					{
+						string mac = JsonKVM[JSON_USB_KVM_MAC].asString();
+
+						if((JsonKVM[JSON_USB_KVM_H].isInt())&&(JsonKVM[JSON_USB_KVM_V].isInt()))
+						{
+							int    x   = JsonKVM[JSON_USB_KVM_H].asInt();
+							int    y   = JsonKVM[JSON_USB_KVM_V].asInt();
+
+							printf("JsonKVMArray[%d]:[mac: %s][x: %d][y: %d]\n",i,mac.c_str(),x,y);
+
+							if(mac.size()==12)
+							{
+								if(strlen(param) == 0)
+									sprintf(param,"%s,%d,%d",mac.c_str(),x,y);
+								else
+									sprintf(param,"%s:%s,%d,%d",param,mac.c_str(),x,y);
+							}
+						}
+					}
+
+
+				}
+
+				if(strlen(param) > 0)
+				{
+					sprintf(cmd1,"astparam s kmoip_roaming_layout %s",param);
+					system(cmd1);
+
+				}
+
+				DBG_InfoMsg("%s\n",cmd1);
+			}
+
+			if(!root[JSON_USB_KVM_TIMEOUT].empty())
+			{
+				char cmd2[256] = "";
+
+				if(root[JSON_USB_KVM_TIMEOUT].isInt())
+				{
+					int interval =  root[JSON_USB_KVM_TIMEOUT].asInt();
+
+					if((interval <= 10)&&(interval >= 0))
+					{
+						sprintf(cmd2,"astparam s kmoip_token_interval %d",interval*60*1000);
+						system(cmd2);
+					}
+
+					DBG_InfoMsg("%s\n",cmd2);
+				}
+			}
+		}
+	}
+
+	fclose(fp);
+	return 0;
+}
+
 // /usb/km_usb.json
 int Cfg_Create_KVMSetting(void)
 {
@@ -2475,7 +3529,7 @@ int Cfg_Create_KVMSetting(void)
 	if(0 == nAccessRet)
 	{
 		DBG_InfoMsg("Cfg_Check_File %s Suceess\n",path);
-		//printf("nAccessRet %s Suceess\n",path);
+		Cfg_InitParam_KVM_FromJson();
 		return 0;
 	}
 
@@ -2491,6 +3545,143 @@ int Cfg_Create_KVMSetting(void)
 	JsonRoamArray.resize(0);
 
 	root[JSON_USB_KVM_ROAMING] = JsonRoamArray;
+
+	char buf1[384] = "";
+
+	memset(buf1,0,384);
+	mysystem("astparam g kmoip_roaming_layout",buf1,512);
+
+	if(strstr(buf1,"not defined") != 0)
+	{
+		root[JSON_USB_KVM_ROW] = 1;
+		root[JSON_USB_KVM_COL] = 1;
+
+		Json::Value JsonRoamArray;
+		JsonRoamArray.resize(0);
+
+		root[JSON_USB_KVM_ROAMING] = JsonRoamArray;
+	}
+	else
+	{
+		int x_min = 0,y_min = 0,x_max = 0,y_max = 0;
+		int i = 0;
+		Json::Value JsonRoamArray;
+		JsonRoamArray.resize(16);
+
+		for(i=0;i<16;i++)
+		{
+			int x,y;
+			char mac[16] = "";
+			char buf2[384] = "";
+
+			int count = sscanf(buf1,"%[0123456789abcdefABCDEF],%d,%d:%s",mac,&x,&y,buf2);
+
+
+			DBG_InfoMsg("count = %d\n",count);
+			if(count < 3)
+			{
+				DBG_ErrMsg("count = %d\n",count);
+				break;
+			}
+			else
+			{
+				if(strlen(mac) != 12)
+				{
+					DBG_ErrMsg("strlen(mac):%d != 12\n",strlen(mac));
+					break;
+				}
+
+				if((x > 15)||(x < -15)||(y > 15)||(y < -15))
+				{
+					DBG_ErrMsg("x=%d or y=%d\n",x,y);
+					break;
+				}
+				if(x < x_min)
+					x_min = x;
+				if(x > x_max)
+					x_max = x;
+				if(y < y_min)
+					y_min = y;
+				if(y > y_max)
+					y_max = y;
+
+				if(((x_max - x_min) > 15)||((y_max - y_min) > 15))
+				{
+					DBG_ErrMsg("x_max=%d x_min=%d y_max=%d y_min=%d\n",x_max,x_min,y_max,y_min);
+					break;
+				}
+
+				Json::Value JsonKVM;
+
+				JsonKVM[JSON_USB_KVM_MAC] = mac;
+				JsonKVM[JSON_USB_KVM_H]   = x;
+				JsonKVM[JSON_USB_KVM_V]   = y;
+
+				JsonRoamArray[i] = JsonKVM;
+			}
+
+			if(count == 4)
+			{
+				if(strlen(buf2)>=16)
+				{
+					memset(buf1,0,sizeof(buf1));
+					strcpy(buf1,buf2);
+				}
+				else
+				{
+					i++;
+
+					DBG_ErrMsg("strlen(buf2):%s < 16\n",buf2);
+					break;
+				}
+			}
+
+			if(count == 3)
+			{
+				i++;
+
+				DBG_InfoMsg("count == 3\n");
+				break;
+			}
+
+
+
+		}
+
+		if(i>0)
+			JsonRoamArray.resize(i);
+
+		root[JSON_USB_KVM_ROW] = (y_max - y_min)+1;
+		root[JSON_USB_KVM_COL] = (x_max - x_min)+1;
+
+		root[JSON_USB_KVM_ROAMING] = JsonRoamArray;
+
+	}
+
+	memset(buf1,0,64);
+	mysystem("astparam g no_kmoip",buf1,64);
+
+	if(strstr(buf1,"not defined") != 0)
+		root[JSON_USB_KVM_MODE] = JSON_USB_KVM_KM;
+	else if(strstr(buf1,"y") != 0)
+		root[JSON_USB_KVM_MODE] = JSON_USB_KVM_USB;
+	else
+		root[JSON_USB_KVM_MODE] = JSON_USB_KVM_KM;
+
+	memset(buf1,0,64);
+	mysystem("astparam g kmoip_token_interval",buf1,64);
+
+	if(strstr(buf1,"not defined") != 0)
+		root[JSON_USB_KVM_TIMEOUT] = 10;
+	else
+	{
+		int time = atoi(buf1);
+		int interval = time / 60000;
+		if((interval <= 10)&&(interval >= 0))
+			root[JSON_USB_KVM_TIMEOUT] = interval;
+		else
+			root[JSON_USB_KVM_TIMEOUT] = 10;
+	}
 
 	Json::Value root1;
 	root1[JSON_USB_KVM_CONFIG] = root;
@@ -2515,7 +3706,8 @@ int Cfg_Create_KVMSetting(void)
 		return -1;
 	}
 
-	string strKvm = root1.toStyledString();
+	Json::FastWriter fast_writer;
+	string strKvm = fast_writer.write(root1);
 	fwrite(strKvm.c_str(),1,strKvm.size(),fp);
 
 	fflush(fp);
@@ -2540,7 +3732,6 @@ int Cfg_Create_EDIDList(void)
 	int nAccessRet = Cfg_Check_File(path);
 	if(0 == nAccessRet)
 	{
-		//printf("nAccessRet %s Suceess\n",path);
 		return 0;
 	}
 
@@ -2569,17 +3760,8 @@ int Cfg_Create_Channel(void)
 	char path[128] = "";
 	sprintf(path,"%s%s%s",CONF_PATH,g_module,CHANNEL_MAP_FILE);
 
-	//Check Video cfg
-	//int nAccessRet = Cfg_Check_File(path);
-
-	/*int nAccessRet = access(path,F_OK | R_OK | W_OK);
-	if(0 == nAccessRet)
-	{
-		printf("nAccessRet %s Suceess\n",path);
-		return 0;
-	}
-	*/
-	int nAccessRet = Cfg_Check_File(path);
+	//Check channel map
+	int nAccessRet = access(path,F_OK | R_OK | W_OK);
 	if(0 == nAccessRet)
 	{
 		DBG_InfoMsg("Cfg_Check_File %s Suceess\n",path);
@@ -2698,10 +3880,47 @@ int Cfg_Update(SyncInfoType_E type)
 int Cfg_Update_Channel(void)
 {
 	DBG_InfoMsg("Cfg_Update_Channel\n");
+
 #ifdef CONFIG_P3K_CLIENT
-	DBG_InfoMsg("This is Decoder\n");
-	return 0;
-#endif
+	Json::Value root;
+
+	root[JSON_CHAN_VIDEO] = g_channel_select.video;
+	root[JSON_CHAN_AUDIO] = g_channel_select.audio;
+	root[JSON_CHAN_RS232] = g_channel_select.rs232;
+	root[JSON_CHAN_IR] = g_channel_select.ir;
+	root[JSON_CHAN_USB] = g_channel_select.usb;
+	root[JSON_CHAN_CEC] = g_channel_select.cec;
+
+	Json::Value root1;
+	root1[JSON_CHANNEL_SELECT] = root;
+
+	char path[128] = "";
+	sprintf(path,"%s%s%s",CONF_PATH,g_module,CHANNEL_PATH);
+	int s32AccessRet = access(path, F_OK);
+	if(s32AccessRet != 0)
+	{
+		char cmd[256] = "";
+		sprintf(cmd,"mkdir -p %s",path);
+
+		system(cmd);
+	}
+
+	memset(path,0,128);
+	sprintf(path,"%s%s%s",CONF_PATH,g_module,CHANNEL_SEL_FILE);
+	FILE *fp;
+	fp = fopen(path, "w");
+	if (fp == NULL) {
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
+		return -1;
+	}
+
+	string strChannelSel = root1.toStyledString();
+	fwrite(strChannelSel.c_str(),1,strChannelSel.size(),fp);
+
+	fflush(fp);
+	fclose(fp);
+
+#else
 
 	Json::Value root;
 
@@ -2736,6 +3955,7 @@ int Cfg_Update_Channel(void)
 
 	fflush(fp);
 	fclose(fp);
+#endif
 	return 0;
 }
 
@@ -2969,7 +4189,7 @@ int Cfg_Update_Video(void)
 	int nAccessRet = Cfg_Check_File(path);
 	if(0 > nAccessRet)
 	{
-		printf("nAccessRet %s Failed\n",path);
+		DBG_ErrMsg("nAccessRet %s Failed\n",path);
 	}
 	else
 	{
@@ -2999,6 +4219,30 @@ int Cfg_Update_Video(void)
 			root[JSON_AV_RGB] = JSON_PARAM_OFF;
 		else
 			root[JSON_AV_RGB] = JSON_PARAM_ON;
+
+#ifdef CONFIG_P3K_CLIENT
+		if(g_video_info.scale_mode == 0)
+			root[JSON_AV_OUT_RES] = JSON_AV_PASSTHRU;
+		else if(g_video_info.scale_mode == 1)
+		{
+			if(g_video_info.res_type == 74)//2160p30
+				root[JSON_AV_OUT_RES] = "2160p30";
+			else if(g_video_info.res_type == 73)//2160p25
+				root[JSON_AV_OUT_RES] = "2160p25";
+			else if(g_video_info.res_type == 16)//1080p60
+				root[JSON_AV_OUT_RES] = "1080p60";
+			else if(g_video_info.res_type == 31)//1080p50
+				root[JSON_AV_OUT_RES] = "1080p50";
+			else if(g_video_info.res_type == 4)//720p60
+				root[JSON_AV_OUT_RES] = "720p60";
+			else
+			{
+				DBG_WarnMsg(" !!! Error para res:%d\n",g_video_info.res_type);
+				return 0;
+			}
+		}
+
+#endif
 	}
 	else
 	{
@@ -3008,6 +4252,29 @@ int Cfg_Update_Video(void)
 		else
 			root[JSON_AV_RGB] = JSON_PARAM_ON;
 
+#ifdef CONFIG_P3K_CLIENT
+		if(g_video_info.scale_mode == 0)
+			root[JSON_AV_OUT_RES] = JSON_AV_PASSTHRU;
+		else if(g_video_info.scale_mode == 1)
+		{
+			if(g_video_info.res_type == 74)//2160p30
+				root[JSON_AV_OUT_RES] = "2160p30";
+			else if(g_video_info.res_type == 73)//2160p25
+				root[JSON_AV_OUT_RES] = "2160p25";
+			else if(g_video_info.res_type == 16)//1080p60
+				root[JSON_AV_OUT_RES] = "1080p60";
+			else if(g_video_info.res_type == 31)//1080p50
+				root[JSON_AV_OUT_RES] = "1080p50";
+			else if(g_video_info.res_type == 4)//720p60
+				root[JSON_AV_OUT_RES] = "720p60";
+			else
+			{
+				DBG_WarnMsg(" !!! Error para res:%d\n",g_video_info.res_type);
+				return 0;
+			}
+		}
+
+#endif
 		root1[JSON_AV_SIGNAL] = root;
 	}
 
@@ -3947,6 +5214,31 @@ int Cfg_Update_OSD(void)
 
 }
 
+int Cfg_Set_DecChannel_ID(ChSelect_S * id)
+{
+	DBG_InfoMsg("Cfg_Set_DecChannel_ID\n");
+
+	for(int i = 0;i < id->i_signalnum;i ++)
+    {
+	    if(id->signal[i] == SIGNAL_VIDEO)
+			g_channel_select.video = id->ch_id;
+		else if(id->signal[i] == SIGNAL_AUDIO)
+			g_channel_select.audio = id->ch_id;
+		else if(id->signal[i] == SIGNAL_RS232)
+			g_channel_select.rs232 = id->ch_id;
+		else if(id->signal[i] == SIGNAL_IR)
+			g_channel_select.ir = id->ch_id;
+		else if(id->signal[i] == SIGNAL_USB)
+			g_channel_select.usb = id->ch_id;
+		else if(id->signal[i] == SIGNAL_CEC)
+			g_channel_select.cec = id->ch_id;
+
+    }
+
+	Cfg_Update(CHANNEL_INFO);
+	return 0;
+}
+
 int Cfg_Set_EncChannel_ID(int id)
 {
 	DBG_InfoMsg("Cfg_Set_EncChannel_ID\n");
@@ -4074,7 +5366,7 @@ int Cfg_Set_Autoswitch_Priority(SignalType_E type,int port1, int port2,int port3
 			g_autoswitch_info.input_pri[0] = port1;
 			g_autoswitch_info.input_pri[1] = port2;
 			Cfg_Update(AUTOSWITCH_INFO);
-		}		
+		}
 		else
 		{
 			DBG_ErrMsg("This is not switcher\n");
@@ -4121,14 +5413,12 @@ int Cfg_Get_Autoswitch_Priority(SignalType_E type,int* port1, int* port2, int* p
 		*port1 = g_autoswitch_info.input_pri[0];
 		*port2 = g_autoswitch_info.input_pri[1];
 		*port3 = g_autoswitch_info.input_pri[2];
-		printf("Cfg_Get_Autoswitch_Priority Video %d,%d,%d\n",g_autoswitch_info.input_pri[0],g_autoswitch_info.input_pri[1],g_autoswitch_info.input_pri[2]);
 	}
 	else if(type == SIGNAL_AUDIO)
 	{
 		*port1 = g_audio_info.input_pri[0];
 		*port2 = g_audio_info.input_pri[1];
 		*port3 = g_audio_info.input_pri[2];
-		printf("Cfg_Get_Autoswitch_Priority Audio %d,%d,%d\n",g_audio_info.input_pri[0],g_audio_info.input_pri[1],g_audio_info.input_pri[2]);
 	}
 	else
 	{
@@ -4239,6 +5529,16 @@ int Cfg_Set_Audio_Dest(int count, PortSignalType_E* port)
 int Cfg_Get_Audio_Dest(int* count, PortSignalType_E* port)
 {
 	DBG_InfoMsg("Cfg_Get_Audio_Dest\n");
+
+	return 0;
+}
+
+int Cfg_Set_Video_Res(int mode,int res)
+{
+	DBG_InfoMsg("Cfg_Set_Video_Res mode:%d,res:%d\n",mode,res);
+	g_video_info.scale_mode = mode;
+	g_video_info.res_type = res;
+	Cfg_Update(VIDEO_INFO);
 
 	return 0;
 }
@@ -5196,7 +6496,6 @@ int Cfg_Set_Enc_AVSignal_Info()
 					DBG_WarnMsg("JSON_AV_MAX_BITRATE Param: %s  Error!!!",bitrate.c_str());
 				}
 
-				printf("%s\n",cmd);
 			}
 
 			if(!root[JSON_AV_FRAME_RATE].empty())
@@ -5216,8 +6515,6 @@ int Cfg_Set_Enc_AVSignal_Info()
 					{
 						DBG_WarnMsg("JSON_AV_FRAME_RATE Param: %d  Error!!!",frame);
 					}
-
-					printf("%s\n",cmd);
 				}
 			}
 #endif
@@ -5333,11 +6630,7 @@ int Cfg_Set_Dec_Usb_KVM()
 
 							printf("JsonKVMArray[%d]:[mac: %s][x: %d][y: %d]\n",i,mac.c_str(),x,y);
 
-						/*if((x == 0)&&(y == 0))
-						{
-							DBG_InfoMsg("This is master [x: %d][y: %d]\n",x,y);
-						}
-						else */if(mac.size()>1)
+							if(mac.size()==12)
 							{
 								if(strlen(param) == 0)
 									sprintf(param,"%s,%d,%d",mac.c_str(),x,y);

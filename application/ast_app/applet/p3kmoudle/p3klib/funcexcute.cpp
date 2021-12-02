@@ -1994,6 +1994,8 @@ int EX_SetDecoderAVChannelId(ChSelect_S * id)
 */
 	DBG_InfoMsg("ast_send_event %s\n",sCmd);
 	ast_send_event(0xFFFFFFFF,sCmd);
+
+	Cfg_Set_DecChannel_ID(id);
 #else
 	DBG_WarnMsg(" !!! This is Encoder\n");
 #endif
@@ -2130,9 +2132,13 @@ int EX_SetVideoImageScaleMode(int mode,int res)
 
 	DBG_InfoMsg("ast_send_event %s\n",sCmd);
 	ast_send_event(0xFFFFFFFF,sCmd);
+
+	Cfg_Set_Video_Res(mode,res);
+
 #else
 	DBG_WarnMsg(" !!! This is Encoder\n");
 #endif
+
 	return 0;
 }
 

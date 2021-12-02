@@ -57,6 +57,7 @@ extern "C" {
 
 #define CHANNEL_MAP_FILE 	"/channel/channel_map.json"
 #define CHANNEL_DEF_FILE 	"/channel/channel_define.json"
+#define CHANNEL_SEL_FILE 	"/channel/channel_select.json"
 
 #define AV_SIGNAL_FILE 		"/av_signal/av_signal.json"
 #define AV_SETTING_FILE 	"/av_setting/av_setting.json"
@@ -101,6 +102,7 @@ extern "C" {
 #define JSON_AV_BYPASS			"bypass"
 #define JSON_AV_RGB				"force_rgb"
 #define JSON_AV_AUD_GUARD		"audio_connection_guard_time_sec"
+#define JSON_AV_OUT_RES			"output_resolution"
 
 #define JSON_DISPLAY_DELAY		"display_delays"
 #define JSON_DISPLAY_SLEEP    	"sleep_delay_on_signal_loss_sec"
@@ -321,6 +323,14 @@ extern "C" {
 #define	JSON_USB_KVM_H				"h"
 #define	JSON_USB_KVM_V				"v"
 
+#define JSON_CHANNEL_SELECT			"channel_select"
+#define JSON_CHAN_VIDEO				"video"
+#define JSON_CHAN_AUDIO				"audio"
+#define JSON_CHAN_RS232				"rs232"
+#define JSON_CHAN_IR				"ir"
+#define JSON_CHAN_USB				"usb"
+#define JSON_CHAN_CEC				"cec"
+
 
 #define MAX_EDID			8
 
@@ -329,6 +339,17 @@ typedef struct   _Channel_Info
 	int  channel_id;	// 0 ~ 999
 	char channel_Name[32];
 }Channel_Info;
+
+typedef struct   _Channel_Select
+{
+	int  video;	// 0 ~ 999
+	int  audio;
+	int  rs232;
+	int  ir;
+	int  usb;
+	int  cec;
+}Channel_Select;
+
 
 typedef struct   _Audio_Info
 {
@@ -479,6 +500,7 @@ typedef struct _ConnectionList_S{
 
 
 extern Channel_Info 		g_channel_info;
+extern Channel_Select 		g_channel_select;
 extern Audio_Info			g_audio_info;
 extern Video_Info			g_video_info;
 extern AutoSwitch_Info		g_autoswitch_info;
@@ -494,7 +516,7 @@ extern Network_Info			g_network_info;
 extern Log_Info				g_log_info;
 extern State_E				g_osd_enable;
 
-extern int                  g_Udp_Socket;     
+extern int                  g_Udp_Socket;
 extern int                  g_Udp_Inside_Socket;
 extern ConnectionList_S     *g_connectionlist_info;
 extern int 					g_bCfg;
@@ -567,6 +589,8 @@ int Cfg_Update_Log(void);
 int Cfg_Update_OSD(void);
 
 
+int Cfg_Set_DecChannel_ID(ChSelect_S * id);
+
 int Cfg_Set_EncChannel_ID(int id);
 int Cfg_Get_EncChannel_ID(int* id);
 int Cfg_Set_EncChannel_Name(char* name);
@@ -582,6 +606,8 @@ int Cfg_Set_Autoswitch_Source(SignalType_E type,int port);
 int Cfg_Get_Autoswitch_Source(SignalType_E type,int* port);
 int Cfg_Set_Audio_Dest(int count, PortSignalType_E* port);
 int Cfg_Get_Audio_Dest(int* port1, PortSignalType_E* port);
+
+int Cfg_Set_Video_Res(int mode,int res);
 
 int Cfg_Set_Video_RGB(int mode);
 int Cfg_Get_Video_RGB(int* mode);
