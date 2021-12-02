@@ -194,7 +194,8 @@ int Cfg_Init_Channel(void)
 			//init g_channel_info
 			if(!root[JSON_CH_ID].empty())
 			{
-				g_channel_info.channel_id = root[JSON_CH_ID].asInt();
+				if(root[JSON_CH_ID].isInt())
+					g_channel_info.channel_id = root[JSON_CH_ID].asInt();
 			}
 
 			if(!root[JSON_CH_NAME].empty())
@@ -798,7 +799,12 @@ int Cfg_Init_AVSetting(void)
 
 			//init g_avsetting_info
 			if(!root[JSON_AV_VOLUME].empty())
-				g_avsetting_info.volume = root[JSON_AV_VOLUME].asInt();
+			{
+				if(root[JSON_AV_VOLUME].isInt())
+				{
+					g_avsetting_info.volume = root[JSON_AV_VOLUME].asInt();
+				}
+			}
 
 			if(!root[JSON_AV_MUTE].empty())
 			{
@@ -1197,10 +1203,12 @@ int Cfg_Init_Time(void)
 			Json::Value& root = root1[JSON_TIME_SETTING];
 
 			if(!root[JSON_TIME_ZONE].empty())
-				g_time_info.time_zone = root[JSON_TIME_ZONE].asInt();
+				if(root[JSON_TIME_ZONE].isInt())
+					g_time_info.time_zone = root[JSON_TIME_ZONE].asInt();
 
 			if(!root[JSON_TIME_DAYLIGHT].empty())
-				g_time_info.daylight_saving = root[JSON_TIME_DAYLIGHT].asInt();
+				if(root[JSON_TIME_DAYLIGHT].isInt())
+					g_time_info.daylight_saving = root[JSON_TIME_DAYLIGHT].asInt();
 
 			if(!root[JSON_NTP_SERVER].empty())
 			{
@@ -1225,7 +1233,8 @@ int Cfg_Init_Time(void)
 				}
 
 				if(!ntp[JSON_NTP_SYNC_HOUR].empty())
-					g_time_info.ntp_sync_hour = ntp[JSON_NTP_SYNC_HOUR].asInt();
+					if(ntp[JSON_NTP_SYNC_HOUR].isInt())
+						g_time_info.ntp_sync_hour = ntp[JSON_NTP_SYNC_HOUR].asInt();
 
 				if(!ntp[JSON_NTP_IP].empty())
 				{
@@ -1321,7 +1330,8 @@ int Cfg_Init_User(void)
 
 			if(!root[JSON_USER_LOGOUT].empty())
 			{
-				g_user_info.logout_time = root[JSON_USER_LOGOUT].asInt();
+				if(root[JSON_USER_LOGOUT].isInt())
+					g_user_info.logout_time = root[JSON_USER_LOGOUT].asInt();
 			}
 
 			if(!root[JSON_USER_SECUR].empty())
@@ -1397,26 +1407,36 @@ int Cfg_Init_VideoWall(void)
 			Json::Value& root = root1[JSON_VW_SETTING];
 
 			if(!root[JSON_VW_H_COUNT].empty())
-				g_videowall_info.horizontal_count = root[JSON_VW_H_COUNT].asInt();
+				if(root[JSON_VW_H_COUNT].isInt())
+					g_videowall_info.horizontal_count = root[JSON_VW_H_COUNT].asInt();
 
 			if(!root[JSON_VW_V_COUNT].empty())
-				g_videowall_info.vertical_count= root[JSON_VW_V_COUNT].asInt();
+				if(root[JSON_VW_V_COUNT].isInt())
+					g_videowall_info.vertical_count= root[JSON_VW_V_COUNT].asInt();
 
 			if(!root[JSON_VW_POSITION].empty())
-				g_videowall_info.relative_position= root[JSON_VW_POSITION].asInt();
+				if(root[JSON_VW_POSITION].isInt())
+					g_videowall_info.relative_position= root[JSON_VW_POSITION].asInt();
 
 			if(!root[JSON_VW_BEZEL].empty())
 			{
 				Json::Value& bezel = root[JSON_VW_BEZEL];
 
 				if(!bezel[JSON_VW_BEZEL_H_VALUE].empty())
-					g_videowall_info.bezel_horizontal_value = bezel[JSON_VW_BEZEL_H_VALUE].asInt();
+					if(bezel[JSON_VW_BEZEL_H_VALUE].isInt())
+						g_videowall_info.bezel_horizontal_value = bezel[JSON_VW_BEZEL_H_VALUE].asInt();
+
 				if(!bezel[JSON_VW_BEZEL_V_VALUE].empty())
-					g_videowall_info.bezel_vertical_value = bezel[JSON_VW_BEZEL_V_VALUE].asInt();
+					if(bezel[JSON_VW_BEZEL_V_VALUE].isInt())
+						g_videowall_info.bezel_vertical_value = bezel[JSON_VW_BEZEL_V_VALUE].asInt();
+
 				if(!bezel[JSON_VW_BEZEL_H_OFFSET].empty())
-					g_videowall_info.bezel_horizontal_offset = bezel[JSON_VW_BEZEL_H_OFFSET].asInt();
+					if(bezel[JSON_VW_BEZEL_H_OFFSET].isInt())
+						g_videowall_info.bezel_horizontal_offset = bezel[JSON_VW_BEZEL_H_OFFSET].asInt();
+
 				if(!bezel[JSON_VW_BEZEL_V_OFFSET].empty())
-					g_videowall_info.bezel_vertical_offset = bezel[JSON_VW_BEZEL_V_OFFSET].asInt();
+					if(bezel[JSON_VW_BEZEL_V_OFFSET].isInt())
+						g_videowall_info.bezel_vertical_offset = bezel[JSON_VW_BEZEL_V_OFFSET].asInt();
 			}
 
 			if(!root[JSON_VW_STRETCH].empty())
@@ -1428,6 +1448,23 @@ int Cfg_Init_VideoWall(void)
 				else
 					g_videowall_info.stretch_type = 0;
 			}
+
+			if(!root[JSON_VW_ROTATION].empty())
+			{
+				if(root[JSON_VW_ROTATION].isInt())
+				{
+					int rotation = root[JSON_VW_ROTATION].asInt();
+
+					if((rotation == ROTATION_0)
+						||(rotation == ROTATION_90)
+						||(rotation == ROTATION_180)
+						||(rotation == ROTATION_270))
+						g_videowall_info.rotation = rotation;
+					else
+						g_videowall_info.rotation = rotation;
+				}
+			}
+
 		}
 	}
 	fclose(fp);
@@ -1549,7 +1586,8 @@ int Cfg_Init_Gateway(void)
 
 			if(!root[JSON_GW_UART_PORT].empty())
 			{
-				g_gateway_info.rs232_port = root[JSON_GW_UART_PORT].asInt();
+				if(root[JSON_GW_UART_PORT].isInt())
+					g_gateway_info.rs232_port = root[JSON_GW_UART_PORT].asInt();
 			}
 
 			if(!root[JSON_GW_UART_PARAM].empty())
@@ -1558,24 +1596,29 @@ int Cfg_Init_Gateway(void)
 
 				if(!JsonParam[JSON_GW_UART_RATE].empty())
 				{
-					g_gateway_info.rs232_param.rate = root[JSON_GW_UART_RATE].asInt();
-					if((g_gateway_info.rs232_param.rate != 9600)
-						&&(g_gateway_info.rs232_param.rate != 19200)
-						&&(g_gateway_info.rs232_param.rate != 38400)
-						&&(g_gateway_info.rs232_param.rate != 57600)
-						&&(g_gateway_info.rs232_param.rate != 115200))
+					if(JsonParam[JSON_GW_UART_RATE].isInt())
 					{
-						g_gateway_info.rs232_param.rate = 115200;
+						g_gateway_info.rs232_param.rate = JsonParam[JSON_GW_UART_RATE].asInt();
+						if((g_gateway_info.rs232_param.rate != 9600)
+							&&(g_gateway_info.rs232_param.rate != 19200)
+							&&(g_gateway_info.rs232_param.rate != 38400)
+							&&(g_gateway_info.rs232_param.rate != 57600)
+							&&(g_gateway_info.rs232_param.rate != 115200))
+						{
+							g_gateway_info.rs232_param.rate = 115200;
+						}
 					}
-
 				}
 
 				if(!JsonParam[JSON_GW_UART_BITS].empty())
 				{
-					g_gateway_info.rs232_param.bitWidth = root[JSON_GW_UART_BITS].asInt();
-					if((g_gateway_info.rs232_param.bitWidth<5)||(g_gateway_info.rs232_param.bitWidth>8))
+					if(JsonParam[JSON_GW_UART_BITS].isInt())
 					{
-						g_gateway_info.rs232_param.bitWidth = 8;
+						g_gateway_info.rs232_param.bitWidth = JsonParam[JSON_GW_UART_BITS].asInt();
+						if((g_gateway_info.rs232_param.bitWidth<5)||(g_gateway_info.rs232_param.bitWidth>8))
+						{
+							g_gateway_info.rs232_param.bitWidth = 8;
+						}
 					}
 				}
 
@@ -1600,12 +1643,15 @@ int Cfg_Init_Gateway(void)
 
 				if(!JsonParam[JSON_GW_UART_STOP].empty())
 				{
-					g_gateway_info.rs232_param.stopBitsMode = root[JSON_GW_UART_STOP].asFloat();
-
-					int tmp = (int)(g_gateway_info.rs232_param.stopBitsMode*10);
-					if((tmp != 10)&&(tmp != 15)&&(tmp != 20))
+					if(JsonParam[JSON_GW_UART_STOP].isInt())
 					{
-						g_gateway_info.rs232_param.stopBitsMode = 1;
+						g_gateway_info.rs232_param.stopBitsMode = JsonParam[JSON_GW_UART_STOP].asInt();
+
+						if((g_gateway_info.rs232_param.stopBitsMode != 1)
+							&&(g_gateway_info.rs232_param.stopBitsMode != 2))
+						{
+							g_gateway_info.rs232_param.stopBitsMode = 1;
+						}
 					}
 				}
 			}
@@ -1749,9 +1795,12 @@ int Cfg_Init_Network(void)
 			}
 
 			if(!root[JSON_NETWORK_TCP].empty())
-				g_network_info.tcp_port= root[JSON_NETWORK_TCP].asInt();
+				if(root[JSON_NETWORK_TCP].isInt())
+					g_network_info.tcp_port= root[JSON_NETWORK_TCP].asInt();
+
 			if(!root[JSON_NETWORK_UDP].empty())
-				g_network_info.udp_port= root[JSON_NETWORK_UDP].asInt();
+				if(root[JSON_NETWORK_UDP].isInt())
+					g_network_info.udp_port= root[JSON_NETWORK_UDP].asInt();
 
 			if(!root[JSON_NETWORK_METHOD].empty())
 			{
@@ -1775,7 +1824,8 @@ int Cfg_Init_Network(void)
 						}
 
 						if(!multi[JSON_NETWORK_TTL].empty())
-							g_network_info.multicast_ttl = multi[JSON_NETWORK_TTL].asInt();
+							if(multi[JSON_NETWORK_TTL].isInt())
+								g_network_info.multicast_ttl = multi[JSON_NETWORK_TTL].asInt();
 					}
 				}
 			}
@@ -1798,7 +1848,8 @@ int Cfg_Init_Network(void)
 					}
 
 					if(!p3k_port[JSON_NETWORK_VLAN].empty())
-						g_network_info.p3k_vlan = p3k_port[JSON_NETWORK_VLAN].asInt();
+						if(p3k_port[JSON_NETWORK_VLAN].isInt())
+							g_network_info.p3k_vlan = p3k_port[JSON_NETWORK_VLAN].asInt();
 				}
 				if(!port[JSON_NETWORK_RS232].empty())
 				{
@@ -1814,7 +1865,8 @@ int Cfg_Init_Network(void)
 					}
 
 					if(!rs232_port[JSON_NETWORK_VLAN].empty())
-						g_network_info.rs232_vlan = rs232_port[JSON_NETWORK_VLAN].asInt();
+						if(rs232_port[JSON_NETWORK_VLAN].isInt())
+							g_network_info.rs232_vlan = rs232_port[JSON_NETWORK_VLAN].asInt();
 				}
 
 				if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
@@ -1833,7 +1885,8 @@ int Cfg_Init_Network(void)
 						}
 
 						if(!dante_port[JSON_NETWORK_VLAN].empty())
-							g_network_info.rs232_vlan = dante_port[JSON_NETWORK_VLAN].asInt();
+							if(dante_port[JSON_NETWORK_VLAN].isInt())
+								g_network_info.rs232_vlan = dante_port[JSON_NETWORK_VLAN].asInt();
 
 					}
 				}
@@ -1862,19 +1915,23 @@ int Cfg_Init_Network(void)
 
 				if(!beacon_info[JSON_NETWORK_BEACON_PORT].empty())
 				{
-					g_network_info.beacon_port = beacon_info[JSON_NETWORK_BEACON_PORT].asInt();
+					if(beacon_info[JSON_NETWORK_BEACON_PORT].isInt())
+						g_network_info.beacon_port = beacon_info[JSON_NETWORK_BEACON_PORT].asInt();
 				}
                 if(!beacon_info[JSON_NETWORK_BEACON_TIME].empty())
 				{
-					int time = beacon_info[JSON_NETWORK_BEACON_TIME].asInt();
-                    if(1 <= time && time <= 1800)
-                    {
-                        g_network_info.beacon_time = time;
-                    }
-                    else
-                    {
-                        g_network_info.beacon_time = 10;
-                    }
+					if(beacon_info[JSON_NETWORK_BEACON_TIME].isInt())
+					{
+						int time = beacon_info[JSON_NETWORK_BEACON_TIME].asInt();
+	                    if(1 <= time && time <= 1800)
+	                    {
+	                        g_network_info.beacon_time = time;
+	                    }
+	                    else
+	                    {
+	                        g_network_info.beacon_time = 10;
+	                    }
+					}
 				}
 			}
 
@@ -3574,8 +3631,7 @@ int Cfg_Update_Gateway(void)
 	else
 		JsonUartParam[JSON_GW_UART_PARITY] = JSON_GW_UART_PARITY_NONE;
 
-	int tmp = g_gateway_info.rs232_param.stopBitsMode*10;
-	if((tmp == 10)||(tmp == 15)||(tmp == 20))
+	if((g_gateway_info.rs232_param.stopBitsMode == 1)||(g_gateway_info.rs232_param.stopBitsMode == 2))
 		JsonUartParam[JSON_GW_UART_STOP] = g_gateway_info.rs232_param.stopBitsMode;
 	else
 	{
@@ -5145,21 +5201,24 @@ int Cfg_Set_Enc_AVSignal_Info()
 
 			if(!root[JSON_AV_FRAME_RATE].empty())
 			{
-				char cmd[256] = "";
-				int frame = root[JSON_AV_FRAME_RATE].asInt();
-
-				if((frame <= 100)&&(frame >= 0))
+				if(root[JSON_AV_FRAME_RATE].isInt())
 				{
-					int param = frame * 60 / 100;
-					sprintf(cmd,"astparam s v_frame_rate %d;astparam save",param);
-					system(cmd);
-				}
-				else
-				{
-					DBG_WarnMsg("JSON_AV_FRAME_RATE Param: %d  Error!!!",frame);
-				}
+					char cmd[256] = "";
+					int frame = root[JSON_AV_FRAME_RATE].asInt();
 
-				printf("%s\n",cmd);
+					if((frame <= 100)&&(frame >= 0))
+					{
+						int param = frame * 60 / 100;
+						sprintf(cmd,"astparam s v_frame_rate %d;astparam save",param);
+						system(cmd);
+					}
+					else
+					{
+						DBG_WarnMsg("JSON_AV_FRAME_RATE Param: %d  Error!!!",frame);
+					}
+
+					printf("%s\n",cmd);
+				}
 			}
 #endif
 		}
@@ -5266,21 +5325,25 @@ int Cfg_Set_Dec_Usb_KVM()
 					if((!JsonKVM[JSON_USB_KVM_MAC].empty())&&(!JsonKVM[JSON_USB_KVM_H].empty())&&(!JsonKVM[JSON_USB_KVM_V].empty()))
 					{
 						string mac = JsonKVM[JSON_USB_KVM_MAC].asString();
-						int    x   = JsonKVM[JSON_USB_KVM_H].asInt();
-						int    y   = JsonKVM[JSON_USB_KVM_V].asInt();
 
-						printf("JsonKVMArray[%d]:[mac: %s][x: %d][y: %d]\n",i,mac.c_str(),x,y);
+						if((JsonKVM[JSON_USB_KVM_H].isInt())&&(JsonKVM[JSON_USB_KVM_V].isInt()))
+						{
+							int    x   = JsonKVM[JSON_USB_KVM_H].asInt();
+							int    y   = JsonKVM[JSON_USB_KVM_V].asInt();
+
+							printf("JsonKVMArray[%d]:[mac: %s][x: %d][y: %d]\n",i,mac.c_str(),x,y);
 
 						/*if((x == 0)&&(y == 0))
 						{
 							DBG_InfoMsg("This is master [x: %d][y: %d]\n",x,y);
 						}
 						else */if(mac.size()>1)
-						{
-							if(strlen(param) == 0)
-								sprintf(param,"%s,%d,%d",mac.c_str(),x,y);
-							else
-								sprintf(param,"%s:%s,%d,%d",param,mac.c_str(),x,y);
+							{
+								if(strlen(param) == 0)
+									sprintf(param,"%s,%d,%d",mac.c_str(),x,y);
+								else
+									sprintf(param,"%s:%s,%d,%d",param,mac.c_str(),x,y);
+							}
 						}
 					}
 
@@ -5302,16 +5365,19 @@ int Cfg_Set_Dec_Usb_KVM()
 
 			if(!root[JSON_USB_KVM_TIMEOUT].empty())
 			{
-				char cmd[256] = "";
-				int interval =  root[JSON_USB_KVM_TIMEOUT].asInt();
-
-				if((interval <= 10)&&(interval >= 0))
+				if(root[JSON_USB_KVM_TIMEOUT].isInt())
 				{
-					sprintf(cmd,"astparam s kmoip_token_interval %d;astparam save",interval*60*1000);
-					system(cmd);
-				}
+					char cmd[256] = "";
+					int interval =  root[JSON_USB_KVM_TIMEOUT].asInt();
 
-				DBG_InfoMsg("%s\n",cmd);
+					if((interval <= 10)&&(interval >= 0))
+					{
+						sprintf(cmd,"astparam s kmoip_token_interval %d;astparam save",interval*60*1000);
+						system(cmd);
+					}
+
+					DBG_InfoMsg("%s\n",cmd);
+				}
 			}
 		}
 	}
