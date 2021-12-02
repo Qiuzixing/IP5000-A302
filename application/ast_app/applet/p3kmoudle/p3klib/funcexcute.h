@@ -344,7 +344,7 @@ typedef struct _UartMessageInfo_S
 	UartParityType_E parity;
 	int serialType;
 	int term_485;
-	float stopBitsMode;
+	int stopBitsMode;
 }UartMessageInfo_S;
 typedef struct _ComRouteInfo_S
 {

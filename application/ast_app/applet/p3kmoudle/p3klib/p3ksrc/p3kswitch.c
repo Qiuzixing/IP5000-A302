@@ -1797,7 +1797,7 @@ static int P3K_SetUartConf(char*reqparam,char*respParam,char*userdata)
 	uartConf.rate = atoi(str[1]);
 	uartConf.bitWidth = atoi(str[2]);
 	uartConf.parity  = P3K_CheckUartParity(str[3]);
-	uartConf.stopBitsMode = strtod(str[4],NULL);
+	uartConf.stopBitsMode = (int)(strtod(str[4],NULL));
 	uartConf.serialType = 0;
 	uartConf.term_485 = 0;
 	if(count > 5)
