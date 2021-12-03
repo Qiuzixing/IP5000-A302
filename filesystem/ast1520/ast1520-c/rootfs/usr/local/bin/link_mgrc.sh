@@ -3783,6 +3783,9 @@ mknod $PIPE_INFO_GUI_ACTION p
 ifconfig lo up
 msgd -h &
 
+#init_p3k_cfg_file
+init_p3k_cfg_file
+
 # initialize parameters
 init_param_from_flash
 
@@ -3813,7 +3816,7 @@ done
 
 init_version_file
 init_info_file
-init_p3k_cfg_file
+#init_p3k_cfg_file
 init_param_from_p3k_cfg
 init_json_cfg_path
 # $AST_PLATFORM = ast1500cv4 or ptv1500cv2 or pce1500cv3

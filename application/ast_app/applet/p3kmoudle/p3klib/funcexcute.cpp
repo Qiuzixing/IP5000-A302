@@ -87,6 +87,8 @@ int GetBoardInfo(BoardInfoType_E type, char* info, unsigned int size)
 			return -1;
 		}
 		fread(info,1,size,fp);
+		int size = strlen(info);
+		info[size - 1] = 0;
 	}
 	else if(type == BOARD_BUILD_DATE)
 	{

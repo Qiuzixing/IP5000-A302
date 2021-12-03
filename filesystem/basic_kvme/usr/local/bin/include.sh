@@ -4110,6 +4110,38 @@ init_info_file() {
 init_p3k_cfg_file() {
 	echo "init_p3k_cfg_file"
 
+	MY_MAC=`astconfig mac`
+
+	HOSTNAME_ID=`astparam g hostname_id`
+	case "$HOSTNAME_ID" in
+		*'not defined')
+			HOSTNAME_ID=`astparam r hostname_id`
+			case "$HOSTNAME_ID" in
+				*'not defined')
+						HOSTNAME_ID="$MY_MAC"
+				;;
+				*)
+				;;
+			esac
+		;;
+		*)
+		;;
+	esac
+
+	MODEL_NUMBER=$(astparam r model_number)
+	if echo "$MODEL_NUMBER" | grep -q "not defined"; then
+		MODEL_NUMBER='UNKNOWN'
+	fi
+
+	HOSTNAME_CUSTOMIZED=`astparam g hostname_customized`
+	case "$HOSTNAME_CUSTOMIZED" in
+		*'not defined')
+			HOSTNAME_CUSTOMIZED=""
+		;;
+		*)
+		;;
+	esac
+
 	# The $HOSTNAME_ID is now decided in init_share_param_from_flash()
 	if [ -z "$HOSTNAME_CUSTOMIZED" ]; then
 		HOSTNAME="${MODEL_NUMBER}-${HOSTNAME_ID}"

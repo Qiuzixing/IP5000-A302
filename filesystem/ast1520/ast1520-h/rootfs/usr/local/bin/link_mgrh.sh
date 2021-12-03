@@ -2855,6 +2855,10 @@ echo no > /sys/devices/platform/watchdog/enable
 #mknod $PIPE_INFO_REMOTE p   TBD
 
 ifconfig lo up
+
+#init_p3k_cfg_file
+init_p3k_cfg_file
+
 # initialize parameters
 init_param_from_flash
 
@@ -2881,7 +2885,7 @@ while [ -n "$1" ]; do
 done
 init_version_file
 init_info_file
-init_p3k_cfg_file
+#init_p3k_cfg_file
 init_param_from_p3k_cfg
 init_json_cfg_path
 # $AST_PLATFORM = ast1500hv4 or ptv1500hv2 or pce1500hv3

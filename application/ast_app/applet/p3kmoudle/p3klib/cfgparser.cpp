@@ -44,22 +44,50 @@ pthread_mutex_t g_cfg_lock;
 
 int Cfg_InitModule(void)
 {
-	return 0;
 	char module[32]="";
-	GetBoardInfo(BOARD_MODEL, module, 32);
+	char buf1[32] = "";
 
-	if(strcmp(module,IPE_MODULE) == 0)
-		strcpy(g_module,IPE_PATH);
-	else if(strcmp(module,IPD_MODULE) == 0)
-		strcpy(g_module,IPD_PATH);
-	else if(strcmp(module,IPE_P_MODULE) == 0)
-		strcpy(g_module,IPE_P_PATH);
-	else if(strcmp(module,IPD_W_MODULE) == 0)
-		strcpy(g_module,IPD_W_PATH);
-	else if(strcmp(module,IPE_W_MODULE) == 0)
-		strcpy(g_module,IPE_W_PATH);
+	mysystem("astparam r model_number",buf1,32);
+
+#ifdef CONFIG_P3K_CLIENT
+	if(strstr(buf1,"not defined") != 0)
+	{
+		strcpy(g_version_info.model,IPD_MODULE);
+		DBG_WarnMsg("Cfg_InitModule not defined\n");
+	}
 	else
-		strcpy(g_module,IPE_P_PATH);
+	{
+		if(strcmp(buf1,IPD_MODULE) == 0)
+			strcpy(g_version_info.model,IPD_MODULE);
+		else if(strcmp(buf1,IPD_W_MODULE) == 0)
+			strcpy(g_version_info.model,IPD_W_MODULE);
+		else
+			strcpy(g_version_info.model,IPD_MODULE);
+
+		DBG_InfoMsg("Cfg_InitModule module = %s\n",g_version_info.model);
+	}
+#else
+	if(strstr(buf1,"not defined") != 0)
+	{
+		strcpy(g_version_info.model,IPE_MODULE);
+		DBG_WarnMsg("Cfg_InitModule not defined\n");
+	}
+	else
+	{
+		if(strcmp(buf1,IPE_MODULE) == 0)
+			strcpy(g_version_info.model,IPE_MODULE);
+		else if(strcmp(buf1,IPE_P_MODULE) == 0)
+			strcpy(g_version_info.model,IPE_P_MODULE);
+		else if(strcmp(buf1,IPE_W_MODULE) == 0)
+			strcpy(g_version_info.model,IPE_W_MODULE);
+		else
+			strcpy(g_version_info.model,IPE_MODULE);
+
+		DBG_InfoMsg("Cfg_InitModule module = %s\n",g_version_info.model);
+	}
+
+#endif
+
 	return 0;
 }
 
@@ -116,8 +144,11 @@ int Cfg_Init(void)
 {
 	DBG_InfoMsg("Cfg_Init\n");
 	pthread_mutex_init(&g_cfg_lock,NULL);
-	//Cfg_InitModule();
-	Cfg_Init_Version();
+
+	if(g_bCfg == 1)
+		Cfg_InitModule();
+	else
+		Cfg_Init_Version();
 
 	Cfg_Create_DefaultFile();
 
