@@ -4302,3 +4302,8 @@ init_json_cfg_path()
 	mkdir -p $IEEE8021X_PATH/tls_private_key
 	mkdir -p $IEEE8021X_PATH/webconfig
 }
+
+remove_sbin_reboot()
+{
+	rm /sbin/reboot
+}

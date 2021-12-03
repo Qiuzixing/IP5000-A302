@@ -2853,6 +2853,9 @@ fi
 echo no > /sys/devices/platform/watchdog/enable
 #mknod $PIPE_INFO_LOCAL p    TBD
 #mknod $PIPE_INFO_REMOTE p   TBD
+#qzx 2021.12.3:Delete the /sbin/reboot command and let it call /usr/local/bin/reboot default
+remove_sbin_reboot
+
 
 ifconfig lo up
 

@@ -3779,6 +3779,10 @@ mknod $PIPE_INFO_LOCAL p
 mknod $PIPE_INFO_REMOTE p
 mknod $PIPE_INFO_OSD p
 mknod $PIPE_INFO_GUI_ACTION p
+
+#qzx 2021.12.3:Delete the /sbin/reboot command and let it call /usr/local/bin/reboot default
+remove_sbin_reboot
+
 # msgd need "lo"
 ifconfig lo up
 msgd -h &
