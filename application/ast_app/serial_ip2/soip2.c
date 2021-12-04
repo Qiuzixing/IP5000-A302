@@ -1,3 +1,5 @@
+
+
 /*
  * Copyright (c) 2004-2012
  * ASPEED Technology Inc. All Rights Reserved
@@ -33,8 +35,8 @@
 #include "astdebug.h"
 
 #define MAXMESG 2048
-//#define SOIP2_PORT 6752
-#define SOIP2_PORT 50001
+#define SOIP2_PORT 6752
+//#define SOIP2_PORT 50001
 
 //#define CTRL_CODE 0x0E /* Ctrl+N */
 #define TIMEOUT 2 // 2 seconds
