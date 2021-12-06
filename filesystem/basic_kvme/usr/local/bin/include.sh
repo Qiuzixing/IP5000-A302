@@ -1784,17 +1784,10 @@ query_board_type()
 init_temperature_sensor()
 {
 	echo 3 100000 > /sys/devices/platform/i2c/bus_init
-	echo 3 0x90 0x0f > /sys/devices/platform/i2c/io_word
-	TMP1075_DEVICE_ID=$(cat /sys/devices/platform/i2c/io_word)
-	if echo "$TMP1075_DEVICE_ID" | grep -q "fail"; then
+	echo 3 0x90 0x00 > /sys/devices/platform/i2c/io_word
+	VALUE=$(cat /sys/devices/platform/i2c/io_word)
+	if echo "$VALUE" | grep -q "fail"; then
 		echo "Temperature sensor not found,quit"
-		return
-	fi
-
-	if [ "$TMP1075_DEVICE_ID" = '7500' ];then
-		echo 3 0x90 0x00 > /sys/devices/platform/i2c/io_word
-	else
-		echo "Temperature sensor id is error"
 		return
 	fi
 
@@ -1802,10 +1795,11 @@ init_temperature_sensor()
 
 TEMPERATURE=\`cat /sys/devices/platform/i2c/io_word\`
 ((TEMPERATURE=16#\${TEMPERATURE:0:2}))
-if [ \$TEMPERATURE -ge 128 ];then
-	TEMPERATURE=-\$((256-\$TEMPERATURE))
+if [ \$TEMPERATURE -le 128 ];then
+	echo \"\$TEMPERATURE\"
+else
+	echo \"TEMPERATURE too high\"
 fi
-echo \"\$TEMPERATURE\"
 	" > /usr/local/bin/get_temperature
 	chmod +x /usr/local/bin/get_temperature
 }
