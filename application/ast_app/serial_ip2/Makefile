@@ -7,7 +7,8 @@ TARGET_FOLDER_NAME=$(TARGET)-$(CONFIG)
 
 cc=$(CROSS_COMPILE)gcc
 
-cflags=-O3 -g
+# O3 is error!!!
+cflags=-O2 -g
 ldflags=-g
 
 cflags+=-W -Wstrict-prototypes -std=gnu99 -I.
