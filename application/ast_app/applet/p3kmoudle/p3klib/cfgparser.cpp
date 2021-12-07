@@ -2842,7 +2842,8 @@ int Cfg_Create_AutoswitchDelay(void)
 		return -1;
 	}
 
-	string strAutoSwitchSetting = root1.toStyledString();
+	Json::FastWriter fast_writer;
+	string strAutoSwitchSetting = fast_writer.write(root1);
 	fwrite(strAutoSwitchSetting.c_str(),1,strAutoSwitchSetting.size(),fp);
 
 	fflush(fp);
@@ -3100,7 +3101,9 @@ int Cfg_Create_AVSignal(void)
 		return -1;
 	}
 
-	string strAVSignal = root1.toStyledString();
+	Json::FastWriter fast_writer;
+	string strAVSignal = fast_writer.write(root1);
+
 	fwrite(strAVSignal.c_str(),1,strAVSignal.size(),fp);
 
 	fflush(fp);
@@ -3154,7 +3157,9 @@ int Cfg_Create_DisplaySleep(void)
 		return -1;
 	}
 
-	string strDispDelay = root1.toStyledString();
+	Json::FastWriter fast_writer;
+	string strDispDelay = fast_writer.write(root1);
+
 	fwrite(strDispDelay.c_str(),1,strDispDelay.size(),fp);
 
 	fflush(fp);
@@ -3221,7 +3226,9 @@ int Cfg_Create_OsdSetting(void)
 		return -1;
 	}
 
-	string strOSD = root1.toStyledString();
+	Json::FastWriter fast_writer;
+	string strOSD = fast_writer.write(root1);
+
 	fwrite(strOSD.c_str(),1,strOSD.size(),fp);
 
 	fflush(fp);
@@ -3309,7 +3316,9 @@ int Cfg_Create_SecuritySetting(void)
 			return -1;
 		}
 
-		string str8021X = root1.toStyledString();
+		Json::FastWriter fast_writer;
+		string str8021X = fast_writer.write(root1);
+
 		fwrite(str8021X.c_str(),1,str8021X.size(),fp);
 
 		fflush(fp);
@@ -3359,7 +3368,9 @@ int Cfg_Create_SecuritySetting(void)
 			return -1;
 		}
 
-		string str8021X = root1.toStyledString();
+		Json::FastWriter fast_writer;
+		string str8021X = fast_writer.write(root1);
+
 		fwrite(str8021X.c_str(),1,str8021X.size(),fp);
 
 		fflush(fp);
@@ -3945,7 +3956,9 @@ int Cfg_Update_Channel(void)
 		return -1;
 	}
 
-	string strChannelSel = root1.toStyledString();
+	Json::FastWriter fast_writer;
+	string strChannelSel = fast_writer.write(root1);
+
 	fwrite(strChannelSel.c_str(),1,strChannelSel.size(),fp);
 
 	fflush(fp);
@@ -3981,7 +3994,9 @@ int Cfg_Update_Channel(void)
 		return -1;
 	}
 
-	string strChannelDef = root1.toStyledString();
+	Json::FastWriter fast_writer;
+	string strChannelDef = fast_writer.write(root1);
+
 	fwrite(strChannelDef.c_str(),1,strChannelDef.size(),fp);
 
 	fflush(fp);
@@ -4198,7 +4213,9 @@ int Cfg_Update_Audio(void)
 		return -1;
 	}
 
-	string strAutoSwitch = root1.toStyledString();
+	Json::FastWriter fast_writer;
+	string strAutoSwitch = fast_writer.write(root1);
+
 	fwrite(strAutoSwitch.c_str(),1,strAutoSwitch.size(),fp);
 
 	fflush(fp);
@@ -4329,7 +4346,9 @@ int Cfg_Update_Video(void)
 		return -1;
 	}
 
-	string strAVsetting = root1.toStyledString();
+	Json::FastWriter fast_writer;
+	string strAVsetting = fast_writer.write(root1);
+
 	fwrite(strAVsetting.c_str(),1,strAVsetting.size(),fp2);
 
 	fflush(fp2);
@@ -4442,7 +4461,9 @@ int Cfg_Update_AutoSwitch(void)
 		return -1;
 	}
 
-	string strAutoSwitch = root1.toStyledString();
+	Json::FastWriter fast_writer;
+	string strAutoSwitch = fast_writer.write(root1);
+
 	fwrite(strAutoSwitch.c_str(),1,strAutoSwitch.size(),fp);
 
 	fflush(fp);
@@ -4527,7 +4548,9 @@ int Cfg_Update_AVSetting(void)
 		return -1;
 	}
 
-	string strAVSetting = root1.toStyledString();
+	Json::FastWriter fast_writer;
+	string strAVSetting = fast_writer.write(root1);
+
 	fwrite(strAVSetting.c_str(),1,strAVSetting.size(),fp);
 
 	fflush(fp);
@@ -4587,7 +4610,9 @@ int Cfg_Update_EDID(void)
 		return -1;
 	}
 
-	string strEDIDSetting = root1.toStyledString();
+	Json::FastWriter fast_writer;
+	string strEDIDSetting = fast_writer.write(root1);
+
 	fwrite(strEDIDSetting.c_str(),1,strEDIDSetting.size(),fp);
 
 	fflush(fp);
@@ -4635,7 +4660,9 @@ int Cfg_Update_Device(void)
 		return -1;
 	}
 
-	string strDeviceSetting = root1.toStyledString();
+	Json::FastWriter fast_writer;
+	string strDeviceSetting = fast_writer.write(root1);
+
 	fwrite(strDeviceSetting.c_str(),1,strDeviceSetting.size(),fp);
 
 	fflush(fp);
@@ -4685,7 +4712,9 @@ int Cfg_Update_Version(void)
 		return -1;
 	}
 
-	string strVersionSetting = root1.toStyledString();
+	Json::FastWriter fast_writer;
+	string strVersionSetting = fast_writer.write(root1);
+
 	fwrite(strVersionSetting.c_str(),1,strVersionSetting.size(),fp);
 
 	fflush(fp);
@@ -4741,7 +4770,9 @@ int Cfg_Update_Time(void)
 		return -1;
 	}
 
-	string strTimeSetting = root1.toStyledString();
+	Json::FastWriter fast_writer;
+	string strTimeSetting = fast_writer.write(root1);
+
 	fwrite(strTimeSetting.c_str(),1,strTimeSetting.size(),fp);
 
 	fflush(fp);
@@ -4792,7 +4823,9 @@ int Cfg_Update_User(void)
 		return -1;
 	}
 
-	string strUSerSetting = root1.toStyledString();
+	Json::FastWriter fast_writer;
+	string strUSerSetting = fast_writer.write(root1);
+
 	fwrite(strUSerSetting.c_str(),1,strUSerSetting.size(),fp);
 
 	fflush(fp);
@@ -4853,8 +4886,9 @@ int Cfg_Update_VideoWall(void)
 		return -1;
 	}
 
-	//string strVideowallSetting = fast_writer.write(root1);
-	string strVideowallSetting = root1.toStyledString();
+	Json::FastWriter fast_writer;
+	string strVideowallSetting = fast_writer.write(root1);
+
 	fwrite(strVideowallSetting.c_str(),1,strVideowallSetting.size(),fp);
 
 	fflush(fp);
@@ -4972,7 +5006,9 @@ int Cfg_Update_Gateway(void)
 		return -1;
 	}
 
-	string strGateway = root1.toStyledString();
+	Json::FastWriter fast_writer;
+	string strGateway = fast_writer.write(root1);
+
 	fwrite(strGateway.c_str(),1,strGateway.size(),fp);
 
 	fflush(fp);
@@ -5098,7 +5134,9 @@ int Cfg_Update_Network(void)
 		return -1;
 	}
 
-	string strNetwork = root1.toStyledString();
+	Json::FastWriter fast_writer;
+	string strNetwork = fast_writer.write(root1);
+
 	fwrite(strNetwork.c_str(),1,strNetwork.size(),fp);
 
 	fflush(fp);
@@ -5146,7 +5184,9 @@ int Cfg_Update_Log(void)
 		return -1;
 	}
 
-	string strLogSetting = root1.toStyledString();
+		Json::FastWriter fast_writer;
+	string strLogSetting = fast_writer.write(root1);
+
 	fwrite(strLogSetting.c_str(),1,strLogSetting.size(),fp);
 
 	fflush(fp);
@@ -5236,7 +5276,9 @@ int Cfg_Update_OSD(void)
 		return -1;
 	}
 
-	string strOSDsetting = root1.toStyledString();
+	Json::FastWriter fast_writer;
+	string strOSDsetting = fast_writer.write(root1);
+
 	fwrite(strOSDsetting.c_str(),1,strOSDsetting.size(),fp2);
 
 	fflush(fp2);
