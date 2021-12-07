@@ -130,7 +130,15 @@ int Cfg_Check_File(char * path)
 
 	}
 
-	if(reader.parse(pBuf, root1)== false)
+	char begin[1]="";
+	sscanf(pBuf,"%1s",&begin);
+
+	if(begin[0] != '{')
+	{
+		DBG_ErrMsg("ERROR! star %s \n ",begin);
+		return -1;
+	}
+	else if(reader.parse(pBuf, root1)== false)
 	{
 		DBG_ErrMsg("ERROR! %s is not json\n",path);
 		fclose(fp);
