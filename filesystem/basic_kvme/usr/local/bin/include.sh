@@ -95,11 +95,11 @@ a30_led_on()
 					else
 						ipc @m_lm_set s set_led_control:1:1
 					fi
+					return
 				;;
 				*)
 				;;
 			esac
-			return
 		;;
 		*)
 		;;
