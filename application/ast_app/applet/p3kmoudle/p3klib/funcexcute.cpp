@@ -365,6 +365,11 @@ int  EX_GetAudSrcMode(int *mode)
 	char buf[64] = "";
 	memset(buf,0,64);
 
+#ifdef CONFIG_P3K_CLIENT
+	DBG_WarnMsg("This is not encoder!!!\n");
+	return 0;
+#endif
+
 	//Get Cuurent hdmi in
 	mysystem("/usr/local/bin/sconfig --show audio-input", buf, 64);
 	if(strstr(buf,"hdmi") != 0)
@@ -2749,6 +2754,7 @@ int EX_GetRouteMatch(PortInfo_S*inPortInfo,PortInfo_S*matchPortInfo)
 		&&(inPortInfo->direction == DIRECTION_OUT))
 	{
 		DBG_InfoMsg("EX_GetRouteMatch AUDIO\n");
+#ifdef CONFIG_P3K_HOST
 		matchPortInfo->signal = SIGNAL_AUDIO;
 
 		matchPortInfo->direction = DIRECTION_IN;
@@ -2770,7 +2776,7 @@ int EX_GetRouteMatch(PortInfo_S*inPortInfo,PortInfo_S*matchPortInfo)
 			if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
 			 matchPortInfo->portFormat = PORT_DANTE;
 		}
-
+#endif
 	}
 	else
 	{
@@ -3777,6 +3783,10 @@ int EX_SetCfgModify(char* cfgName)
 	else if(strstr(cfgName,"km_usb") != 0)
 	{
 		Cfg_Set_Dec_Usb_KVM();
+	}
+	else if(strstr(cfgName,"auto_switch_delays") != 0)
+	{
+		Cfg_Set_Switch_Delay();
 	}
 
 	return 0;

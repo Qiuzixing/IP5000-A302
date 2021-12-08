@@ -6829,3 +6829,79 @@ int Cfg_Init_Param()
 	return 0;
 }
 
+int Cfg_Set_Switch_Delay()
+{
+	DBG_InfoMsg("Cfg_Set_Switch_Delay\n");
+
+#ifdef CONFIG_P3K_CLIENT
+		DBG_WarnMsg("This is Decoder\n");
+		return 0;
+#endif
+
+	if(strcmp(g_version_info.model,IPE_MODULE) == 0)
+	{
+		DBG_WarnMsg("This is Switcher\n");
+		return 0;
+	}
+
+	char path[128] = "";
+	sprintf(path,"%s%s%s",CONF_PATH,g_module,AUTOSWITCH_DELAY_FILE);
+
+
+	//Read	kvm cfg
+	int plugInTime=0, plugOutTime=0, signalLossTime=10, manualOverrideTime=10;
+	Json::Reader reader;
+	Json::Value root1;
+	char pBuf[1024] = "";
+	FILE *fp;
+	fp = fopen(path, "r");
+	if (fp == NULL) {
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
+		return -1;
+	}
+
+	fread(pBuf,1,sizeof(pBuf),fp);
+
+	if(reader.parse(pBuf, root1))
+	{
+		if(!root1[JSON_AUTOSWITCH_DELAY].empty())
+		{
+			Json::Value& root = root1[JSON_AUTOSWITCH_DELAY];
+
+			if(!root[JSON_AUTOSWITCH_LOSS].empty())
+			{
+				if(root[JSON_AUTOSWITCH_LOSS].isInt())
+					signalLossTime =  root[JSON_AUTOSWITCH_LOSS].asInt();
+			}
+
+			if(!root[JSON_AUTOSWITCH_UNPLUG].empty())
+			{
+				if(root[JSON_AUTOSWITCH_UNPLUG].isInt())
+					plugOutTime =  root[JSON_AUTOSWITCH_UNPLUG].asInt();
+			}
+
+			if(!root[JSON_AUTOSWITCH_PLUGIN].empty())
+			{
+				if(root[JSON_AUTOSWITCH_PLUGIN].isInt())
+					plugInTime =  root[JSON_AUTOSWITCH_PLUGIN].asInt();
+			}
+
+			if(!root[JSON_AUTOSWITCH_OVERRIDE].empty())
+			{
+				if(root[JSON_AUTOSWITCH_OVERRIDE].isInt())
+					manualOverrideTime =  root[JSON_AUTOSWITCH_OVERRIDE].asInt();
+			}
+		}
+	}
+
+	fclose(fp);
+
+	char cmd[64] = "";
+	sprintf(cmd,"sconfig --delay-time %d %d %d %d",plugInTime, plugOutTime, signalLossTime, manualOverrideTime);
+
+	system(cmd);
+
+	DBG_InfoMsg("cmd: %s\n",cmd);
+	return 0;
+}
+
