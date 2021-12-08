@@ -297,8 +297,11 @@ static inline void write_enable(struct m25p *flash)
 	write_reg(flash, code);
 #if defined(STATUS_REG_CHECK)
 	while (!(SR_WEL & read_sr(flash)))
-		;
+	{
+		msleep(10);
+	}
 #endif
+	
 #endif
 }
 
@@ -395,8 +398,11 @@ static int erase_sector(struct m25p *flash, u32 offset)
 #endif
 #if defined(STATUS_REG_CHECK)
 	while (SR_WIP & read_sr(flash))
-		;
+	{
+		msleep(10);
+	}
 #endif
+	
 #if defined(DEBUG_PROFILE_SCU_FREE_RUN_CNT)
 	profile_finish();
 #endif
@@ -599,8 +605,11 @@ static void flash_write_buffer(struct m25p *flash, const u8 *src, u32 addr, int 
 	barrier();
 #if defined(STATUS_REG_CHECK)
 	while (SR_WIP & read_sr(flash))
-		;
+	{
+		msleep(10);
+	}
 #endif
+	
 }
 #endif
 

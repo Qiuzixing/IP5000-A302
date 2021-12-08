@@ -27,6 +27,11 @@ mknod /dev/mtdblkroparam b 31 9
 
 echo no > /sys/devices/platform/watchdog/enable
 
+#Disk I/O read/write optimization
+echo 3 > /proc/sys/vm/dirty_background_ratio
+echo 2 > /proc/sys/vm/dirty_writeback_centisecs
+echo 10 > /proc/sys/vm/dirty_expire_centisecs
+
 e2fsck -p /dev/mtdblkdata
 e2fsck -y /dev/mtdblkdata
 mount /dev/mtdblkdata /data
