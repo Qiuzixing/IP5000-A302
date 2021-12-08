@@ -28,7 +28,7 @@
         <ul class="edid-list">
           <li>
             <button class="btn btn-primary"
-                    @click="dialogType = 1"
+                    @click="addChannel.name='',addChannel.id='',dialogType = 1"
                     :disabled="this.channelList.length >= osdConfig.max_channels">ADD</button>
             <button class="btn btn-plain-primary"
                     style="margin-left: 24px"
@@ -390,7 +390,7 @@ export default {
       // this id already exists
       let isExists = false
       for (const i in this.channelList) {
-        if (this.channelList[i].id === this.addChannel.id) {
+        if (+this.channelList[i].id === +this.addChannel.id) {
           isExists = true
         }
       }

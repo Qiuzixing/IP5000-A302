@@ -155,7 +155,7 @@
         </div>
       </div>
       <div class="setting"
-           v-if="this.$global.deviceType">
+           v-if="this.$global.deviceType === 1">
         <span class="setting-title">Dante Port</span>
         <div class="setting-title"
              style="width: 80px;">
@@ -288,7 +288,7 @@ export default {
     this.$socket.sendMsg('#KDS-MULTICAST? ')
     this.$socket.sendMsg('#ETH-PORT? TCP')
     this.$socket.sendMsg('#ETH-PORT? UDP')
-    if (this.$global.deviceType) {
+    if (this.$global.deviceType === 1) {
       this.$socket.sendMsg('#KDS-GW-ETH? 2')
       this.$socket.sendMsg('#KDS-VLAN-TAG? 2')
     }
@@ -382,7 +382,7 @@ export default {
       this.$socket.sendMsg('#KDS-GW-ETH 1,' + this.configPort1)
       this.$socket.sendMsg('#KDS-VLAN-TAG 0,' + this.danteTag1)
       this.$socket.sendMsg('#KDS-VLAN-TAG 1,' + this.danteTag2)
-      if (this.$global.deviceType) {
+      if (this.$global.deviceType === 1) {
         this.$socket.sendMsg('#KDS-GW-ETH 2,' + this.configPort2)
         this.$socket.sendMsg('#KDS-VLAN-TAG 2,' + this.danteTag3)
       }

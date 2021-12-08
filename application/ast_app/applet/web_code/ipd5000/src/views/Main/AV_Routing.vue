@@ -187,7 +187,7 @@ export default {
       if (msg.search(/@X-AUD-DESC /i) !== -1) {
         this.handleAudioChannelDesc(msg)
       }
-      if (msg.search(/@KDS-CHANNEL-SELECT video/i) !== -1) {
+      if (msg.search(/@KDS-CHANNEL-SELECT /i) !== -1) {
         this.handleSelectChannel(msg)
       }
     },
@@ -252,10 +252,10 @@ export default {
       this.$socket.sendMsg('#KDS-CHANNEL-SELECT? video')
     },
     handleSelectChannel (msg) {
-      this.channel = msg.split(',')[1]
+      this.channel = msg.split(',').pop().trim()
     },
     setChannel (val) {
-      this.$socket.sendMsg('#KDS-CHANNEL-SELECT video,' + val)
+      this.$socket.sendMsg('#KDS-CHANNEL-SELECT [video,audio,rs232,ir,usb,cec],' + val)
     }
   }
 }

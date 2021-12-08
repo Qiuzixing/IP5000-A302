@@ -11,8 +11,8 @@
                   inactive-value="0"
                   @input="setCECGateway"></v-switch>
       </div>
-      <div v-if="$global.deviceType">
-        <div class="setting">
+      <div >
+        <div class="setting" v-if="$global.deviceType">
           <span class="setting-title">Gateway HDMI Port</span>
           <multiselect :disabled="cecGateWay === '0'"
                        :options="[{value: '1', label: 'HDMI Input'}, {value: '2', label: 'HDMI Output'}]"
@@ -118,11 +118,9 @@
         <span class="setting-title">IR Direction IN/OUT</span>
         <div>
           <radio-component v-model="irDirection"
-                           :disabled="irGW=='0'"
                            label="in"
                            @change="setIrDirection">IN</radio-component>
           <radio-component v-model="irDirection"
-                           :disabled="irGW=='0'"
                            label="out"
                            @change="setIrDirection">OUT</radio-component>
         </div>
@@ -208,10 +206,6 @@ export default {
         {
           value: '2',
           label: '2'
-        },
-        {
-          value: '1.5',
-          label: '1.5'
         },
         {
           value: '1',
