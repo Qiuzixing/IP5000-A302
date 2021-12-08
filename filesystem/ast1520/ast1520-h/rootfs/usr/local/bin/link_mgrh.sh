@@ -1350,7 +1350,7 @@ handle_e_key()
 			p3k_notify button::enter
 		;;
 		e_key_up_pressed)
-			if [ "$MODEL_NUMBER" = 'WP-SW2-EN7' ];then
+			if [ "$MODEL_NUMBER" = 'WP-SW2-EN7' -a "$P3KCFG_FP_LOCK_ON" = 'off' ];then
 				LED_DISPLAY_CH_SELECT_V=`echo -e $LED_DISPLAY_CH_SELECT_V | sed -r 's/0*([0-9])/\1/'`
 				LED_DISPLAY_CH_SELECT_V=$[ $LED_DISPLAY_CH_SELECT_V + 1 ]
 				if [ $LED_DISPLAY_CH_SELECT_V -gt 999 ];then
@@ -1364,7 +1364,7 @@ handle_e_key()
 			p3k_notify button::up
 		;;
 		e_key_down_pressed)
-			if [ "$MODEL_NUMBER" = 'WP-SW2-EN7' ];then
+			if [ "$MODEL_NUMBER" = 'WP-SW2-EN7' -a "$P3KCFG_FP_LOCK_ON" = 'off' ];then
 				LED_DISPLAY_CH_SELECT_V=`echo -e $LED_DISPLAY_CH_SELECT_V | sed -r 's/0*([0-9])/\1/'`
 				LED_DISPLAY_CH_SELECT_V=$[ $LED_DISPLAY_CH_SELECT_V - 1 ]
 				if [ $LED_DISPLAY_CH_SELECT_V -lt 1 ];then
@@ -2035,14 +2035,20 @@ handle_e_p3k_fp_lock()
 	case "$event" in
 		e_p3k_fp_lock_off)
 			P3KCFG_FP_LOCK_ON='off'
-			echo 0 > /sys/class/leds/lcd_power/brightness
-			usleep 500000
 			case $MODEL_NUMBER in
 				KDS-SW3-EN7)
+					echo 0 > /sys/class/leds/lcd_power/brightness
+					usleep 500000
 					lcd_display IPE5000P &
 				;;
 				KDS-EN7)
+					echo 0 > /sys/class/leds/lcd_power/brightness
+					usleep 500000
 					lcd_display IPE5000 &
+				;;
+				WP-SW2-EN7)
+					ipc @m_lm_set s set_lcd_control:0:1
+					led_display_num
 				;;
 				*)
 					echo "error param"
@@ -2051,8 +2057,18 @@ handle_e_p3k_fp_lock()
 		;;
 		e_p3k_fp_lock_on)
 			P3KCFG_FP_LOCK_ON='on'
-			echo 1 > /sys/class/leds/lcd_power/brightness
-			pkill -9 lcd_display
+			case $MODEL_NUMBER in
+				WP-SW2-EN7)
+					ipc @m_lm_set s set_lcd_control:0:0
+				;;
+				KDS-EN7 | KDS-SW3-EN7)
+					echo 1 > /sys/class/leds/lcd_power/brightness
+					pkill -9 lcd_display
+				;;
+				*)
+					echo "error param"
+				;;
+			esac
 		;;
 		*)
 			echo "error param" 
@@ -2993,10 +3009,16 @@ if [ $UGP_FLAG = 'success' ];then
 		WP-SW2-EN7)
 			#enable led_display	set_lcd_control--cmd;0--led_type 1--lcd_type;1--enable  0--disenable;
 			#set cec_switch(77) pin to default to hdmi_in;0:hdmi_in - it6802;typec - it6802;
+			#Pull up this pin to indicate that the power on is complete
+			echo 1 > /sys/class/leds/i2c_mux_gpio/brightness
 			ipc @m_lm_set s set_gpio_config:1:77:1
 			ipc @m_lm_set s set_gpio_val:1:77:0
-			ipc @m_lm_set s set_lcd_control:0:1
-			led_display_num
+			if [ $P3KCFG_FP_LOCK_ON = 'off' ];then
+				ipc @m_lm_set s set_lcd_control:0:1
+				led_display_num
+			else
+				ipc @m_lm_set s set_lcd_control:0:0
+			fi
 		;;
 		*)
 		;;
