@@ -5300,8 +5300,10 @@ int Cfg_Set_DecChannel_ID(ChSelect_S * id)
 {
 	DBG_InfoMsg("Cfg_Set_DecChannel_ID\n");
 
+#if 1
 	for(int i = 0;i < id->i_signalnum;i ++)
     {
+		DBG_InfoMsg("signal[%d]: %d; id: %d",i,id->signal[i],id->ch_id);
 	    if(id->signal[i] == SIGNAL_VIDEO)
 			g_channel_select.video = id->ch_id;
 		else if(id->signal[i] == SIGNAL_AUDIO)
@@ -5316,7 +5318,14 @@ int Cfg_Set_DecChannel_ID(ChSelect_S * id)
 			g_channel_select.cec = id->ch_id;
 
     }
-
+#else
+	g_channel_select.video = id->ch_id;
+	g_channel_select.audio = id->ch_id;
+	g_channel_select.rs232 = id->ch_id;
+	g_channel_select.ir = id->ch_id;
+	g_channel_select.usb = id->ch_id;
+	g_channel_select.cec = id->ch_id;
+#endif
 	Cfg_Update(CHANNEL_INFO);
 	return 0;
 }

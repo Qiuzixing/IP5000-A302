@@ -2000,28 +2000,44 @@ int EX_GetEncoderAVChannelId(int *id)
 
 int EX_SetDecoderAVChannelId(ChSelect_S * id)
 {
-	DBG_InfoMsg(" EX_SetDecoderAVChannelId id =%d\n",id->ch_id);
+	DBG_InfoMsg(" EX_SetDecoderAVChannelId id =%d i_signalnum = %d\n",id->ch_id,id->i_signalnum);
     int i = 0;
     for(i = 0;i < id->i_signalnum;i ++)
     {
-	    printf("%d...",id->signal[i]);
+	    printf("%d...\n",id->signal[i]);
     }
 #ifdef CONFIG_P3K_CLIENT
     
 	char sCmd[64] = "";
 	sprintf(sCmd,"e_reconnect::%04d",id->ch_id);
- /*   for(i = 0;i < id->i_signalnum;i ++)
+#if 1
+	char ch_v[2] = "";
+	char ch_u[2] = "";
+	char ch_a[2] = "";
+	char ch_r[2] = "";
+	char ch_s[2] = "";
+	char ch_c[2] = "";
+
+   for(i = 0;i < id->i_signalnum;i ++)
     {
-	    if(id->signal[i] == SIGNAL_IR)
-		sprintf(sCmd,"%s::r",sCmd);
-	    DBG_InfoMsg("ast_send_event %s\n",sCmd);
-	    ast_send_event(0xFFFFFFFF,sCmd);
+	    if(id->signal[i] == SIGNAL_VIDEO)
+			sprintf(ch_v,"v");
+		else if(id->signal[i] == SIGNAL_USB)
+			sprintf(ch_u,"u");
+		else if(id->signal[i] == SIGNAL_AUDIO)
+			sprintf(ch_a,"a");
+		else if(id->signal[i] == SIGNAL_IR)
+			sprintf(ch_r,"r");
+		else if(id->signal[i] == SIGNAL_RS232)
+			sprintf(ch_s,"s");
+		else if(id->signal[i] == SIGNAL_CEC)
+			sprintf(ch_c,"c");
     }
 
+	sprintf(sCmd,"%s::%s%s%s%s%s%s",sCmd,ch_v,ch_u,ch_a,ch_r,ch_s,ch_c);
 
-	if(id->signal == SIGNAL_IR)
-		sprintf(sCmd,"%s::r",sCmd);
-*/
+#endif
+
 	DBG_InfoMsg("ast_send_event %s\n",sCmd);
 	ast_send_event(0xFFFFFFFF,sCmd);
 
