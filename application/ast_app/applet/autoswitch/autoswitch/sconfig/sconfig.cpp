@@ -74,6 +74,29 @@ bool setWorkModeMsg(int sock, const char *mode)
     return ret;
 }
 
+
+/*
+ * sconfig --delay-time plugInTime plugOutTime signalLossTime manualOverrideTime
+ */
+bool setDelayTimeMsg(int sock, const char *plugInTime, const char *plugOutTime,
+    const char *signalLossTime, const char *manualOverrideTime)
+{
+    bool ret = false;
+    std::string msg("set delay-time ");
+    msg += plugInTime;
+    msg += " ";
+    msg += plugOutTime;
+    msg += " ";
+    msg += signalLossTime;
+    msg += " ";
+    msg += manualOverrideTime;
+    ssize_t nbytes = unixsock_send_message(sock, MAIN_SOCKET_NAME, msg.c_str(), msg.length());
+    if (nbytes > 0)
+        ret = true;
+    return ret;  
+}
+
+
 /*
  * sconfig --audio-mode {FILO|priority|manual}
  * mode:FILO|priority|manual
@@ -379,6 +402,18 @@ bool setPriority(int argc, char *argv[])
     return setPriorityMsg(sock, argv[2], argv[3], argv[4]);
 }
 
+//sconfig --delay-time plugInTime plugOutTime signalLossTime manualOverrideTime
+bool setDelayTime(int argc, char *argv[])
+{
+    bool ret = false;
+    if (argc != 6) {
+        std::cout << "sconfig --delay-time plugInTime plugOutTime signalLossTime manualOverrideTime\n";
+        return ret;
+    }
+
+    return setDelayTimeMsg(sock, argv[2], argv[3], argv[4], argv[5]); 
+}
+
 //sconfig --audio-priority {dante analog hdmi}
 bool setAudioPriority(int argc, char *argv[])
 {
@@ -562,6 +597,9 @@ int main(int argc, char *argv[])
     //sconfig --audio-analog {in|out}
     parser.add<string>("audio-analog", 0, "set audio analog in or out", false, "");
 
+    //sconfig --delay-time plugInTime plugOutTime signalLossTime manualOverrideTime
+    parser.add<string>("delay-time", 0, "set delay time", false, "");
+
     parser.add("help", 0, "print this message");
 
     bool status = parser.parse(argc, argv);
@@ -612,6 +650,10 @@ int main(int argc, char *argv[])
 
     if (parser.exist("audio-priority")) {
         setAudioPriority(argc, argv);
+    }
+
+    if (parser.exist("delay-time")) {
+        setDelayTime(argc, argv);
     }
 
     if (parser.exist("audio-input")) {

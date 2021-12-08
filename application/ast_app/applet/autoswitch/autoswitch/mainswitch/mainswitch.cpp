@@ -370,6 +370,8 @@ bool MainSwitch::parseMessage(const QString &s, QString &type, QString &cmd, QSt
                     code = SET_CURRENT_INPUT;
                 } else if (cmdstr.toLower() == "priority") {
                     code = SET_PRIORITY;
+                } else if (cmdstr.toLower() == "delay-time") {
+                    code = SET_DELAY_TIME;
                 }
             }
 
@@ -844,6 +846,27 @@ bool MainSwitch::setPriority(const QString &args)
     return ret;
 }
 
+bool MainSwitch::setDelayTime(const QString &args)
+{
+    bool ret = false;
+    QStringList argsList = args.trimmed().split(" ");
+    if (argsList.size() != DELAY_TIME_MAX) {
+        qDebug() << "setDelayTime args error.";
+        return false;
+    }
+
+    plugInIntervalTime = 1000 * argsList.at(0).toUInt();
+    plugOutIntervalTime = 1000 * argsList.at(1).toUInt();
+    signalLossSwitchingTime = 1000 * argsList.at(2).toUInt();
+    manualOverrideInactiveSignalTime = 1000 * argsList.at(3).toUInt();
+    qDebug() << "signalLossSwitchingTime:" << signalLossSwitchingTime/1000 << "s";
+    qDebug() << "plugOutIntervalTime:" << plugOutIntervalTime/1000 << "s";
+    qDebug() << "plugInIntervalTime:" << plugInIntervalTime/1000 << "s";
+    qDebug() << "manualOverrideInactiveSignalTime:" << manualOverrideInactiveSignalTime/1000 << "s";
+
+    return ret;
+}
+
 bool MainSwitch::getCurrentInput(struct sockaddr_un &cliaddr, socklen_t len)
 {
     bool ret = false;
@@ -941,6 +964,11 @@ bool MainSwitch::handlerMessage(quint32 code, const QString &args, struct sockad
 
     case SET_PRIORITY: {
         ret = setPriority(args);
+        break;
+    }
+
+    case SET_DELAY_TIME: {
+        ret = setDelayTime(args);
         break;
     }
 
