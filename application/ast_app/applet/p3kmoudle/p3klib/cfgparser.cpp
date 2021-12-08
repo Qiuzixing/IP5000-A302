@@ -1365,7 +1365,8 @@ int Cfg_Init_Version(void)
 	char path[128] = "";
 	sprintf(path,"%s%s%s",CONF_PATH,g_module,VERSION_FILE);
 
-	GetBoardInfo(BOARD_MODEL, g_version_info.model, 64);
+	//GetBoardInfo(BOARD_MODEL, g_version_info.model, 64);
+	Cfg_InitModule();
 	GetBoardInfo(BOARD_HW_VERSION, g_version_info.hw_version, 16);
 	GetBoardInfo(BOARD_FW_VERSION, g_version_info.fw_version, 16);
 	GetBoardInfo(BOARD_BUILD_DATE, g_version_info.build_time, 16);
@@ -6789,12 +6790,12 @@ int Cfg_Init_Param()
 #else
 	DBG_InfoMsg("This is Encoder\n");
 	//HDCP
-	char module[32]="";
+//	char module[32]="";
 	int ncount = 1;
-	GetBoardInfo(BOARD_MODEL, module, 32);
-	if(strcmp(module,IPE_P_MODULE) == 0)
+//	GetBoardInfo(BOARD_MODEL, module, 32);
+	if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
 		ncount = 3;
-	else if(strcmp(module,IPE_W_MODULE) == 0)
+	else if(strcmp(g_version_info.model,IPE_W_MODULE) == 0)
 		ncount = 2;
 
 	for(int i = 1;i <= ncount;i++)

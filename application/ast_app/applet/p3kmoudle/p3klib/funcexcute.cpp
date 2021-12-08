@@ -89,6 +89,8 @@ int GetBoardInfo(BoardInfoType_E type, char* info, unsigned int size)
 		fread(info,1,size,fp);
 		int size = strlen(info);
 		info[size - 1] = 0;
+
+		fclose(fp);
 	}
 	else if(type == BOARD_BUILD_DATE)
 	{
@@ -113,6 +115,30 @@ int GetBoardInfo(BoardInfoType_E type, char* info, unsigned int size)
 		{
 			DBG_ErrMsg("ERROR! can't open date\n");
 		}
+		fclose(fp);
+	}
+	else if(type == BOARD_SN)
+	{
+		mysystem("astparam r serial_number",info, size);
+
+		if(strstr(info,"not defined") != 0)
+		{
+			memset(info,0,size);
+			strcpy(info,"UNKNOWN");
+		}
+	}
+	else if(type == BOARD_MAC)
+	{
+		mysystem("astparam r ethaddr",info, size);
+
+		if(strstr(info,"not defined") != 0)
+		{
+			memset(info,0,size);
+			mysystem("astparam g ethaddr",info, size);
+
+			if(strstr(info,"not defined") != 0)
+				mysystem("/usr/local/bin/random_mac -c",info, size);
+		}
 	}
 	else
 	{
@@ -130,7 +156,7 @@ int GetBoardInfo(BoardInfoType_E type, char* info, unsigned int size)
 
 		if(reader.parse(pBuf, root))
 		{
-			if(type == BOARD_MODEL)
+/*			if(type == BOARD_MODEL)
 			{
 				if(!root["model"].empty())
 				{
@@ -175,7 +201,8 @@ int GetBoardInfo(BoardInfoType_E type, char* info, unsigned int size)
 					}
 				}
 			}
-			else if(type == BOARD_HW_VERSION)
+			else*/
+			if(type == BOARD_HW_VERSION)
 			{
 				if(!root["board version"].empty())
 				{
@@ -206,8 +233,9 @@ int GetBoardInfo(BoardInfoType_E type, char* info, unsigned int size)
 				}
 			}
 		}
+		fclose(fp);
 	}
-	fclose(fp);
+
 
 	DBG_InfoMsg("GetBoardInfo type:%d,info:%s end\n",type,info);
 	return 0;
@@ -2869,16 +2897,11 @@ int EX_SetMacAddr(int netid,char*macAddr)
 int EX_GetMacAddr(int netid,char*macAddr)
 {
 //	strcpy(macAddr,"00-14-22-01-23-45");
-	DBG_InfoMsg("EX_GetMacAddr\n");
+	DBG_InfoMsg("EX_GetMacAddr %s\n",g_device_info.mac_addr);
 	int nMac[6];
 	if(macAddr != NULL)
 	{
-		char buf[128];
-		GetBoardInfo(BOARD_MAC, buf, 128);
-
-		DBG_InfoMsg("buf = %s\n",buf);
-
-		sscanf(buf,"%x:%x:%x:%x:%x:%x",&nMac[0],&nMac[1],&nMac[2],&nMac[3],&nMac[4],&nMac[5]);
+		sscanf(g_device_info.mac_addr,"%x:%x:%x:%x:%x:%x",&nMac[0],&nMac[1],&nMac[2],&nMac[3],&nMac[4],&nMac[5]);
 
 		sprintf(macAddr,"%02x-%02x-%02x-%02x-%02x-%02x",nMac[0],nMac[1],nMac[2],nMac[3],nMac[4],nMac[5]);
 	}
@@ -3242,9 +3265,11 @@ int EX_SetDeviceNameModel(char*mod)
 }
 int EX_GetDeviceNameModel(char*mod)
 {
+	DBG_InfoMsg("EX_GetDeviceNameModel %s\n",g_version_info.model);
+
 	if(mod != NULL)
 	{
-		GetBoardInfo(BOARD_MODEL, mod, MAX_DEV_MOD_NAME_LEN);
+		strcpy(mod,g_version_info.model);
 	}
 
 	return 0;
@@ -3277,7 +3302,7 @@ int EX_GetSerialNumber(char*data)
 	//strcpy(data,"12345678987654");
 	if(data != NULL)
 	{
-		GetBoardInfo(BOARD_SN, data, SERIAL_NUMBER_LEN);
+		strcpy(data,g_device_info.sn);
 	}
 	return 0;
 }
