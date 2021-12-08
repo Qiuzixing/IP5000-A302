@@ -2387,7 +2387,7 @@ int EX_SendCECMsg(CECMessageInfo_S*info)
 		if((strcmp(g_version_info.model,IPE_P_MODULE) == 0)||(strcmp(g_version_info.model,IPE_W_MODULE) == 0))
 		{
 			//get current input
-			char buf[16] = "";
+/*			char buf[16] = "";
 			memset(buf,0,16);
 
 			int cur_port = 1;
@@ -2409,11 +2409,12 @@ int EX_SendCECMsg(CECMessageInfo_S*info)
 				DBG_WarnMsg("cec param Err info->portId = %d cur_port =%d\n",info->portId,cur_port);
 				return 4;
 			}
-
+*/
+			DBG_WarnMsg("cec param info->portId = %d\n",info->portId);
 		}
 		else
 		{
-			if(info->portId != 1)
+			//if(info->portId != 1)
 			{
 				DBG_WarnMsg("cec param Err info->portId = %d\n",info->portId);
 				return 4;
