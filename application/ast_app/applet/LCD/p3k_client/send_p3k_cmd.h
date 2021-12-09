@@ -8,7 +8,7 @@ extern "C"{
 
 #define SIZE0 255
 #define SIZE1 1024
-#define SIZE2 255
+//#define SIZE2 255
 #define LITTLE_SIZE 20
 
 typedef struct 

@@ -643,17 +643,17 @@ int GET_HDCP_STATUS(char *hdcp_status)
     if (res == 0)
     {
         strcpy(hdcp_status, "HDCP OFF");
-        hdcp_status[strlen("HDCP OFF")] = '\0';
+        //hdcp_status[strlen("HDCP OFF")] = '\0';
     }
     else if (res == 1)
     {
         strcpy(hdcp_status, "HDCP ON");
-        hdcp_status[strlen("HDCP ON")] = '\0';
+        //hdcp_status[strlen("HDCP ON")] = '\0';
     }
     else
     {
         strcpy(hdcp_status, "SHOW FAIL");
-        hdcp_status[strlen("SHOW FAIL")] = '\0';
+        //hdcp_status[strlen("SHOW FAIL")] = '\0';
     }
     return 0;
 }
@@ -963,15 +963,15 @@ int SET_ENCODE_VIDEO_INPUT(const char *type)
     int res = 0;
     if (strstr(type, "HDMI IN1") != NULL)
     {
-        res = send_cmd_common(DE_SET_INPUT_STREAM_CMD, NULL, NULL, NULL);
+        res = send_cmd_common(EN_INPUT_SET_HDMI1_CMD, NULL, NULL, NULL);
     }
     else if (strstr(type, "HDMI IN2") != NULL)
     {
-        res = send_cmd_common(DE_SET_INPUT_STREAM_CMD, NULL, NULL, NULL);
+        res = send_cmd_common(EN_INPUT_SET_HDMI2_CMD, NULL, NULL, NULL);
     }
     else if (strstr(type, "USB_C IN") != NULL)
     {
-        res = send_cmd_common(DE_SET_INPUT_STREAM_CMD, NULL, NULL, NULL);
+        res = send_cmd_common(EN_INPUT_SET_USB3_CMD, NULL, NULL, NULL);
     }
 
     if (res == -1)

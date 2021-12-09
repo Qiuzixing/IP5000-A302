@@ -97,7 +97,7 @@ const char* INPUT_VIDEO_SOURCE_TYPE_P[] = {
     "INPUT SETTING", "HDMI IN1", "HDMI IN2", "USB_C IN",
 };
 
-char EDID_BUF_P[10][20] = {"EDID SETTING",{0},{0},{0},{0},{0},{0},{0},{0},{0}};
+char EDID_BUF_P[20][20] = {"EDID SETTING",{0},{0},{0},{0},{0},{0},{0},{0},{0}};
 
 const char *EDID_LIST_P[] = {(const char *)EDID_BUF_P[0], (const char *)EDID_BUF_P[1],(const char *)EDID_BUF_P[2],(const char *)EDID_BUF_P[3],(const char *)EDID_BUF_P[4],
                        (const char *)EDID_BUF_P[5],(const char *)EDID_BUF_P[6],(const char *)EDID_BUF_P[7],(const char *)EDID_BUF_P[8],(const char *)EDID_BUF_P[9]};
@@ -356,6 +356,10 @@ void show_menu_info_P(int y, u8 begin_elem, const char *dest[], const char *src[
     if (count == 0)
     {
         move_limit_P = 2;
+		for (i = 1; i < 4; i++)
+	    {
+	        dest[i] = blank_P;
+	    }
         return;
     }   
     for (i = 0; i < count; i++)
@@ -983,7 +987,7 @@ static int DEV_SETTINGS_P()
 static int INPUT_SETTING_P()
 {
     int err = -1;
-    int type_i = -1;
+    int type_i = 0;
     char type[100] = {0};
 
     
@@ -991,7 +995,6 @@ static int INPUT_SETTING_P()
     if (err == -1)
         return -1;
     
-    strcpy(type, "usb.3");
     if (strcasestr(type, "hdmi.1") != NULL)
     {
         type_i = 1;
@@ -1006,7 +1009,6 @@ static int INPUT_SETTING_P()
     }
     
     u8 count = sizeof(INPUT_VIDEO_SOURCE_TYPE_P)/(sizeof(char*));
-    //printf("count=%d\n", count);
     
     int p = 4; 
     int y = 16;
@@ -1021,7 +1023,7 @@ static int INPUT_SETTING_P()
     param.last_page = last_page;
 
     clear_whole_screen();
-    show_strings(0, y, INPUT_VIDEO_SOURCE_TYPE_P[0], strlen(INPUT_VIDEO_SOURCE_TYPE_P[0]), 1); 
+    show_strings(0, y, "INPUT SETTING", strlen("INPUT SETTING"), 1); 
     show_menu_info_P(y, 1, INPUT_VIDEO_SHOWWING_P, INPUT_VIDEO_SOURCE_TYPE_P, count>4? 3 : count-1);
     show_square_breakets(x);
     show_a_star(2*type_i);
@@ -1079,9 +1081,9 @@ static int EDID_SETTING_P()
         
     clear_whole_screen();  //新一级的目录，清屏
     show_strings(0, y, EDID_LIST_P[0], strlen(EDID_LIST_P[0]), 1); 
-    show_menu_info_P(y, 1, EDID_SHOWWING_P, (const char **)EDID_LIST_P, count>4? 3 : count-1);
+    show_menu_info_P(y, 1, EDID_SHOWWING_P, EDID_LIST_P, count>4? 3 : count-1);
     show_square_breakets(x);
-    
+	
     int i = 0;
     for (i = 1; i < 4; i++)
     {   

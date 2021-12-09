@@ -97,7 +97,7 @@ const char* HDMI_STATUS_LIST_D[] = {
     "HDMI STATUS", (const char*)RESOL_BUF, (const char*)HDCP_STATUS_BUF,
 };
 
-const char* INPUT_VIDEO_SOURCE_TYPE[] = {
+const char* INPUT_VIDEO_SOURCE_TYPE_D[] = {
     "INPUT SETTING", "STREAM IN", "HDMI IN",
 };
 
@@ -941,7 +941,6 @@ static int DEV_SETTINGS_D()
                     if (DEV_SETTINGS_SHOWWING_D[param.x/2] == DEV_SETTINGS_LIST_D[1]) // INPUT SETTING 
                     {
                         INPUT_SETTING_D();
-                        printf("return later\n");
                         break;
                     }
                     
@@ -1001,13 +1000,11 @@ static int INPUT_SETTING_D()
     int err = -1;
     int type_i = -1;
     char type[100] = {0};
-    
+
     err = GET_DECODE_VIDEO_INPUT(type);
     if (err == -1)
         return -1;
-
-    printf("type:[%s]\n", type);
-    
+	
     if (strcasestr(type, "stream") != NULL)
     {
         type_i = 1;
@@ -1017,7 +1014,7 @@ static int INPUT_SETTING_D()
         type_i = 0;
     }
     
-    u8 count = sizeof(INPUT_VIDEO_SOURCE_TYPE)/(sizeof(char*)); //DEV_STATUS_D的元素个数
+    u8 count = sizeof(INPUT_VIDEO_SOURCE_TYPE_D)/(sizeof(char*)); //DEV_STATUS_D的元素个数
     int p = 4; 
     int y = 16;
     int x = 2; //方括号位置
@@ -1031,8 +1028,8 @@ static int INPUT_SETTING_D()
     param.last_page = last_page;
 
     clear_whole_screen();
-    show_strings(0, y, INPUT_VIDEO_SOURCE_TYPE[0], strlen(INPUT_VIDEO_SOURCE_TYPE[0]), 1); 
-    show_menu_info_D(y, 1, INPUT_VIDEO_SHOWWING_D, INPUT_VIDEO_SOURCE_TYPE, count>4? 3 : count-1);
+    show_strings(0, y, "INPUT SETTING", strlen("INPUT SETTING"), 1); 
+    show_menu_info_D(y, 1, INPUT_VIDEO_SHOWWING_D, INPUT_VIDEO_SOURCE_TYPE_D, count>4? 3 : count-1);
     show_square_breakets(x);
     
     if (type_i == 1)
@@ -1089,7 +1086,6 @@ static int INPUT_SETTING_D()
             }
             case LEFT_KEY:
             {
-                printf("return \n");
                 return 0;
             }
 #if 0

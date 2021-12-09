@@ -106,7 +106,7 @@ const char* HDMI_STATUS_LIST_E[] = {
     "HDMI STATUS", (const char*)RESOL_BUF_E, (const char*)HDCP_STATUS_BUF_E,
 };
 
-char EDID_BUF_E[10][20] = {"EDID SETTING",{0},{0},{0},{0},{0},{0},{0},{0},{0}};
+char EDID_BUF_E[20][20] = {"EDID SETTING",{0},{0},{0},{0},{0},{0},{0},{0},{0}};
 
 const char *EDID_LIST_E[] = {(const char *)EDID_BUF_E[0], (const char *)EDID_BUF_E[1],(const char *)EDID_BUF_E[2],(const char *)EDID_BUF_E[3],(const char *)EDID_BUF_E[4],
                        (const char *)EDID_BUF_E[5],(const char *)EDID_BUF_E[6],(const char *)EDID_BUF_E[7],(const char *)EDID_BUF_E[8],(const char *)EDID_BUF_E[9]};
@@ -373,6 +373,10 @@ void show_menu_info_E(int y, u8 begin_elem, const char *dest[], const char *src[
     if (count == 0)
     {
         move_limit_E = 2;
+		for (i = 1; i < 4; i++)
+	    {
+	        dest[i] = blank_E;
+	    }
         return;
     }   
     for (i = 0; i < count; i++)
@@ -1013,7 +1017,7 @@ static int EDID_SETTING_E()
 {
     char buf[20] = {0};
     u8 count = GET_EDID_LIST(EDID_BUF_E);
-    //printf("count=%d\n", count);
+    
     GET_EDID(buf);
     
 
@@ -1029,7 +1033,7 @@ static int EDID_SETTING_E()
     param.last_page = last_page;
         
     clear_whole_screen();  //新一级的目录，清屏
-    show_strings(0, y, EDID_LIST_E[0], strlen(EDID_LIST_E[0]), 1); 
+    show_strings(0, y, EDID_LIST_E[0], strlen(EDID_LIST_E[0]), 1);
     show_menu_info_E(y, 1, EDID_SHOWWING_E, EDID_LIST_E, count>4? 3 : count-1);
     show_square_breakets(x);
 
