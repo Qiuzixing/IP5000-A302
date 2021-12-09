@@ -187,7 +187,7 @@ int get_offset(char chr)
             break;
         }
 
-        if (chr > 'a' && chr <= 'z')
+        if (chr >= 'a' && chr <= 'z')
         {
             offset = (chr - 'a' + 36) * 2;
             break;

@@ -86,10 +86,7 @@ static const char* ResolutionList[] = {
     "3840X2160P60",
 };
 
-//#define FIRMWARE_INFO_FILE    "/etc/board_info.json"
 #define DECODE_CHANNEL_MAP         "/data/configs/kds-7/channel/channel_map.json"
-
-//#define FIRMWARE_SYMBOL           "version\": "
 
 // IP GET
 #define     IP_SET_CMD          "#NET-CONFIG"
@@ -138,7 +135,8 @@ static const char* ResolutionList[] = {
 #define     DE_SET_INPUT_STREAM_CMD "#X-ROUTE out.hdmi.1.video.1,in.stream.1.video.1"
 
 // decode channel select
-#define     CHANNEL_SET_ID_CMD      "#KDS-CHANNEL-SELECT video,"
+#define     CHANNEL_SET_ID_CMD      "#KDS-CHANNEL-SELECT [video,audio,rs232,ir,usb,cec],"
+//#define     CHANNEL_SET_ID_CMD      "#KDS-CHANNEL-SELECT video,"
 #define     CHANNEL_GET_ID_CMD      "#KDS-CHANNEL-SELECT? video"
 #define     CHANNEL_ID_RECV_HEAD    "@KDS-CHANNEL-SELECT video,"
 
@@ -184,6 +182,7 @@ int init_p3k_client(char *ip, int port)
     return err;
 }
 
+#if 0
 int Decode_Get_Chenel_List(char *list[1000])
 {
 	int num = 0;
@@ -234,6 +233,72 @@ int Decode_Get_Chenel_List(char *list[1000])
 				}
 			}
 		}
+	}
+	return num;
+}
+#endif
+
+int Decode_Get_Chenel_List(T_CH_MAP list[1000])
+{
+	int num = 0;
+	char ch[20] = {0};
+	char *ch1 = NULL;
+
+	char buf[10] = {0};
+	FILE *fd = NULL;
+	fd = fopen(DECODE_CHANNEL_MAP, "r");
+	if (fd == NULL)
+	{
+		printf("fopen %s fail\n", DECODE_CHANNEL_MAP);
+		return -1;
+	}
+
+	int id = 0;
+	int i = 0;
+	while(!feof(fd))
+	{
+		fread(buf, 1, 1, fd);
+		if(buf[0] == 'i')
+		{
+			fread(buf, 1, 3, fd);
+			buf[3] = '\0';
+			if ( strcmp(buf, "d\":") == 0)
+			{
+				id = 0;
+				T_CH_MAP ch_member = {0, {0} };
+				while(1)
+				{
+					fread(buf, 1, 1, fd);
+					if (buf[0] == ',')
+					{
+						break;
+					}
+					id = id*10 + atoi(buf);
+				}
+				ch_member.ch_id = id;
+				fread(buf, 1, 8, fd);
+				buf[8] = '\0';
+				if (strcmp(buf, "\"name\":\"") == 0)
+				{
+					int n = 0;
+					while (1)
+					{
+						fread(buf, 1, 1, fd);
+						if (buf[0] == '\"' || n > 11)
+						{
+							break;
+						}
+						ch_member.ch_name[n] = buf[0];
+						n++;
+					}
+				}
+				list[num].ch_id = ch_member.ch_id;
+				strcpy(list[num].ch_name, ch_member.ch_name);
+				num++;
+			}
+
+		}
+
 	}
 	return num;
 }
@@ -790,7 +855,7 @@ int GET_CHANNEL_ID()
     return id;
 }
 
-int SET_CHANNEL_ID(char *id)
+int SET_CHANNEL_ID(char* id)
 {
     int res = 0;
     res = send_cmd_common(CHANNEL_SET_ID_CMD, CHANNEL_ID_RECV_HEAD, id, NULL);

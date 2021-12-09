@@ -107,7 +107,7 @@ const char* RESOL_SCALE_LIST_D[] = {"RESOL SETTING", "PER EDID", "720p60", "1080
 const char* SCALE_MODE_D[] = {"0,0", "1,4" , "1,16", "1,31", "1,73", "1,74"};
 
 int CH_TATOL_NUM_D = 0;
-char *CH_LIST_D[1000] = {"NO SIGNAL",};
+T_CH_MAP CH_LIST_D[1000];
 
 // END LEVEL 3
 
@@ -516,9 +516,9 @@ int IPD5000_MAIN_MENU_SHOW(void)
     printf("this is IPD5000\n");
     init_p3k_client("127.0.0.1", 6001);
 
+	memset (CH_LIST_D, 0 ,sizeof(CH_LIST_D));
     CH_TATOL_NUM_D = Decode_Get_Chenel_List(CH_LIST_D);
-    //printf("CH_TATOL_NUM_E = %d\n", CH_TATOL_NUM_D);
-    
+	
     u8 count = sizeof(MAIN_MENU_LIST_D)/(sizeof(char*));
     int p = 4; 
     int y = 8;
@@ -607,6 +607,7 @@ int IPD5000_MAIN_MENU_SHOW(void)
             }
         }
     }
+	
 }
 
 // the second level: 2.1 DEV STATUS
@@ -785,17 +786,21 @@ static int HDMI_STATUS_D()
 // 1.4 DEV STATUS -> CHANNEL SHOW
 static int CHANNEL_SHOW_D()
 {
+	int i = 0;
     int id = -1;
     char buf[20] = {0};
     id = GET_CHANNEL_ID();
-    if (CH_TATOL_NUM_D == 0)
-    {
-        id = 0;
-    }
-        
+	for (i = 0; i < CH_TATOL_NUM_D; i++)
+	{
+		if (CH_LIST_D[i].ch_id == id)
+		{
+			break;
+		}
+	}
+	
     clear_whole_screen();
     show_strings(0, 16, "CHANNEL SEL", strlen("CHANNEL SEL") ,1);
-    show_strings(2, 16, CH_LIST_D[id-1], strlen(CH_LIST_D[id-1]) ,1);
+    show_strings(2, 16, CH_LIST_D[i].ch_name, strlen(CH_LIST_D[i].ch_name) ,1);
     
     int key = 0;
     while (1)
@@ -1277,23 +1282,22 @@ static int RESOL_SETTING_D()
     return 0;
 }
 
-static int SHOW_WHICH_GROUP(int current_group, int total_count, int active_id)
+static int SHOW_WHICH_GROUP(int current_group, int total_count, int active_offset)
 {
 	int num  = 0;
     int temp_x = 2;
 	clear_three_line();
 	//把 active_id 那一组全部显示
-	for (num = 2; num >= 0; num--)
+	for (num = 0; num < 3; num++)
     {
-        if ((current_group*3 - num) > total_count)    //是否还有内容显示
+        if ((current_group*3 + num) > total_count - 1)    //是否还有内容显示
         {
 			break;
 		}
         else
         {
-        	//CH_LIST_D: 0 ~ count-1, active_id: 1 ~ count.
-			show_strings(temp_x, 16, CH_LIST_D[current_group*3-num-1], strlen(CH_LIST_D[current_group*3-num-1]), 1);
-			if (current_group*3-num == active_id)
+			show_strings(temp_x, 16, CH_LIST_D[current_group*3+num].ch_name, strlen(CH_LIST_D[current_group*3+num].ch_name), 1);
+			if (current_group*3+num == active_offset)
 			{
 				show_a_star(temp_x);
 			}
@@ -1303,11 +1307,22 @@ static int SHOW_WHICH_GROUP(int current_group, int total_count, int active_id)
 	return 0;
 }
 
-//id 1~999
+/* 
+CH_LIST_D 成员三三分组
+
+     0 1 2 3 4 5  <----row
+     - - - - - -
+0 |  0 3 6 9 ....
+1 |  1 4 7 10 .....
+2 |  2 5 8 11 .....
+list
+
+*/
 static int CH_SELECT_D()
 {
     int res = -1;
-    
+	int i = 0;
+	
     res = file_is_changed_D(CHANNEL_MAP);
     if (res == 1)
     {
@@ -1320,39 +1335,41 @@ static int CH_SELECT_D()
     int x = 2; 
     int y = 16;
 	
-    int active_id = -1;
-    active_id = GET_CHANNEL_ID();
-
-
     //要显示哪三个? 三三进行分组显示, 组号从0开始
     int last_group_num = count % 3;          //最后一组，有几个成员。
-	int total_group = (count / 3) + (last_group_num > 0 ? 1:0);        //count个CH ，三三分组，可以分成几组。
+	int total_group = count / 3;           
     
+	int active_id = -1;
+    active_id = GET_CHANNEL_ID();
+
+	//在CH_LIST_D找到这个active_id，判断在第几组 第几个
+	int offset = 0;
+	for (i = 0; i < CH_TATOL_NUM_D; i++)
+	{
+		if(CH_LIST_D[i].ch_id == active_id)
+		{
+			offset = i;
+			break;
+		}
+	}
+	
 	
     int current_group = 0;              //active_id在第几组，
-    int current_num = 0;             //active_id在组内是第几个， 共1，2，3 三个
+    int current_num = 0;                //active_id在组内是第几个， 共1，2，3 三个
     
-    current_num = active_id % 3;
-    current_group = (active_id / 3) + (current_num > 0 ? 1:0);
+	current_num = offset % 3;
+	current_group = offset / 3;
 
-	if (current_num == 0) //3,6,9,12....
-	{
-		 x = 6;
-	}
-	else
-	{
-		 x = current_num  * 2;
-	}
+	x = (current_num + 1) * 2;
    
-
     clear_whole_screen();
     show_strings(0, y, "CH SELECT", strlen("CH SELECT"), 1);
-	SHOW_WHICH_GROUP(current_group, count, active_id);
+	SHOW_WHICH_GROUP(current_group, count, offset);
 	
     show_square_breakets(x);
     show_a_star(x);
 
-    int trace_id = active_id;
+    int trace_offset = offset;
     int key = 0;
     while (1)
     {
@@ -1374,7 +1391,7 @@ static int CH_SELECT_D()
 					
                     x+=2;
                     show_square_breakets(x);
-                    trace_id++;
+                    trace_offset++;
                 }
                 else // x = 6  翻页处理
                 {
@@ -1382,10 +1399,10 @@ static int CH_SELECT_D()
                     {
                         current_group++;
 						
-                        SHOW_WHICH_GROUP(current_group, count, active_id);
+                        SHOW_WHICH_GROUP(current_group, count, offset);
                         x = 2;
                         show_square_breakets(x);
-						trace_id++;
+						trace_offset++;
                     }
                 }
 				break;
@@ -1397,18 +1414,17 @@ static int CH_SELECT_D()
                 {
                     x -= 2;
                     show_square_breakets(x);
-					trace_id--;
+					trace_offset--;
                 }
                 else  // x == 2
                 {
-                    if (current_group > 1) //向前还有页可翻
+                    if (current_group > 0) //向前还有页可翻
                     {
-                        current_group--;
-
-						SHOW_WHICH_GROUP(current_group, count, active_id);
+                    	current_group--;
+						SHOW_WHICH_GROUP(current_group, count, offset);
                         x = 2;
                         show_square_breakets(x);
-						trace_id -= 3;
+						trace_offset -= 3;
                     }
                 }
 				break;
@@ -1419,10 +1435,11 @@ static int CH_SELECT_D()
                 show_a_star(x);
                 
                 char buf[2] = {0};
-                sprintf(buf, "%d", trace_id);
-                SET_CHANNEL_ID(buf);
-				usleep(50*1000);				
-				active_id = GET_CHANNEL_ID();
+				//printf("trace_offset:%d, id= %d, name= %s\n", trace_offset, CH_LIST_D[trace_offset].ch_id, CH_LIST_D[trace_offset].ch_name);
+				
+                sprintf(buf, "%d", CH_LIST_D[trace_offset].ch_id);
+                SET_CHANNEL_ID(buf);		
+				offset = trace_offset;
 				break;
             }
             case LEFT_KEY:

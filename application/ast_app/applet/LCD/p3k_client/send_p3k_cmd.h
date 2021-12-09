@@ -11,9 +11,16 @@ extern "C"{
 #define SIZE2 255
 #define LITTLE_SIZE 20
 
+typedef struct 
+{
+	int ch_id;
+	char ch_name[20];
+}T_CH_MAP;
+
+
 int init_p3k_client(char *ip, int port);
 int get_specified_string_from_file(const char *file, char *channel_list[1000]);
-int Decode_Get_Chenel_List(char *list[1000]);
+int Decode_Get_Chenel_List(T_CH_MAP list[1000]);
 
 
 int GET_IP(int NET_ID, char *IP, char *MASK, char *GATEWAY);

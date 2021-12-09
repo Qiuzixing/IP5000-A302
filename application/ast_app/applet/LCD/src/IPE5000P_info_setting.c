@@ -104,8 +104,8 @@ const char *EDID_LIST_P[] = {(const char *)EDID_BUF_P[0], (const char *)EDID_BUF
 
 const char *HDCP_LIST_P[] = {"HDCP SETTING", "ON", "OFF"};
 
-int CH_TATOL_NUM_P = 0;
-char *CH_LIST_P[100] = {"NO SIGNAL",};
+//int CH_TATOL_NUM_P = 0;
+//T_CH_MAP CH_LIST_P[1000];
 
 // END LEVEL 3
 
@@ -522,7 +522,7 @@ int IPE5000P_MAIN_MENU_SHOW(void)
 {
     printf("this is IPE5000P\n");
     init_p3k_client("127.0.0.1", 6001);
-    
+		
     u8 count = sizeof(MAIN_MENU_LIST_P)/(sizeof(char*));
     int p = 4; 
     int y = 8;
@@ -1213,7 +1213,6 @@ static int HDCP_SETTING_P()
         }
     }   
 }
-
 
 static int CH_SELECT_P()
 {   

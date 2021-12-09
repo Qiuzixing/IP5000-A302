@@ -113,8 +113,8 @@ const char *EDID_LIST_E[] = {(const char *)EDID_BUF_E[0], (const char *)EDID_BUF
 
 const char *HDCP_LIST_E[] = {"HDCP SETTING", "ON", "OFF"};
 
-int CH_TATOL_NUM_E = 0;
-char *CH_LIST_E[100] = {"NO SIGNAL",};
+//int CH_TATOL_NUM_E = 0;
+//char *CH_LIST_E[100] = {"NO SIGNAL",};
 // END LEVEL 3
 
 
@@ -540,10 +540,8 @@ int IPE5000_MAIN_MENU_SHOW(void)
     printf("this is IPE5000\n");
     init_p3k_client("127.0.0.1", 6001);
 
-    CH_TATOL_NUM_E = get_specified_string_from_file(CHANNEL_MAP, CH_LIST_E);
-    //printf("CH_TATOL_NUM_E = %d\n", CH_TATOL_NUM_E);
+    //CH_TATOL_NUM_E = get_specified_string_from_file(CHANNEL_MAP, CH_LIST_E);
         
-    
     u8 count = sizeof(MAIN_MENU_LIST_E)/(sizeof(char*));
     int p = 4; 
     int y = 8;
