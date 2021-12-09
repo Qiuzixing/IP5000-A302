@@ -579,12 +579,15 @@ int alc5640_CodecExist(void)
 ** single-end and differencial MIC input.
 */
 #define A_MAX_PAYLOAD 1024
+#define ADC_DIGITAL_VOLUME_CONTROL	0x3030
 int alc5640_SetupCodec(unsigned int enable_adc, unsigned int enable_dac,
 	unsigned int input_paths, unsigned int output_paths)
 {
 #if defined(CONFIG_ARCH_AST1500_CLIENT)
 	char msg[A_MAX_PAYLOAD];
 #endif
+	//qzx 2021.12.09:slightly improve the level of analysis_in volume
+	wr16(ALC5640_ADC_DIG_VOL, ADC_DIGITAL_VOLUME_CONTROL);
 	printk("set up ALC5640\n");
 	alc5640_multi_func_pin();
 	if (enable_dac)
