@@ -2925,12 +2925,15 @@ case "$MODEL_NUMBER" in
 			UGP_FLAG="fail"
 		fi
 	;;
-	*)
+	KDS-SW3-EN7 | KDS-EN7)
 		if communication_with_mcu -u -b 5; then
 			UGP_FLAG="success"
 		else
 			UGP_FLAG="fail"
 		fi
+	;;
+	*)
+		echo "Please set MODEL_NUMBER parameters >_<"
 	;;
 esac
 
