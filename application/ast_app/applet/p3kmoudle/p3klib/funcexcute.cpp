@@ -3252,7 +3252,7 @@ int EX_Upgrade(void)
 	if(g_time_info.ntp_mode == ON)
 	{
 		DBG_InfoMsg("NTP ON; time_zone = %d\n",g_time_info.time_zone);
-		secTime += g_time_info.time_zone * 3600;
+//		secTime += g_time_info.time_zone * 3600;
 	}
 
 	if(secTime < 0)
@@ -3477,7 +3477,7 @@ int EX_GetTimeAndDate(char*weekDay,char*date,char*hms)
 	if(g_time_info.ntp_mode == ON)
 	{
 		DBG_InfoMsg("NTP ON; time_zone = %d\n",g_time_info.time_zone);
-		secTime += g_time_info.time_zone * 3600;
+//		secTime += g_time_info.time_zone * 3600;
 	}
 
 	if(secTime < 0)

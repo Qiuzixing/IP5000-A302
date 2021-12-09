@@ -4301,3 +4301,45 @@ remove_sbin_reboot()
 {
 	rm /sbin/reboot
 }
+
+
+init_time_zone()
+{
+	echo "time_zone"
+	
+	if [ -f "$time_setting" ];then
+		P3KCFG_TIME_ZONE=`jq -r '.time_setting.time_zone' $time_setting`
+	else
+		P3KCFG_TIME_ZONE='0'
+	fi
+
+	echo "P3KCFG_TIME_ZONE=$P3KCFG_TIME_ZONE"
+
+	if  echo $P3KCFG_TIME_ZONE | grep -q '[-][^0-9]' ; then
+	    echo "this is not a num,please input num"
+	    P3KCFG_TIME_ZONE='0'
+	fi
+
+	if [ $P3KCFG_TIME_ZONE -gt 12 ]; then
+		P3KCFG_TIME_ZONE='0'
+	fi
+
+	if [ $P3KCFG_TIME_ZONE -lt -12 ]; then
+		P3KCFG_TIME_ZONE='0'
+	fi
+
+	abs=$P3KCFG_TIME_ZONE;
+
+	if [ $abs -lt 0 ]; then
+	  let abs=0-$abs;
+	  export TZ=UTC+$abs:00
+	  echo export TZ=UTC+$abs:00 >> /root/.profile
+	else
+	  export TZ=UTC-$abs:00
+	  echo export TZ=UTC-$abs:00 >> /root/.profile
+	fi
+
+	echo "P3KCFG_TIME_ZONE=$P3KCFG_TIME_ZONE"
+	
+}
+

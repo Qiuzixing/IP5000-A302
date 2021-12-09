@@ -588,6 +588,8 @@ handle_e_sys_ip_chg()
 	ast_send_event -1 e_reconnect
 
 	set_igmp_leave_force
+	
+
 }
 
 _link_on_off()
@@ -3757,7 +3759,6 @@ signal_handler()
 	echo ""
 	echo ""
 }
-
 #set -x
 #### main #####
 export PATH="$PATH":/usr/local/bin
@@ -3792,6 +3793,8 @@ init_p3k_cfg_file
 
 # initialize parameters
 init_param_from_flash
+
+init_time_zone
 
 # overwrite parameters from pssed in parameters
 while [ -n "$1" ]; do

@@ -2881,6 +2881,8 @@ init_p3k_cfg_file
 # initialize parameters
 init_param_from_flash
 
+init_time_zone
+
 # overwrite parameters from pssed in parameters
 while [ -n "$1" ]; do
 	if [ "$1" = "no_video" ]; then
