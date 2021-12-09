@@ -2567,10 +2567,26 @@ int EX_SetRouteMatch(PortInfo_S*inPortInfo,PortInfo_S*matchPortInfo,int num)
 #ifdef CONFIG_P3K_HOST
 	if(matchPortInfo->signal == SIGNAL_VIDEO)
 	{
-		if((matchPortInfo->portIndex >= 1)&&(matchPortInfo->portIndex <= 3))
+		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
 		{
-			sprintf(sCmd,"e_p3k_switch_in::HDMI%d",matchPortInfo->portIndex);
-			Cfg_Set_Autoswitch_Source(SIGNAL_VIDEO,matchPortInfo->portIndex);
+			if((matchPortInfo->portIndex >= 1)&&(matchPortInfo->portIndex <= 3))
+			{
+				sprintf(sCmd,"e_p3k_switch_in::HDMI%d",matchPortInfo->portIndex);
+				Cfg_Set_Autoswitch_Source(SIGNAL_VIDEO,matchPortInfo->portIndex);
+			}
+		}
+		else if(strcmp(g_version_info.model,IPE_W_MODULE) == 0)
+		{
+			if((matchPortInfo->portIndex >= 1)&&(matchPortInfo->portIndex <= 2))
+			{
+				sprintf(sCmd,"e_p3k_switch_in::HDMI%d",matchPortInfo->portIndex);
+				Cfg_Set_Autoswitch_Source(SIGNAL_VIDEO,matchPortInfo->portIndex);
+			}
+		}
+		else
+		{
+			DBG_WarnMsg("!!! Error This is IPE5000\n");
+			return -1;
 		}
 	}
 	else if(matchPortInfo->signal == SIGNAL_AUDIO)
