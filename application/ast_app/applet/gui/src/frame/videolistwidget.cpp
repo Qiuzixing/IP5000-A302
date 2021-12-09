@@ -786,7 +786,7 @@ void OSDMeun::applyClicked()
     if(m_listWidget->currentItem() != NULL)
     {
         // 获取了点击的频道id, 设置频道切换或发送信号
-        QString strCmd = QString("#KDS-CHANNEL-SELECT video,%1\r").arg(m_channelID);
+        QString strCmd = QString("#KDS-CHANNEL-SELECT [video,audio,rs232,ir,usb,cec],%1\r").arg(m_channelID);
         QByteArray byteCmd = strCmd.toLatin1();
 
         qDebug() << "channel_byteCmd:" << byteCmd;
