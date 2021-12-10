@@ -2056,7 +2056,7 @@ int EX_GetDecoderAVChannelId(ChSelect_S * id)
 {
 	//DBG_InfoMsg(">>%d\n",id->signal);
 	printf(">>>>>%d\n",id->signal[id->i_signalnum-1]);
-    id->ch_id = 10;
+    id->ch_id = 1;
 	char* cmd1 = "astparam g ch_select_v";
 	char buf1[64] = "";
 
@@ -2071,6 +2071,9 @@ int EX_GetDecoderAVChannelId(ChSelect_S * id)
 	{
 		id->ch_id = atoi(buf1);
 		DBG_InfoMsg("EX_GetDecoderAVChannelId id = %d\n",id->ch_id);
+
+		if(id->ch_id == 0)
+			id->ch_id = 1;
 	}
 
 	return 0;

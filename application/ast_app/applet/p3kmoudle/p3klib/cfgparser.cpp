@@ -218,6 +218,11 @@ int Cfg_Init_Channel(void)
 		{
 			g_channel_select.video = atoi(buf1);
 			DBG_InfoMsg("Cfg_Init_Channel id = %d\n",g_channel_select.video);
+
+			if(g_channel_select.video == 0)
+				g_channel_select.video = 1;
+
+			DBG_InfoMsg("Cfg_Init_Channel id = %d\n",g_channel_select.video);
 		}
 
 		memset(buf1,0,16);
@@ -231,6 +236,11 @@ int Cfg_Init_Channel(void)
 		else
 		{
 			g_channel_select.audio = atoi(buf1);
+			DBG_InfoMsg("Cfg_Init_Channel id = %d\n",g_channel_select.audio);
+
+			if(g_channel_select.audio == 0)
+				g_channel_select.audio = 1;
+
 			DBG_InfoMsg("Cfg_Init_Channel id = %d\n",g_channel_select.audio);
 		}
 
@@ -246,6 +256,11 @@ int Cfg_Init_Channel(void)
 		{
 			g_channel_select.rs232 = atoi(buf1);
 			DBG_InfoMsg("Cfg_Init_Channel id = %d\n",g_channel_select.rs232);
+
+			if(g_channel_select.rs232 == 0)
+				g_channel_select.rs232 = 1;
+
+			DBG_InfoMsg("Cfg_Init_Channel id = %d\n",g_channel_select.rs232);
 		}
 
 		memset(buf1,0,16);
@@ -259,6 +274,11 @@ int Cfg_Init_Channel(void)
 		else
 		{
 			g_channel_select.ir = atoi(buf1);
+			DBG_InfoMsg("Cfg_Init_Channel id = %d\n",g_channel_select.ir);
+
+			if(g_channel_select.ir == 0)
+				g_channel_select.ir = 1;
+
 			DBG_InfoMsg("Cfg_Init_Channel id = %d\n",g_channel_select.ir);
 		}
 
@@ -274,6 +294,11 @@ int Cfg_Init_Channel(void)
 		{
 			g_channel_select.usb = atoi(buf1);
 			DBG_InfoMsg("Cfg_Init_Channel id = %d\n",g_channel_select.usb);
+
+			if(g_channel_select.usb == 0)
+				g_channel_select.usb = 1;
+
+			DBG_InfoMsg("Cfg_Init_Channel id = %d\n",g_channel_select.usb);
 		}
 
 		memset(buf1,0,16);
@@ -287,6 +312,11 @@ int Cfg_Init_Channel(void)
 		else
 		{
 			g_channel_select.cec = atoi(buf1);
+			DBG_InfoMsg("Cfg_Init_Channel id = %d\n",g_channel_select.cec);
+
+			if(g_channel_select.cec == 0)
+				g_channel_select.cec = 1;
+
 			DBG_InfoMsg("Cfg_Init_Channel id = %d\n",g_channel_select.cec);
 		}
 
