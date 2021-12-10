@@ -402,8 +402,13 @@ int SOCKET_CreateTcp_NServer(SocketWorkInfo_S*serverhandle)
 	}
 	printf("--------P3K Inside TCP Start----------\n");
 	serverhandle->sockfd = param->mainSockfd;
-	pthread_create(&pthid, NULL, TcpServerThead, (void *)param);
-        pthread_detach(pthid);
+
+	pthread_attr_t  s_tThreadAttr;
+    pthread_attr_init(&s_tThreadAttr);
+    pthread_attr_setstacksize(&s_tThreadAttr, 512*1024);
+	pthread_create(&pthid, &s_tThreadAttr, TcpServerThead, (void *)param);
+
+	pthread_detach(pthid);
 	return 0;
 
 }
@@ -425,7 +430,10 @@ int SOCKET_CreateTcpServer(SocketWorkInfo_S*serverhandle)
 	}
 	printf("--------P3K TCP Start----------\n");
 	serverhandle->sockfd = param->mainSockfd;
-	pthread_create(&pthid, NULL, TcpServerThead, (void *)param);
+	pthread_attr_t  s_tThreadAttr;
+    pthread_attr_init(&s_tThreadAttr);
+    pthread_attr_setstacksize(&s_tThreadAttr, 512*1024);
+	pthread_create(&pthid, &s_tThreadAttr, TcpServerThead, (void *)param);
         pthread_detach(pthid);
 	return 0;
 
@@ -723,10 +731,13 @@ int SOCKET_CreateUdpMulticast(SocketWorkInfo_S *multicasthandle)
 
 	pthread_attr_init (&attr);
 	pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED);
+    pthread_attr_setstacksize(&attr, 512*1024);
+
+
 	pthread_create(&pthaddMulicast, &attr, addMulicastTimerTask, (void *)extParam);
 	pthread_attr_destroy (&attr);
 
-	pthread_create(&pthid, NULL, udpServerThead, (void *)param);
+	pthread_create(&pthid, &attr, udpServerThead, (void *)param);
 	//pthread_create(&pthaddMulicast, NULL, addMulicastTimerTask,(void *)extParam);
        pthread_detach(pthid);
     //pthread_detach(pthaddMulicast);

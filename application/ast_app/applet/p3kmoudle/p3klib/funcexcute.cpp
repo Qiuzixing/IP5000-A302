@@ -3870,8 +3870,12 @@ int EX_Beacon(int iPort_Id,int iStatus,int iTime)
         if(iStatus == 1)
         {
             g_network_info.beacon_en  = ON;
-            
-            pthread_create(&Beacon_id, NULL, Beacon_cb, NULL);
+
+			pthread_attr_t	s_tThreadAttr;
+			pthread_attr_init(&s_tThreadAttr);
+			pthread_attr_setstacksize(&s_tThreadAttr, 512*1024);
+
+            pthread_create(&Beacon_id, &s_tThreadAttr, Beacon_cb, NULL);
             pthread_detach(Beacon_id);
         	
         }
@@ -3948,6 +3952,10 @@ int EX_ConfBeaconInfo(char *muticastIP,int port)
         BEACONThread = 0;
         //g_network_info.beacon_en = OFF;
         pthread_cancel(Beacon_id);
+
+		pthread_attr_t	s_tThreadAttr;
+		pthread_attr_init(&s_tThreadAttr);
+		pthread_attr_setstacksize(&s_tThreadAttr, 512*1024);
         pthread_create(&Beacon_id, NULL, Beacon_cb, NULL);
         pthread_detach(Beacon_id);
     }

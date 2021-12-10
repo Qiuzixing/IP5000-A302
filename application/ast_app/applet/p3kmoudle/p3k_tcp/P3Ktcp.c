@@ -534,7 +534,11 @@ int Tcp_NetRecvMsg(NetCliInfo_T *cli)
 			HeadInsert(sTimeOut,pnew);
             
 			pthread_t pth_time;
-			pthread_create(&pth_time, NULL, LoginTimtOut, &cli->recvSocket);
+
+			pthread_attr_t	s_tThreadAttr;
+			pthread_attr_init(&s_tThreadAttr);
+			pthread_attr_setstacksize(&s_tThreadAttr, 512*1024);
+			pthread_create(&pth_time, &s_tThreadAttr, LoginTimtOut, &cli->recvSocket);
 		}
 	}
     else if(!memcmp(cli->recvmsg,"#\r",strlen(cli->recvmsg)) && Cheak_TcpStartLink(sTimeOut,cli->recvSocket) == 0&&(bSeur == 0))
@@ -650,7 +654,11 @@ int Tcp_NetInit(int port)
 //	handle->getNetCabInfo = Tcp_NetGetNetCab;
 	SOCKET_CreateTcpServer(handle);
     pthread_t TcpCmd;
-	pthread_create(&TcpCmd, NULL, TcpCmd_cb, handle);
+
+	pthread_attr_t	s_tThreadAttr;
+	pthread_attr_init(&s_tThreadAttr);
+	pthread_attr_setstacksize(&s_tThreadAttr, 512*1024);
+	pthread_create(&TcpCmd, &s_tThreadAttr, TcpCmd_cb, handle);
     pthread_detach(TcpCmd);
     
 	return 0;

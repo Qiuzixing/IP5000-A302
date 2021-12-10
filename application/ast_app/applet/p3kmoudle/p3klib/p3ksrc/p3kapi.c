@@ -546,7 +546,10 @@ static void * P3K_DataExcuteProc(void*arg)
       Cfg_Init();
  	int i_Udps32Ret = 0;
 	pthread_t tUdpserver;
-	i_Udps32Ret = pthread_create(&tUdpserver, NULL, P3K_UdpServer, NULL);
+	pthread_attr_t	s_tThreadAttr;
+	pthread_attr_init(&s_tThreadAttr);
+	pthread_attr_setstacksize(&s_tThreadAttr, 512*1024);
+	i_Udps32Ret = pthread_create(&tUdpserver, &s_tThreadAttr, P3K_UdpServer, NULL);
 	if(i_Udps32Ret)
 	{
 		DBG_ErrMsg("Udp Server Start Error\n");
@@ -556,7 +559,7 @@ static void * P3K_DataExcuteProc(void*arg)
     pthread_detach(tUdpserver);
 
     pthread_t tUdp_inside_server;
-	i_Udps32Ret = pthread_create(&tUdp_inside_server, NULL, P3K_UdpInsideServer, NULL);
+	i_Udps32Ret = pthread_create(&tUdp_inside_server, &s_tThreadAttr, P3K_UdpInsideServer, NULL);
 	if(i_Udps32Ret)
 	{
 		DBG_ErrMsg("Udp inside Server Start Error\n");
@@ -618,7 +621,10 @@ int P3K_DataExcuteThread()
 {
 	int s32Ret = 0;
 	pthread_t tExcute;
-	s32Ret = pthread_create(&tExcute, NULL, P3K_DataExcuteProc, NULL);
+	pthread_attr_t	s_tThreadAttr;
+	pthread_attr_init(&s_tThreadAttr);
+	pthread_attr_setstacksize(&s_tThreadAttr, 512*1024);
+	s32Ret = pthread_create(&tExcute, &s_tThreadAttr, P3K_DataExcuteProc, NULL);
 	if(s32Ret)
 	{
 		return -1;
