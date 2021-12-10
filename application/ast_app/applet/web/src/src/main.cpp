@@ -142,7 +142,10 @@ int main(int argc, char *argv[])
 
     // mjpegstream
     pthread_t mjpegThread;
-	int nret = pthread_create(&mjpegThread, NULL, CWeb::MjpegStreamThread, NULL);
+	pthread_attr_t  s_tThreadAttr;
+	pthread_attr_init(&s_tThreadAttr);
+	pthread_attr_setstacksize(&s_tThreadAttr, 1024*1024);
+	int nret = pthread_create(&mjpegThread, &s_tThreadAttr, CWeb::MjpegStreamThread, NULL);
 	if(nret < 0)
 	{
 		BC_INFO_LOG( "mjpeg pthread create error \n");
@@ -185,7 +188,7 @@ int main(int argc, char *argv[])
 	CWeb::WebSocketRun(CWeb::P3kWebsocketHandle,0);
 
     pthread_t tP3kThread;
-    pthread_create(&tP3kThread, 0, CWeb::P3kCommunicationThread, NULL);
+    pthread_create(&tP3kThread, &s_tThreadAttr, CWeb::P3kCommunicationThread, NULL);
 
 	CWeb::HttpRun();
 
