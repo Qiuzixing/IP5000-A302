@@ -927,6 +927,26 @@ static void do_handle_cec_report(char *cmd_param)
     }
 }
 
+static void do_handle_video_control(uint16_t cmd,char *cmd_param)
+{
+    struct CmdDataVideoControl video_control;
+    char *port = strtok(cmd_param,":");
+    char *enable = strtok(NULL,":");
+    char *mute = strtok(NULL,":");
+    if(port != NULL && enable != NULL && mute != NULL)
+    {
+        video_control.port = atoi(port);
+        video_control.enable = atoi(enable);
+        video_control.mute = atoi(mute);
+    }
+    else
+    {
+        printf("Warning:Illegal parameter, discard directly");
+        return;
+    }
+    APP_Comm_Send(cmd, (U8 *)&video_control, sizeof(struct CmdDataVideoControl));
+}
+
 static void do_handle_ipc_cmd(int index,char *cmd_param)
 {
     uint32_t uctemp = CMD_NULL_DATA;
@@ -948,8 +968,8 @@ static void do_handle_ipc_cmd(int index,char *cmd_param)
     case IPC_GET_HDCP_STATUS:
         do_handle_get_cmd(ipc_cmd_list[index].a30_cmd,cmd_param);
         break;
-
     case IPC_VIDEO_CONTROL:
+        do_handle_video_control(ipc_cmd_list[index].a30_cmd,cmd_param);
         break;
     case IPC_SET_VIDEO_MODE:
         break;

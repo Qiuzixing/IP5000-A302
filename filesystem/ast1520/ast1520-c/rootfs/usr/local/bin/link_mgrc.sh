@@ -934,6 +934,14 @@ handle_e_reconnect()
 	#  0000~9999: channel format
 	#  xxx.xxx.xxx.xxx: IP format
 	#
+	P3KCFG_AV_ACTION='play'
+	if [ $UGP_FLAG = 'success' ];then
+		ipc @m_lm_set s set_video_control:16:1:1
+	fi
+
+	if [ $P3KCFG_SWITCH_IN = 'HDMI' ];then
+		return
+	fi
 
 	case "$STATE" in
 		s_idle | s_srv_on)
@@ -1174,6 +1182,16 @@ handle_e_stop_link()
 	#  s: SerialoIP
 	#  p: GPIOoIP
 	#  c: CECoIP
+	P3KCFG_AV_ACTION='stop'
+	if [ $P3KCFG_SWITCH_IN = 'HDMI' ];then
+		if [ $UGP_FLAG = 'success' ];then
+			ipc @m_lm_set s set_video_control:16:0:0
+		fi
+	else
+		if [ $UGP_FLAG = 'success' ];then
+			ipc @m_lm_set s set_video_control:16:1:1
+		fi
+	fi
 
 	case "$STATE" in
 		s_idle | s_srv_on)
@@ -2999,9 +3017,9 @@ handle_e_p3k_switch_in()
 	
 	#e_p3k_switch_in::switch_input
 	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
-
 	shift 2
 	echo 0 > /sys/class/leds/lineout_mute/brightness
+	P3KCFG_SWITCH_IN=$1
 	case "$1" in
 		HDMI)
 			if [ $UGP_FLAG = 'success' ];then
@@ -3018,6 +3036,19 @@ handle_e_p3k_switch_in()
 		;;
 	esac
 	
+	if [ $P3KCFG_AV_ACTION = 'stop' -a $P3KCFG_SWITCH_IN = 'HDMI' ];then
+		if [ $UGP_FLAG = 'success' ];then
+			ipc @m_lm_set s set_video_control:16:0:0
+		fi
+	else
+		if [ $UGP_FLAG = 'success' ];then
+			ipc @m_lm_set s set_video_control:16:1:1
+		fi
+	fi
+
+	if [ $P3KCFG_AV_ACTION = 'play' -a $P3KCFG_SWITCH_IN = 'STREAM' ];then
+		handle_e_reconnect
+	fi
 	echo "set p3k switch input!!! $1"
 	#The test results show that 3S is switching without noise
 	sleep 3
@@ -3728,8 +3759,13 @@ set_variable_power_on_status()
 	if [ $UGP_FLAG = 'success' ];then
 		if [ $P3KCFG_SWITCH_IN = 'hdmi_in1' ];then
 			ipc @m_lm_set s set_input_source:16:1
+			if [ $P3KCFG_AV_ACTION = 'stop' ];then
+				ipc @m_lm_set s set_video_control:16:0:0
+			fi
+			P3KCFG_SWITCH_IN=HDMI
 		else
 			ipc @m_lm_set s set_input_source:16:0
+			P3KCFG_SWITCH_IN=STREAM
 		fi
 
 		if [ $P3KCFG_AV_MUTE = 'off' ];then
