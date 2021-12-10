@@ -4,7 +4,7 @@
 		"HttpPort":"80",
 		"HttpsPort":"443",
 		"StartMode":"both",
-		"NumThreads":"5",
+		"NumThreads":"8",
 		"CERM":"/data/configs/kds-7/secure/certificate_file_name/kramer_tls.pem",
 		"WsPingPongEnable":"yes",
 		"WsPingPongTimeMs":"60000"
