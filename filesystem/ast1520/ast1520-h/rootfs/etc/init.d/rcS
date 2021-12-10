@@ -96,6 +96,18 @@ if [ "$no_lm" = "y" ]; then
 	exit 0
 fi
 
+debug_log=`astparam g debug_log`
+if echo "$debug_log" | grep -q "not defined" ; then
+	debug_log=`astparam r debug_log`
+	if echo "$debug_log" | grep -q "not defined" ; then
+		debug_log='n'
+	fi
+fi
 # Bruce160407. Lower LM priority so that it won't impact VideoIP thread.
 #link_mgrh.sh &
-nice -n 15 link_mgrh.sh 2>&1 | logger -t LM -p user.info &
+if [ "$debug_log" = "n" ]; then
+	nice -n 15 link_mgrh.sh 2>&1 | logger -t LM -p user.info &
+else
+	nice -n 15 link_mgrh.sh &
+fi
+

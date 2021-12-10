@@ -108,4 +108,16 @@ if [ "$no_lm" = "y" ]; then
 	exit 0
 fi
 
-link_mgrc.sh 2>&1 | logger -t LM -p user.info &
+debug_log=`astparam g debug_log`
+if echo "$debug_log" | grep -q "not defined" ; then
+	debug_log=`astparam r debug_log`
+	if echo "$debug_log" | grep -q "not defined" ; then
+		debug_log='n'
+	fi
+fi
+
+if [ "$debug_log" = "n" ]; then
+	link_mgrc.sh 2>&1 | logger -t LM -p user.info &
+else
+	link_mgrc.sh &
+fi
