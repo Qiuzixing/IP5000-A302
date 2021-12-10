@@ -8,5 +8,5 @@ sleep 1
 sync
 sync
 sync
-echo "qzxxxxxxxx"
+umount /data
 /bin/busybox reboot
