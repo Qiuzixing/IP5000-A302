@@ -513,6 +513,7 @@ int APP_Comm_Recv(CmdProtocolParam * param)
                 {
                     system("astparam s tv_access n");
                 }
+                system("p3k_notify_timer.sh OUTPUT &");
             }
 
             if(auto_av_report_flag == OPEN_REPROT && 0 == socket_msg_struct_conver(&send_socket_msg,vdo_link.port,vdo_link.isConnect,-1))

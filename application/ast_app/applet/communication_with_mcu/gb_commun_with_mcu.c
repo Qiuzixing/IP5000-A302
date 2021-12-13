@@ -438,6 +438,7 @@ static void do_handle_input_source(uint16_t cmd,char *cmd_param)
             default:
                 break;
         }
+        system("p3k_notify_timer.sh INPUT &");
     }
     else
     {
