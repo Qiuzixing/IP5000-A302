@@ -563,6 +563,14 @@ event_loop()
 
 audio_setting_init()
 {
+	echo 0 > /sys/class/leds/lineout_mute/brightness
+	if [ $P3KCFG_SWITCH_IN = 'hdmi_in1' ];then
+		echo analog > /sys/devices/platform/1500_i2s/io_select
+		sleep 0.1
+		echo auto > /sys/devices/platform/1500_i2s/io_select
+		sleep 0.1
+	fi
+
 	if [ $P3KCFG_AV_MUTE = 'off' ];then
 		echo 100 > /sys/devices/platform/1500_i2s/analog_in_vol
 		echo 1 > /sys/class/leds/linein_mute/brightness
