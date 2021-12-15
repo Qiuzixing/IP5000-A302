@@ -548,15 +548,18 @@ int APP_Comm_Recv(CmdProtocolParam * param)
 
             if(auto_av_report_flag == OPEN_REPROT && vdo_status.isStable == 1)
             {
-                audioSendEventMsg(sock_fd,"plugin","hdmi");
                 if(vdo_status.port == HDMIRX1 || vdo_status.port == HDMIRX2 || vdo_status.port == HDMIRX3)
                 {
                     last_hdmi_in_index = vdo_status.port;
+                    audioSendEventMsg(sock_fd,"plugin","hdmi");
                 }   
             }
             else if(auto_av_report_flag == OPEN_REPROT && vdo_status.isStable == 0)
             {
-                audioSendEventMsg(sock_fd,"plugout","hdmi");
+                if(vdo_status.port == HDMIRX1 || vdo_status.port == HDMIRX2 || vdo_status.port == HDMIRX3)
+                {
+                    audioSendEventMsg(sock_fd,"plugout","hdmi");
+                }
             }
             else
             {
