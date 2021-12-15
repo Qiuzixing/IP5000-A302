@@ -783,7 +783,7 @@ int Cfg_Init_Video(void)
 	g_video_info.scale_mode = 0;
 	g_video_info.res_type = 0;
 
-
+	g_audio_info.conn_guard_time = 10;
 
 	//Check Video cfg
 	int nAccessRet = Cfg_Check_File(path);
@@ -868,6 +868,17 @@ int Cfg_Init_Video(void)
 					g_video_info.scale_mode = 0;
 					g_video_info.res_type = 0;
 				}
+			}
+
+			if(!root[JSON_AV_AUD_GUARD].empty())
+			{
+				if(root[JSON_AV_AUD_GUARD].isInt())
+					g_audio_info.conn_guard_time = root[JSON_AV_AUD_GUARD].asInt();
+
+				if(g_audio_info.conn_guard_time < 0)
+					g_audio_info.conn_guard_time = 0;
+				else if(g_audio_info.conn_guard_time > 90)
+					g_audio_info.conn_guard_time = 90;
 			}
 
 		}
@@ -3037,7 +3048,7 @@ int Cfg_Create_AVSignal(void)
 	root[JSON_AV_FRAME_RATE] = 100;
 	root[JSON_AV_COLOR_DEPTH] = JSON_AV_BYPASS;
 	root[JSON_AV_RGB] = JSON_PARAM_OFF;
-	root[JSON_AV_AUD_GUARD] = 90;
+	root[JSON_AV_AUD_GUARD] = 10;
 	root[JSON_AV_OUT_RES] = JSON_AV_PASSTHRU;
 
 	char buf1[64] = "";
@@ -6597,9 +6608,10 @@ int Cfg_Set_Enc_AVSignal_Info()
 			Json::Value& root = root1[JSON_AV_SIGNAL];
 
 #ifdef CONFIG_P3K_HOST
+			char cmd[256] = "";
+
 			if(!root[JSON_AV_MAX_BITRATE].empty())
 			{
-				char cmd[256] = "";
 				string bitrate =  root[JSON_AV_MAX_BITRATE].asString();
 
 				if(bitrate == JSON_AV_BEST_EFFORT)
@@ -6614,7 +6626,7 @@ int Cfg_Set_Enc_AVSignal_Info()
 				}
 				else
 				{
-					DBG_WarnMsg("JSON_AV_MAX_BITRATE Param: %s  Error!!!",bitrate.c_str());
+					DBG_WarnMsg("JSON_AV_MAX_BITRATE Param: %s  Error!!!\n",bitrate.c_str());
 				}
 
 			}
@@ -6623,7 +6635,7 @@ int Cfg_Set_Enc_AVSignal_Info()
 			{
 				if(root[JSON_AV_FRAME_RATE].isInt())
 				{
-					char cmd[256] = "";
+					memset(cmd,0,256);
 					int frame = root[JSON_AV_FRAME_RATE].asInt();
 
 					if((frame <= 100)&&(frame >= 0))
@@ -6634,7 +6646,37 @@ int Cfg_Set_Enc_AVSignal_Info()
 					}
 					else
 					{
-						DBG_WarnMsg("JSON_AV_FRAME_RATE Param: %d  Error!!!",frame);
+						DBG_WarnMsg("JSON_AV_FRAME_RATE Param: %d  Error!!!\n",frame);
+					}
+				}
+			}
+
+			if(!root[JSON_AV_AUD_GUARD].empty())
+			{
+				if(root[JSON_AV_AUD_GUARD].isInt())
+				{
+					int guard = root[JSON_AV_AUD_GUARD].asInt();
+
+					if((guard >= 0)&&(guard <= 90))
+					{
+						if(guard != g_audio_info.conn_guard_time)
+						{
+							memset(cmd,0,256);
+							sprintf(cmd,"e_audio_detect_time::%d",guard);
+
+							ast_send_event(0xFFFFFFFF,cmd);
+
+							DBG_InfoMsg("cmd : %s\n",cmd);
+							g_audio_info.conn_guard_time = guard;
+						}
+						else
+						{
+							DBG_WarnMsg("JSON_AV_AUD_GUARD Param: %d  is not change!!!\n",guard);
+						}
+					}
+					else
+					{
+						DBG_WarnMsg("JSON_AV_AUD_GUARD Param: %d  Error!!!\n",guard);
 					}
 				}
 			}

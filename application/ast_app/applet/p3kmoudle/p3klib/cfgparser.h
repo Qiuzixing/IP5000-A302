@@ -359,6 +359,7 @@ typedef struct   _Audio_Info
 	PortSignalType_E	dst_port[4];
 	AudioInputMode_E	source;
 	char				dante_name[32];
+	int 				conn_guard_time;
 }Audio_Info;
 
 typedef struct   _Video_Info
