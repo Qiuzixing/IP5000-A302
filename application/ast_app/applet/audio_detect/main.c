@@ -121,14 +121,37 @@ int time_difference_from_last_time(struct timespec* last_time)
     return time_diff;
 }
 
+void print_usage() {
+	/* TODO */
+	printf("Usage: audio_detect -t num\n");
+}
+
 int main(int argc, char *argv[])
 {
 	struct nlmsghdr *nlh = NULL;
 	unsigned char nlbuf[NLMSG_SPACE(MAX_PAYLOAD)];
 	int len, netlink_fd = -1;
 	unsigned char *event_msg;
-
 	int flag = AUDIO_UNKNOW;
+
+	int opt = 0;
+    int long_index =0;
+	int think_audio_out_time = 0;
+    static struct option long_options[] = {
+        {"time",                    required_argument,       0,  't' },
+		{0,                             0,                 0,  0   }
+	};
+    while ((opt = getopt_long_only(argc, argv, "t:", long_options, &long_index )) != -1) {
+		switch (opt) {
+        case 't':
+            think_audio_out_time = strtoul(optarg, NULL, 0);
+			break;
+		default:
+			print_usage();
+			exit(EXIT_FAILURE);
+		}
+	}
+	printf("think_audio_out_time = %d\n,",think_audio_out_time);
 	int sock_fd = create_unixsocket(MSG_SOCKET);
     if (sock_fd == -1) {
         perror("unix socker error.");
@@ -152,7 +175,7 @@ int main(int argc, char *argv[])
     /* Read message from kernel. Just retry if something goes wrong. */
 	while(1)
 	{
-		timeout.tv_sec = THINK_AUDIO_OUT_TIME;
+		timeout.tv_sec = think_audio_out_time;
 		FD_ZERO(&rset);
 		FD_SET(netlink_fd, &rset);
 		ret = select(maxfd,&rset,NULL,NULL,&timeout);
@@ -165,7 +188,7 @@ int main(int argc, char *argv[])
 			case 0: //time out
 				if(flag == AUDIO_OUT)
 				{
-					if(time_difference_from_last_time(&last_time) > THINK_AUDIO_OUT_TIME)
+					if(time_difference_from_last_time(&last_time) >= think_audio_out_time)
 					{
 						audioSendEventMsg(sock_fd,"plugout","analog");
 						flag = AUDIO_UNKNOW;
@@ -204,7 +227,7 @@ int main(int argc, char *argv[])
 				{
 					if(flag == AUDIO_OUT)
 					{
-						if(time_difference_from_last_time(&last_time) > THINK_AUDIO_OUT_TIME)
+						if(time_difference_from_last_time(&last_time) >= think_audio_out_time)
 						{
 							audioSendEventMsg(sock_fd,"plugout","analog");
 							flag = AUDIO_UNKNOW;

@@ -16,6 +16,7 @@ av_setting="/data/configs/kds-7/av_setting/av_setting.json"
 gateway_setting="/data/configs/kds-7/gateway/gateway.json"
 network_setting="/data/configs/kds-7/network/network_setting.json"
 time_setting="/data/configs/kds-7/time/time_setting.json"
+av_signal="/data/configs/kds-7/av_signal/av_signal.json"
 rx_tcp_port='8888'
 analog_out_volum='87'
 
@@ -2350,6 +2351,17 @@ handle_e_set_ttl()
 	echo $1 > /proc/sys/net/ipv4/ip_default_ttl
 }
 
+#e e_audio_detect_time::10
+handle_e_audio_detect_time()
+{
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+
+	kill_process audio_detect
+	audio_detect -t $1 &
+}
+
 state_machine()
 {
 	# Bruce160308. Try to ignore all TERM signals.
@@ -2447,6 +2459,9 @@ state_machine()
 			;;
 			e_log*)
 				handle_e_log "$event"
+			;;
+			e_audio_detect_time*)
+				handle_e_audio_detect_time "$event"
 			;;
 			e_?*)
 				tickle_watchdog
@@ -2768,6 +2783,16 @@ init_param_from_p3k_cfg()
 	echo "P3KCFG_NTP_SRV_MODE=$P3KCFG_NTP_SRV_MODE"
 	echo "P3KCFG_NTP_SRV_ADDR=$P3KCFG_NTP_SRV_ADDR"
 	echo "P3KCFG_NTP_SYNC_HOUR=$P3KCFG_NTP_SYNC_HOUR"
+
+	if [ -f "$av_signal" ];then
+		P3KCFG_GUARD_TIME=`jq -r '.av_signal.audio_connection_guard_time_sec' $av_signal`
+		if echo "$P3KCFG_GUARD_TIME" | grep -q "null" ; then
+			P3KCFG_GUARD_TIME='10'
+		fi
+	else
+		P3KCFG_GUARD_TIME='10'
+	fi
+	echo "P3KCFG_GUARD_TIME=$P3KCFG_GUARD_TIME"
 }
 
 set_hdcp_status()

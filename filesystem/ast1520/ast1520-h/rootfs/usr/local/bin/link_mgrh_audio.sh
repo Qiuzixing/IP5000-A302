@@ -474,6 +474,7 @@ start_alm()
 		case "$MODEL_NUMBER" in
 			KDS-EN7)
 				audioswitch &
+				ipc @m_lm_set s get_video_status:0
 			;;
 			KDS-SW3-EN7)
 				audioswitch &
@@ -495,13 +496,14 @@ start_alm()
 	if [ $UGP_FLAG = 'success' ];then
 		case "$MODEL_NUMBER" in
 			KDS-EN7)
-				audio_detect &
+				echo "P3KCFG_GUARD_TIME=$P3KCFG_GUARD_TIME"
+				audio_detect -t $P3KCFG_GUARD_TIME &
 				usleep 100
 				echo 500 > /sys/class/leds/audio_detect/delay
 				adc_pin_mux_gpio
 			;;
 			KDS-SW3-EN7)
-				audio_detect &
+				audio_detect -t $P3KCFG_GUARD_TIME &
 				usleep 100
 				echo 500 > /sys/class/leds/audio_detect/delay
 				adc_pin_mux_gpio
