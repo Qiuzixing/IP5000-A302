@@ -581,6 +581,14 @@ int CWeb::DownloadLogFileHandle(struct mg_connection *conn, void *cbdata)
 
 int CWeb::UpdateOverlayImageHandle(struct mg_connection *conn, void *cbdata)
 {
+    // clean old overlay image
+    char szCmd[MAX_CMD_STR] = {0};
+    snprintf(szCmd, sizeof(szCmd)-1, "rm -f %s/*.png", OVERLAY_FILE_PATH);
+    if(My_System(szCmd) < 0)
+    {
+        BC_ERROR_LOG("remove overlay image clear failed!!");
+    }
+
     struct T_FromInfo tFrom;
     if(SaveUploadFile(conn, OVERLAY_FILE_PATH, NULL, &tFrom))
     {
@@ -734,6 +742,7 @@ int CWeb::UploadUpgradeHandle(struct mg_connection *conn, void *cbdata)
 int CWeb::JsonDataHandle(struct mg_connection *conn, void *cbdata)
 {
     const struct mg_request_info *pRequest = mg_get_request_info(conn);
+    //BC_INFO_LOG("content data len is [%lld]", pRequest->content_length);
 
     if(strcmp(pRequest->request_method, "GET") == 0)
     {
@@ -764,10 +773,11 @@ int CWeb::JsonDataHandle(struct mg_connection *conn, void *cbdata)
         size_t sLen = 0;
         bool bHandleReq = false;
         string strP3kConfCmd = "#KDS-CFG-MODIFY ";
-        char szContent[MG_READ_BUFSIZE] = {0};
+        char szContent[pRequest->content_length];
+        memset(szContent, 0, pRequest->content_length);
         string strFile = DEFAULT_FILE_PATH;
 
-        sLen = BC_GET_Request_Body(conn, szContent, MG_READ_BUFSIZE);
+        sLen = BC_GET_Request_Body(conn, szContent, (pRequest->content_length));
         BC_INFO_LOG("get request body is <%s>", szContent);
 
         // 解析json数据
