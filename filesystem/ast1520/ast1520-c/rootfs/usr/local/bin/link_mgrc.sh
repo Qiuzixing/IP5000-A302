@@ -936,7 +936,7 @@ handle_e_reconnect()
 	#
 	P3KCFG_AV_ACTION='play'
 	if [ $UGP_FLAG = 'success' ];then
-		ipc @m_lm_set s set_video_control:16:1:1
+		ipc @m_lm_set s set_video_control:16:1:0
 	fi
 
 	if [ $P3KCFG_SWITCH_IN = 'HDMI' ];then
@@ -1189,7 +1189,7 @@ handle_e_stop_link()
 		fi
 	else
 		if [ $UGP_FLAG = 'success' ];then
-			ipc @m_lm_set s set_video_control:16:1:1
+			ipc @m_lm_set s set_video_control:16:1:0
 		fi
 	fi
 
@@ -3042,7 +3042,7 @@ handle_e_p3k_switch_in()
 		fi
 	else
 		if [ $UGP_FLAG = 'success' ];then
-			ipc @m_lm_set s set_video_control:16:1:1
+			ipc @m_lm_set s set_video_control:16:1:0
 		fi
 	fi
 
