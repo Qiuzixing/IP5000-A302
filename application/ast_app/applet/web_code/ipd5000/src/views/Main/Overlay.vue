@@ -24,7 +24,7 @@
                 <span class="
                     upload-icon"
                       @click="clickUpload">
-                  <icon-svg icon-class="upload_img"/>
+                  <icon-svg icon-class="upload_img" />
                 </span>
                 <input type="file"
                        ref="upload"
@@ -80,7 +80,7 @@
             <div class="overlay-setting">
               <span class="overlay-title">Size</span>
               <div class="fontSize.val">
-                <multiselect v-model="textInfo.objects[0].szie"
+                <multiselect v-model="textInfo.objects[0].size"
                              :options="fontSize.param"></multiselect>
               </div>
             </div>
@@ -97,12 +97,11 @@
                    style="position: relative">
                 <div class="color-desc">
                   <p style="margin: 0"><span class="color-box"
-                                             :style="{'background': color}"></span>
+                          :style="{'background': color}"></span>
                     {{ color }}</p>
                   <color-picker v-model="color"
                                 color-format="hex"
-                                :show-alpha="false"
-                                @change="closeColor"></color-picker>
+                                :show-alpha="false"></color-picker>
                 </div>
               </div>
 
@@ -160,11 +159,11 @@ export default {
       imgName: '',
       imageInfo: {
         genral:
-          {
-            enable: 'on',
-            timeout: 2,
-            transparency: 0
-          },
+        {
+          enable: 'on',
+          timeout: 2,
+          transparency: 0
+        },
         objects: [
           {
             type: 'image',
@@ -174,17 +173,17 @@ export default {
       },
       textInfo: {
         genral:
-          {
-            enable: 'off',
-            timeout: 2,
-            transparency: 0
-          },
+        {
+          enable: 'off',
+          timeout: 2,
+          transparency: 0
+        },
         objects: [
           {
             type: 'text',
             position: 'left_top',
             caption: '',
-            szie: 'small',
+            size: 'small',
             color: '0xffffff'
           }
         ]
@@ -271,9 +270,6 @@ export default {
     clickUpload () {
       this.$refs.upload.click()
     },
-    closeColor (color) {
-      this.boxColor = color
-    },
     browseImg (event) {
       this.imgName = event.target.files[0]?.name || ''
       if (this.imgName) {
@@ -308,6 +304,7 @@ export default {
         )
         .then(msg => {
           this.textInfo = msg.data
+          this.color = msg.data.objects[0].color.replace('0x', '#')
         })
     },
     getImgInfo () {
@@ -344,13 +341,15 @@ export default {
         const formData = new FormData()
         formData.append('file', file)
         xhr.open('POST', '/upload/overlayimage')
-        xhr.onload = oevent => {
+        xhr.onload = () => {
           if (xhr.status === 200) {
             this.imgName = ''
+            this.$refs.upload.value = ''
             this.uploadComplete = true
             setTimeout(() => {
+              this.getImgInfo()
               this.uploadComplete = false
-            }, 2000)
+            }, 1000)
           }
         }
         xhr.send(formData)
@@ -405,7 +404,7 @@ export default {
   .overlay-title {
     width: 176px;
     font-family: "open sans semiblold", -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
 
   .overlay-img {

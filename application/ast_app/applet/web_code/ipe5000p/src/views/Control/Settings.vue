@@ -70,8 +70,7 @@
                          v-model="rs232Port"
                          controls-position="right"
                          :max="65535"
-                         :min="5000"
-                         @change="setRs232GW"></el-input-number>
+                         :min="5000"></el-input-number>
       </div>
       <div class="setting">
         <span class="setting-title">Baud Rate </span>

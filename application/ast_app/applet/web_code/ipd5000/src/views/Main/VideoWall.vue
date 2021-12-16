@@ -58,11 +58,11 @@
         <multiselect v-model="videoRotation"
                      :options="rotationParam"></multiselect>
       </div>
-      <div class="setting">
-        <span class="setting-title">Video Wall Test</span>
-        <v-switch open-text="Start"
-                  close-text="Stop"></v-switch>
-      </div>
+<!--      <div class="setting">-->
+<!--        <span class="setting-title">Video Wall Test</span>-->
+<!--        <v-switch open-text="Start"-->
+<!--                  close-text="Stop"></v-switch>-->
+<!--      </div>-->
     </div>
     <footer><button class="btn btn-primary"
               @click="save">SAVE</button></footer>

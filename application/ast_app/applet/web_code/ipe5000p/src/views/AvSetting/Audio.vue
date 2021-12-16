@@ -21,8 +21,7 @@
         <multiselect v-model="audioMode.val"
                      :options="audioMode.param"></multiselect>
       </div>
-      <custom-sort v-if="!(this.$global.deviceType === 0 && direction === 'out')"
-                   v-model="lists"
+      <custom-sort v-model="lists"
                    :listMap="listMap"
                    :disabled="audioMode.val !== '1'"></custom-sort>
       <div class="setting"
@@ -48,41 +47,17 @@
                          :max="90"
                          :min="0"></el-input-number>
       </div>
-      <div class="setting-model">
+      <div class="setting-model" v-if="this.$global.deviceType === 1">
         <h3 class="setting-title">Audio Destination</h3>
-        <template v-if="this.$global.deviceType === 0">
-          <div :key="item.name"
-               v-for="(item, index) in audioDestinationDesc2"
-               style="margin-bottom: 15px;">
-            <checkbox-component :label="item"
-                                v-if="!(index ===1 && direction==='in' || index === 3 || index === 0) "
-                                v-model="audioDestination[index]"
-                                :active-value="1"
-                                :inactive-value="0"/>
-          </div>
-        </template>
-        <template v-if="this.$global.deviceType === 1">
-          <div :key="item.name"
-               v-for="(item, index) in audioDestinationDesc"
-               style="margin-bottom: 15px;">
-            <checkbox-component :label="item"
-                                v-if="!(index ===1 && direction==='in')"
-                                v-model="audioDestination[index]"
-                                :active-value="1"
-                                :inactive-value="0"/>
-          </div>
-        </template>
-        <template v-if="this.$global.deviceType === 2">
-          <div :key="item.name"
-               v-for="(item, index) in audioDestinationDesc"
-               style="margin-bottom: 15px;">
-            <checkbox-component :label="item"
-                                v-if="!(index ===0 || index ===1 || index === 3)"
-                                v-model="audioDestination[index]"
-                                :active-value="1"
-                                :inactive-value="0"/>
-          </div>
-        </template>
+        <div :key="item.name"
+             v-for="(item, index) in audioDestinationDesc"
+             style="margin-bottom: 15px;">
+          <checkbox-component :label="item"
+                              v-if="!(index ===1 && direction==='in')"
+                              v-model="audioDestination[index]"
+                              :active-value="1"
+                              :inactive-value="0"/>
+        </div>
       </div>
       <div class="setting"
            v-if="this.$global.deviceType === 1">
@@ -211,8 +186,10 @@ export default {
     this.$socket.sendMsg('#PORT-DIRECTION? both.analog.1.audio')
     this.$socket.sendMsg('#X-AV-SW-MODE? out.hdmi.1.audio.1')
     this.$socket.sendMsg('#X-PRIORITY? out.hdmi.1.audio')
-    this.$socket.sendMsg('#KDS-AUD-OUTPUT? ')
     this.getAVSignal()
+    if (this.$global.deviceType === 1) {
+      this.$socket.sendMsg('#KDS-AUD-OUTPUT? ')
+    }
     if (this.$global.deviceType) {
       this.$socket.sendMsg('#NAME? 1')
     }
@@ -398,7 +375,10 @@ export default {
       }
       this.$socket.sendMsg(`#X-AV-SW-MODE out.hdmi.1.audio.1,${this.audioMode.val}`)
       this.setAVSingle()
-      this.setAudioDestination()
+      if (this.$global.deviceType === 1) {
+        this.setAudioDestination()
+      }
+
       if (this.audioMode.val === '1') {
         const data = this.lists.slice()
         if (this.direction === 'out' && this.$global.deviceType) {
