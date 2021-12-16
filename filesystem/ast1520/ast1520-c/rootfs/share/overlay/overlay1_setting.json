@@ -1,7 +1,7 @@
 {
 	"genral":
 	{
-		"enable":"on",
+		"enable":"off",
 		"timeout":2,
 		"transparency":50
 	},
