@@ -372,6 +372,7 @@ static void ipe5000_and_ipe5000w_hdmi_in_xxx_out(void)
 static ipe5000_and_ipe5000w_none_in_xxx_out(void)
 {
     set_hdmi_mute(MUTE);
+    mute_control(ANALOG_IN_MUTE,MUTE);
 }
 
 void ipe5000_and_ipe5000w_autoaudio_control(void)
