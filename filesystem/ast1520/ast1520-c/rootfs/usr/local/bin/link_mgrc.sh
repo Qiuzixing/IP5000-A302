@@ -3047,7 +3047,7 @@ handle_e_p3k_switch_in()
 	fi
 
 	if [ $P3KCFG_AV_ACTION = 'play' -a $P3KCFG_SWITCH_IN = 'STREAM' ];then
-		handle_e_reconnect
+		handle_e_reconnect e_reconnect
 	fi
 	echo "set p3k switch input!!! $1"
 	#The test results show that 3S is switching without noise

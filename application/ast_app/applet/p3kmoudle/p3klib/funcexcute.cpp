@@ -2012,39 +2012,65 @@ int EX_SetDecoderAVChannelId(ChSelect_S * id)
 	    printf("%d...\n",id->signal[i]);
     }
 #ifdef CONFIG_P3K_CLIENT
-    
-	char sCmd[64] = "";
-	sprintf(sCmd,"e_reconnect::%04d",id->ch_id);
-#if 1
-	char ch_v[2] = "";
-	char ch_u[2] = "";
-	char ch_a[2] = "";
-	char ch_r[2] = "";
-	char ch_s[2] = "";
-	char ch_c[2] = "";
 
-   for(i = 0;i < id->i_signalnum;i ++)
-    {
-	    if(id->signal[i] == SIGNAL_VIDEO)
-			sprintf(ch_v,"v");
-		else if(id->signal[i] == SIGNAL_USB)
-			sprintf(ch_u,"u");
-		else if(id->signal[i] == SIGNAL_AUDIO)
-			sprintf(ch_a,"a");
-		else if(id->signal[i] == SIGNAL_IR)
-			sprintf(ch_r,"r");
-		else if(id->signal[i] == SIGNAL_RS232)
-			sprintf(ch_s,"s");
-		else if(id->signal[i] == SIGNAL_CEC)
-			sprintf(ch_c,"c");
-    }
+	if(g_avsetting_info.action == CODEC_ACTION_PLAY)
+	{
+		char sCmd[64] = "";
+		sprintf(sCmd,"e_reconnect::%04d",id->ch_id);
 
-	sprintf(sCmd,"%s::%s%s%s%s%s%s",sCmd,ch_v,ch_u,ch_a,ch_r,ch_s,ch_c);
+		char ch_v[2] = "";
+		char ch_u[2] = "";
+		char ch_a[2] = "";
+		char ch_r[2] = "";
+		char ch_s[2] = "";
+		char ch_c[2] = "";
 
-#endif
+	   for(i = 0;i < id->i_signalnum;i ++)
+	    {
+		    if(id->signal[i] == SIGNAL_VIDEO)
+				sprintf(ch_v,"v");
+			else if(id->signal[i] == SIGNAL_USB)
+				sprintf(ch_u,"u");
+			else if(id->signal[i] == SIGNAL_AUDIO)
+				sprintf(ch_a,"a");
+			else if(id->signal[i] == SIGNAL_IR)
+				sprintf(ch_r,"r");
+			else if(id->signal[i] == SIGNAL_RS232)
+				sprintf(ch_s,"s");
+			else if(id->signal[i] == SIGNAL_CEC)
+				sprintf(ch_c,"c");
+	    }
 
-	DBG_InfoMsg("ast_send_event %s\n",sCmd);
-	ast_send_event(0xFFFFFFFF,sCmd);
+		sprintf(sCmd,"%s::%s%s%s%s%s%s",sCmd,ch_v,ch_u,ch_a,ch_r,ch_s,ch_c);
+
+		DBG_InfoMsg("ast_send_event %s\n",sCmd);
+		ast_send_event(0xFFFFFFFF,sCmd);
+	}
+	else
+	{
+		for(i = 0;i < id->i_signalnum;i ++)
+	    {
+			char sCmd[64] = "";
+		    if(id->signal[i] == SIGNAL_VIDEO)
+				sprintf(sCmd,"astparam s ch_select_v %04d",id->ch_id);
+			else if(id->signal[i] == SIGNAL_USB)
+				sprintf(sCmd,"astparam s ch_select_u %04d",id->ch_id);
+			else if(id->signal[i] == SIGNAL_AUDIO)
+				sprintf(sCmd,"astparam s ch_select_a %04d",id->ch_id);
+			else if(id->signal[i] == SIGNAL_IR)
+				sprintf(sCmd,"astparam s ch_select_r %04d",id->ch_id);
+			else if(id->signal[i] == SIGNAL_RS232)
+				sprintf(sCmd,"astparam s ch_select_s %04d",id->ch_id);
+			else if(id->signal[i] == SIGNAL_CEC)
+				sprintf(sCmd,"astparam s ch_select_c %04d",id->ch_id);
+
+			system(sCmd);
+
+			DBG_InfoMsg(" %s\n",sCmd);
+	    }
+
+		system("astparam save");
+	}
 
 	Cfg_Set_DecChannel_ID(id);
 #else
