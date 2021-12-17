@@ -22,7 +22,7 @@ extern "C"{
 #define MAX_DEV_MOD_NAME_LEN 64
 #define MAX_DEV_NAME_LEN 64
 #define MAC_ADDR_LEN 32
-#define SERIAL_NUMBER_LEN 16
+#define SERIAL_NUMBER_LEN 32
 #define MAX_SIGNALE_LEN  64
 #define MAX_PORT_LEN 32
 #define MAX_EDID_LEN 64

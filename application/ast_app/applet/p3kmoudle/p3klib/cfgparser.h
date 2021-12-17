@@ -406,7 +406,7 @@ typedef struct   _Version_Info
 
 typedef struct   _Device_Info
 {
-	char hostname[32];
+	char hostname[64];
 	char mac_addr[32];
 	char sn[32];
 	int  standby_time;
