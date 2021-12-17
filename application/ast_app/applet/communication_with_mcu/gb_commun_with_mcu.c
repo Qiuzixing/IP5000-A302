@@ -641,7 +641,7 @@ void do_handle_set_gpio_val(uint16_t cmd,char *cmd_param)
             free(gpio_val);
             return;
         }
-
+#if 0
         if(gpio_val->gpio[i][0] == 70)  //70 Indicates setting analog input or output
         {
             if(gpio_val->gpio[i][1] == 1)   //line_in
@@ -653,6 +653,7 @@ void do_handle_set_gpio_val(uint16_t cmd,char *cmd_param)
                 mute_control(ANALOG_IN_MUTE,MUTE);
             }
         }
+#endif
     }
     APP_Comm_Send(cmd, (U8*)gpio_val, uctemp*2 + 2);
     free(gpio_val);

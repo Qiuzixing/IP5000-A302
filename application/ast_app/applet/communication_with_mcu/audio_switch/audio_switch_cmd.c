@@ -312,6 +312,8 @@ static void ipe5000_and_ipe5000w_analog_in_xxx_out(void)
     set_gsv_insert_audio(INSERT);
     do_handle_set_gpio_val(cmd,ast1520_out);
     set_io_select(ANALOG_IN);
+
+    mute_control(ANALOG_IN_MUTE,UNMUTE);
 #if 0
     for(i = 0;i <= AUDIO_OUT_TYPE_NUM;i++)
     {
