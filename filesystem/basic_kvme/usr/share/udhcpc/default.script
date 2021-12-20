@@ -50,9 +50,9 @@
 					if ! /sbin/avahi-autoipd -c eth0; then
 						echo "Start avahi-autoipd"
 						if [ "$MODEL_NUMBER" = "KDS-DEC7" -o "$MODEL_NUMBER" = "WP-DEC7" ]; then
-							/sbin/avahi-autoipd -D eth0 --start=192.168.1.39 --script=/etc/avahi/avahi-autoipd.action
-						else
 							/sbin/avahi-autoipd -D eth0 --start=192.168.1.40 --script=/etc/avahi/avahi-autoipd.action
+						else
+							/sbin/avahi-autoipd -D eth0 --start=192.168.1.39 --script=/etc/avahi/avahi-autoipd.action
 						fi
 					fi
 					;;
