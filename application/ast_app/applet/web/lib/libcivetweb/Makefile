@@ -32,7 +32,7 @@ dopatch:
 	@echo "dopatch" ;
 
 build:unpack
-	$(MAKE) -C $(TOP) COPT='-DNO_SSL_DL=1' WITH_CPP=1 WITH_WEBSOCKET=1 clean lib
+	$(MAKE) -C $(TOP) COPT='-DNO_SSL_DL=1 -DNO_CACHING' WITH_CPP=1 WITH_WEBSOCKET=1 clean lib
 	
 install:
 	@echo "install"

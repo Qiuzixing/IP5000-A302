@@ -44,7 +44,7 @@ CFILES = src/ast_send_event.c
 BMP2PJP_CFILES = src/bmp2jpg.c 
 
 CPPFLAGS = -I$(PREFIX)/include/civetweb -I./src -I$(LOG_INC) -I$(INCPATH) \
-		  $(COPT) -DUSE_WEBSOCKET -DNO_CACHING
+		  $(COPT) -DUSE_WEBSOCKET
 CFLAGS = -I$(JPG_INCLUDE)
 
 
