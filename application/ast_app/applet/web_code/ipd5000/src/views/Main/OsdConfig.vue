@@ -353,19 +353,24 @@ export default {
           this.channelError = true
           return
         }
-        if (file.size > 1024 * 1024) {
-          this.channelErrorMsg = 'The file size is less than 1MB'
+        if (file.size > 1024 * 128) {
+          this.channelErrorMsg = 'The file size is less than 128KB'
           this.channelError = true
           return
         }
         const reader = new FileReader()
         reader.readAsText(file, 'UTF-8')
         reader.onload = (e) => {
-          const text = JSON.parse(e.target.result)
-          if (Array.isArray(text.channels_list)) {
-            this.channelError = false
-            this.channelList = text.channels_list
-          } else {
+          try {
+            const text = JSON.parse(e.target.result)
+            if (Array.isArray(text.channels_list)) {
+              this.channelError = false
+              this.channelList = text.channels_list
+            } else {
+              this.channelErrorMsg = 'File format error'
+              this.channelError = true
+            }
+          } catch (e) {
             this.channelErrorMsg = 'File format error'
             this.channelError = true
           }

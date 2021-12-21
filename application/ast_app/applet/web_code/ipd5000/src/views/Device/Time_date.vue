@@ -44,7 +44,7 @@
                     active-value="1"
                     inactive-value="0"></v-switch>
         </div>
-        <p style="margin:0;flex-shrink:0;padding:0"><span style="font-family: 'open sans bold';">WARNING:</span> Recommend to use time server. <br>Defined time will not be saved upon reboot.</p>
+        <p style="margin:0;flex-shrink:0;padding:0"><span style="font-family: 'open sans bold';">WARNING:</span> Recommended to use time server. <br>Defined time will not be saved upon reboot.</p>
       </div>
       <div class="setting">
         <span class="setting-title">NTP Time Server Address</span>

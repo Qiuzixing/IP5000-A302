@@ -274,8 +274,8 @@ export default {
       this.imgName = event.target.files[0]?.name || ''
       if (this.imgName) {
         const file = event.target.files[0]
-        if (file.size > 1024 * 1024) {
-          this.imgErrorMsg = 'The file size is less than 1MB '
+        if (file.size > 1024 * 512) {
+          this.imgErrorMsg = 'The file size is less than 512KB '
           this.imgError = true
           return
         }

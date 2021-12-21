@@ -240,6 +240,7 @@ export default {
     this.$socket.sendMsg('#LOCK-FP? ')
     this.$socket.sendMsg('#STANDBY? ')
     this.$socket.sendMsg('#UPG-TIME? ')
+    this.$socket.sendMsg('#STANDBY-TIMEOUT? ')
     this.$socket.sendMsg('#VERSION? ')
     this.$socket.sendMsg('#STANDBY-VERSION? ')
   },

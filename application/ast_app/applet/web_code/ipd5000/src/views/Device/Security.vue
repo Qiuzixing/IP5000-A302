@@ -10,9 +10,11 @@
       </div>
       <div>
         <radio-component v-model="https"
+                         :disabled="httpsServer === 'off'"
                          @change="notHttpsFile=false"
                          label="in">Internal Certificate</radio-component>
         <radio-component v-model="https"
+                         :disabled="httpsServer === 'off'"
                          label="out"
                          @change="notHttpsFile=false">Server Certificate</radio-component>
         <div v-if="https === 'out'"
@@ -23,13 +25,14 @@
             <input type="text"
                    class="setting-text"
                    v-model="httpsFileName"
+                   :disabled="httpsServer === 'off'"
                    readonly>
             <input type="file"
                    ref="https"
                    @change="httpsFileChange"
                    style="display:none;">
             <img class="upload-icon"
-                 @click="browseFile('https')"
+                 @click="browseFile('https', httpsServer === 'on')"
                  src="../../assets/img/Upload.svg"
                  alt="">
           </div>
@@ -38,6 +41,7 @@
                   style="width: 180px;">Private Key Password</span>
             <input type="text"
                    class="setting-text"
+                   :disabled="httpsServer === 'off'"
                    v-model="httpPrivatePwd">
           </div>
         </div>
@@ -59,6 +63,7 @@
       </div>
       <div>
         <radio-component v-model="security801"
+                         :disabled="server8021x === 'off'"
                          label="eap_mschap"
                          @change="server8021error=false">EAP-MSCHAP V2
         </radio-component>
@@ -69,6 +74,7 @@
                   style="width: 180px;">Username</span>
             <input type="text"
                    class="setting-text"
+                   :disabled="server8021x === 'off'"
                    v-model="mschap_username">
           </div>
           <div class="setting">
@@ -76,10 +82,12 @@
                   style="width: 180px;">Password</span>
             <input type="password"
                    class="setting-text"
+                   :disabled="server8021x === 'off'"
                    v-model="mschap_password">
           </div>
         </div>
         <radio-component v-model="security801"
+                         :disabled="server8021x === 'off'"
                          @change="server8021error=false"
                          label="eap_tls">EAP-TLS</radio-component>
         <div v-if="security801 === 'eap_tls'"
@@ -89,6 +97,7 @@
                   style="width: 180px;">Username</span>
             <input type="text"
                    class="setting-text"
+                   :disabled="server8021x === 'off'"
                    v-model="tls_username">
           </div>
           <div class="setting">
@@ -97,13 +106,14 @@
             <input type="text"
                    class="setting-text"
                    v-model="tls_ca_certificate"
+                   :disabled="server8021x === 'off'"
                    readonly>
             <input type="file"
                    ref="tls_ca_certificate"
                    @change="serve8021FileChange($event, 'tls_ca_certificate')"
                    style="display:none;">
             <img class="upload-icon"
-                 @click="browseFile('tls_ca_certificate')"
+                 @click="browseFile('tls_ca_certificate', server8021x === 'on')"
                  src="../../assets/img/Upload.svg"
                  alt="">
           </div>
@@ -113,13 +123,14 @@
             <input type="text"
                    v-model="tls_client_certificate"
                    class="setting-text"
+                   :disabled="server8021x === 'off'"
                    readonly>
             <input type="file"
                    ref="tls_client_certificate"
                    @change="serve8021FileChange($event, 'tls_client_certificate')"
                    style="display:none;">
             <img class="upload-icon"
-                 @click="browseFile('tls_client_certificate')"
+                 @click="browseFile('tls_client_certificate',server8021x === 'on')"
                  src="../../assets/img/Upload.svg"
                  alt="">
           </div>
@@ -129,13 +140,14 @@
             <input type="text"
                    v-model="tls_private_key"
                    class="setting-text"
+                   :disabled="server8021x === 'off'"
                    readonly>
             <input type="file"
                    ref="tls_private_key"
                    @change="serve8021FileChange($event, 'tls_private_key')"
                    style="display:none;">
             <img class="upload-icon"
-                 @click="browseFile('tls_private_key')"
+                 @click="browseFile('tls_private_key',server8021x === 'on')"
                  src="../../assets/img/Upload.svg"
                  alt="">
           </div>
@@ -144,6 +156,7 @@
                   style="width: 180px;">Private Key Password</span>
             <input type="text"
                    class="setting-text"
+                   :disabled="server8021x === 'off'"
                    v-model="tls_private_password">
           </div>
         </div>
@@ -247,7 +260,8 @@ export default {
       }
       xhr.send(formData)
     },
-    browseFile (ref) {
+    browseFile (ref, isBrowse) {
+      if (!isBrowse) return
       this.$refs[ref].click()
     },
     httpsFileChange (event) {
