@@ -1305,7 +1305,6 @@ int Cfg_Init_Device(void)
 	g_device_info.fp_lock = OFF;
 	g_device_info.standby_time = 30;
 	GetBoardInfo(BOARD_MAC, g_device_info.mac_addr, 32);
-	//GetBoardInfo(BOARD_HOSTNAME, g_device_info.hostname, 32);
 	GetBoardInfo(BOARD_SN, g_device_info.sn, 32);
 
 	char buf1[64] = "";
@@ -3629,7 +3628,7 @@ int Cfg_Create_KVMSetting(void)
 
 	root[JSON_USB_KVM_MODE] = JSON_USB_KVM_KM;
 	root[JSON_USB_KVM_ACTIVE] = JSON_PARAM_ON;
-	root[JSON_USB_KVM_TIMEOUT] = 10;
+	root[JSON_USB_KVM_TIMEOUT] = 5;
 	root[JSON_USB_KVM_ROW] = 1;
 	root[JSON_USB_KVM_COL] = 1;
 
@@ -3764,7 +3763,7 @@ int Cfg_Create_KVMSetting(void)
 	mysystem("astparam g kmoip_token_interval",buf1,64);
 
 	if(strstr(buf1,"not defined") != 0)
-		root[JSON_USB_KVM_TIMEOUT] = 10;
+		root[JSON_USB_KVM_TIMEOUT] = 5;
 	else
 	{
 		int time = atoi(buf1);
@@ -3772,7 +3771,7 @@ int Cfg_Create_KVMSetting(void)
 		if((interval <= 10)&&(interval >= 0))
 			root[JSON_USB_KVM_TIMEOUT] = interval;
 		else
-			root[JSON_USB_KVM_TIMEOUT] = 10;
+			root[JSON_USB_KVM_TIMEOUT] = 5;
 	}
 
 	Json::Value root1;

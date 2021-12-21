@@ -2061,7 +2061,8 @@ init_share_param_from_flash()
 		KMOIP_TOKEN_INTERVAL=`astparam r kmoip_token_interval`
 		if echo "$KMOIP_TOKEN_INTERVAL" | grep -q "not defined" ; then
 			# default 100 ms
-			KMOIP_TOKEN_INTERVAL=100
+			# KMOIP_TOKEN_INTERVAL=100
+			KMOIP_TOKEN_INTERVAL=300000
 		fi
 	fi
 
