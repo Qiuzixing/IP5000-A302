@@ -3313,9 +3313,12 @@ handle_e_update_idle_screen()
 				cp -f /data/configs/kds-7/display/sleep_image.jpg /share/default.jpg
 				switch_to_GUI_screen show_dialog
 				echo 0 > $DISPLAY_SYS_PATH/screen_off
+			else
+				cp -f /data/configs/kds-7/display/sleep_image.jpg /share/default.jpg
 			fi
 			;;
 		*)
+			cp -f /data/configs/kds-7/display/sleep_image.jpg /share/default.jpg
 			;;
 	esac
 }
