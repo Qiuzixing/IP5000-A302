@@ -127,7 +127,7 @@ export default {
         this.handleDevStatus(msg)
         return
       }
-      if (msg.search(/@HW‑TEMP /i) !== -1) {
+      if (msg.search(/@HW-TEMP /i) !== -1) {
         this.handleTemp(msg)
         return
       }

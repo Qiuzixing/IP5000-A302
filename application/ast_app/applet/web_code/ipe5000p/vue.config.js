@@ -1,4 +1,4 @@
-const version = 'V1.0.28'
+const version = 'V1.0.29'
 
 const path = require('path')
 function resolve (dir) {
@@ -57,6 +57,8 @@ if (process.env.NODE_ENV !== 'production') {
         ws.send('~nn@KDS-DEFINE-CHANNEL 1')
       } else if (message.startsWith('#KDS-DEFINE-CHANNEL-NAME?')) {
         ws.send('~nn@KDS-DEFINE-CHANNEL-NAME bbc')
+      } else if (message.startsWith('#HW-TEMP?')) {
+        ws.send('~nn@HW-TEMP 0,30')
       } else if (message.startsWith('#X-AUD-LVL?')) {
         ws.send('~nn@X-AUD-LVL out.analog_audio.1.audio.1,10')
       } else if (message.startsWith('#KDS-ACTION? ')) {

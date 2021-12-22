@@ -2,8 +2,8 @@
   <div class="sort-model">
     <div class="list-group-item" :class="[{'disabled': disabled}]" v-for="(item, index) in model"
          :key="item">
-      <span class="sort-title" v-if="index===0">High</span>
-      <span class="sort-title" v-if="index===model.length - 1">Low</span>
+      <span class="sort-title" v-if="index===0 && model.length > 1">High</span>
+      <span class="sort-title" v-if="index===model.length - 1 && model.length > 1">Low</span>
       <div class="sort-source" v-if="!disabled" @dragend="dragEnterIndex=-1,dragIndex=-1"
            :class="[{'active': dragIndex === index}, {'drag-enter': dragEnterIndex === index}]" draggable="true"
            @dragenter="dragEnter(index)" @dragleave="dragEnterIndex = -1" @dragstart="dragStart($event, index)"
