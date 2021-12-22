@@ -1560,6 +1560,12 @@ handle_e_p3k_audio_src()
 	shift 2
 	_switch_input="$1"
 
+	if [ $_switch_input = 'no' ];then
+		echo 0 > /sys/devices/platform/1500_i2s/analog_in_vol
+	else
+		echo 100 > /sys/devices/platform/1500_i2s/analog_in_vol
+	fi
+
 	echo "set p3k switch input!!! $_switch_input"
 	case "$MODEL_NUMBER" in
 		KDS-EN7)

@@ -68,6 +68,7 @@ uint8_t last_hdmi_in_index = 0;
 uint8_t auto_av_report_flag = CLOSE_REPROT;
 uint8_t current_play_port = HDMIRX1;
 uint8_t cec_report_flag = CLOSE_REPROT;
+uint8_t mute_flag = UNMUTE;
 
 const ipc_cmd_struct ipc_cmd_list[] =
     {
@@ -793,7 +794,7 @@ static void do_handle_uart_pass(uint16_t cmd,char *cmd_param)
     free(uart_pass);
 }
 
-void do_handle_set_hdmi_mute(uint16_t cmd,char *cmd_param)
+static void do_handle_set_hdmi_mute(uint16_t cmd,char *cmd_param)
 {
     struct CmdDataAudioControl ado_mode;
     memset((unsigned char *)&ado_mode, 0, sizeof(ado_mode));
@@ -805,6 +806,15 @@ void do_handle_set_hdmi_mute(uint16_t cmd,char *cmd_param)
         ado_mode.port = atoi(port);
         ado_mode.enable = atoi(enable);
         ado_mode.mute = atoi(mute);
+        if(ado_mode.mute == 1)
+        {
+            mute_flag = MUTE;
+        }
+        else
+        {
+            mute_flag = UNMUTE;
+        }
+        
         APP_Comm_Send(cmd, (U8*)&ado_mode, sizeof(ado_mode));
     }
     else

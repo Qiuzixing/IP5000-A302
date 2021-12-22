@@ -8,6 +8,7 @@
 extern audio_inout_info_struct audio_inout_info;
 extern uint8_t last_hdmi_in_index;
 extern uint8_t board_type_flag;
+extern uint8_t mute_flag;
 void mDelay(unsigned int msecond)
 {
     struct timeval time;
@@ -102,17 +103,18 @@ void mute_control(const char *file_name,mute_value value)
 static void set_hdmi_mute(mute_value value)
 {
     uint16_t cmd = CMD_HDMI_AUDIO_CONTROL;
-    char hdmi_mute[] = "16:1:1";
-    char hdmi_unmute[] = "16:1:0";
+    struct CmdDataAudioControl ado_mode;
+    ado_mode.port = 16;
+    ado_mode.enable = 1;
     if(value == MUTE)
     {
-        do_handle_set_hdmi_mute(cmd,hdmi_mute);
+        ado_mode.mute = 1;
     }
     else
     {
-        do_handle_set_hdmi_mute(cmd,hdmi_unmute);
+        ado_mode.mute = 0;
     }
-    
+    APP_Comm_Send(cmd, (U8*)&ado_mode, sizeof(ado_mode));
 }
 
 static void set_gsv_insert_audio(insert_value value)
@@ -312,8 +314,12 @@ static void ipe5000_and_ipe5000w_analog_in_xxx_out(void)
     set_gsv_insert_audio(INSERT);
     do_handle_set_gpio_val(cmd,ast1520_out);
     set_io_select(ANALOG_IN);
-    set_hdmi_mute(UNMUTE);
-    mute_control(ANALOG_IN_MUTE,UNMUTE);
+    if(mute_flag == UNMUTE)
+    {
+        set_hdmi_mute(UNMUTE);
+        mute_control(ANALOG_IN_MUTE,UNMUTE);
+    }
+
 #if 0
     for(i = 0;i <= AUDIO_OUT_TYPE_NUM;i++)
     {
@@ -347,15 +353,18 @@ static void ipe5000_and_ipe5000w_hdmi_in_xxx_out(void)
     int i = 0;
     set_hdmi_mute(MUTE);
     mute_control(ANALOG_OUT_MUTE,MUTE);
-
     do_handle_set_gpio_val(cmd,it6802_out);
     //set_io_select(IO_ANALOG_OUTMUTE);
     set_gsv_insert_audio(NO_INSERT);
     set_io_select(HDMI);
     set_io_select(ANALOG_OUT);
     mDelay(100);
-    set_hdmi_mute(UNMUTE);
-    mute_control(ANALOG_OUT_MUTE,UNMUTE);
+    if(mute_flag == UNMUTE)
+    {
+        set_hdmi_mute(UNMUTE);
+        mute_control(ANALOG_OUT_MUTE,UNMUTE);
+    }
+
 
 #if 0
     for(i = 0;i <= AUDIO_OUT_TYPE_NUM;i++)
