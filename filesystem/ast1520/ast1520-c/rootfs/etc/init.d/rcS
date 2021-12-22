@@ -38,7 +38,7 @@ echo no > /sys/devices/platform/watchdog/enable
 
 e2fsck -p /dev/mtdblkdata
 e2fsck -y /dev/mtdblkdata
-mount -o sync /dev/mtdblkdata /data
+mount /dev/mtdblkdata /data
 
 if [ -f /data/configs/kds-7/display/sleep_image.jpg ]; then
 	cp -f /data/configs/kds-7/display/sleep_image.jpg /share/default.jpg

@@ -2896,6 +2896,7 @@ int Cfg_Create_AutoswitchDelay(void)
 	fwrite(strAutoSwitchSetting.c_str(),1,strAutoSwitchSetting.size(),fp);
 
 	fflush(fp);
+	fsync(fileno(fp));
 	fclose(fp);
 	return 0;
 }
@@ -3156,6 +3157,7 @@ int Cfg_Create_AVSignal(void)
 	fwrite(strAVSignal.c_str(),1,strAVSignal.size(),fp);
 
 	fflush(fp);
+	fsync(fileno(fp));
 	fclose(fp);
 	return 0;
 }
@@ -3212,6 +3214,7 @@ int Cfg_Create_DisplaySleep(void)
 	fwrite(strDispDelay.c_str(),1,strDispDelay.size(),fp);
 
 	fflush(fp);
+	fsync(fileno(fp));
 	fclose(fp);
 
 	return 0;
@@ -3281,6 +3284,7 @@ int Cfg_Create_OsdSetting(void)
 	fwrite(strOSD.c_str(),1,strOSD.size(),fp);
 
 	fflush(fp);
+	fsync(fileno(fp));
 	fclose(fp);
 	return 0;
 }
@@ -3371,6 +3375,7 @@ int Cfg_Create_SecuritySetting(void)
 		fwrite(str8021X.c_str(),1,str8021X.size(),fp);
 
 		fflush(fp);
+		fsync(fileno(fp));
 		fclose(fp);
 	}
 
@@ -3423,6 +3428,7 @@ int Cfg_Create_SecuritySetting(void)
 		fwrite(str8021X.c_str(),1,str8021X.size(),fp);
 
 		fflush(fp);
+		fsync(fileno(fp));
 		fclose(fp);
 	}
 
@@ -3802,6 +3808,7 @@ int Cfg_Create_KVMSetting(void)
 	fwrite(strKvm.c_str(),1,strKvm.size(),fp);
 
 	fflush(fp);
+	fsync(fileno(fp));
 	fclose(fp);
 	return 0;
 }
@@ -3905,6 +3912,7 @@ int Cfg_Create_Channel(void)
 	fwrite(strChanList.c_str(),1,strChanList.size(),fp);
 
 	fflush(fp);
+	fsync(fileno(fp));
 	fclose(fp);
 #endif
 	return 0;
@@ -4011,6 +4019,7 @@ int Cfg_Update_Channel(void)
 	fwrite(strChannelSel.c_str(),1,strChannelSel.size(),fp);
 
 	fflush(fp);
+	fsync(fileno(fp));
 	fclose(fp);
 
 #else
@@ -4049,6 +4058,7 @@ int Cfg_Update_Channel(void)
 	fwrite(strChannelDef.c_str(),1,strChannelDef.size(),fp);
 
 	fflush(fp);
+	fsync(fileno(fp));
 	fclose(fp);
 #endif
 	return 0;
@@ -4268,6 +4278,7 @@ int Cfg_Update_Audio(void)
 	fwrite(strAutoSwitch.c_str(),1,strAutoSwitch.size(),fp);
 
 	fflush(fp);
+	fsync(fileno(fp));
 	fclose(fp);
 	return 0;
 }
@@ -4401,6 +4412,7 @@ int Cfg_Update_Video(void)
 	fwrite(strAVsetting.c_str(),1,strAVsetting.size(),fp2);
 
 	fflush(fp2);
+	fsync(fileno(fp2));
 	fclose(fp2);
 	return 0;
 }
@@ -4516,6 +4528,7 @@ int Cfg_Update_AutoSwitch(void)
 	fwrite(strAutoSwitch.c_str(),1,strAutoSwitch.size(),fp);
 
 	fflush(fp);
+	fsync(fileno(fp));
 	fclose(fp);
 
 	return 0;
@@ -4603,6 +4616,7 @@ int Cfg_Update_AVSetting(void)
 	fwrite(strAVSetting.c_str(),1,strAVSetting.size(),fp);
 
 	fflush(fp);
+	fsync(fileno(fp));
 	fclose(fp);
 			return 0;
 }
@@ -4665,6 +4679,7 @@ int Cfg_Update_EDID(void)
 	fwrite(strEDIDSetting.c_str(),1,strEDIDSetting.size(),fp);
 
 	fflush(fp);
+	fsync(fileno(fp));
 	fclose(fp);
 	return 0;
 }
@@ -4715,6 +4730,7 @@ int Cfg_Update_Device(void)
 	fwrite(strDeviceSetting.c_str(),1,strDeviceSetting.size(),fp);
 
 	fflush(fp);
+	fsync(fileno(fp));
 	fclose(fp);
 	return 0;
 }
@@ -4767,6 +4783,7 @@ int Cfg_Update_Version(void)
 	fwrite(strVersionSetting.c_str(),1,strVersionSetting.size(),fp);
 
 	fflush(fp);
+	fsync(fileno(fp));
 	fclose(fp);
 	return 0;
 }
@@ -4825,6 +4842,7 @@ int Cfg_Update_Time(void)
 	fwrite(strTimeSetting.c_str(),1,strTimeSetting.size(),fp);
 
 	fflush(fp);
+	fsync(fileno(fp));
 	fclose(fp);
 	return 0;
 }
@@ -4878,6 +4896,7 @@ int Cfg_Update_User(void)
 	fwrite(strUSerSetting.c_str(),1,strUSerSetting.size(),fp);
 
 	fflush(fp);
+	fsync(fileno(fp));
 	fclose(fp);
 	return 0;
 }
@@ -4941,6 +4960,7 @@ int Cfg_Update_VideoWall(void)
 	fwrite(strVideowallSetting.c_str(),1,strVideowallSetting.size(),fp);
 
 	fflush(fp);
+	fsync(fileno(fp));
 	fclose(fp);
 
 	return 0;
@@ -5061,6 +5081,7 @@ int Cfg_Update_Gateway(void)
 	fwrite(strGateway.c_str(),1,strGateway.size(),fp);
 
 	fflush(fp);
+	fsync(fileno(fp));
 	fclose(fp);
 
 	return 0;
@@ -5189,6 +5210,7 @@ int Cfg_Update_Network(void)
 	fwrite(strNetwork.c_str(),1,strNetwork.size(),fp);
 
 	fflush(fp);
+	fsync(fileno(fp));
 	fclose(fp);
 
 	return 0;
@@ -5239,6 +5261,7 @@ int Cfg_Update_Log(void)
 	fwrite(strLogSetting.c_str(),1,strLogSetting.size(),fp);
 
 	fflush(fp);
+	fsync(fileno(fp));
 	fclose(fp);
 	return 0;
 }
@@ -5331,6 +5354,7 @@ int Cfg_Update_OSD(void)
 	fwrite(strOSDsetting.c_str(),1,strOSDsetting.size(),fp2);
 
 	fflush(fp2);
+	fsync(fileno(fp2));
 	fclose(fp2);
 	return 0;
 
