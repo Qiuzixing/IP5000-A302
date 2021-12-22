@@ -491,6 +491,7 @@ void * P3K_UdpInsideServer()
 	while(1)
 	{  
 		memset(recvBuf,0,sizeof(recvBuf));
+        memset(userDefine,0,sizeof(userDefine));
         memset(&cmd,0,sizeof(P3K_SimpleCmdInfo_S));        
         memset(&respCmdInfo,0,sizeof(P3K_SimpleCmdInfo_S));
 		int s = recvfrom(g_Udp_Inside_Socket, recvBuf, sizeof(recvBuf)-1,0,(struct sockaddr*)&client,&len);
