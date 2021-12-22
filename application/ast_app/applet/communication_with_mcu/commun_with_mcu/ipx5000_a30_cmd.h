@@ -144,6 +144,7 @@ enum IPX5000_A30_CMD {
     EVENT_CEC_RECEIVE_MEASSAGE = STM32_CMD_START_RANGE + 0x60,
     EVENT_CEC_SEND_STATUS,
     CMD_SEND_CECMESSAGE,
+    CMD_CEC_ENABLE,
 };
 
 enum MCUStatus {
@@ -616,6 +617,11 @@ struct CmdDataCecMessage {
     uint8_t stauts;
     uint8_t rsvd[2];
     uint8_t content[CEC_CMD_MAX_LENTH];
+};
+
+struct CmdCecEnable {
+    bool_t enable;
+    uint8_t rsvd[3];
 };
 
 #pragma pack()

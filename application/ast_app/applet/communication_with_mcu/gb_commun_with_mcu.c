@@ -111,7 +111,8 @@ const ipc_cmd_struct ipc_cmd_list[] =
         {IPC_AUDIO_OUT,                 "audio_out",                sizeof("audio_out"),            0,                                  SEND_CMD},
         //cec command
         {IPC_CEC_SEND,                  "cec_send",                 sizeof("cec_send"),             CMD_SEND_CECMESSAGE,                SEND_CMD},
-        {IPC_CEC_CMD_REPORT,            "cec_report",               sizeof("cec_report"),           0,                                  SEND_CMD}
+        {IPC_CEC_CMD_REPORT,            "cec_report",               sizeof("cec_report"),           0,                                  SEND_CMD},
+        {IPC_POWERUP_CEC_REPORT,        "powerup_cec_report",       sizeof("powerup_cec_report"),   CMD_CEC_ENABLE,                     SEND_CMD}
     }; 
 
 static int setserial(int s, struct termios *cfg, int speed, int data, unsigned char parity, int stopb)
@@ -949,6 +950,22 @@ static void do_handle_video_control(uint16_t cmd,char *cmd_param)
     APP_Comm_Send(cmd, (U8 *)&video_control, sizeof(struct CmdDataVideoControl));
 }
 
+static void do_handle_powerup_cec_report(uint16_t cmd,char *cmd_param)
+{
+    struct CmdCecEnable ReportEnable;
+    char *enable = strtok(cmd_param,":");
+    if(enable != NULL)
+    {
+        ReportEnable.enable = atoi(enable);
+    }
+    else
+    {
+        printf("Warning:Illegal parameter, discard directly");
+        return;
+    }
+    APP_Comm_Send(cmd,(U8 *)&ReportEnable,sizeof(struct CmdCecEnable));
+}
+
 static void do_handle_ipc_cmd(int index,char *cmd_param)
 {
     uint32_t uctemp = CMD_NULL_DATA;
@@ -1042,6 +1059,9 @@ static void do_handle_ipc_cmd(int index,char *cmd_param)
         break;
     case IPC_CEC_CMD_REPORT:
         do_handle_cec_report(cmd_param);
+        break;
+    case IPC_POWERUP_CEC_REPORT:
+        do_handle_powerup_cec_report(ipc_cmd_list[index].a30_cmd,cmd_param);
         break;
     default:
         break;

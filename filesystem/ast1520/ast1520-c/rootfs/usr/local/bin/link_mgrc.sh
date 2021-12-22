@@ -3898,7 +3898,6 @@ if [ $UGP_FLAG = 'success' ];then
 			usleep 1000
 			#-b:select board_type 0:IPE5000 1:IPE5000P 2:IPD5000 3:IPD5000W
 			communication_with_mcu -c -b 2 &
-			usleep 10000
 		;;
 		*)
 		;;
@@ -3906,8 +3905,25 @@ if [ $UGP_FLAG = 'success' ];then
 fi
 
 if [ $UGP_FLAG = 'success' ];then
+	start_time=$(date +%s)
+	while [ ! -f "/tmp/socket_ready" ];
+	do
+		end_time=$(date +%s)
+		time_diff=$(( $end_time - $start_time ))
+		if [ $time_diff -ge 2 ];then
+			UGP_FLAG="fail"
+			break
+		fi
+	done
+	if [ -f "/tmp/socket_ready" ];then
+		rm /tmp/socket_ready
+	fi
+fi
+
+if [ $UGP_FLAG = 'success' ];then
 	case "$MODEL_NUMBER" in
 		KDS-DEC7)
+			ipc @m_lm_set s powerup_cec_report:1
 			#set lineio_sel pin to default to line_out;0:line_out;1:line_in
 			#set cec_sel pin(68) to default to sii9316;1:sii9136-hdmi_out;0:hdmi_in-hdmi_out
 			ipc @m_lm_set s set_gpio_config:3:65:1:70:1:68:1

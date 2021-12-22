@@ -3017,6 +3017,7 @@ fi
 if [ $UGP_FLAG = 'success' ];then
 	case "$MODEL_NUMBER" in
 		KDS-EN7)
+			ipc @m_lm_set s powerup_cec_report:1
 			#set lineio_sel(70) pin to default to line_out;0:line_out;1:line_in
 			#set i2s_sel(72) pin to default to 6802;0:ast1520 ; 1:it6802
 			#set lcd_power(65) pin to default to no useful,it is useful in ast1520
@@ -3026,6 +3027,7 @@ if [ $UGP_FLAG = 'success' ];then
 			ipc @m_lm_set s set_gpio_val:4:70:1:65:0:72:1:68:1
 		;;
 		KDS-SW3-EN7)
+			ipc @m_lm_set s powerup_cec_report:1
 			#set lineio_sel pin to default to line_out;0:line_out;1:line_in
 			ipc @m_lm_set s set_gpio_config:3:70:1:65:1:66:1
 			ipc @m_lm_set s set_gpio_val:3:70:0:65:0:66:0

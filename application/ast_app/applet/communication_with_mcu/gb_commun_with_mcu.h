@@ -128,6 +128,7 @@ typedef enum
     //cec command
     IPC_CEC_SEND,
     IPC_CEC_CMD_REPORT,
+    IPC_POWERUP_CEC_REPORT,
     
     IPC_CmdCnt,
     IPC_UnknownCmd = 0xFF
