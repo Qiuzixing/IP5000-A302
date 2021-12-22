@@ -153,7 +153,8 @@ static int P3K_NTFYToStr(int type,char*data)
 				strcpy(tmpbuf,"DEFAULT");
 				break;
 		}
-	memcpy(data,tmpbuf,strlen(tmpbuf));
+	strcpy(data,tmpbuf);
+
 	return 0;
 }
 
