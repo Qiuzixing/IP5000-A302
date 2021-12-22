@@ -28,12 +28,14 @@
         <ul class="edid-list">
           <li>
             <button class="btn btn-primary"
-                    @click="addChannel.name='',addChannel.id='',dialogType = 1"
-                    :disabled="this.channelList.length >= osdConfig.max_channels">ADD</button>
+                    @click="idRulerError=false,idError = false, nameError = false,addChannel.name='',addChannel.id='',dialogType = 1"
+                    :disabled="this.channelList.length >= osdConfig.max_channels">ADD
+            </button>
             <button class="btn btn-plain-primary"
                     style="margin-left: 24px"
                     type="button"
-                    @click="browseChannelList">IMPORT</button>
+                    @click="browseChannelList">IMPORT
+            </button>
             <button class="btn btn-plain-primary"
                     type="button"
                     @click="exportChannel"
@@ -49,7 +51,8 @@
           <li v-if="channelError"
               style="color: #d50000;
   font-size: 12px;
-  font-family: 'open sans bold';">{{channelErrorMsg}}</li>
+  font-family: 'open sans bold';">{{ channelErrorMsg }}
+          </li>
           <li>
             <span class="channel-title">#ID</span>
             <span>Name</span>
@@ -64,12 +67,12 @@
             <span class="channel-icon">
               <span @click="editChannel(index)">
                 <icon-svg style="margin-right: 5px"
-                          icon-class="edit" />
+                          icon-class="edit"/>
               </span>
               <el-popconfirm :title="'Are you sure you want to delete '+ item.name + '?'"
                              @confirm="deleteChannel(index)">
                 <icon-svg slot="reference"
-                          icon-class="rubbish" />
+                          icon-class="rubbish"/>
               </el-popconfirm>
             </span>
           </li>
@@ -77,12 +80,12 @@
         <div class="channel-list-pagination"
              style="margin-bottom: 24px">
           <span>Page {{ currentPage }} of
-            {{countPages()}}</span>
+            {{ countPages() }}</span>
           <div>
             <span class="channel-list-icon"
-                  @click="next(currentPage - 1)"><img src="../../assets/img/arrow.svg" /></span>
+                  @click="next(currentPage - 1)"><img src="../../assets/img/arrow.svg"/></span>
             <span class="channel-list-icon"
-                  @click="next(currentPage + 1)"><img src="../../assets/img/arrow.svg" /></span>
+                  @click="next(currentPage + 1)"><img src="../../assets/img/arrow.svg"/></span>
           </div>
         </div>
       </div>
@@ -111,11 +114,15 @@
                 :disabled="osdInfo === '0'"
                 :class="[osdInfo ==='1' ? 'btn-plain-primary' : 'btn-default']"
                 type="button"
-                style="margin-left: 24px">DISPLAY NOW</button>
+                style="margin-left: 24px">DISPLAY NOW
+        </button>
       </div>
     </div>
-    <footer><button class="btn btn-primary"
-              @click="save">SAVE</button></footer>
+    <footer>
+      <button class="btn btn-primary"
+              @click="save">SAVE
+      </button>
+    </footer>
     <el-dialog title="Channel"
                :visible="dialogType == 1"
                width="400px"
@@ -128,7 +135,7 @@
           <input type="text"
                  maxlength="3"
                  v-model="addChannel.id"
-                 class="setting-text" />
+                 class="setting-text"/>
           <span class="alert-error">Numbers only</span>
         </div>
       </div>
@@ -140,8 +147,9 @@
           <input type="text"
                  maxlength="24"
                  v-model="addChannel.name"
-                 class="setting-text" />
-          <span class="alert-error">Alphanumeric and characters within length of 1 to 24 characters, spaces not allowed.</span>
+                 class="setting-text"/>
+          <span
+            class="alert-error">Alphanumeric and characters within length of 1 to 24 characters, spaces not allowed.</span>
         </div>
       </div>
       <span v-if="idRulerError"
@@ -161,7 +169,7 @@
         <span class="setting-title"
               style="width: 80px">ID</span>
         <div style="position: relative;flex: 1">
-          {{editObj.id}}
+          {{ editObj.id }}
         </div>
       </div>
       <div class="setting">
@@ -172,8 +180,9 @@
           <input type="text"
                  maxlength="24"
                  v-model="editObj.name"
-                 class="setting-text" />
-          <span class="alert-error">Alphanumeric and characters within length of 1 to 24 characters, spaces not allowed.</span>
+                 class="setting-text"/>
+          <span
+            class="alert-error">Alphanumeric and characters within length of 1 to 24 characters, spaces not allowed.</span>
         </div>
       </div>
       <span slot="footer"
@@ -188,6 +197,7 @@
 
 <script>
 import { saveAs } from 'file-saver'
+
 export default {
   name: 'osd',
   data () {
@@ -437,10 +447,14 @@ export default {
     },
     // 统计显示的总页数
     countPages () {
-      return Math.ceil(this.channelList.length / this.osdConfig.max_channels_per_page)
+      const totalPage = Math.ceil(this.channelList.length / this.osdConfig.max_channels_per_page)
+      if (this.currentPage > totalPage) {
+        this.currentPage = 1
+      }
+      return totalPage
     },
     isID (id) {
-      return id.match(/^[1-9]?[1-9]?[1-9]$/)
+      return id.match(/^[1-9][0-9]?[0-9]?$/)
     },
     isName (name) {
       return /^[A-Za-z0-9][A-Za-z0-9\-_]{0,23}$/.test(name)
@@ -475,14 +489,17 @@ export default {
   display: flex;
   flex-direction: column;
 }
+
 .setting-model {
   flex: 1;
 }
+
 .main-setting footer {
   flex-shrink: 0;
   margin-top: 15px;
   margin-bottom: 15px;
 }
+
 .setting-title {
   width: 220px;
 }

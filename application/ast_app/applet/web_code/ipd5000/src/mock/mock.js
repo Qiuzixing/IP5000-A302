@@ -49,7 +49,10 @@ Mock.mock('/channel/channel_map', (option) => {
       { id: '7', name: 'ch7' },
       { id: '8', name: 'ch8' },
       { id: '9', name: 'ch9' },
-      { id: '10', name: 'ch10' }
+      { id: '10', name: 'ch10' },
+      { id: '11', name: 'ch11' },
+      { id: '12', name: 'ch12' },
+      { id: '13', name: 'ch13' }
     ]
   }
 })

@@ -267,6 +267,7 @@ export default {
             if (!(width === 1280 && height === 720)) {
               this.imgError = true
             } else {
+              this.imgError = false
               const xhr = new XMLHttpRequest()
               const formData = new FormData()
               formData.append('file', file)

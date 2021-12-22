@@ -252,10 +252,10 @@ export default {
           image.onload = () => {
             const width = image.width
             const height = image.height
-            console.log(width, height)
             if (!(width === 1280 && height === 720)) {
               this.imgError = true
             } else {
+              this.imgError = false
               const xhr = new XMLHttpRequest()
               const formData = new FormData()
               formData.append('file', file)
@@ -264,6 +264,7 @@ export default {
                 if (xhr.status === 200) {
                   this.imgName = ''
                   this.uploadComplete = true
+
                   setTimeout(() => {
                     this.uploadComplete = false
                   }, 2000)
