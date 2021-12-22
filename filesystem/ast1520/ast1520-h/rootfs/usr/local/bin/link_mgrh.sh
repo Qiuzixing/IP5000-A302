@@ -2638,6 +2638,16 @@ init_param_from_flash()
 		fi
 	fi
 
+	#Before the last power failure, it is possible to call save to clear these variables
+	astparam s fir_priority_board_status
+	astparam s sec_priority_board_status
+	astparam s third_priority_board_status
+	astparam s fourth_priority_board_status
+	astparam s repeat_board_lighting_flag
+	astparam s fir_priority_net_status
+	astparam s sec_priority_net_status
+	astparam s repeat_net_lighting_flag
+
 	astparam s fourth_priority_board_status $POWER_ON
 	astparam s sec_priority_net_status $GET_IP_FAIL
 	astparam s repeat_net_lighting_flag 0
