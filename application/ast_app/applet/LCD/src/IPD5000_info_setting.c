@@ -47,22 +47,6 @@ typedef struct
 
 
 char *blank_D = " ";
-#if 0
-//从中用来获取显示数据的
-const char *video_out[] = {
-    "VIDEO OUT RES", "NO SIGNAL", "3840x2160P30", "3840x2160P25",
-    "1920x1080P60", "1920X1080P50", "1280x720P60",  
-};
-
-const char *device_status[5] = {
-    "DEVICE_STATUS", "POWER ON", "STANDY BY", "FW DOWNLOAD", "IP FALLBACK"
-}; 
-
-
-// save actual value    
-char video_select_buf[MIN_SIZE_D][SIZE_D];
-char firmware_buf[MIN_SIZE_D][SIZE_D];
-#endif
 
 // LEVEL 1
 const char* MAIN_MENU_LIST_D[] = {
@@ -110,46 +94,6 @@ int CH_TATOL_NUM_D = 0;
 T_CH_MAP CH_LIST_D[1000];
 
 // END LEVEL 3
-
-
-#if 0
-const char* MAIN_MENU_strings_D[] = {
-    "MAIN MENU", "VIDEO SELECT", "IP SETTING", "HDCP SETTING",
-    "VIDEO OUT RES", "FIRMWARE INFO", "DEVICE STATUS",
-};
-
-const char* IP_SET_strings_D[] = {
-    "IP SETTING", "LAN1 SETTING", "LAN2 SETTING",
-};
-    
-
-
-const char* LAN_OPTION_strings_D[] = {
-    "LAN INFO", "LAN ADDR", "LAN MASK", "LAN GATEWAY",
-};
-
-const char* HDCP_strings_D[] = {
-    "HDCP SETTING", "HDCP ON", "HDCP OFF",
-};
-
-
-const char* FIRMWARE_strings_D[MIN_SIZE_D+1]        = {"FIRMWARE INFO",};
-const char* DEVICE_STATUS_strings_D[MIN_SIZE_D+1]   = {"DEVICE STATUS",};
-const char* VIDEO_OUT_string_D[2]       = {"VIDEO OUT RES", " "};
-
-//用来存储网络配置信息: 网口1：ip, mask gateway.网口2: ip, mask gateway 共6个
-char net_info_D[6][16] = {{0}, {0}, {0}, {0}, {0}, {0}};
-
-//记录正在屏幕显示的字符串，一个屏幕最多显示4行.
-const char *MAIN_MENU_SHOWWING_D[4]     =   {NULL, NULL, NULL, NULL}; 
-const char *IP_SET_SHOWWING_D[4]        =   {NULL, NULL, NULL, NULL};
-
-const char *LAN1_OPTION_SHOWWING_D[4]   =   {NULL, NULL, NULL, NULL};
-const char *VIDEO_OUT_SHOWWING_D[4]     =   {NULL, NULL, NULL, NULL};
-const char *FIRMWARE_SHOWWING_D[4]      =   {NULL, NULL, NULL, NULL};
-const char *DEVICE_STATUS_SHOWWING_D[4] =   {NULL, NULL, NULL, NULL};
-#endif
-
 const char* SAVE_VIDEO_SELECT_D[MIN_SIZE_D+1]       = {"CHANNEL SEL",}; 
 const char *VIDEO_IN_SHOWWING_D[4]           =    {NULL, NULL, NULL, NULL};
 
@@ -186,96 +130,6 @@ int save_LAN_info_D()
     
 }
 
-int save_VIDEO_SELECT_info_D()
-{
-    int i = 0, err = 0;
-    memset(video_select_buf, 0, MIN_SIZE_D*SIZE_D);
-
-    err = VIDEO_LIST(video_select_buf);
-    if (err == -1)
-    {
-        for (i = 0; i < MIN_SIZE_D; i++)
-        {
-            strcpy(video_select_buf[i], " ");
-        }
-    }
-    
-    for(i = 1; i < MIN_SIZE_D+1; i++)
-    {
-        SAVE_VIDEO_SELECT_D[i] = video_select_buf[i-1];
-    }
-}
-
-int save_FIREWARE_info_D()
-{
-    int i = 0, err = 0;
-    memset(firmware_buf, 0, MIN_SIZE_D*SIZE_D);
-
-    err = get_FIRMWARE_INFO(firmware_buf);
-    if (err == -1)
-    {
-        for (i = 0; i < MIN_SIZE_D; i++)
-        {
-            strcpy(firmware_buf[i], " ");
-        }
-    }
-    
-    for(i = 1; i < MIN_SIZE_D+1; i++)
-    {
-        FIRMWARE_strings_D[i] = firmware_buf[i-1];
-    }
-}
-
-int save_DEVICE_STATUS_info_D()
-{
-    int i = 0;
-    int status = -1;
-    get_DEVICE_STATUS(&status);
-    DEVICE_STATUS_strings_D[1] = device_status[status+1];
-}
-
-int get_current_VIDEO_OUT_info_D()
-{
-    int s;
-    int res_type;
-    get_VIDEO_OUT(&res_type);
-    switch(res_type)
-    {
-        case NO_SIGNAL:
-        {
-            s =1;
-            break;
-        }
-        case VIDEO_OUT_74:
-        {
-            s = 2;
-            break;
-        }
-        case VIDEO_OUT_73:
-        {
-            s = 3;
-            break;
-        }
-        case VIDEO_OUT_16:
-        {
-            s = 4;
-            break;
-        }
-        case VIDEO_OUT_31:
-        {
-            s = 5;
-            break;
-        }
-        case VIDEO_OUT_4:
-        {
-            s = 6;
-            break;
-        }
-
-    }
-    VIDEO_OUT_string_D[1] = video_out[s];
-
-}
 #endif
 
 
@@ -304,19 +158,7 @@ int file_is_changed_D(const char* filename)
     }
 }
 
-/*
-void save_display_info_D()
-{
-    
-    init_p3k_client("127.0.0.1", 6001);
-    
-    save_LAN_info_D();
-    save_VIDEO_SELECT_info_D();
-    save_FIREWARE_info_D();
-    save_DEVICE_STATUS_info_D();
-    get_current_VIDEO_OUT_info_D();
-}
-*/
+
 u8 get_elem_num_D(const char **buf, int num)
 {
     u8 i = 0;
@@ -765,8 +607,8 @@ static int HDMI_STATUS_D()
 
     clear_whole_screen();
     show_strings(0, y, HDMI_STATUS_LIST_D[0], strlen(HDMI_STATUS_LIST_D[0]) ,1); 
-    show_menu_info_D(y, 1, HDMI_STATUS_LIST_D, HDMI_STATUS_LIST_D, count>4 ? 3 : count-1);
-
+    show_menu_info_D(y, 1, HDMI_STATUS_SHOWWING_D, HDMI_STATUS_LIST_D, count>4 ? 3 : count-1);
+	
     int key = 0;
     while (1)
     { 

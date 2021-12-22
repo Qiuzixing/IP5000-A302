@@ -458,17 +458,23 @@ int GET_IP(int NET_ID, char *IP, char *MASK, char *GATEWAY)
 
     int i;
     int num = 0;
-    char ip_info[6][15] = {{0},{0},{0},{0},{0},{0}};;
+    char ip_info[6][15] = {{0},{0},{0},{0},{0},{0}};
 
     printf("recv_buf:[%s]\n", recv_buf);
-    
-    split_string(recv_buf, ",", ip_info, &num);
-    fill_ip_become_15_byte(ip_info[0], IP);
-    fill_ip_become_15_byte(ip_info[1], MASK);
-    fill_ip_become_15_byte(ip_info[2], GATEWAY);
-
-    printf("IP = %s\n", IP);
-
+	if (strlen(recv_buf) == 0)
+	{
+		char buf[] = "000.000.000.000";
+		strcpy(IP, buf);
+		strcpy(MASK, buf);
+		strcpy(GATEWAY, buf);
+	}
+	else
+	{
+	    split_string(recv_buf, ",", ip_info, &num);
+	    fill_ip_become_15_byte(ip_info[0], IP);
+	    fill_ip_become_15_byte(ip_info[1], MASK);
+	    fill_ip_become_15_byte(ip_info[2], GATEWAY);
+	}
     return 0;
 }
 
@@ -513,7 +519,7 @@ int GET_EDID_LIST(char EDID_buf[][LITTLE_SIZE])
     if (err != 0)
         return -1;
 
-    i = 1;
+    i = 0;
     substr1 = recv_buf; 
     while(1)
     {

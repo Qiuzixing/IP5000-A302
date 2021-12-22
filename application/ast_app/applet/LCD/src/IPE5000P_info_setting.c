@@ -97,15 +97,13 @@ const char* INPUT_VIDEO_SOURCE_TYPE_P[] = {
     "INPUT SETTING", "HDMI IN1", "HDMI IN2", "USB_C IN",
 };
 
-char EDID_BUF_P[20][20] = {"EDID SETTING",{0},{0},{0},{0},{0},{0},{0},{0},{0}};
+char EDID_BUF_P[10][20] = {{0},{0},{0},{0},{0},{0},{0},{0},{0},{0},};
 
-const char *EDID_LIST_P[] = {(const char *)EDID_BUF_P[0], (const char *)EDID_BUF_P[1],(const char *)EDID_BUF_P[2],(const char *)EDID_BUF_P[3],(const char *)EDID_BUF_P[4],
-                       (const char *)EDID_BUF_P[5],(const char *)EDID_BUF_P[6],(const char *)EDID_BUF_P[7],(const char *)EDID_BUF_P[8],(const char *)EDID_BUF_P[9]};
+const char *EDID_LIST_P[] = {"EDID SETTING", (const char *)EDID_BUF_P[0],(const char *)EDID_BUF_P[1],(const char *)EDID_BUF_P[2],(const char *)EDID_BUF_P[3],(const char *)EDID_BUF_P[4],
+	                                         (const char *)EDID_BUF_P[5],(const char *)EDID_BUF_P[6],(const char *)EDID_BUF_P[7],(const char *)EDID_BUF_P[8],(const char *)EDID_BUF_P[9],};
 
 const char *HDCP_LIST_P[] = {"HDCP SETTING", "ON", "OFF"};
 
-//int CH_TATOL_NUM_P = 0;
-//T_CH_MAP CH_LIST_P[1000];
 
 // END LEVEL 3
 
@@ -526,7 +524,7 @@ int IPE5000P_MAIN_MENU_SHOW(void)
 {
     printf("this is IPE5000P\n");
     init_p3k_client("127.0.0.1", 6001);
-		
+	
     u8 count = sizeof(MAIN_MENU_LIST_P)/(sizeof(char*));
     int p = 4; 
     int y = 8;
@@ -772,7 +770,7 @@ static int HDMI_STATUS_P()
 
     clear_whole_screen();
     show_strings(0, y, HDMI_STATUS_LIST_P[0], strlen(HDMI_STATUS_LIST_P[0]) ,1); 
-    show_menu_info_P(y, 1, HDMI_STATUS_LIST_P, HDMI_STATUS_LIST_P, count>4 ? 3 : count-1);
+    show_menu_info_P(y, 1, HDMI_STATUS_SHOWWING_P, HDMI_STATUS_LIST_P, count>4 ? 3 : count-1);
 
     int key = 0;
     while (1)
@@ -1064,10 +1062,11 @@ static int INPUT_SETTING_P()
 static int EDID_SETTING_P()
 {
     char buf[20] = {0};
-    u8 count = GET_EDID_LIST(EDID_BUF_P);
+    u8 count = GET_EDID_LIST(EDID_BUF_P) + 1;
+	
     GET_EDID(buf);
 
-    
+	
     int p = 4;
     int y = 16; //有*要显示
     int x = 2; //方括号位置

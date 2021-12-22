@@ -106,18 +106,14 @@ const char* HDMI_STATUS_LIST_E[] = {
     "HDMI STATUS", (const char*)RESOL_BUF_E, (const char*)HDCP_STATUS_BUF_E,
 };
 
-char EDID_BUF_E[20][20] = {"EDID SETTING",{0},{0},{0},{0},{0},{0},{0},{0},{0}};
+char EDID_BUF_E[20][20] = {{0},{0},{0},{0},{0},{0},{0},{0},{0},{0},};
 
-const char *EDID_LIST_E[] = {(const char *)EDID_BUF_E[0], (const char *)EDID_BUF_E[1],(const char *)EDID_BUF_E[2],(const char *)EDID_BUF_E[3],(const char *)EDID_BUF_E[4],
-                       (const char *)EDID_BUF_E[5],(const char *)EDID_BUF_E[6],(const char *)EDID_BUF_E[7],(const char *)EDID_BUF_E[8],(const char *)EDID_BUF_E[9]};
+const char *EDID_LIST_E[] = {"EDID SETTING", (const char *)EDID_BUF_E[0],(const char *)EDID_BUF_E[1],(const char *)EDID_BUF_E[2],(const char *)EDID_BUF_E[3],(const char *)EDID_BUF_E[4],
+                                             (const char *)EDID_BUF_E[5],(const char *)EDID_BUF_E[6],(const char *)EDID_BUF_E[7],(const char *)EDID_BUF_E[8],(const char *)EDID_BUF_E[9],};
 
 const char *HDCP_LIST_E[] = {"HDCP SETTING", "ON", "OFF"};
 
-//int CH_TATOL_NUM_E = 0;
-//char *CH_LIST_E[100] = {"NO SIGNAL",};
 // END LEVEL 3
-
-
 #if 0
 const char* MAIN_MENU_strings_E[] = {
     "MAIN MENU", "VIDEO SELECT", "IP SETTING", "HDCP SETTING",
@@ -544,7 +540,7 @@ int IPE5000_MAIN_MENU_SHOW(void)
     printf("this is IPE5000\n");
     init_p3k_client("127.0.0.1", 6001);
 
-    //CH_TATOL_NUM_E = get_specified_string_from_file(CHANNEL_MAP, CH_LIST_E);
+    
         
     u8 count = sizeof(MAIN_MENU_LIST_E)/(sizeof(char*));
     int p = 4; 
@@ -792,7 +788,7 @@ static int HDMI_STATUS_E()
 
     clear_whole_screen();
     show_strings(0, y, HDMI_STATUS_LIST_E[0], strlen(HDMI_STATUS_LIST_E[0]) ,1); 
-    show_menu_info_E(y, 1, HDMI_STATUS_LIST_E, HDMI_STATUS_LIST_E, count>4 ? 3 : count-1);
+    show_menu_info_E(y, 1, HDMI_STATUS_SHOWWING_E, HDMI_STATUS_LIST_E, count>4 ? 3 : count-1);
 
     int key = 0;
     while (1)
@@ -1016,12 +1012,12 @@ static int get_buf_num_E(char *buf[20], int lenth)
 static int EDID_SETTING_E()
 {
     char buf[20] = {0};
-    u8 count = GET_EDID_LIST(EDID_BUF_E);
+    u8 count = GET_EDID_LIST(EDID_BUF_E) + 1;
     
     GET_EDID(buf);
     
 
-    int p = 4; 
+    int p = 4;
     int y = 16; //有*要显示
     int x = 2; //方括号位置
     int last_page = 0;
