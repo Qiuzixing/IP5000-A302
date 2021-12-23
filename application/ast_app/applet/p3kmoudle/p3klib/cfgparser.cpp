@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <pthread.h>
 
+#include <sys/file.h> //for flock()
+
 #include "cfgparser.h"
 #include "funcexcute.h"
 #include "ast_send_event.h"
@@ -110,6 +112,12 @@ int Cfg_Check_File(char * path)
 		return -1;
 	}
 
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
+		return -1;
+	}
+
 	int nRet = 0,nOffset = 0;
 	while(1)
 	{
@@ -141,9 +149,12 @@ int Cfg_Check_File(char * path)
 	else if(reader.parse(pBuf, root1)== false)
 	{
 		DBG_ErrMsg("ERROR! %s is not json\n",path);
+		flock(fileno(fp), LOCK_UN);
 		fclose(fp);
 		return -1;
 	}
+
+	flock(fileno(fp), LOCK_UN);
 
 	fclose(fp);
 	return 0;
@@ -336,6 +347,12 @@ int Cfg_Init_Channel(void)
 		return -1;
 	}
 
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
+		return -1;
+	}
+
 	fread(pBuf,1,sizeof(pBuf),fp);
 
 	if(reader.parse(pBuf, root1))
@@ -371,6 +388,8 @@ int Cfg_Init_Channel(void)
 
 		}
 	}
+
+	flock(fileno(fp), LOCK_UN);
 
 	fclose(fp);
 
@@ -439,6 +458,12 @@ int Cfg_Init_Channel(void)
 		return -1;
 	}
 
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
+		return -1;
+	}
+
 	fread(pBuf,1,sizeof(pBuf),fp);
 
 	if(reader.parse(pBuf, root1))
@@ -465,6 +490,8 @@ int Cfg_Init_Channel(void)
 			}
 		}
 	}
+
+	flock(fileno(fp), LOCK_UN);
 
 	fclose(fp);
 
@@ -568,6 +595,12 @@ int Cfg_Init_Audio(void)
 	fp = fopen(path, "r");
 	if (fp == NULL) {
 		DBG_ErrMsg("ERROR! can't open %s\n",path);
+		return -1;
+	}
+
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
 		return -1;
 	}
 
@@ -765,6 +798,8 @@ int Cfg_Init_Audio(void)
 		}
 	}
 
+	flock(fileno(fp), LOCK_UN);
+
 	fclose(fp);
 
 	if((strcmp(g_version_info.model,IPE_P_MODULE) == 0)&&(bDanteUpdate == 1))
@@ -809,6 +844,12 @@ int Cfg_Init_Video(void)
 	fp = fopen(path, "r");
 	if (fp == NULL) {
 		DBG_ErrMsg("ERROR! can't open %s\n",path);
+		return -1;
+	}
+
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
 		return -1;
 	}
 
@@ -884,6 +925,8 @@ int Cfg_Init_Video(void)
 		}
 	}
 
+	flock(fileno(fp), LOCK_UN);
+
 	fclose(fp);
 
 
@@ -930,6 +973,12 @@ int Cfg_Init_AutoSwitch(void)
 	fp = fopen(path, "r");
 	if (fp == NULL) {
 		DBG_ErrMsg("ERROR! can't open %s\n",path);
+		return -1;
+	}
+
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
 		return -1;
 	}
 
@@ -1060,6 +1109,8 @@ int Cfg_Init_AutoSwitch(void)
 		}
 	}
 
+	flock(fileno(fp), LOCK_UN);
+
 	fclose(fp);
 
 	//printf("Cfg_Init_AutoSwitch switch_mode:%d,input_pri[0]:%d input_pri[1]:%d input_pri[2]:%d end\n",
@@ -1105,6 +1156,12 @@ int Cfg_Init_AVSetting(void)
 	fp = fopen(path, "r");
 	if (fp == NULL) {
 		DBG_ErrMsg("ERROR! can't open %s\n",path);
+		return -1;
+	}
+
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
 		return -1;
 	}
 
@@ -1199,6 +1256,8 @@ int Cfg_Init_AVSetting(void)
 		}
 	}
 
+	flock(fileno(fp), LOCK_UN);
+
 	fclose(fp);
 	return 0;
 }
@@ -1247,6 +1306,12 @@ int Cfg_Init_EDID(void)
 		return -1;
 	}
 
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
+		return -1;
+	}
+
 	fread(pBuf,1,sizeof(pBuf),fp);
 
 	if(reader.parse(pBuf, root1))
@@ -1290,6 +1355,8 @@ int Cfg_Init_EDID(void)
 			}
 		}
 	}
+
+	flock(fileno(fp), LOCK_UN);
 
 	fclose(fp);
 	return 0;
@@ -1338,6 +1405,12 @@ int Cfg_Init_Device(void)
 	fp = fopen(path, "r");
 	if (fp == NULL) {
 		DBG_ErrMsg("ERROR! can't open %s\n",path);
+		return -1;
+	}
+
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
 		return -1;
 	}
 
@@ -1392,6 +1465,8 @@ int Cfg_Init_Device(void)
     {
          EX_Beacon(1,1,g_network_info.beacon_time);
     }
+
+	flock(fileno(fp), LOCK_UN);
 	fclose(fp);
 
 	Cfg_Update(DEVICE_INFO);
@@ -1463,6 +1538,12 @@ int Cfg_Init_Version(void)
 		return -1;
 	}
 
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
+		return -1;
+	}
+
 	fread(pBuf,1,sizeof(pBuf),fp);
 
 	if(reader.parse(pBuf, root1))
@@ -1490,6 +1571,8 @@ int Cfg_Init_Version(void)
 			}
 		}
 	}
+
+	flock(fileno(fp), LOCK_UN);
 
 	fclose(fp);
 
@@ -1535,6 +1618,12 @@ int Cfg_Init_Time(void)
 	fp = fopen(path, "r");
 	if (fp == NULL) {
 		DBG_ErrMsg("ERROR! can't open %s\n",path);
+		return -1;
+	}
+
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
 		return -1;
 	}
 
@@ -1590,6 +1679,8 @@ int Cfg_Init_Time(void)
 		}
 	}
 
+	flock(fileno(fp), LOCK_UN);
+
 	fclose(fp);
 	return 0;
 }
@@ -1631,6 +1722,12 @@ int Cfg_Init_User(void)
 	fp = fopen(path, "r");
 	if (fp == NULL) {
 		DBG_ErrMsg("ERROR! can't open %s\n",path);
+		return -1;
+	}
+
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
 		return -1;
 	}
 
@@ -1689,6 +1786,8 @@ int Cfg_Init_User(void)
 			}
 		}
 	}
+
+	flock(fileno(fp), LOCK_UN);
 
 	fclose(fp);		return 0;
 }
@@ -1899,6 +1998,12 @@ int Cfg_Init_VideoWall(void)
 		return -1;
 	}
 
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
+		return -1;
+	}
+
 	fread(pBuf,1,sizeof(pBuf),fp);
 
 	if(reader.parse(pBuf, root1))
@@ -1968,6 +2073,9 @@ int Cfg_Init_VideoWall(void)
 
 		}
 	}
+
+
+	flock(fileno(fp), LOCK_UN);
 	fclose(fp);
 
 
@@ -2164,6 +2272,12 @@ int Cfg_Init_Gateway(void)
 		return -1;
 	}
 
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
+		return -1;
+	}
+
 	fread(pBuf,1,sizeof(pBuf),fp);
 
 	if(reader.parse(pBuf, root1))
@@ -2301,6 +2415,8 @@ int Cfg_Init_Gateway(void)
 			}
 		}
 	}
+
+	flock(fileno(fp), LOCK_UN);
 
 	fclose(fp);
 
@@ -2468,6 +2584,12 @@ int Cfg_Init_Network(void)
 	fp = fopen(path, "r");
 	if (fp == NULL) {
 		DBG_ErrMsg("ERROR! can't open %s\n",path);
+		return -1;
+	}
+
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
 		return -1;
 	}
 
@@ -2693,6 +2815,8 @@ int Cfg_Init_Network(void)
 		}
 	}
 
+	flock(fileno(fp), LOCK_UN);
+
 	fclose(fp);
 
 	if(g_bCfg == 1)
@@ -2740,6 +2864,12 @@ int Cfg_Init_Log(void)
 		return -1;
 	}
 
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
+		return -1;
+	}
+
 	fread(pBuf,1,sizeof(pBuf),fp);
 
 	if(reader.parse(pBuf, root1))
@@ -2770,6 +2900,8 @@ int Cfg_Init_Log(void)
 		}
 	}
 
+	flock(fileno(fp), LOCK_UN);
+
 	fclose(fp);
 	return 0;
 }
@@ -2798,6 +2930,12 @@ int Cfg_Init_OSD(void)
 		return -1;
 	}
 
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
+		return -1;
+	}
+
 	fread(pBuf,1,sizeof(pBuf),fp);
 
 	if(reader.parse(pBuf, root1))
@@ -2817,6 +2955,8 @@ int Cfg_Init_OSD(void)
 			}
 		}
 	}
+
+	flock(fileno(fp), LOCK_UN);
 
 	fclose(fp);
 	return 0;}
@@ -2891,12 +3031,19 @@ int Cfg_Create_AutoswitchDelay(void)
 		return -1;
 	}
 
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
+		return -1;
+	}
+
 	Json::FastWriter fast_writer;
 	string strAutoSwitchSetting = fast_writer.write(root1);
 	fwrite(strAutoSwitchSetting.c_str(),1,strAutoSwitchSetting.size(),fp);
 
 	fflush(fp);
 	fsync(fileno(fp));
+	flock(fileno(fp), LOCK_UN);
 	fclose(fp);
 	return 0;
 }
@@ -2920,6 +3067,12 @@ int Cfg_InitParam_AV_FromJson(void)
 	fp = fopen(path, "r");
 	if (fp == NULL) {
 		DBG_ErrMsg("ERROR! can't open %s\n",path);
+		return -1;
+	}
+
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
 		return -1;
 	}
 
@@ -3017,6 +3170,8 @@ int Cfg_InitParam_AV_FromJson(void)
 #endif
 		}
 	}
+
+	flock(fileno(fp), LOCK_UN);
 
 	fclose(fp);
 
@@ -3151,6 +3306,12 @@ int Cfg_Create_AVSignal(void)
 		return -1;
 	}
 
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
+		return -1;
+	}
+
 	Json::FastWriter fast_writer;
 	string strAVSignal = fast_writer.write(root1);
 
@@ -3158,6 +3319,7 @@ int Cfg_Create_AVSignal(void)
 
 	fflush(fp);
 	fsync(fileno(fp));
+	flock(fileno(fp), LOCK_UN);
 	fclose(fp);
 	return 0;
 }
@@ -3208,6 +3370,12 @@ int Cfg_Create_DisplaySleep(void)
 		return -1;
 	}
 
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
+		return -1;
+	}
+
 	Json::FastWriter fast_writer;
 	string strDispDelay = fast_writer.write(root1);
 
@@ -3215,6 +3383,7 @@ int Cfg_Create_DisplaySleep(void)
 
 	fflush(fp);
 	fsync(fileno(fp));
+	flock(fileno(fp), LOCK_UN);
 	fclose(fp);
 
 	return 0;
@@ -3278,6 +3447,12 @@ int Cfg_Create_OsdSetting(void)
 		return -1;
 	}
 
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
+		return -1;
+	}
+
 	Json::FastWriter fast_writer;
 	string strOSD = fast_writer.write(root1);
 
@@ -3285,6 +3460,7 @@ int Cfg_Create_OsdSetting(void)
 
 	fflush(fp);
 	fsync(fileno(fp));
+	flock(fileno(fp), LOCK_UN);
 	fclose(fp);
 	return 0;
 }
@@ -3369,6 +3545,12 @@ int Cfg_Create_SecuritySetting(void)
 			return -1;
 		}
 
+		if (flock(fileno(fp), LOCK_EX)) {
+			DBG_ErrMsg("%s lock failed\n",path);
+			fclose(fp);
+			return -1;
+		}
+
 		Json::FastWriter fast_writer;
 		string str8021X = fast_writer.write(root1);
 
@@ -3376,6 +3558,7 @@ int Cfg_Create_SecuritySetting(void)
 
 		fflush(fp);
 		fsync(fileno(fp));
+		flock(fileno(fp), LOCK_UN);
 		fclose(fp);
 	}
 
@@ -3422,6 +3605,12 @@ int Cfg_Create_SecuritySetting(void)
 			return -1;
 		}
 
+		if (flock(fileno(fp), LOCK_EX)) {
+			DBG_ErrMsg("%s lock failed\n",path);
+			fclose(fp);
+			return -1;
+		}
+
 		Json::FastWriter fast_writer;
 		string str8021X = fast_writer.write(root1);
 
@@ -3429,6 +3618,7 @@ int Cfg_Create_SecuritySetting(void)
 
 		fflush(fp);
 		fsync(fileno(fp));
+		flock(fileno(fp), LOCK_UN);
 		fclose(fp);
 	}
 
@@ -3460,6 +3650,12 @@ int Cfg_InitParam_KVM_FromJson(void)
 	fp = fopen(path, "r");
 	if (fp == NULL) {
 		DBG_ErrMsg("ERROR! can't open %s\n",path);
+		return -1;
+	}
+
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
 		return -1;
 	}
 
@@ -3602,6 +3798,8 @@ int Cfg_InitParam_KVM_FromJson(void)
 			}
 		}
 	}
+
+	flock(fileno(fp), LOCK_UN);
 
 	fclose(fp);
 	return 0;
@@ -3803,12 +4001,19 @@ int Cfg_Create_KVMSetting(void)
 		return -1;
 	}
 
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
+		return -1;
+	}
+
 	Json::FastWriter fast_writer;
 	string strKvm = fast_writer.write(root1);
 	fwrite(strKvm.c_str(),1,strKvm.size(),fp);
 
 	fflush(fp);
 	fsync(fileno(fp));
+	flock(fileno(fp), LOCK_UN);
 	fclose(fp);
 	return 0;
 }
@@ -3906,6 +4111,12 @@ int Cfg_Create_Channel(void)
 		return -1;
 	}
 
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
+		return -1;
+	}
+
 	Json::FastWriter fast_writer;
 
 	string strChanList = fast_writer.write(root1);
@@ -3913,6 +4124,7 @@ int Cfg_Create_Channel(void)
 
 	fflush(fp);
 	fsync(fileno(fp));
+	flock(fileno(fp), LOCK_UN);
 	fclose(fp);
 #endif
 	return 0;
@@ -4013,6 +4225,12 @@ int Cfg_Update_Channel(void)
 		return -1;
 	}
 
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
+		return -1;
+	}
+
 	Json::FastWriter fast_writer;
 	string strChannelSel = fast_writer.write(root1);
 
@@ -4020,6 +4238,7 @@ int Cfg_Update_Channel(void)
 
 	fflush(fp);
 	fsync(fileno(fp));
+	flock(fileno(fp), LOCK_UN);
 	fclose(fp);
 
 #else
@@ -4052,6 +4271,12 @@ int Cfg_Update_Channel(void)
 		return -1;
 	}
 
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
+		return -1;
+	}
+
 	Json::FastWriter fast_writer;
 	string strChannelDef = fast_writer.write(root1);
 
@@ -4059,6 +4284,7 @@ int Cfg_Update_Channel(void)
 
 	fflush(fp);
 	fsync(fileno(fp));
+	flock(fileno(fp), LOCK_UN);
 	fclose(fp);
 #endif
 	return 0;
@@ -4272,6 +4498,12 @@ int Cfg_Update_Audio(void)
 		return -1;
 	}
 
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
+		return -1;
+	}
+
 	Json::FastWriter fast_writer;
 	string strAutoSwitch = fast_writer.write(root1);
 
@@ -4279,6 +4511,7 @@ int Cfg_Update_Audio(void)
 
 	fflush(fp);
 	fsync(fileno(fp));
+	flock(fileno(fp), LOCK_UN);
 	fclose(fp);
 	return 0;
 }
@@ -4309,12 +4542,20 @@ int Cfg_Update_Video(void)
 			return -1;
 		}
 
+		if (flock(fileno(fp), LOCK_EX)) {
+			DBG_ErrMsg("%s lock failed\n",path);
+			fclose(fp);
+			return -1;
+		}
+
 		fread(pBuf,1,sizeof(pBuf),fp);
 
 		if(reader.parse(pBuf, root1))
 		{
 			DBG_InfoMsg("open %s Success !!!\n",path);
 		}
+
+		flock(fileno(fp), LOCK_UN);
 
 		fclose(fp);
 	}
@@ -4406,6 +4647,12 @@ int Cfg_Update_Video(void)
 		return -1;
 	}
 
+	if (flock(fileno(fp2), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp2);
+		return -1;
+	}
+
 	Json::FastWriter fast_writer;
 	string strAVsetting = fast_writer.write(root1);
 
@@ -4413,6 +4660,7 @@ int Cfg_Update_Video(void)
 
 	fflush(fp2);
 	fsync(fileno(fp2));
+	flock(fileno(fp2), LOCK_UN);
 	fclose(fp2);
 	return 0;
 }
@@ -4522,6 +4770,12 @@ int Cfg_Update_AutoSwitch(void)
 		return -1;
 	}
 
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
+		return -1;
+	}
+
 	Json::FastWriter fast_writer;
 	string strAutoSwitch = fast_writer.write(root1);
 
@@ -4529,6 +4783,7 @@ int Cfg_Update_AutoSwitch(void)
 
 	fflush(fp);
 	fsync(fileno(fp));
+	flock(fileno(fp), LOCK_UN);
 	fclose(fp);
 
 	return 0;
@@ -4610,6 +4865,12 @@ int Cfg_Update_AVSetting(void)
 		return -1;
 	}
 
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
+		return -1;
+	}
+
 	Json::FastWriter fast_writer;
 	string strAVSetting = fast_writer.write(root1);
 
@@ -4617,8 +4878,9 @@ int Cfg_Update_AVSetting(void)
 
 	fflush(fp);
 	fsync(fileno(fp));
+	flock(fileno(fp), LOCK_UN);
 	fclose(fp);
-			return 0;
+	return 0;
 }
 
 int Cfg_Update_EDID(void)
@@ -4673,6 +4935,12 @@ int Cfg_Update_EDID(void)
 		return -1;
 	}
 
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
+		return -1;
+	}
+
 	Json::FastWriter fast_writer;
 	string strEDIDSetting = fast_writer.write(root1);
 
@@ -4680,6 +4948,7 @@ int Cfg_Update_EDID(void)
 
 	fflush(fp);
 	fsync(fileno(fp));
+	flock(fileno(fp), LOCK_UN);
 	fclose(fp);
 	return 0;
 }
@@ -4724,6 +4993,12 @@ int Cfg_Update_Device(void)
 		return -1;
 	}
 
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
+		return -1;
+	}
+
 	Json::FastWriter fast_writer;
 	string strDeviceSetting = fast_writer.write(root1);
 
@@ -4731,6 +5006,7 @@ int Cfg_Update_Device(void)
 
 	fflush(fp);
 	fsync(fileno(fp));
+	flock(fileno(fp), LOCK_UN);
 	fclose(fp);
 	return 0;
 }
@@ -4777,6 +5053,12 @@ int Cfg_Update_Version(void)
 		return -1;
 	}
 
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
+		return -1;
+	}
+
 	Json::FastWriter fast_writer;
 	string strVersionSetting = fast_writer.write(root1);
 
@@ -4784,6 +5066,7 @@ int Cfg_Update_Version(void)
 
 	fflush(fp);
 	fsync(fileno(fp));
+	flock(fileno(fp), LOCK_UN);
 	fclose(fp);
 	return 0;
 }
@@ -4836,6 +5119,12 @@ int Cfg_Update_Time(void)
 		return -1;
 	}
 
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
+		return -1;
+	}
+
 	Json::FastWriter fast_writer;
 	string strTimeSetting = fast_writer.write(root1);
 
@@ -4843,6 +5132,7 @@ int Cfg_Update_Time(void)
 
 	fflush(fp);
 	fsync(fileno(fp));
+	flock(fileno(fp), LOCK_UN);
 	fclose(fp);
 	return 0;
 }
@@ -4890,6 +5180,12 @@ int Cfg_Update_User(void)
 		return -1;
 	}
 
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
+		return -1;
+	}
+
 	Json::FastWriter fast_writer;
 	string strUSerSetting = fast_writer.write(root1);
 
@@ -4897,6 +5193,7 @@ int Cfg_Update_User(void)
 
 	fflush(fp);
 	fsync(fileno(fp));
+	flock(fileno(fp), LOCK_UN);
 	fclose(fp);
 	return 0;
 }
@@ -4954,6 +5251,12 @@ int Cfg_Update_VideoWall(void)
 		return -1;
 	}
 
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
+		return -1;
+	}
+
 	Json::FastWriter fast_writer;
 	string strVideowallSetting = fast_writer.write(root1);
 
@@ -4961,6 +5264,7 @@ int Cfg_Update_VideoWall(void)
 
 	fflush(fp);
 	fsync(fileno(fp));
+	flock(fileno(fp), LOCK_UN);
 	fclose(fp);
 
 	return 0;
@@ -5075,6 +5379,12 @@ int Cfg_Update_Gateway(void)
 		return -1;
 	}
 
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
+		return -1;
+	}
+
 	Json::FastWriter fast_writer;
 	string strGateway = fast_writer.write(root1);
 
@@ -5082,6 +5392,7 @@ int Cfg_Update_Gateway(void)
 
 	fflush(fp);
 	fsync(fileno(fp));
+	flock(fileno(fp), LOCK_UN);
 	fclose(fp);
 
 	return 0;
@@ -5204,6 +5515,12 @@ int Cfg_Update_Network(void)
 		return -1;
 	}
 
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
+		return -1;
+	}
+
 	Json::FastWriter fast_writer;
 	string strNetwork = fast_writer.write(root1);
 
@@ -5211,6 +5528,7 @@ int Cfg_Update_Network(void)
 
 	fflush(fp);
 	fsync(fileno(fp));
+	flock(fileno(fp), LOCK_UN);
 	fclose(fp);
 
 	return 0;
@@ -5255,13 +5573,20 @@ int Cfg_Update_Log(void)
 		return -1;
 	}
 
-		Json::FastWriter fast_writer;
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
+		return -1;
+	}
+
+	Json::FastWriter fast_writer;
 	string strLogSetting = fast_writer.write(root1);
 
 	fwrite(strLogSetting.c_str(),1,strLogSetting.size(),fp);
 
 	fflush(fp);
 	fsync(fileno(fp));
+	flock(fileno(fp), LOCK_UN);
 	fclose(fp);
 	return 0;
 }
@@ -5297,12 +5622,20 @@ int Cfg_Update_OSD(void)
 			return -1;
 		}
 
+		if (flock(fileno(fp), LOCK_EX)) {
+			DBG_ErrMsg("%s lock failed\n",path);
+			fclose(fp);
+			return -1;
+		}
+
 		fread(pBuf,1,sizeof(pBuf),fp);
 
 		if(reader.parse(pBuf, root1))
 		{
 			DBG_InfoMsg("open %s Success !!!\n",path);
 		}
+
+		flock(fileno(fp), LOCK_UN);
 
 		fclose(fp);
 	}
@@ -5348,6 +5681,12 @@ int Cfg_Update_OSD(void)
 		return -1;
 	}
 
+	if (flock(fileno(fp2), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp2);
+		return -1;
+	}
+
 	Json::FastWriter fast_writer;
 	string strOSDsetting = fast_writer.write(root1);
 
@@ -5355,6 +5694,7 @@ int Cfg_Update_OSD(void)
 
 	fflush(fp2);
 	fsync(fileno(fp2));
+	flock(fileno(fp2), LOCK_UN);
 	fclose(fp2);
 	return 0;
 
@@ -6570,6 +6910,12 @@ int Cfg_Get_EDID_List(char info[][MAX_EDID_LEN],int num)
 		return -1;
 	}
 
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
+		return -1;
+	}
+
 	int ncount = 1;
 	fread(pBuf,1,sizeof(pBuf),fp);
 	if(reader.parse(pBuf, root1))
@@ -6599,6 +6945,7 @@ int Cfg_Get_EDID_List(char info[][MAX_EDID_LEN],int num)
 		}
 	}
 
+	flock(fileno(fp), LOCK_UN);
 	fclose(fp);
 	return ncount;
 }
@@ -6619,6 +6966,12 @@ int Cfg_Set_Enc_AVSignal_Info()
 	fp = fopen(path, "r");
 	if (fp == NULL) {
 		DBG_ErrMsg("ERROR! can't open %s\n",path);
+		return -1;
+	}
+
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
 		return -1;
 	}
 
@@ -6707,6 +7060,8 @@ int Cfg_Set_Enc_AVSignal_Info()
 		}
 	}
 
+	flock(fileno(fp), LOCK_UN);
+
 	fclose(fp);
 	return 0;
 }
@@ -6732,6 +7087,12 @@ int Cfg_Set_Dec_Usb_KVM()
 	fp = fopen(path, "r");
 	if (fp == NULL) {
 		DBG_ErrMsg("ERROR! can't open %s\n",path);
+		return -1;
+	}
+
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
 		return -1;
 	}
 
@@ -6861,6 +7222,7 @@ int Cfg_Set_Dec_Usb_KVM()
 		}
 	}
 
+	flock(fileno(fp), LOCK_UN);
 	fclose(fp);
 	return 0;
 }
@@ -6955,6 +7317,12 @@ int Cfg_Set_Switch_Delay()
 		return -1;
 	}
 
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
+		return -1;
+	}
+
 	fread(pBuf,1,sizeof(pBuf),fp);
 
 	if(reader.parse(pBuf, root1))
@@ -6988,6 +7356,8 @@ int Cfg_Set_Switch_Delay()
 			}
 		}
 	}
+
+	flock(fileno(fp), LOCK_UN);
 
 	fclose(fp);
 
