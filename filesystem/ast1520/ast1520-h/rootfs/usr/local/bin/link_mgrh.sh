@@ -17,6 +17,7 @@ gateway_setting="/data/configs/kds-7/gateway/gateway.json"
 network_setting="/data/configs/kds-7/network/network_setting.json"
 time_setting="/data/configs/kds-7/time/time_setting.json"
 av_signal="/data/configs/kds-7/av_signal/av_signal.json"
+audio_setting="/data/configs/kds-7/audio/audio_setting.json"
 rx_tcp_port='8888'
 analog_out_volum='87'
 
@@ -1704,7 +1705,9 @@ web_mute_slider_handle()
 	if [ $1 != '1' ];then
 		#unmute
 		echo 100 > /sys/devices/platform/1500_i2s/analog_in_vol
-		echo 1 > /sys/class/leds/linein_mute/brightness
+		if [ $P3KCFG_ANALOG_DIR = 'in' ];then
+			echo 1 > /sys/class/leds/linein_mute/brightness
+		fi
 	    echo 1 > /sys/class/leds/lineout_mute/brightness
 		#Because KDS-EN7 use gsv2001 chip,it just have one core,therefore, mute outputs one way and follows mute later
 		#but KDS-SW3-EN7 use gsv2008 will be no such problem,because it have two core
@@ -1746,9 +1749,11 @@ handle_e_p3k_audio()
 			#ipc @a_lm_set s ae_dir:$_para1
 			case "$_para1" in
 				in)
+					P3KCFG_ANALOG_DIR='in'
 					ipc @m_lm_set s set_gpio_val:1:70:1
 				;;
 				out)
+					P3KCFG_ANALOG_DIR='out'
 					ipc @m_lm_set s set_gpio_val:1:70:0
 				;;
 				*)
@@ -2809,6 +2814,16 @@ init_param_from_p3k_cfg()
 		P3KCFG_GUARD_TIME='10'
 	fi
 	echo "P3KCFG_GUARD_TIME=$P3KCFG_GUARD_TIME"
+
+	if [ -f "$audio_setting" ];then
+		P3KCFG_ANALOG_DIR=`jq -r '.audio_setting.analog_direction' $audio_setting`
+		if echo "$P3KCFG_ANALOG_DIR" | grep -q "null" ; then
+			P3KCFG_ANALOG_DIR='in'
+		fi
+	else
+		P3KCFG_ANALOG_DIR='in'
+	fi
+	echo "P3KCFG_ANALOG_DIR=$P3KCFG_ANALOG_DIR"
 }
 
 set_hdcp_status()

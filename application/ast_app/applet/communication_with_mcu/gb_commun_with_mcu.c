@@ -643,7 +643,7 @@ void do_handle_set_gpio_val(uint16_t cmd,char *cmd_param)
             free(gpio_val);
             return;
         }
-#if 0
+#if 1
         if(gpio_val->gpio[i][0] == 70)  //70 Indicates setting analog input or output
         {
             if(gpio_val->gpio[i][1] == 1)   //line_in
