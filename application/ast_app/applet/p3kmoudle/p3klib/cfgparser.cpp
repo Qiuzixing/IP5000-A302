@@ -1504,7 +1504,7 @@ int Cfg_Init_Version(void)
 	char stb_ver[64] = "";
 	mysystem("astparam misc g stb_ver",stb_ver,64);
 	if(strstr(stb_ver,"not defined") != 0)
-		strcpy(g_version_info.standby_version,"0.1.0");
+		strcpy(g_version_info.standby_version,g_version_info.fw_version);
 	else
 		strcpy(g_version_info.standby_version,stb_ver);
 
