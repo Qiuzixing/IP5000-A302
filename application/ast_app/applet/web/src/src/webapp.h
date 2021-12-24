@@ -140,6 +140,7 @@ private:
     static struct mg_context * ctx;
     static P3kStatus s_p3kStatus;
 
+    static CMutex s_HandleMutex;
     static CMutex s_AliveStreamMutex;
     static CMutex s_MjpegUsrCntMutex;
     static CMutex s_MjpegMutex;

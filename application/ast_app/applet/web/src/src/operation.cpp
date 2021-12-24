@@ -6,11 +6,79 @@
 #include <sys/vfs.h>
 #include <sys/stat.h>
 #include <sys/statfs.h>
+#include <sys/file.h>
 #include <unistd.h>
 #include <crypt.h>
 
 
 CMutex COperation::s_DeviceMutex;
+
+CFileMutex::CFileMutex(const char *i_pFile)
+:
+m_file(i_pFile),
+m_fp(NULL),
+m_bisLock(false)
+{}
+
+CFileMutex::~CFileMutex()
+{
+    if(m_fp != NULL)
+    {
+        fclose(m_fp);
+        m_fp = NULL;
+    }
+}
+
+int CFileMutex::Init()
+{
+    string::size_type site = m_file.rfind(".");
+    if(site == string::npos)
+    {
+        return -1;
+    }
+
+    string strFile = m_file.substr(0, site);
+    strFile += ".lck";
+
+    m_fp = fopen(strFile.c_str(),"a");
+    if(m_fp == NULL)
+    {
+        BC_ERROR_LOG("Init fopen failed!");
+        return -1;
+    }
+
+    return 0;
+}
+
+
+void CFileMutex::Lock()
+{
+    int nret = -1;
+    while(!m_bisLock)
+    {
+        nret = flock(fileno(m_fp), LOCK_EX);
+        if(nret == 0)
+        {
+            m_bisLock = true;
+        }
+    }
+}
+
+void CFileMutex::UnLock()
+{
+    int nret = -1;
+    while(m_bisLock)
+    {
+        nret = flock(fileno(m_fp), LOCK_UN);
+        if(nret == 0)
+        {
+            m_bisLock = false;
+        }
+    }
+
+    fclose(m_fp);
+    m_fp = NULL;
+}
 
 int COperation::FileToString(const char *i_pinFilePath, string &o_strDes)
 {
@@ -46,6 +114,9 @@ int COperation::StringToFile(const char *i_pStrBuff, const char *i_pOutFileath)
 		return -1;
 	}
 	SInt32 nRet = fwrite(i_pStrBuff,1,strlen(i_pStrBuff),fp);
+    fflush(fp);
+    fsync(fileno(fp));
+
 	fclose(fp);
 	chmod(i_pOutFileath, 0664);
 
@@ -188,18 +259,27 @@ bool COperation::UpdateEdidFile(const char *i_pFilePath)
 bool COperation::SetJsonFile(const char *i_pJsonData, const char *i_pFile)
 {
     CMutexLocker locker(&s_DeviceMutex);
+    CFileMutex fmutex(i_pFile);
+    if(fmutex.Init() != 0)
+    {
+        return false;
+    }
+    fmutex.Lock();
+
     int ret = StringToFile(i_pJsonData, i_pFile);
     if(ret < 0)
     {
         return false;
     }
 
+    fmutex.UnLock();
     return true;
 }
 
 bool COperation::GetJsonFile(const char *i_pJsonFile, string& o_strContent)
 {
     CMutexLocker locker(&s_DeviceMutex);
+
     int ret = FileToString(i_pJsonFile, o_strContent);
     if(ret < 0)
     {

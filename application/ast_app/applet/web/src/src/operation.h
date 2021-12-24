@@ -28,6 +28,23 @@ using namespace std;
 #define VIDEO_WALL_FILE_PATH    "/vw/video_wall_test_pattern.png"
 #define UPGRADE_FILE_PATH       "/dev/shm"
 
+class CFileMutex
+{
+    public:
+        CFileMutex(const char *i_pFile);
+        ~CFileMutex();
+
+        int Init();
+        void Lock();
+        void UnLock();
+
+    private:
+        bool m_bisLock;
+        string m_file;
+        FILE *m_fp;
+
+};
+
 class COperation
 {
 public:

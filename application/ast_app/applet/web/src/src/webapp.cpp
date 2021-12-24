@@ -87,6 +87,7 @@ P3kStatus CWeb::s_p3kStatus;
 struct mg_context * CWeb::ctx = NULL;
 int CWeb::s_p3kSocket = -1;
 
+CMutex CWeb::s_HandleMutex;
 CMutex CWeb::s_AliveStreamMutex;
 CMutex CWeb::s_MjpegUsrCntMutex;
 CMutex CWeb::s_MjpegMutex;
@@ -741,6 +742,7 @@ int CWeb::UploadUpgradeHandle(struct mg_connection *conn, void *cbdata)
 
 int CWeb::JsonDataHandle(struct mg_connection *conn, void *cbdata)
 {
+    CMutexLocker locker(&s_HandleMutex);
     const struct mg_request_info *pRequest = mg_get_request_info(conn);
     //BC_INFO_LOG("content data len is [%lld]", pRequest->content_length);
 
@@ -773,8 +775,8 @@ int CWeb::JsonDataHandle(struct mg_connection *conn, void *cbdata)
         size_t sLen = 0;
         bool bHandleReq = false;
         string strP3kConfCmd = "#KDS-CFG-MODIFY ";
-        char szContent[pRequest->content_length];
-        memset(szContent, 0, pRequest->content_length);
+        char szContent[pRequest->content_length + 1];
+        memset(szContent, 0, pRequest->content_length + 1);
         string strFile = DEFAULT_FILE_PATH;
 
         sLen = BC_GET_Request_Body(conn, szContent, (pRequest->content_length));
