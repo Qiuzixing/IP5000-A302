@@ -269,7 +269,8 @@ export default {
       if (currentVal > oldVal) {
         this.kvmMap.forEach(item => {
           for (let i = 0; i < currentVal - oldVal; i++) {
-            const h = this.kvmMap[0][this.kvmMap[0].length - 1].h + 1
+            // const h = this.kvmMap[0][this.kvmMap[0].length - 1].h + 1
+            const h = this.kvmMap[i][i].h + 1
             item.push({
               mac: '',
               h,

@@ -37,56 +37,7 @@
                   style="margin-left: 25px;">OFF</button>
         </div>
       </div>
-      <div class="setting-model">
-        <h3 class="setting-model-title">Display</h3>
-        <div class="setting">
-          <span class="setting-title">Sleep (5V-off) Delay On Video Signal Loss (sec)</span>
-          <el-input-number v-model="delay.sleep_delay_on_signal_loss_sec"
-                           controls-position="right"
-                           :max="90"
-                           :min="0"></el-input-number>
-        </div>
-        <div class="setting">
-          <span class="setting-title">Shutdown (CEC) Delay On Video Signal Loss (sec)</span>
-          <el-input-number v-model="delay.shutdown_delay_on_signal_loss_sec"
-                           controls-position="right"
-                           :max="90"
-                           :min="0"></el-input-number>
-        </div>
-        <div class="setting">
-          <span class="setting-title">Wake-up (CEC) Delay On Video Signal Detection (sec)</span>
-          <el-input-number v-model="delay.wake_up_delay_on_signal_detection_sec"
-                           controls-position="right"
-                           :max="90"
-                           :min="0"></el-input-number>
-          <!--          <button class="btn btn-plain-primary" style="margin-left: 24px;" @click="setDisplayDelay">APPLY</button>-->
-        </div>
-      </div>
-      <div class="setting-model">
-        <div class="radio-setting">
-          <span class="setting-title">Sleep Image</span>
-          <div class="overlay-setting">
-            <div class="overlay-setting-item overlay-img">
-              <span class="file-name"
-                    style="display: inline-block;overflow: hidden;">{{imgName}}</span>
-              <span class="upload-icon"
-                    @click="clickUpload">
-                <icon-svg icon-class="upload_img" />
-              </span>
-              <input type="file"
-                     accept="image/jpeg"
-                     @change="browseImg"
-                     ref="upload"
-                     style="display: none;">
-              <span class="range-alert"
-                    v-if="imgError"
-                    style="white-space: nowrap;">The image format must be JPEG (1280 x 720)</span>
-              <span v-if="uploadComplete"
-                    style="font-size:20px;margin-left:15px;color:#67c23a;"><i class="el-icon-circle-check"></i></span>
-            </div>
-
-          </div>
-        </div>
+      <div class="setting-model" style="margin-top: 50px;">
         <div class="radio-setting"
              style="margin-bottom: 24px;">
           <span class="setting-title">Image Preview</span>
@@ -170,7 +121,7 @@ export default {
       }
     }
     this.getAVSignal()
-    this.getDisplayDelay()
+    // this.getDisplayDelay()
   },
   methods: {
     handleMsg (msg) {
@@ -242,7 +193,7 @@ export default {
       this.forceRGB = msg.split(',')[1]
     },
     save: debounce(function () {
-      this.setDisplayDelay()
+      // this.setDisplayDelay()
       this.setAVSingle()
     }, 2000, {
       leading: true,

@@ -3,18 +3,6 @@
     <div class="setting-model">
       <div class="overlay">
         <div>
-          <v-collapse title="Overlay settings">
-            <div class="overlay-setting">
-              <span class="overlay-title">Display Overlay</span>
-              <button class="btn btn-plain-primary"
-                      @click="showOverlay(1)">START
-              </button>
-              <button class="btn btn-plain-primary"
-                      @click="showOverlay(0)"
-                      style="margin-left:15px;">STOP
-              </button>
-            </div>
-          </v-collapse>
           <v-collapse title="Image settings">
             <div class="overlay-setting">
               <span class="overlay-title">Image</span>
@@ -24,7 +12,7 @@
                 <span class="
                     upload-icon"
                       @click="clickUpload">
-                  <icon-svg icon-class="upload_img" />
+                  <icon-svg icon-class="upload_img"/>
                 </span>
                 <input type="file"
                        ref="upload"
@@ -97,7 +85,7 @@
                    style="position: relative">
                 <div class="color-desc">
                   <p style="margin: 0"><span class="color-box"
-                          :style="{'background': color}"></span>
+                                             :style="{'background': color}"></span>
                     {{ color }}</p>
                   <color-picker v-model="color"
                                 color-format="hex"
@@ -159,11 +147,11 @@ export default {
       imgName: '',
       imageInfo: {
         genral:
-        {
-          enable: 'on',
-          timeout: 2,
-          transparency: 0
-        },
+          {
+            enable: 'on',
+            timeout: 2,
+            transparency: 0
+          },
         objects: [
           {
             type: 'image',
@@ -173,11 +161,11 @@ export default {
       },
       textInfo: {
         genral:
-        {
-          enable: 'off',
-          timeout: 2,
-          transparency: 0
-        },
+          {
+            enable: 'off',
+            timeout: 2,
+            transparency: 0
+          },
         objects: [
           {
             type: 'text',
@@ -290,11 +278,14 @@ export default {
       }
     },
     setShow (e, num) {
-      const val = e === 'on' ? 'off' : 'on'
       if (num === 1) {
-        this.textInfo.genral.enable = val
+        if (e === 'on' && this.textInfo.genral.enable === 'on') {
+          this.textInfo.genral.enable = 'off'
+        }
       } else {
-        this.imageInfo.genral.enable = val
+        if (e === 'on' && this.imageInfo.genral.enable === 'on') {
+          this.imageInfo.genral.enable = 'off'
+        }
       }
     },
     getTextInfo () {
@@ -404,7 +395,7 @@ export default {
   .overlay-title {
     width: 176px;
     font-family: "open sans semiblold", -apple-system, BlinkMacSystemFont,
-      "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
 
   .overlay-img {
