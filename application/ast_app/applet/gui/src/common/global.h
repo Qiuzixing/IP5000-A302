@@ -65,4 +65,33 @@ extern int g_nChannelId;
 
 #define RESTART_APP		777
 
+#include <stdio.h>
+#include <string.h>
+#include <string>
+#include <sys/file.h>
+#include <unistd.h>
+#include <QDebug>
+
+using namespace std;
+
+int FileUnLock(const char *i_pFile);
+int FileLock(const char *i_pFile);
+
+class CFileMutex
+{
+    public:
+        CFileMutex(const char *i_pFile);
+        ~CFileMutex();
+
+        int Init();
+        void Lock();
+        void UnLock();
+
+    private:
+        bool m_bisLock;
+        string m_file;
+        FILE *m_fp;
+
+};
+
 #endif // GLOBAL_H

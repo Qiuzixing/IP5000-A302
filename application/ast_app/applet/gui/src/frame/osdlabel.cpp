@@ -55,20 +55,21 @@ OSDLabel::OSDLabel(const QString &imagePath,int width,int height,QWidget *parent
     ,imagePath(imagePath)
     ,m_bLongDisplay(false)
 {
-    // image
-    QRect imageRect;
-    imageRect.setX(0);
-    imageRect.setY(0);
-    imageRect.setWidth(width * g_fScaleScreen);
-    imageRect.setHeight(height * g_fScaleScreen);
-    imageLabel = new QLabel(this);
-    imageLabel->setGeometry(imageRect);
-
     QPixmap pix;
     if(pix.load(imagePath))
     {
         qDebug() << "load finished";
     }
+
+    // image
+    QRect imageRect;
+    imageRect.setX(0);
+    imageRect.setY(0);
+    imageRect.setWidth(pix.width() * g_fScaleScreen);
+    imageRect.setHeight(pix.height() * g_fScaleScreen);
+    imageLabel = new QLabel(this);
+    imageLabel->setGeometry(imageRect);
+
     QPixmap tmppix(pix.size());
     tmppix.fill(Qt::transparent);
     QPainter p(&tmppix);

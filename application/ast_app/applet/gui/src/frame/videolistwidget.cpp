@@ -19,6 +19,7 @@
 #include <QFile>
 #include <QLabel>
 #include <QWidgetAction>
+#include <QFileInfo>
 
 #define MENUINFO_PATH      "/data/configs/kds-7/osd/osd.json"
 #define CHANNELS_LIST_PATH "/data/configs/kds-7/channel/channel_map.json"
@@ -429,6 +430,24 @@ void OSDMeun::parseMeunJson(QString jsonpath)
 
     // 从文件中读取
    // string path = jsonpath.toStdString();
+
+    // m_lock.lockForRead();
+    CFileMutex lock(MENUINFO_PATH);
+    lock.Init();
+
+    lock.Lock();
+//    FileLock(MENUINFO_PATH);
+
+    int filesize = 2048;
+//    QFileInfo info(MENUINFO_PATH);
+//    if (info.exists()) {
+//        qDebug() << "info.size():" << info.size();
+//        filesize = info.size();
+//    } else {
+//        qDebug() << "文件路径不存在！";
+//        return;
+//    }
+
     ifstream in(MENUINFO_PATH,ios::binary);
 
     if(!in.is_open())
@@ -438,7 +457,38 @@ void OSDMeun::parseMeunJson(QString jsonpath)
     }
     qDebug() << "Start Parse OSDjson";
 
-    if(reader.parse(in,root))
+//    int fd = ::open(MENUINFO_PATH, O_RDONLY);
+//    if(fd == -1)
+//    {}
+
+//    char input[filesize];
+//    memset(input,0,filesize);
+//    int lock_result = ::flock(fd, LOCK_EX);
+//    qDebug() << "lock_result:" << lock_result;
+//    if(lock_result == 0)
+//    {
+
+//    }
+
+//    ::read(fd, input, filesize);
+//    qDebug() << "input" << input;
+
+
+//    if(flock(fd, LOCK_UN) == 0)
+//    {
+//        ::close(fd);
+//    }
+
+    char input[filesize];
+    memset(input,0,filesize);
+    in.read(input,filesize);
+    std::cout << "in_str:" << input << std::endl;
+
+    in.close();
+    lock.UnLock();
+
+    std::string input_str = input;
+    if(reader.parse(input_str,root))
     {
         // 获取节点信息
         int timeout = root["channel_menu"]["timeout_sec"].asInt();
@@ -520,6 +570,11 @@ void OSDMeun::parseMeunJson(QString jsonpath)
         // 这里应该根据页面频道数更新QListWidget的高度， 更新后同时 发送信号通知菜单更新
         //updateListWidget(m_pageChannels);
     }
+    else
+    {
+        std::cout << "reader error:" << reader.getFormatedErrorMessages() << std::endl;
+    }
+//    m_lock.unlock();
 }
 
 QFont OSDMeun::loadFontSize()
@@ -564,6 +619,11 @@ void OSDMeun::parseChannelJson()
     Json::Reader reader;
     Json::Value root;
 
+    // 加锁
+//    m_lock.lockForRead();
+    CFileMutex lock(CHANNELS_LIST_PATH);
+    lock.Init();
+    lock.Lock();
 
     // 从文件中读取
     //string path = jsonpath.toStdString();
@@ -643,6 +703,15 @@ void OSDMeun::parseChannelJson()
         // 频道加载
         loadChannel(m_channelList);
     }
+    else
+    {
+        std::cout << "reader error:" << reader.getFormatedErrorMessages() << std::endl;
+    }
+
+    in.close();
+
+    // 解锁
+    lock.UnLock();
 }
 
 
@@ -815,6 +884,7 @@ void OSDMeun::writeOsdJson(int pageChannels)
     Json::Value root;
 
 
+    m_lock.lockForWrite();
     // 二进制打开文件
     ifstream in(MENUINFO_PATH,ios::binary);
 
@@ -838,6 +908,8 @@ void OSDMeun::writeOsdJson(int pageChannels)
             cout << "open json file failed." << endl;
     }
     ou << root << endl;
+
+    m_lock.unlock();
 }
 
 void OSDMeun::setListWidgetHeight()
@@ -866,3 +938,4 @@ void OSDMeun::setListWidgetHeight()
  {
     m_Search->menu()->hide();
  }
+

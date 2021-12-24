@@ -29,12 +29,18 @@
 
 #include <QProcess>
 
+#define KM_USB_PATH         "/data/configs/kds-7/usb/km_usb.json"
 #define RESOLUTION_CONFIG   "/sys/devices/platform/videoip/timing_info"
 //#define SLEEP_IMAGE_PATH  "/data/configs/kds-7/logo/sleep_image.jpg"
 #define SLEEP_IMAGE_PATH    "/share/default.jpg"
 
-#define MENUINFO_PATH      "/data/configs/kds-7/osd/osd.json"
-#define CHANNELS_LIST_PATH "/data/configs/kds-7/channel/channel_map.json"
+#define MENUINFO_PATH       "/data/configs/kds-7/osd/osd.json"
+#define CHANNELS_LIST_PATH  "/data/configs/kds-7/channel/channel_map.json"
+
+#define OVERLAY_TEXT_PATH   "/data/configs/kds-7/overlay/overlay1_setting.json"
+#define OVERLAY_IMAGE_PATH   "/data/configs/kds-7/overlay/overlay2_setting.json"
+
+#define ACADEMY_4K          3656
 
 using namespace std;
 
@@ -73,15 +79,6 @@ MainWidget::MainWidget(QWidget *parent) : QWidget(parent)
 
     connect(m_sleepPanel,SIGNAL(sigStartSleepMode()),this,SLOT(startSleepMode()));
     connect(m_sleepPanel,SIGNAL(sigStartKVM(bool)),this,SLOT(handleKvmMsg(bool)));
-
-    // 正常工作状态
-    if(!g_bDeviceSleepMode)
-    {
-        //    m_panelStack->close();
-        //    m_sleepPanel->setVisible(false);
-        //    connect(&getInfoTimer,SIGNAL(timeout()),this,SLOT(isNoSignal()));
-        //    this->getInfoTimer.start(1000);
-    }
 
     qDebug() << "main_4";
 
@@ -175,30 +172,30 @@ void MainWidget::onRecvData(QByteArray data)
         else
             bshow = true;
 
-         setOsdDispaly(bshow);
+         setMsgDispaly(bshow);
     }
     else if(datagram.contains("START"))
     {
         // 开始显示overlay
-        qDebug() << "SHOW OVERLAY :";
-        QStringList argList = datagram.split(" ");
+//        qDebug() << "SHOW OVERLAY :";
+//        QStringList argList = datagram.split(" ");
 
-        if(argList.size() < 2)
-        {
-            qDebug() << "too few arg";
-            return;
-        }
+//        if(argList.size() < 2)
+//        {
+//            qDebug() << "too few arg";
+//            return;
+//        }
 
-        QString filename = argList.at(1) + ".json";
+//        QString filename = argList.at(1) + ".json";
 
-        if(!argList.at(2).isEmpty())
-        {
-            int timeout = argList.at(2).toInt();
-            m_CmdOuttime = timeout;
-        }
+//        if(!argList.at(2).isEmpty())
+//        {
+//            int timeout = argList.at(2).toInt();
+//            m_CmdOuttime = timeout;
+//        }
 
-        // 解析overlay
-        parseOverlayJson(filename);
+//        // 解析overlay
+//        parseOverlayJson(filename);
     }
     else if(datagram.contains("STOP"))
     {
@@ -240,22 +237,14 @@ void MainWidget::onRecvData(QByteArray data)
     }
 }
 
-void MainWidget::setOsdDispaly(bool status)
+void MainWidget::setMsgDispaly(bool status)
 {
-    if(status)
-    {
-        m_osdMeun->parseChannelJson();
-        slotHideOverlay();
-        hideOsdMeun();
-        QTimer::singleShot(500,this,SLOT(showOsdMeun()));
-    }
-    else
-        hideOsdMeun();
+    // 用于设置是否显示设备信息
 }
 
 void MainWidget::focusOutEvent(QFocusEvent *e)
 {
-
+    QWidget::focusOutEvent(e);
 }
 
 void MainWidget::keyPressEvent(QKeyEvent *e)
@@ -333,40 +322,68 @@ void MainWidget::syncConfig(QString path)
     {
         // osd.json发生改变
         qDebug("OSD.JSON Change!");
-        if(m_osdMeun == NULL)
-            return;
 
-        m_osdMeun->parseMeunJson(MENUINFO_PATH);
-        m_osdMeun->setListWidgetHeight();
-        m_osdMeun->setMeunFont();
-
-        if(m_osdMeun->getdisplayConfig())
+        qDebug() << "g_bOSDMeunDisplay:" << g_bOSDMeunDisplay;
+        if(g_bOSDMeunDisplay)
         {
             // Display依靠P3K不能依靠配置文件，会导致上电后直接显示OSD菜单
-        }
-        else
-        {
-            hideOsdMeun();
+
+            updateOsdMeun();
+            showOsdMeun();
         }
     }
     else if(path.compare(CHANNELS_LIST_PATH) == 0)
     {
         // channel.json发生改变
         qDebug("Channel.JSON Change!");
-        if(m_osdMeun == NULL)
-            return;
 
-        m_osdMeun->parseChannelJson();
-
-        if(m_osdMeun->getdisplayConfig())
+        qDebug() << "g_bOSDMeunDisplay:" << g_bOSDMeunDisplay;
+        if(g_bOSDMeunDisplay)
         {
             // Display依靠P3K不能依靠配置文件，会导致上电后直接显示OSD菜单
-        }
-        else
-        {
-            hideOsdMeun();
+             updateChannelList();
+//             QTimer::singleShot(200,this,SLOT(updateChannelList()));
+//             showOsdMeun();
         }
     }
+    else if(path.compare(OVERLAY_TEXT_PATH) == 0)
+    {
+//        QTimer::singleShot(200,this,SLOT(parseOverlayText()));
+        parseOverlayText();
+    }
+    else if(path.compare(OVERLAY_IMAGE_PATH) == 0)
+    {
+//         QTimer::singleShot(200,this,SLOT(parseOverlayImage()));
+         parseOverlayImage();
+    }
+}
+
+void MainWidget::parseOverlayText()
+{
+    parseOverlayJson("overlay1_setting.json");
+}
+void MainWidget::parseOverlayImage()
+{
+    parseOverlayJson("overlay2_setting.json");
+}
+
+void MainWidget::updateOsdMeun()
+{
+    if(m_osdMeun == NULL)
+        return;
+
+    m_osdMeun->parseMeunJson(MENUINFO_PATH);
+    m_osdMeun->parseChannelJson();
+    m_osdMeun->setListWidgetHeight();
+    m_osdMeun->setMeunFont();
+}
+
+void MainWidget::updateChannelList()
+{
+    if(m_osdMeun == NULL)
+        return;
+
+    m_osdMeun->parseChannelJson();
 }
 
 void MainWidget::getResolutionFromTiming()
@@ -436,6 +453,7 @@ void MainWidget::getResolutionFromTiming()
             this->setFixedSize(g_nScreenWidth,g_nScreenHeight);
 
             m_bReinit = true;
+            qDebug() << "getResolutionFromTiming:hideOsdMeun_1";
             hideOsdMeun();
             slotHideOverlay();
             destroyOsdAndOverlay();
@@ -460,6 +478,7 @@ void MainWidget::getResolutionFromTiming()
             this->setFixedSize(g_nScreenWidth,g_nScreenHeight);
 
             m_bReinit = true;
+            qDebug() << "getResolutionFromTiming:hideOsdMeun_2";
             hideOsdMeun();
             slotHideOverlay();
             destroyOsdAndOverlay();
@@ -500,35 +519,25 @@ void MainWidget::destroyOsdAndOverlay()
     }
 }
 
-void MainWidget::isNoSignal()
-{
-//    QString strCmd = "cat /sys/devices/platform/videoip/timing_info";
-//    QProcess p;
-//    p.start("bash", QStringList() <<"-c" << strCmd);
-//    p.waitForFinished();
-//    QString strResult = p.readAllStandardOutput();
-
-//    if(strResult)
-//    {
-//        getInfoTimer.stop();
-//        qApp->exit(RESTART_APP);
-//    }
-}
-
 void MainWidget::handleKvmMsg(bool enable)
 {
+    // 如果OSD已经在显示则不处理后面的热键信息，这里要从km_usb.json获取超时时间
     if(!enable)
     {
-        if(m_osdMeun->getdisplayConfig())
-        {
-            g_bOSDMeunDisplay = true;
-            m_bKvmMode = false;
+        g_bOSDMeunDisplay = true;
+        m_bKvmMode = false;
 
-            // hide overlay
-            slotHideOverlay();
-            m_osdMeun->parseChannelJson();
-            QTimer::singleShot(500,this,SLOT(showOsdMeun()));
-        }
+        // hide overlay
+        slotHideOverlay();
+
+//        m_osdMeun->setOverTime(parseKMJsonGetTimeout());
+
+        m_osdMeun->parseMeunJson(MENUINFO_PATH);
+        m_osdMeun->parseChannelJson();
+        m_osdMeun->setListWidgetHeight();
+        m_osdMeun->setMeunFont();
+
+        QTimer::singleShot(500,this,SLOT(showOsdMeun()));
     }
     else
     {
@@ -539,20 +548,7 @@ void MainWidget::handleKvmMsg(bool enable)
 
 void MainWidget::startSleepMode()
 {
-    qDebug() << "main_0_3";
 
-//    if(m_sleepPanel != NULL)
-//    {
-//        m_panelStack->setCurrentWidget(m_sleepPanel);
-//        m_sleepPanel->setVisible(true);
-//    }
-
-     qDebug() << "main_0_4";
-
-    // 隐藏 osd&overlay
-    // hideOsdMeun();
-    qDebug() << "main_0_5";
-   // showOsdMeun(m_osdMeun->getShowPosition());
 }
 
 void MainWidget::switchOSDMeun()
@@ -605,7 +601,7 @@ void MainWidget::initOsdMeun()
    m_osdMeun->setFixedSize(g_nOsdMenuWidth * g_fScaleScreen, menuHeight * g_fScaleScreen);
    m_osdMeun->move(-m_osdMeun->width(),0);
    m_osdMeun->setVisible(false);
-    qDebug() << "main_1_2" << menuHeight;
+   qDebug() << "main_1_2" << menuHeight;
 
    connect(m_osdMeun,SIGNAL(hideOsdMenu()),this,SLOT(hideOsdMeun()));
    connect(m_osdMeun,SIGNAL(updateOsdMenu()),this,SLOT(updateOsdMenu()));
@@ -632,7 +628,7 @@ void MainWidget::slotShowOverlay()
     // 添加文件监控
     QStringList paths ;
 
-    paths << MENUINFO_PATH << CHANNELS_LIST_PATH << RESOLUTION_CONFIG;
+    paths << MENUINFO_PATH << CHANNELS_LIST_PATH << RESOLUTION_CONFIG << OVERLAY_TEXT_PATH << OVERLAY_IMAGE_PATH;
 
     watch = new QFileSystemWatcher;
     watch->addPaths(paths);
@@ -706,61 +702,69 @@ void MainWidget::moveOsdMeun(int position)
     int xpos = 0;
     int ypos = 0;
 
-    switch (position)
+    if(g_nScreenWidth >= ACADEMY_4K)
     {
-        case CENTER:
+        xpos = (g_nframebufferWidth-m_osdMeun->width())/2;
+        ypos = (g_nframebufferHeight-m_osdMeun->height())/2;
+    }
+    else
+    {
+        switch (position)
         {
-            xpos = (g_nframebufferWidth-m_osdMeun->width())/2;
-            ypos = (g_nframebufferHeight-m_osdMeun->height())/2;
-            break;
-        }
-        case TOP_LEFT:
-        {
-            xpos = OSD_XPOS;
-            ypos = OSD_YPOS;
-            break;
-        }
-        case TOP_MID:
-        {
-            xpos = (g_nframebufferWidth-m_osdMeun->width())/2;
-            ypos = OSD_YPOS;
-            break;
-        }
-        case TOP_RIGTH:
-        {
-            xpos = g_nframebufferWidth-m_osdMeun->width() - OSD_XPOS;
-            ypos = OSD_YPOS;
-            break;
-        }
-        case BOTTOM_LEFT:
-        {
-            xpos = OSD_XPOS;
-            ypos = g_nframebufferHeight-m_osdMeun->height() - OSD_YPOS;
-            break;
-        }
-        case BOTTOM_MID:
-        {
-            xpos = (g_nframebufferWidth-m_osdMeun->width())/2;
-            ypos = g_nframebufferHeight-m_osdMeun->height()- OSD_YPOS;
-            break;
-        }
-        case BOTTOM_RIGHT:
-        {
-            xpos = g_nframebufferWidth-m_osdMeun->width() - OSD_XPOS;
-            ypos = g_nframebufferHeight-m_osdMeun->height() - OSD_YPOS;
-            break;
-        }
-        case LEFT_MID:
-        {
-            xpos = OSD_XPOS;
-            ypos = (g_nframebufferHeight-m_osdMeun->height())/2;
-            break;
-        }
-        case RIGHT_MID:
-        {
-            xpos = g_nframebufferWidth-m_osdMeun->width() - OSD_XPOS;
-            ypos = (g_nframebufferHeight-m_osdMeun->height())/2;
-            break;
+            case CENTER:
+            {
+                xpos = (g_nframebufferWidth-m_osdMeun->width())/2;
+                ypos = (g_nframebufferHeight-m_osdMeun->height())/2;
+                break;
+            }
+            case TOP_LEFT:
+            {
+                xpos = OSD_XPOS;
+                ypos = OSD_YPOS;
+                break;
+            }
+            case TOP_MID:
+            {
+                xpos = (g_nframebufferWidth-m_osdMeun->width())/2;
+                ypos = OSD_YPOS;
+                break;
+            }
+            case TOP_RIGTH:
+            {
+                xpos = g_nframebufferWidth-m_osdMeun->width() - OSD_XPOS;
+                ypos = OSD_YPOS;
+                break;
+            }
+            case BOTTOM_LEFT:
+            {
+                xpos = OSD_XPOS;
+                ypos = g_nframebufferHeight-m_osdMeun->height() - OSD_YPOS;
+                break;
+            }
+            case BOTTOM_MID:
+            {
+                xpos = (g_nframebufferWidth-m_osdMeun->width())/2;
+                ypos = g_nframebufferHeight-m_osdMeun->height()- OSD_YPOS;
+                break;
+            }
+            case BOTTOM_RIGHT:
+            {
+                xpos = g_nframebufferWidth-m_osdMeun->width() - OSD_XPOS;
+                ypos = g_nframebufferHeight-m_osdMeun->height() - OSD_YPOS;
+                break;
+            }
+            case LEFT_MID:
+            {
+                xpos = OSD_XPOS;
+                ypos = (g_nframebufferHeight-m_osdMeun->height())/2;
+                break;
+            }
+            case RIGHT_MID:
+            {
+                xpos = g_nframebufferWidth-m_osdMeun->width() - OSD_XPOS;
+                ypos = (g_nframebufferHeight-m_osdMeun->height())/2;
+                break;
+            }
         }
     }
 
@@ -768,6 +772,7 @@ void MainWidget::moveOsdMeun(int position)
     qDebug() << "ypos:" << ypos;
 
     m_osdMeun->move(xpos,ypos);
+
     // 移动到指定位置
     moveFramebuffer(position);
     setTransparency(80);
@@ -825,69 +830,77 @@ void MainWidget::showOverlay(OSDLabel *overlay,int position)
      text->adjustSize();
      text->show();
 
-     switch (position)
+     if(g_nScreenWidth >= ACADEMY_4K)
      {
-         case CENTER:
+         xpos = (g_nframebufferWidth-text->width())/2;
+         ypos = (g_nframebufferHeight-text->height())/2;
+     }
+     else
+     {
+         switch (position)
          {
-             xpos = (g_nframebufferWidth-text->width())/2;
-             ypos = (g_nframebufferHeight-text->height())/2;
-             break;
+             case CENTER:
+             {
+                 xpos = (g_nframebufferWidth-text->width())/2;
+                 ypos = (g_nframebufferHeight-text->height())/2;
+                 break;
+             }
+             case TOP_LEFT:
+             {
+                 xpos = OSD_XPOS;
+                 ypos = OSD_YPOS;
+                 break;
+             }
+             case TOP_MID:
+             {
+                 xpos = (g_nframebufferWidth-text->width())/2;
+                 ypos = OSD_YPOS;
+                 break;
+             }
+             case TOP_RIGTH:
+             {
+                 xpos = g_nframebufferWidth-text->width() - OSD_XPOS;
+                 ypos = OSD_YPOS;
+                 break;
+             }
+             case BOTTOM_LEFT:
+             {
+                 xpos = OSD_XPOS;
+                 ypos = g_nframebufferHeight-text->height() - OSD_YPOS;
+                 break;
+             }
+             case BOTTOM_MID:
+             {
+                 xpos = (g_nframebufferWidth-text->width())/2;
+                 ypos = g_nframebufferHeight-text->height()- OSD_YPOS;
+                 break;
+             }
+             case BOTTOM_RIGHT:
+             {
+                 xpos = g_nframebufferWidth-text->width() - OSD_XPOS;
+                 ypos = g_nframebufferHeight-text->height() - OSD_YPOS;
+                 break;
+             }
+             case LEFT_MID:
+             {
+                 xpos = OSD_XPOS;
+                 ypos = (g_nframebufferHeight-text->height())/2;
+                 break;
+             }
+             case RIGHT_MID:
+             {
+                 xpos = g_nframebufferWidth-text->width() - OSD_XPOS;
+                 ypos = (g_nframebufferHeight-text->height())/2;
+                 break;
+             }
          }
-         case TOP_LEFT:
-         {
-             xpos = OSD_XPOS;
-             ypos = OSD_YPOS;
-             break;
-         }
-         case TOP_MID:
-         {
-             xpos = (g_nframebufferWidth-text->width())/2;
-             ypos = OSD_YPOS;
-             break;
-         }
-         case TOP_RIGTH:
-         {
-             xpos = g_nframebufferWidth-text->width() - OSD_XPOS;
-             ypos = OSD_YPOS;
-             break;
-         }
-         case BOTTOM_LEFT:
-         {
-             xpos = OSD_XPOS;
-             ypos = g_nframebufferHeight-text->height() - OSD_YPOS;
-             break;
-         }
-         case BOTTOM_MID:
-         {
-             xpos = (g_nframebufferWidth-text->width())/2;
-             ypos = g_nframebufferHeight-text->height()- OSD_YPOS;
-             break;
-         }
-         case BOTTOM_RIGHT:
-         {
-             xpos = g_nframebufferWidth-text->width() - OSD_XPOS;
-             ypos = g_nframebufferHeight-text->height() - OSD_YPOS;
-             break;
-         }
-         case LEFT_MID:
-         {
-             xpos = OSD_XPOS;
-             ypos = (g_nframebufferHeight-text->height())/2;
-             break;
-         }
-         case RIGHT_MID:
-         {
-             xpos = g_nframebufferWidth-text->width() - OSD_XPOS;
-             ypos = (g_nframebufferHeight-text->height())/2;
-             break;
-         }
+
      }
 
      qDebug() << "xpos:" << xpos;
      qDebug() << "ypos:" << ypos;
 
      text->move(xpos,ypos);
-
      moveFramebuffer(position);
      qDebug() << "m_Transparency" << m_Transparency;
      setTransparency(m_Transparency);
@@ -920,7 +933,9 @@ void MainWidget::moveFramebuffer(int align)
 
 void MainWidget::setTransparency(int Transparency)
 {
+    Transparency = 100 - Transparency;
     Transparency = ((float)((Transparency*1.0)/100)*31);
+
     QString Cmdstr = QString("ast_send_event -1 \"e_osd_on_pic::0::9999::%1::1::n:: ::0\"").arg(Transparency);
     qDebug() << "setTransparency Cmdstr:" <<Cmdstr;
     QProcess *p = new QProcess();
@@ -930,6 +945,38 @@ void MainWidget::setTransparency(int Transparency)
         delete p;
         qDebug() << "setTransparency finished";
     }
+}
+
+int MainWidget::parseKMJsonGetTimeout()
+{
+    Json::Reader reader;
+    Json::Value root;
+
+    int Timeout = 6; // 默认6分钟
+
+    // 加锁
+    m_lock.lockForRead();
+
+    ifstream in(KM_USB_PATH,ios::binary);
+
+    if(!in.is_open())
+    {
+        qDebug() << "open KM_USB.json failed";
+        return Timeout * 60;
+    }
+
+    if(reader.parse(in,root))
+    {
+        Timeout = root["usb_kvm_config"]["kvm_timeout_sec"].asInt();
+    }
+
+    in.close();
+    // 解锁
+    m_lock.unlock();
+
+    qDebug() << "Timeout_kvm:" << Timeout;
+
+    return Timeout * 60;
 }
 
 void MainWidget::parseOverlayJson(QString jsonpath)
@@ -946,6 +993,11 @@ void MainWidget::parseOverlayJson(QString jsonpath)
     QByteArray path = jsonpath.toLatin1();
     qDebug() << "path:" <<path;
 
+    // 加锁
+//    m_lock.lockForRead();
+    CFileMutex lock(path);
+    lock.Init();
+    lock.Lock();
 
     // 从文件中读取
     //string path = jsonpath.toStdString();
@@ -973,12 +1025,13 @@ void MainWidget::parseOverlayJson(QString jsonpath)
         }else
         {
             m_overlayStatus = false;
+            // off直接返回，不解析
+            return;
         }
 
-        if(Timeout == 0)
-        {
-            m_CmdOuttime = 0;
-        }
+        // 超时时间为0，默认常显
+        m_CmdOuttime = 0;
+
 
         m_Transparency = Transparency;
         qDebug() << "m_Transparency" << m_Transparency;
@@ -1009,12 +1062,14 @@ void MainWidget::parseOverlayJson(QString jsonpath)
                     QString posStr = position.c_str();
                     int showPos = parseOverlayPos(posStr);
 
-                    QString filepath = path.c_str();
+//                    QString filepath = path.c_str();
+
+                    QString filepath = "/data/configs/kds-7/overlay/image.jpg";
 
                     // 释放前一个内存
                     if(m_imageOverlay != NULL)
                     {
-                        m_imageOverlay->deleteLater();
+                        delete m_imageOverlay;
                         m_imageOverlay = NULL;
                     }
 
@@ -1115,7 +1170,7 @@ void MainWidget::parseOverlayJson(QString jsonpath)
                     // 释放前一个内存
                     if(m_textOverlay != NULL)
                     {
-                        m_textOverlay->deleteLater();
+                        delete m_textOverlay;
                         m_textOverlay = NULL;
                     }
 
@@ -1166,6 +1221,15 @@ void MainWidget::parseOverlayJson(QString jsonpath)
             }
         }
     }
+    else
+    {
+        std::cout << "reader error:" << reader.getFormatedErrorMessages() << std::endl;
+    }
+
+    in.close();
+    // 解锁
+    lock.UnLock();
+//    m_lock.unlock();
 }
 
 int MainWidget::parseOverlayPos(QString positon)

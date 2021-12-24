@@ -25,6 +25,9 @@ Dialog::Dialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    // 启动时隐藏光标
+    setCursor(QCursor(Qt::BlankCursor));
+
     QRect screen=QApplication::desktop()->screenGeometry(0);
     screen_width = screen.width();
     screen_height = screen.height();

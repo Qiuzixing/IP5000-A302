@@ -14,6 +14,8 @@
 #include <QMenu>
 #include <QAction>
 
+#include <QReadWriteLock>
+
 class QLabel;
 class QString;
 class QListView;
@@ -40,6 +42,8 @@ public:
 
     void startTimer(){osdOverTimer.start(m_overTime);};
     void stopTimer(){osdOverTimer.stop();}
+    void updateTimer(){osdOverTimer.stop();
+                       osdOverTimer.start(m_overTime);}
 
     int getOSDMeunHeight();
     int parseOSDPos(QString positon);
@@ -137,6 +141,8 @@ private:
 
     QTimer  osdOverTimer; // 定时器
     int  m_overTime;     // 超时时间
+
+    QReadWriteLock m_lock;
 };
 
 

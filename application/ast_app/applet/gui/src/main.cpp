@@ -105,6 +105,7 @@ int main(int argc, char *argv[])
     //  获取分辨率，设定工作模式
     getResolutionFromTiming();
     CalcScreenScale(g_nScreenWidth, g_nScreenHeight, g_fScaleScreen);    
+
 #ifdef Q_OS_LINUX
     QWSServer::setBackground(QColor(0,0,0));
 #endif

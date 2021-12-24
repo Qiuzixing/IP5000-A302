@@ -6,6 +6,7 @@
 #include <QStackedWidget>
 #include <QTcpSocket>
 #include <QHBoxLayout>
+#include <QReadWriteLock>
 #include "osdlabel.h"
 #include "p3ktcp.h"
 
@@ -38,7 +39,7 @@ public:
     void setTransparency(int Transparency);
 
 
-    void setOsdDispaly(bool status);
+    void setMsgDispaly(bool status);
 
     void switchOSDMeun();
 
@@ -60,8 +61,6 @@ public slots:
 
     void destroyOsdAndOverlay();
 
-    void isNoSignal();
-
     void startSleepMode();
     void handleKvmMsg(bool enable);
 
@@ -75,7 +74,14 @@ public slots:
     void onRecvData(QByteArray data);
     void parseCmdResult(QByteArray datagram);
 
+    int parseKMJsonGetTimeout();
+
     void parseOverlayJson(QString jsonpath);
+
+    void parseOverlayText();
+    void parseOverlayImage();
+    void updateOsdMeun();
+    void updateChannelList();
 
 protected:
     virtual void keyPressEvent(QKeyEvent *e);
@@ -130,6 +136,8 @@ private:
     int m_nVideoWall_R;
 
     bool m_bReinit;
+
+    QReadWriteLock m_lock;
 };
 
 #endif // MAINWIDGET_H
