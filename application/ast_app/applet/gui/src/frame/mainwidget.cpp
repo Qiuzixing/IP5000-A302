@@ -1062,9 +1062,9 @@ void MainWidget::parseOverlayJson(QString jsonpath)
                     QString posStr = position.c_str();
                     int showPos = parseOverlayPos(posStr);
 
-//                    QString filepath = path.c_str();
+                    QString filepath = path.c_str();
 
-                    QString filepath = "/data/configs/kds-7/overlay/image.jpg";
+                    // QString filepath = "/data/configs/kds-7/overlay/image.jpg";
 
                     // 释放前一个内存
                     if(m_imageOverlay != NULL)
