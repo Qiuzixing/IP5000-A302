@@ -3645,6 +3645,7 @@ init_param_from_flash()
 		fi
 	fi
 
+	astparam s tv_access
 	#Before the last power failure, it is possible to call save to clear these variables
 	astparam s fir_priority_board_status
 	astparam s sec_priority_board_status
