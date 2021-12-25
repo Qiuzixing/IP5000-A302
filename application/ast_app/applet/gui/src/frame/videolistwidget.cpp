@@ -36,6 +36,7 @@ OSDMeun::OSDMeun(QWidget *parent)
     ,m_displayStatus(false)
     ,m_displayConfig(false)
     ,m_pageChannels(5)
+    ,m_deviceTimeout(10)
 {
     // 解析菜单参数
     parseMeunJson(MENUINFO_PATH);
@@ -499,6 +500,8 @@ void OSDMeun::parseMeunJson(QString jsonpath)
 
         string enabled = root["device_info"]["enabled"].asString();
         int device_timeout = root["device_info"]["timeout"].asInt();
+        m_deviceTimeout = device_timeout * 60 * 1000;
+
         QString EnabledStr = enabled.c_str();
 
         if(EnabledStr.compare("on") == 0)

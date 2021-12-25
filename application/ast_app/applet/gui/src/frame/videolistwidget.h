@@ -39,6 +39,7 @@ public:
     int getShowPosition(){return m_showPosition;}
     int getdisplayStatus(){return m_displayStatus;}
     int getdisplayConfig(){return m_displayConfig;}
+    int getDeviceInfoTimerout(){return m_deviceTimeout;}
 
     void startTimer(){osdOverTimer.start(m_overTime);};
     void stopTimer(){osdOverTimer.stop();}
@@ -55,7 +56,7 @@ public:
     void setListWidgetHeight();
     void setMeunFont();
     void setButtonFont();
-    int setdisplayStatus(bool cfg){m_displayStatus = cfg;}
+    int  setdisplayStatus(bool cfg){m_displayStatus = cfg;}
 
     void hideSettingPage();
 

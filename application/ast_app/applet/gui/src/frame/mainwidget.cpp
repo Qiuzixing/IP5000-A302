@@ -77,8 +77,12 @@ MainWidget::MainWidget(QWidget *parent) : QWidget(parent)
     // 初始化页面切换
     initPanelStack();
 
+    // 初始化设备信息显示
+    initDeviceInfo();
+
     connect(m_sleepPanel,SIGNAL(sigStartSleepMode()),this,SLOT(startSleepMode()));
     connect(m_sleepPanel,SIGNAL(sigStartKVM(bool)),this,SLOT(handleKvmMsg(bool)));
+    connect(m_sleepPanel,SIGNAL(sigUpdateDeviceInfo(QLabel*)),this,SLOT(slotUpdateDeviceInfo(QLabel *)));
 
     qDebug() << "main_4";
 
@@ -165,14 +169,17 @@ void MainWidget::onRecvData(QByteArray data)
             return;
         }
 
+        qDebug() << "argList:" << argList;
+
         bool bshow;
-        int mode = argList.at(1).toInt();
+        int mode = argList.at(2).toInt();
+        qDebug() << "DeviceInfo_mode:" << mode;
         if(mode == 0)
             bshow = false;
         else
             bshow = true;
 
-         setMsgDispaly(bshow);
+         setDeviceInfoDispaly(bshow);
     }
     else if(datagram.contains("START"))
     {
@@ -237,9 +244,59 @@ void MainWidget::onRecvData(QByteArray data)
     }
 }
 
-void MainWidget::setMsgDispaly(bool status)
+void MainWidget::setDeviceInfoDispaly(bool status)
 {
+    if(m_deviceInfo == NULL)
+        return;
+
     // 用于设置是否显示设备信息
+    if(status)
+    {
+        qDebug() << "g_bDeviceSleepMode:" <<g_bDeviceSleepMode;
+        // 显示设备信息,有输入源情况下显示
+        if(!g_bDeviceSleepMode)
+        {
+            // 互斥OSD、OVERLAY
+            m_bReinit = true;
+            hideOsdMeun();
+            slotHideOverlay();
+
+            showDeviceInfo();
+        }
+    }
+    else
+    {
+        qDebug() << "g_bDeviceSleepMode:" <<g_bDeviceSleepMode;
+        if(!g_bDeviceSleepMode)
+            slotHideDeviceInfo();
+    }
+}
+
+void MainWidget::showDeviceInfo()
+{
+    // 默认显示在右下角
+    int xpos = g_nframebufferWidth-m_deviceInfo->width() - 2*OSD_XPOS;
+    int ypos = g_nframebufferHeight-m_deviceInfo->height() - OSD_YPOS;
+
+    qDebug() << "xpos:" << xpos;
+    qDebug() << "ypos:" << ypos;
+    m_deviceInfo->setVisible(true);
+
+    m_deviceInfo->move(xpos,ypos);
+
+    // 移动到指定位置
+    moveFramebuffer(BOTTOM_RIGHT);
+
+    DeviceInfoTimer.start(m_osdMeun->getDeviceInfoTimerout());
+}
+
+void MainWidget::slotHideDeviceInfo()
+{
+    qDebug() << "hide DeivceInfo";
+    DeviceInfoTimer.stop();
+    m_deviceInfo->setVisible(false);
+
+    QTimer::singleShot(400,this,SLOT(showLongDisplay()));
 }
 
 void MainWidget::focusOutEvent(QFocusEvent *e)
@@ -440,6 +497,7 @@ void MainWidget::getResolutionFromTiming()
         int height = heightStr.toInt();
 //        qDebug() << "heightStr:" << heightStr;
 
+        g_bDeviceSleepMode = false;
         if(width != g_nScreenWidth)
         {
             getInfoTimer.stop();
@@ -458,13 +516,13 @@ void MainWidget::getResolutionFromTiming()
             slotHideOverlay();
             destroyOsdAndOverlay();
 
-            reInit();
-            g_bDeviceSleepMode = false;
+            reInit();          
             getInfoTimer.start(2000);
         }
     }
     else
     {
+        g_bDeviceSleepMode = true;
         if(g_nScreenWidth != g_nframebufferWidth)
         {
             getInfoTimer.stop();
@@ -484,8 +542,6 @@ void MainWidget::getResolutionFromTiming()
             destroyOsdAndOverlay();
 
             reInit();
-
-            g_bDeviceSleepMode = true;
             getInfoTimer.start(2000);
         }
     }
@@ -495,6 +551,7 @@ void MainWidget::reInit()
 {
     initOsdMeun();
     initOverlay();
+    initDeviceInfo();
     update();
 }
 
@@ -546,9 +603,24 @@ void MainWidget::handleKvmMsg(bool enable)
     }
 }
 
+void MainWidget::slotUpdateDeviceInfo(QLabel *info)
+{
+//    m_deviceInfo = info;
+
+//    QFont font;
+//    int fontsize = 15 * ((float)g_nScreenWidth/g_nStdScreenWidth);
+//    font.setPointSize(fontsize);
+//    font.setBold(true);
+//    font.setWeight(50 * g_fScaleScreen);
+
+//    m_deviceInfo->setFont(font);
+
+//    update();
+}
+
 void MainWidget::startSleepMode()
 {
-
+    g_bDeviceSleepMode = true;
 }
 
 void MainWidget::switchOSDMeun()
@@ -620,6 +692,22 @@ void MainWidget::initOverlay()
 
     parseOverlayJson("overlay2_setting.json");
     m_bFirst = false;
+}
+
+void MainWidget::initDeviceInfo()
+{
+//    m_deviceInfo = new QLabel(this);
+
+    m_deviceInfo = m_sleepPanel->getDeviceInfo();
+
+    QFont font;
+    int fontsize = 15 * ((float)g_nScreenWidth/g_nStdScreenWidth);
+    font.setPointSize(fontsize);
+    font.setBold(true);
+    font.setWeight(50 * g_fScaleScreen);
+
+    m_deviceInfo->setFont(font);
+    connect(&DeviceInfoTimer,SIGNAL(timeout()),this,SLOT(slotHideDeviceInfo()));
 }
 
 //  set show overlay
@@ -775,7 +863,7 @@ void MainWidget::moveOsdMeun(int position)
 
     // 移动到指定位置
     moveFramebuffer(position);
-    setTransparency(80);
+    setTransparency(20);
 
     m_osdMeun->startTimer();
 }

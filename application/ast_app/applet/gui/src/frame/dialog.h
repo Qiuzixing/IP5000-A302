@@ -91,10 +91,12 @@ public:
     void setSelectedNode(QString);
     void setSleepPicture(char *path);
     void setInfoEnable(bool enable);
+    QLabel* getDeviceInfo();
 
 signals:
     void sigStartSleepMode();
     void sigStartKVM(bool enable);
+    void sigUpdateDeviceInfo(QLabel* info);
 
 protected:
     void changeEvent(QEvent*);

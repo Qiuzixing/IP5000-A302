@@ -25,9 +25,6 @@ Dialog::Dialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    // 启动时隐藏光标
-    setCursor(QCursor(Qt::BlankCursor));
-
     QRect screen=QApplication::desktop()->screenGeometry(0);
     screen_width = screen.width();
     screen_height = screen.height();
@@ -761,6 +758,8 @@ void Dialog::updateInfoR()
                    .arg((char*)sInfo.IP)
                    .arg((char*)sInfo.RemoteIP)
                    .arg((char*)sInfo.ID));
+
+    emit sigUpdateDeviceInfo(infoR);
 }
 
 void Dialog::updateInfoL()
@@ -887,6 +886,11 @@ void Dialog::setInfoEnable(bool enable)
     infoL->setVisible(enable);
     infoC->setVisible(enable);
     infoR->setVisible(enable);
+}
+
+QLabel* Dialog::getDeviceInfo()
+{
+    return infoR;
 }
 
 void Dialog::setNodeDialogVisible(bool bVisible)

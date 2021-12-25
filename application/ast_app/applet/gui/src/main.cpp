@@ -15,7 +15,7 @@ int     g_nScreenWidth  = 1920;
 int     g_nScreenHeight = 1080;
 float   g_fScaleScreen  = 1.0;
 
-bool g_bDeviceSleepMode = false;
+bool g_bDeviceSleepMode = true;
 bool g_bOSDMeunDisplay = false;
 int g_nChannelId = -1;
 

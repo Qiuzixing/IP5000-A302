@@ -39,7 +39,8 @@ public:
     void setTransparency(int Transparency);
 
 
-    void setMsgDispaly(bool status);
+    void setDeviceInfoDispaly(bool status);
+    void showDeviceInfo();
 
     void switchOSDMeun();
 
@@ -83,6 +84,9 @@ public slots:
     void updateOsdMeun();
     void updateChannelList();
 
+    void slotUpdateDeviceInfo(QLabel *info);
+    void slotHideDeviceInfo();
+
 protected:
     virtual void keyPressEvent(QKeyEvent *e);
     virtual void focusOutEvent(QFocusEvent *e);
@@ -95,6 +99,7 @@ private:
     void initOsdMeun();
     void initOverlay();
     void initPanelStack();
+    void initDeviceInfo();
 
 private:
     QStackedWidget  *m_panelStack;
@@ -107,13 +112,14 @@ private:
     OSDLabel *m_textOverlay;
 
     QLabel *infoL;
-    QLabel *infoR;
+    QLabel *m_deviceInfo;
 
     static QMap<int, OSDLabel *> g_overlayMap;
     static QSet<int> osdIdSet;
 
     QTimer osdMeunTimer;
     QTimer getInfoTimer;
+    QTimer DeviceInfoTimer;
 
     QFileSystemWatcher *watch;
 
