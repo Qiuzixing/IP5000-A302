@@ -23,6 +23,7 @@
 #include <QImage>
 #include <QPainter>
 #include <QImageReader>
+#include <QWSServer>
 
 #include <stdlib.h>
 #include <unistd.h>
@@ -56,7 +57,12 @@ MainWidget::MainWidget(QWidget *parent) : QWidget(parent)
     ,m_bReinit(false)
 {
     // 鼠标跟踪
-    setMouseTracking(true);
+
+//    setCursor(Qt::BlankCursor);
+    //setMouseTracking(true);
+
+    // 直接设置隐藏不生效
+//    QTimer::singleShot(100,this,SLOT(hideMouse()));
 
     // 背景透明
     setAttribute(Qt::WA_TranslucentBackground);
@@ -98,9 +104,6 @@ MainWidget::MainWidget(QWidget *parent) : QWidget(parent)
     UdpRecv->start();
 
     connect(UdpRecv,SIGNAL(RecvData(QByteArray)),this,SLOT(onRecvData(QByteArray)));
-
-    // 直接设置隐藏不生效
-    QTimer::singleShot(100,this,SLOT(hideMouse()));
 
     QTimer::singleShot(2000,this,SLOT(slotShowOverlay()));
 
@@ -322,7 +325,10 @@ void MainWidget::getKMControl()
     }
 
     // 显示光标
-    this->setCursor(Qt::ArrowCursor);
+//    this->setCursor(Qt::ArrowCursor);
+#ifdef Q_OS_LINUX
+    QWSServer::setCursorVisible(true);
+#endif
 }
 
 void MainWidget::freeKMControl()
@@ -338,7 +344,10 @@ void MainWidget::freeKMControl()
     }
 
     // 隐藏光标
-    this->setCursor(Qt::BlankCursor);
+//    this->setCursor(Qt::BlankCursor);
+#ifdef Q_OS_LINUX
+    QWSServer::setCursorVisible(false);
+#endif
 }
 
 void MainWidget::paintEvent(QPaintEvent *event)

@@ -102,6 +102,10 @@ int main(int argc, char *argv[])
     Q_INIT_RESOURCE(resource);
     qDebug() << "BEGIN:";
 
+#ifdef Q_OS_LINUX
+    QWSServer::setCursorVisible(false);
+#endif
+
     //  获取分辨率，设定工作模式
     getResolutionFromTiming();
     CalcScreenScale(g_nScreenWidth, g_nScreenHeight, g_fScaleScreen);    
