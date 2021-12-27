@@ -3789,7 +3789,7 @@ int Cfg_InitParam_KVM_FromJson(void)
 
 					if((interval <= 10)&&(interval >= 0))
 					{
-						sprintf(cmd2,"astparam s kmoip_token_interval %d",interval*60*1000);
+						sprintf(cmd2,"astparam s kmoip_token_interval %d",interval*1000);
 						system(cmd2);
 					}
 
@@ -3832,7 +3832,7 @@ int Cfg_Create_KVMSetting(void)
 
 	root[JSON_USB_KVM_MODE] = JSON_USB_KVM_KM;
 	root[JSON_USB_KVM_ACTIVE] = JSON_PARAM_ON;
-	root[JSON_USB_KVM_TIMEOUT] = 5;
+	root[JSON_USB_KVM_TIMEOUT] = 10;
 	root[JSON_USB_KVM_ROW] = 1;
 	root[JSON_USB_KVM_COL] = 1;
 
@@ -3967,15 +3967,15 @@ int Cfg_Create_KVMSetting(void)
 	mysystem("astparam g kmoip_token_interval",buf1,64);
 
 	if(strstr(buf1,"not defined") != 0)
-		root[JSON_USB_KVM_TIMEOUT] = 5;
+		root[JSON_USB_KVM_TIMEOUT] = 10;
 	else
 	{
 		int time = atoi(buf1);
-		int interval = time / 60000;
+		int interval = time / 1000;
 		if((interval <= 10)&&(interval >= 0))
 			root[JSON_USB_KVM_TIMEOUT] = interval;
 		else
-			root[JSON_USB_KVM_TIMEOUT] = 5;
+			root[JSON_USB_KVM_TIMEOUT] = 10;
 	}
 
 	Json::Value root1;
@@ -7212,7 +7212,7 @@ int Cfg_Set_Dec_Usb_KVM()
 
 					if((interval <= 10)&&(interval >= 0))
 					{
-						sprintf(cmd,"astparam s kmoip_token_interval %d;astparam save",interval*60*1000);
+						sprintf(cmd,"astparam s kmoip_token_interval %d;astparam save",interval*1000);
 						system(cmd);
 					}
 
