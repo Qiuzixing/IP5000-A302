@@ -1085,13 +1085,11 @@ void MainWidget::parseOverlayJson(QString jsonpath)
     Json::Reader reader;
     Json::Value root;
 
-    //jsonpath = "/share/" + jsonpath;
     jsonpath = "/data/configs/kds-7/overlay/" + jsonpath;
     QByteArray path = jsonpath.toLatin1();
     qDebug() << "path:" <<path;
 
     // 加锁
-//    m_lock.lockForRead();
     CFileMutex lock(path);
     lock.Init();
     lock.Lock();
@@ -1122,13 +1120,10 @@ void MainWidget::parseOverlayJson(QString jsonpath)
         }else
         {
             m_overlayStatus = false;
-            // off直接返回，不解析
-            return;
         }
 
         // 超时时间为0，默认常显
         m_CmdOuttime = 0;
-
 
         m_Transparency = Transparency;
         qDebug() << "m_Transparency" << m_Transparency;
@@ -1145,6 +1140,18 @@ void MainWidget::parseOverlayJson(QString jsonpath)
                 string type = root["objects"][i]["type"].asString();
                 if(type.compare("image") == 0)
                 {
+                    // off直接返回
+                    if(m_imageOverlay != NULL && !m_overlayStatus)
+                    {
+                        m_imageOverlay->hide();
+                        delete m_imageOverlay;
+                        m_imageOverlay = NULL;
+
+                        in.close();
+                        lock.UnLock();
+                        return;
+                    }
+
                     string position = root["objects"][i]["position"].asString();
                     int width = root["objects"][i]["width"].asInt();
                     int height = root["objects"][i]["height"].asInt();
@@ -1160,8 +1167,6 @@ void MainWidget::parseOverlayJson(QString jsonpath)
                     int showPos = parseOverlayPos(posStr);
 
                     QString filepath = path.c_str();
-
-                    // QString filepath = "/data/configs/kds-7/overlay/image.jpg";
 
                     // 释放前一个内存
                     if(m_imageOverlay != NULL)
@@ -1215,6 +1220,18 @@ void MainWidget::parseOverlayJson(QString jsonpath)
                 }
                 else if(type.compare("text") == 0)
                 {
+                    // off直接返回
+                    if(m_textOverlay != NULL && !m_overlayStatus)
+                    {
+                        m_textOverlay->hide();
+                        delete m_textOverlay;
+                        m_textOverlay = NULL;
+
+                        in.close();
+                        lock.UnLock();
+                        return;
+                    }
+
                     string position = root["objects"][i]["position"].asString();
                     string caption = root["objects"][i]["caption"].asString();
                     string font = root["objects"][i]["font"].asString();
@@ -1322,11 +1339,9 @@ void MainWidget::parseOverlayJson(QString jsonpath)
     {
         std::cout << "reader error:" << reader.getFormatedErrorMessages() << std::endl;
     }
-
     in.close();
     // 解锁
     lock.UnLock();
-//    m_lock.unlock();
 }
 
 int MainWidget::parseOverlayPos(QString positon)
