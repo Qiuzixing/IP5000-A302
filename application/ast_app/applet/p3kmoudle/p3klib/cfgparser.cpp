@@ -3343,9 +3343,9 @@ int Cfg_Create_DisplaySleep(void)
 
 	Json::Value root;
 
-	root[JSON_DISPLAY_SLEEP] = 5;
-	root[JSON_DISPLAY_SHUTDOWN] = 10;
-	root[JSON_DISPLAY_WAKEUP] = 10;
+	root[JSON_DISPLAY_SLEEP] = 0;
+	root[JSON_DISPLAY_SHUTDOWN] = 0;
+	root[JSON_DISPLAY_WAKEUP] = 0;
 
 	Json::Value root1;
 	root1[JSON_DISPLAY_DELAY] = root;
