@@ -16,6 +16,7 @@ gateway_setting="/data/configs/kds-7/gateway/gateway.json"
 auto_switch_setting="/data/configs/kds-7/switch/auto_switch_setting.json"
 network_setting="/data/configs/kds-7/network/network_setting.json"
 time_setting="/data/configs/kds-7/time/time_setting.json"
+display_sleep_setting="/data/configs/kds-7/display/display_sleep.json"
 # 0: This value does not exist.
 # 1: GUI screen
 # 2: Decode screen
@@ -69,6 +70,75 @@ start_eth_link_off_timer()
 stop_eth_link_off_timer()
 {
 	pkill eth_link_off_timer 2>/dev/null
+}
+######################################################
+# v_auto_turn_off_timer.sh $LM_LINK_OFF_TIMEOUT
+echo "#!/bin/sh
+echo \"sleeping \$((\$1)) seconds\"
+if [ \$((\$1)) -gt 0 ]; then
+	sleep \$((\$1))
+	ast_send_event -1 e_v_auto_turn_off_time_up
+fi
+" >/usr/local/bin/v_auto_turn_off_timer.sh
+chmod a+x /usr/local/bin/v_auto_turn_off_timer.sh
+
+start_v_auto_turn_off_timer() {
+	case $P3KCFG_SWITCH_IN in
+		stream)
+			echo " ### starting auto turn off timer"
+			v_auto_turn_off_timer.sh "$1" &
+			;;
+	esac
+}
+stop_v_auto_turn_off_timer() {
+	echo " ### stopping auto turn off timer"
+	pkill v_auto_turn_off_timer 2>/dev/null
+}
+######################################################
+# v_auto_turn_on_timer.sh $LM_LINK_ON_TIMEOUT
+echo "#!/bin/sh
+echo \"sleeping \$((\$1)) seconds\"
+if [ \$((\$1)) -ge 0 ]; then
+	sleep \$((\$1))
+	ast_send_event -1 e_v_auto_turn_on_time_up
+fi
+" >/usr/local/bin/v_auto_turn_on_timer.sh
+chmod a+x /usr/local/bin/v_auto_turn_on_timer.sh
+
+start_v_auto_turn_on_timer() {
+	case $P3KCFG_SWITCH_IN in
+		stream)
+			echo " ### starting auto turn on timer"
+			v_auto_turn_on_timer.sh "$1" &
+			;;
+	esac
+}
+stop_v_auto_turn_on_timer() {
+	echo " ### stopping auto turn on timer"
+	pkill v_auto_turn_on_timer 2>/dev/null
+}
+######################################################
+# v_auto_sleep_timer.sh $LM_LINK_ON_TIMEOUT
+echo "#!/bin/sh
+echo \"sleeping \$((\$1)) seconds\"
+if [ \$((\$1)) -gt 0 ]; then
+	sleep \$((\$1))
+	ast_send_event -1 e_v_auto_sleep_time_up
+fi
+" >/usr/local/bin/v_auto_sleep_timer.sh
+chmod a+x /usr/local/bin/v_auto_sleep_timer.sh
+
+start_v_auto_sleep_timer() {
+	case $P3KCFG_SWITCH_IN in
+		stream)
+			echo " ### starting auto sleep timer"
+			v_auto_sleep_timer.sh "$1" &
+			;;
+	esac
+}
+stop_v_auto_sleep_timer() {
+	echo " ### stopping auto sleep timer"
+	pkill v_auto_sleep_timer 2>/dev/null
 }
 ######################################################
 
@@ -186,6 +256,27 @@ handle_e_link_off_time_up()
 			warn "Wrong state?! LM_V_STATE=$LM_V_STATE"
 		;;
 	esac
+	start_v_auto_turn_off_timer $SHUTDOWN_DELAY_ON_SIGNAL_LOSS_SEC
+	start_v_auto_sleep_timer $SLEEP_DELAY_ON_SIGNAL_LOSS_SEC
+}
+
+handle_e_v_auto_turn_off_time_up() {
+	do_turn_off_tv
+}
+
+handle_e_v_auto_turn_on_time_up() {
+	do_turn_on_tv
+	case `cat $DISPLAY_SYS_PATH/screen_off` in
+		disable)
+			;;
+		*)
+			echo 0 >/sys/devices/platform/display/screen_off
+			;;
+	esac
+}
+
+handle_e_v_auto_sleep_time_up() {
+	echo 1 >/sys/devices/platform/display/screen_off
 }
 
 handle_e_encoder_ip_got()
@@ -684,6 +775,39 @@ handle_e_usb_request_on_off()
 			;;
 		esac
 	fi
+}
+
+handle_e_v_auto_on_off() {
+	_IFS="$IFS"
+	IFS=':'
+	set -- $*
+	shift 2
+	IFS="$_IFS"
+	local _timeout=$1
+	local _method=$3
+	local _output=$5
+	local _serial_cmd_on=""
+	local _serial_cmd_off=""
+	if [ "$_method" = "serial" ]; then
+		_serial_cmd_on=$5
+		_serial_cmd_off=$7
+		local _output=$9
+	fi
+
+	local LM_V_STATE=$(ipc @v_lm_query q ve_param_query:V_STATE)
+
+	case "$LM_V_STATE" in
+		s_srv_on)
+			# ignore.
+			local _t='dummy'
+			;;
+		s_search | s_start_hb | s_idle)
+			e e_reconnect
+			;;
+		*)
+			warn "Wrong state?! LM_V_STATE=$LM_V_STATE"
+			;;
+	esac
 }
 
 handle_e_kill()
@@ -1291,6 +1415,9 @@ handle_e_video_start_working()
 			# We stay in s_srv_on state, but stop blinking the LED_LINK
 			a30_led_on $LINK_ON_G
 			post_config
+			stop_v_auto_sleep_timer
+			stop_v_auto_turn_off_timer
+			start_v_auto_turn_on_timer $WAKE_UP_DELAY_ON_SIGNAL_DETECTION_SEC
 		;;
 		*)
 			warn "Wrong state?! LM_V_STATE=$LM_V_STATE"
@@ -2155,6 +2282,14 @@ handle_e_vw_reset_to_pos_s()
 	astparam save
 }
 
+do_turn_on_tv() {
+	cec_power_on_tv
+}
+
+do_turn_off_tv() {
+	cec_power_off_tv
+}
+
 handle_e_video_enter_pwr_save()
 {
 	inform_gui_echo "Waiting for video source - standby"
@@ -2171,6 +2306,10 @@ handle_e_video_enter_pwr_save()
 			display_screen_force 2
 		fi
 	fi
+
+	stop_v_auto_turn_on_timer
+	start_v_auto_turn_off_timer $SHUTDOWN_DELAY_ON_SIGNAL_LOSS_SEC
+	start_v_auto_sleep_timer $SLEEP_DELAY_ON_SIGNAL_LOSS_SEC
 }
 
 handle_e_ulm_notify_chg()
@@ -3332,6 +3471,18 @@ handle_set_up_alc5640()
 	fi
 }
 
+handle_e_display_sleep()
+{
+	# Read auto turn off settings
+	if [ -f "$display_sleep_setting" ];then
+		SHUTDOWN_DELAY_ON_SIGNAL_LOSS_SEC=`jq -r '.display_delays.shutdown_delay_on_signal_loss_sec' $display_sleep_setting`
+		SLEEP_DELAY_ON_SIGNAL_LOSS_SEC=`jq -r '.display_delays.sleep_delay_on_signal_loss_sec' $display_sleep_setting`
+		WAKE_UP_DELAY_ON_SIGNAL_DETECTION_SEC=`jq -r '.display_delays.wake_up_delay_on_signal_detection_sec' $display_sleep_setting`
+
+		V_AUTO_TURN_OFF_OUTPUT=$(astparam g v_auto_turn_off_output)
+	fi
+}
+
 # Worst case 0.05s message loop without handling any event.
 state_machine()
 {
@@ -3447,6 +3598,9 @@ state_machine()
 			e_log*)
 				handle_e_log "$event"
 			;;
+			e_v_auto_on_off::?*)
+				handle_e_v_auto_on_off
+				;;
 			e_?*)
 				tickle_watchdog
 				handle_"$event"
@@ -3766,6 +3920,9 @@ init_param_from_p3k_cfg()
 	echo "P3KCFG_NTP_SRV_MODE=$P3KCFG_NTP_SRV_MODE"
 	echo "P3KCFG_NTP_SRV_ADDR=$P3KCFG_NTP_SRV_ADDR"
 	echo "P3KCFG_NTP_SYNC_HOUR=$P3KCFG_NTP_SYNC_HOUR"
+
+	# Read auto turn off settings
+	handle_e_display_sleep
 }
 
 set_variable_power_on_status()

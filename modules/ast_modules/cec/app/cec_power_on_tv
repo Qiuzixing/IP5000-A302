@@ -1,4 +1,4 @@
 #!/bin/bash
 
-cec_send f0 44 6d
-cec_send f0 44 6d
+cec_send 40 04
+cec_send 40 04

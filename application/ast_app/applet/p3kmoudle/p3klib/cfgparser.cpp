@@ -7370,3 +7370,16 @@ int Cfg_Set_Switch_Delay()
 	return 0;
 }
 
+int Cfg_Set_Display_Sleep()
+{
+	char cmd[64] = "";
+	DBG_InfoMsg("Cfg_Set_Display_Sleep\n");
+
+#ifndef CONFIG_P3K_CLIENT
+		DBG_WarnMsg("This is not Decoder\n");
+		return 0;
+#endif
+	ast_send_event(0xFFFFFFFF, "e_display_sleep");
+
+	return 0;
+}

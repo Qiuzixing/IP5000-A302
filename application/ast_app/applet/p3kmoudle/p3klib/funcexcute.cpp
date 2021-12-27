@@ -3834,6 +3834,10 @@ int EX_SetCfgModify(char* cfgName)
 	{
 		Cfg_Set_Switch_Delay();
 	}
+	else if(strstr(cfgName,"display_sleep") != 0)
+	{
+		Cfg_Set_Display_Sleep();
+	}
 
 	return 0;
 }

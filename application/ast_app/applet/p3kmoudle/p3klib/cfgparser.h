@@ -703,6 +703,7 @@ int Cfg_Get_Net_GW_Vlan(NetGWType_E type, int* vlan);
 int Cfg_Set_Enc_AVSignal_Info();
 int Cfg_Set_Dec_Usb_KVM();
 int Cfg_Set_Switch_Delay();
+int Cfg_Set_Display_Sleep();
 
 #ifdef __cplusplus
 }

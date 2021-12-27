@@ -28,6 +28,8 @@ start_link_off_timer()
 }
 stop_link_off_timer()
 {
+	stop_v_auto_turn_off_timer
+	stop_v_auto_sleep_timer
 	pkill link_off_timer 2>/dev/null
 }
 ######################################################
@@ -266,6 +268,16 @@ do_stop_srv()
 	# To avoid this issue, we call unload_videoip_c() in forground so that
 	# e_videoip_stopped event is no more necessary.
 	echo 1 > $VIDEO_SYS_PATH/unlink
+}
+
+stop_v_auto_turn_off_timer() {
+	echo " ### stopping auto turn off timer"
+	pkill v_auto_turn_off_timer 2>/dev/null
+}
+
+stop_v_auto_sleep_timer() {
+	echo " ### stopping auto sleep timer"
+	pkill v_auto_sleep_timer 2>/dev/null
 }
 
 handle_ve_heartbeat_init_ok()
