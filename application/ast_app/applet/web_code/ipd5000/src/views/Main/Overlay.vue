@@ -280,17 +280,34 @@ export default {
       this.imgName = event.target.files[0]?.name || ''
       if (this.imgName) {
         const file = event.target.files[0]
-        if (file.size > 1024 * 512) {
-          this.imgErrorMsg = 'The file size is less than 512KB '
+        if (file.size > 1024 * 256) {
+          this.imgErrorMsg = 'The file size is less than 256KB '
           this.imgError = true
           return
         }
         if (file.type !== 'image/png') {
-          this.imgErrorMsg = 'The image format must be PNG'
+          this.imgErrorMsg = 'The image format must be PNG (640 x 360)'
           this.imgError = true
           return
         }
-        this.imgError = false
+        const reader = new FileReader()
+        reader.onload = e => {
+          const data = e.target.result
+          // 加载图片获取图片真实宽度和高度
+          const image = new Image()
+          image.onload = () => {
+            const width = image.width
+            const height = image.height
+            if (!(width === 640 && height === 360)) {
+              this.imgErrorMsg = 'The image format must be PNG (640 x 360)'
+              this.imgError = true
+            } else {
+              this.imgError = false
+            }
+          }
+          image.src = data
+        }
+        reader.readAsDataURL(file)
       } else {
         this.imgError = false
       }
