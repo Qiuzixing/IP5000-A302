@@ -1141,12 +1141,14 @@ void MainWidget::parseOverlayJson(QString jsonpath)
                 if(type.compare("image") == 0)
                 {
                     // off直接返回
-                    if(m_imageOverlay != NULL && !m_overlayStatus)
+                    if(!m_overlayStatus)
                     {
-                        m_imageOverlay->hide();
-                        delete m_imageOverlay;
-                        m_imageOverlay = NULL;
-
+                        if(m_imageOverlay != NULL)
+                        {
+                            m_imageOverlay->hide();
+                            delete m_imageOverlay;
+                            m_imageOverlay = NULL;
+                        }
                         in.close();
                         lock.UnLock();
                         return;
@@ -1221,12 +1223,14 @@ void MainWidget::parseOverlayJson(QString jsonpath)
                 else if(type.compare("text") == 0)
                 {
                     // off直接返回
-                    if(m_textOverlay != NULL && !m_overlayStatus)
+                    if(!m_overlayStatus)
                     {
-                        m_textOverlay->hide();
-                        delete m_textOverlay;
-                        m_textOverlay = NULL;
-
+                        if(m_textOverlay != NULL)
+                        {
+                            m_textOverlay->hide();
+                            delete m_textOverlay;
+                            m_textOverlay = NULL;
+                        }
                         in.close();
                         lock.UnLock();
                         return;
