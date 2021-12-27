@@ -669,8 +669,8 @@ void OSDMeun::parseChannelJson()
                 channelName = root["channels_list"][i]["name"].asString();
 
 
-                qDebug() << "id is" << channelId;
-                qDebug() << "channelname is" << channelName.c_str();
+                // qDebug() << "id is" << channelId;
+                // qDebug() << "channelname is" << channelName.c_str();
 
                 if(!channelMap.contains(channelId))
                 {
@@ -700,9 +700,9 @@ void OSDMeun::parseChannelJson()
 
         qSort(list);
         m_channelList = list;
-        qDebug() << "m_channelList = " << m_channelList;
+        // qDebug() << "m_channelList = " << m_channelList;
 
-        qDebug() << "list_5";
+        // qDebug() << "list_5";
         // 频道加载
         loadChannel(m_channelList);
     }
