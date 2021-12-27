@@ -91,18 +91,26 @@
       </div>
       <div class="setting" v-if="this.$global.deviceType">
         <span class="setting-title">Menu Font Size</span>
-        <multiselect v-model="osdConfig.font_size"
-                     :options="osdSize.param"></multiselect>
+        <el-select v-model="osdConfig.font_size">
+          <el-option
+            v-for="item in osdSize.param"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value">
+          </el-option>
+        </el-select>
       </div>
       <div class="setting" v-if="this.$global.deviceType">
         <span class="setting-title">Menu Position</span>
-        <multiselect v-model="osdConfig.position"
-                     :options="osdPosition.param"></multiselect>
+        <el-select v-model="osdConfig.position">
+          <el-option
+            v-for="item in osdPosition.param"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value">
+          </el-option>
+        </el-select>
       </div>
-      <!--      <div class="setting">-->
-      <!--        <span class="setting-title">Channel Lineup</span>-->
-      <!--        -->
-      <!--      </div>-->
       <div class="setting" v-if="this.$global.deviceType">
         <span class="setting-title">Display Device Information</span>
         <v-switch v-model="osdInfo"

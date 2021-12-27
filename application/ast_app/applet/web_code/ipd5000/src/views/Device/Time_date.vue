@@ -22,18 +22,18 @@
             selectableRange: '00:00:00 - 23:59:59'
           }">
         </el-time-picker>
-        <!--        <VueCtkDateTimePicker id="sys-time" color="#35ACF8" v-model="time" format="hh:mm a" formatted="hh:mm a" :no-clear-button="true" :no-label="true" style="width: 160px;margin: 0" :only-time="true" />-->
       </div>
       <div class="setting">
         <span class="setting-title">Time Zone</span>
-        <multiselect class="time-select"
-                     :options="timeZone"
-                     v-model="timeVal"></multiselect>
+        <el-select v-model="timeVal">
+          <el-option
+            v-for="item in timeZone"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value">
+          </el-option>
+        </el-select>
       </div>
-      <!-- <div class="setting">
-        <span class="setting-title">Daylight Savings Time</span>
-        <v-switch v-model="daylight" open-text="Yes" close-text="No" active-value="1" inactive-value="0"></v-switch>
-      </div> -->
       <div class="setting">
         <span class="setting-title">NTP Time Server Usage</span>
         <div style="width:180px;flex-shrink:0;">
@@ -55,8 +55,14 @@
       </div>
       <div class="setting">
         <span class="setting-title">NTP Daily Sync Hour</span>
-        <multiselect v-model="ntpDailySync"
-                     :options="ntpParam" :disabled="ntpMode === '0'"></multiselect>
+        <el-select v-model="ntpDailySync" :disabled="ntpMode === '0'">
+          <el-option
+            v-for="item in ntpParam"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value">
+          </el-option>
+        </el-select>
       </div>
     </div>
     <footer>
@@ -292,7 +298,4 @@ export default {
   font-weight: 600;
 }
 
-.time-select .multiselect__content-wrapper {
-  width: 475px !important;
-}
 </style>

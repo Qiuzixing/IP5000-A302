@@ -8,12 +8,6 @@
                   inactive-value="2"
                   @change="setActiveLog"></v-switch>
       </div>
-<!--      <div class="setting">-->
-<!--        <span class="setting-title">Log Reset Policy</span>-->
-<!--        <multiselect v-model="logResetPolicy"-->
-<!--                     :options="logResetPolicyParam"-->
-<!--                     @input="setActiveLog"></multiselect>-->
-<!--      </div>-->
       <div class="setting">
         <span class="setting-title">Log</span>
         <button class="btn btn-plain-primary"

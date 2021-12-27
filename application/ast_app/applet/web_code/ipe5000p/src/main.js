@@ -7,7 +7,6 @@ import webSocket from './util/webSocket'
 import './icons'
 import './assets/css/global.less'
 import './theme-chalk/color-picker.css'
-import Multiselect from './components/vue-multiselect/src'
 import Axios from 'axios'
 import './theme-chalk/input-number.css'
 import InputNumber from './components/input-number'
@@ -18,6 +17,8 @@ import {
   TimeSelect,
   TimePicker,
   Slider,
+  Select,
+  Option,
   Loading
 } from 'element-ui'
 import lang from 'element-ui/lib/locale/lang/en'
@@ -32,12 +33,13 @@ Vue.component('colorPicker', colorPicker)
 // Vue.use(Pagination);
 Vue.use(Dialog)
 Vue.use(InputNumber)
+Vue.use(Option)
+Vue.use(Select)
 Vue.use(Upload)
 Vue.use(DatePicker)
 Vue.use(TimeSelect)
 Vue.use(TimePicker)
 Vue.use(Slider)
-Vue.component('multiselect', Multiselect)
 Vue.use(vSwitch)
 Vue.prototype.$loading = Loading.service
 Vue.prototype.$socket = webSocket

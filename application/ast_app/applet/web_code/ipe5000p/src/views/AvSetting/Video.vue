@@ -47,8 +47,14 @@
         </div>
         <div class="setting">
           <span class="setting-title">Maximum Bit Rate</span>
-          <multiselect v-model="avSignal.maximum_bit_rate"
-                       :options="bitRateParam"></multiselect>
+          <el-select v-model="avSignal.maximum_bit_rate">
+            <el-option
+              v-for="item in bitRateParam"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
         </div>
         <div class="setting">
           <span class="setting-title">Maximum Video Frame Rate (%)</span>

@@ -40,8 +40,14 @@
       </div>
       <div class="setting">
         <span class="setting-title">Import/Export Device Settings</span>
-        <multiselect v-model="exportAndImport.val"
-                     :options="exportAndImport.param"></multiselect>
+        <el-select v-model="exportAndImport.val">
+          <el-option
+            v-for="item in exportAndImport.param"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value">
+          </el-option>
+        </el-select>
         <button type="button"
                 class="btn btn-plain-primary"
                 @click="importConfig"

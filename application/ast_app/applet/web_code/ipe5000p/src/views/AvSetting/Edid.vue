@@ -9,11 +9,14 @@
     </div>
     <div class="setting">
       <span class="setting-title">EDID Mode</span>
-      <multiselect :disabled="edidLock=='1'"
-                   :options="edid.param"
-                   v-model="edid.val"
-                   @input="setEDIDMode"></multiselect>
-      <!--      <v-model-select :is-disabled="edidLock" :options="edid.param"  v-model="edid.val"></v-model-select>-->
+      <el-select v-model="edid.val" :disabled="edidLock=='1'" @change="setEDIDMode">
+        <el-option
+          v-for="item in edid.param"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value">
+        </el-option>
+      </el-select>
     </div>
     <div v-show="edidMode">
       <div class="radio-setting"

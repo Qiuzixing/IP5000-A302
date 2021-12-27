@@ -3,8 +3,14 @@
     <div class="setting-model">
       <div class="setting">
         <span class="setting-title">Maximum Resolution</span>
-        <multiselect :options="maxResolution.param"
-                     v-model="maxResolution.val"></multiselect>
+        <el-select placeholder=" " v-model="maxResolution.val">
+          <el-option
+            v-for="item in maxResolution.param"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value">
+          </el-option>
+        </el-select>
       </div>
       <div class="setting-model">
         <h3 class="setting-model-title">Display</h3>

@@ -3,10 +3,14 @@
     <div class="setting"
          v-if="this.$global.deviceType">
       <span class="setting-title">Input Selection</span>
-      <multiselect style="width: 150px"
-                   v-model="inputSelect.val"
-                   :options="inputSelect.param"
-                   @input="setInputSelect"></multiselect>
+      <el-select style="width: 150px" v-model="inputSelect.val" @change="setInputSelect">
+        <el-option
+          v-for="item in inputSelect.param"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value">
+        </el-option>
+      </el-select>
     </div>
     <div class="setting"
          style="margin-bottom: 0"
@@ -16,34 +20,34 @@
             style="width: 180px;">Channel ID</span>
       <span class="setting-title"
             style="width: 180px;">Channel Name</span>
-      <!-- <span class="setting-title"
-            style="width: 180px;">IP Address</span> -->
     </div>
     <div class="radio-setting"
          style="margin-top: 15px;margin-bottom: 24px;"
          v-if="inputSelect.val === 'stream'">
       <span class="setting-title"><img src="/stream"
-             style="width: 180px;"></span>
+                                       style="width: 180px;"></span>
       <span class="setting-title"
             style="width: 180px;">
-        <multiselect :searchable="true"
-                     style="width: 150px"
-                     :preserveSearch="true"
-                     v-model="channel"
-                     :options="channelList"
-                     @input="setChannel"></multiselect>
+        <el-select placeholder=" " filterable style="width: 150px" v-model="channel" @change="setChannel">
+          <el-option
+            v-for="item in channelList"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value">
+          </el-option>
+        </el-select>
       </span>
       <span class="setting-title"
             style="width: 180px;">
-        <multiselect :searchable="true"
-                     style="width: 150px"
-                     :preserveSearch="true"
-                     v-model="channel"
-                     :options="channelNameList"
-                     @input="setChannel"></multiselect>
+        <el-select placeholder=" " filterable style="width: 150px" v-model="channel" @change="setChannel">
+          <el-option
+            v-for="item in channelNameList"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value">
+          </el-option>
+        </el-select>
       </span>
-      <!-- <span class="setting-title"
-            style="width: 180px;">192.168.1.1</span> -->
     </div>
     <div class="setting"
          style="margin-bottom: 36px">
@@ -56,7 +60,7 @@
                  v-model="volume"
                  :marks="marks">
       </el-slider>
-      <span style="margin-left: 15px">{{volume}}</span>
+      <span style="margin-left: 15px">{{ volume }}</span>
     </div>
     <div class="setting"
          style="margin-top: 36px;">
@@ -77,33 +81,34 @@
     </div>
     <div class="setting">
       <span class="setting-title">HDCP Encryption</span>
-      <span>{{hdcp == '1' ? 'On' : 'Off'}}</span>
+      <span>{{ hdcp == '1' ? 'On' : 'Off' }}</span>
     </div>
     <div class="setting">
       <span class="setting-title">Resolution</span>
-      <span>{{resolution}}</span>
+      <span>{{ resolution }}</span>
     </div>
     <div class="setting">
       <span class="setting-title">Aspect Ratio</span>
-      <span>{{aspectRatio}}</span>
+      <span>{{ aspectRatio }}</span>
     </div>
     <div class="setting">
       <span class="setting-title"> Audio Channels</span>
-      <span>{{audioChannel}}</span>
+      <span>{{ audioChannel }}</span>
     </div>
     <div class="setting">
       <span class="setting-title"> Audio Rate</span>
-      <span>{{audioRate}}</span>
+      <span>{{ audioRate }}</span>
     </div>
     <div class="setting">
       <span class="setting-title">Audio Format</span>
-      <span>{{audioFormat}}</span>
+      <span>{{ audioFormat }}</span>
     </div>
   </div>
 </template>
 
 <script>
 import resolutionMap from './resolutionMap'
+
 export default {
   name: 'av_routing',
   data () {
@@ -111,8 +116,14 @@ export default {
       inputSelect: {
         val: 'hdmi',
         param: [
-          { value: 'hdmi', label: 'HDMI' },
-          { value: 'stream', label: 'STREAM' }
+          {
+            value: 'hdmi',
+            label: 'HDMI'
+          },
+          {
+            value: 'stream',
+            label: 'STREAM'
+          }
         ]
       },
       channel: '',
@@ -242,8 +253,14 @@ export default {
           const channelList = []
           const channelNameList = []
           msg.data.channels_list.forEach(item => {
-            channelList.push({ value: item.id + '', label: '#' + item.id })
-            channelNameList.push({ value: item.id + '', label: item.name })
+            channelList.push({
+              value: item.id + '',
+              label: '#' + item.id
+            })
+            channelNameList.push({
+              value: item.id + '',
+              label: item.name
+            })
           })
           this.channelList = channelList
           this.channelNameList = channelNameList

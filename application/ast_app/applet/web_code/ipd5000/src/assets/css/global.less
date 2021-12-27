@@ -104,8 +104,11 @@ textarea {
     outline: none;
   }
   &[disabled] {
-    opacity: 0.5;
+    //opacity: .5;
+    background: #f3f3f3 !important;
     cursor: not-allowed;
+    color: #a6a6a6;
+    border-color: #c1c1c1 !important;
   }
 }
 // button
@@ -297,3 +300,7 @@ textarea {
 // el-icon-loading
 // el-loading-spinner
 // el-loading-text
+.el-select .el-input .el-select__caret.el-icon-arrow-up:before{
+  content: "";
+}
+

@@ -14,10 +14,14 @@
       <div>
         <div class="setting" v-if="$global.deviceType !== 2">
           <span class="setting-title">Gateway HDMI Port</span>
-          <multiselect :disabled="cecGateWay === '0'"
-                       :options="[{value: '1', label: 'HDMI Input'}, {value: '3', label: 'HDMI Loop Through'}]"
-                       v-model="cecGateWayPort"
-                       @input="setCECPort"></multiselect>
+          <el-select v-model="cecGateWayPort" :disabled="cecGateWay === '0'" @change="setCECPort">
+            <el-option
+              v-for="item in [{value: '1', label: 'HDMI Input'}, {value: '3', label: 'HDMI Loop Through'}]"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
         </div>
         <div class="setting">
           <span class="setting-title">Command </span>
@@ -74,30 +78,48 @@
       </div>
       <div class="setting">
         <span class="setting-title">Baud Rate </span>
-        <multiselect :options="baudRateParam"
-                     v-model="baudRate"></multiselect>
-
+        <el-select v-model="baudRate">
+          <el-option
+            v-for="item in baudRateParam"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value">
+          </el-option>
+        </el-select>
       </div>
       <div class="setting">
         <span class="setting-title">Data Bits </span>
-        <multiselect :options="dataBitsParam"
-                     v-model="dataBits"></multiselect>
+        <el-select v-model="dataBits">
+          <el-option
+            v-for="item in dataBitsParam"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value">
+          </el-option>
+        </el-select>
       </div>
       <div class="setting">
         <span class="setting-title">Parity </span>
-        <multiselect :options="parityParam"
-                     v-model="parity"></multiselect>
+        <el-select v-model="parity">
+          <el-option
+            v-for="item in parityParam"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value">
+          </el-option>
+        </el-select>
       </div>
       <div class="setting">
         <span class="setting-title">Stop Bits </span>
-        <multiselect :options="stopBitsParam"
-                     v-model="stopBits"></multiselect>
+        <el-select v-model="stopBits">
+          <el-option
+            v-for="item in stopBitsParam"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value">
+          </el-option>
+        </el-select>
       </div>
-      <!-- <div class="setting">
-        <span class="setting-title">Connection</span>
-        <button :disabled="!rs232GW"
-                class="btn btn-plain-primary">CHECK</button>
-      </div> -->
       <button class="btn btn-primary"
               @click="saveBaudRate">SAVE</button>
     </div>

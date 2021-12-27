@@ -22,11 +22,11 @@
       <!--      </div>-->
       <div class="setting"
            v-if="kvmMode === 'km'">
-        <span class="setting-title">Request Time Out (min)</span>
+        <span class="setting-title">Request Time Out (sec)</span>
         <el-input-number v-model="timeout"
                          controls-position="right"
-                         :min="5"
-                         :max="10"
+                         :min="1"
+                         :max="600"
                          :disabled="castMode === '1'"></el-input-number>
       </div>
       <div class="radio-setting"

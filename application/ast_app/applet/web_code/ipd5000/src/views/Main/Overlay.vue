@@ -29,8 +29,14 @@
             <div class="overlay-setting">
               <span class="overlay-title">Align</span>
               <div class="overlay-setting-item">
-                <multiselect v-model="imageInfo.objects[0].position"
-                             :options="horizontalPosition.param"></multiselect>
+                <el-select v-model="imageInfo.objects[0].position">
+                  <el-option
+                    v-for="item in horizontalPosition.param"
+                    :key="item.value"
+                    :label="item.label"
+                    :value="item.value">
+                  </el-option>
+                </el-select>
               </div>
             </div>
             <div class="overlay-setting">
@@ -68,15 +74,27 @@
             <div class="overlay-setting">
               <span class="overlay-title">Size</span>
               <div class="fontSize.val">
-                <multiselect v-model="textInfo.objects[0].size"
-                             :options="fontSize.param"></multiselect>
+                <el-select v-model="textInfo.objects[0].size">
+                  <el-option
+                    v-for="item in fontSize.param"
+                    :key="item.value"
+                    :label="item.label"
+                    :value="item.value">
+                  </el-option>
+                </el-select>
               </div>
             </div>
             <div class="overlay-setting">
               <span class="overlay-title">Align</span>
               <div class="overlay-setting-item">
-                <multiselect v-model="textInfo.objects[0].position"
-                             :options="horizontalPosition.param"></multiselect>
+                <el-select v-model="textInfo.objects[0].position">
+                  <el-option
+                    v-for="item in horizontalPosition.param"
+                    :key="item.value"
+                    :label="item.label"
+                    :value="item.value">
+                  </el-option>
+                </el-select>
               </div>
             </div>
             <div class="overlay-setting">
@@ -155,7 +173,7 @@ export default {
         objects: [
           {
             type: 'image',
-            position: 'left_top'
+            position: 'top_left'
           }
         ]
       },
@@ -169,7 +187,7 @@ export default {
         objects: [
           {
             type: 'text',
-            position: 'left_top',
+            position: 'top_left',
             caption: '',
             size: 'small',
             color: '0xffffff'

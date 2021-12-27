@@ -18,8 +18,14 @@
       </div>
       <div class="setting">
         <span class="setting-title">Audio Source Mode</span>
-        <multiselect v-model="audioMode.val"
-                     :options="audioMode.param"></multiselect>
+        <el-select v-model="audioMode.val">
+          <el-option
+            v-for="item in audioMode.param"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value">
+          </el-option>
+        </el-select>
       </div>
       <custom-sort v-model="lists"
                    :listMap="listMap"
@@ -28,17 +34,27 @@
            style="margin-top: 25px;"
            v-if="this.$global.deviceType === 1">
         <span class="setting-title">Audio Source Selection</span>
-        <multiselect :disabled="audioMode.val !== '0'"
-                     v-model="audioSource.val"
-                     :options="audioSource.param"></multiselect>
+        <el-select v-model="audioSource.val" :disabled="audioMode.val !== '0'">
+          <el-option
+            v-for="item in audioSource.param"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value">
+          </el-option>
+        </el-select>
       </div>
       <div v-else
            class="setting"
            style="margin-top: 25px;">
         <span class="setting-title">Audio Source Selection</span>
-        <multiselect v-model="audioSource.val"
-                     :disabled="audioMode.val !== '0'"
-                     :options="audioSource.encoderParam"></multiselect>
+        <el-select v-model="audioSource.val" :disabled="audioMode.val !== '0'">
+          <el-option
+            v-for="item in audioSource.encoderParam"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value">
+          </el-option>
+        </el-select>
       </div>
       <div class="setting">
         <span class="setting-title">Audio Connection Guard Time (sec)</span>

@@ -1,6 +1,5 @@
 import 'normalize.css/normalize.css'
 import vSwitch from './components/switch/'
-import Multiselect from './components/vue-multiselect/src'
 import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
@@ -12,6 +11,8 @@ import Axios from 'axios'
 import './theme-chalk/input-number.css'
 import InputNumber from './components/input-number'
 import {
+  Select,
+  Option,
   Dialog,
   DatePicker,
   TimeSelect,
@@ -33,6 +34,8 @@ locale.use(lang)
 Vue.component('colorPicker', colorPicker)
 Vue.use(Dialog)
 Vue.use(InputNumber)
+Vue.use(Option)
+Vue.use(Select)
 Vue.use(Upload)
 Vue.use(Popover)
 Vue.use(Popconfirm)
@@ -40,7 +43,6 @@ Vue.use(DatePicker)
 Vue.use(TimeSelect)
 Vue.use(TimePicker)
 Vue.use(Slider)
-Vue.component('multiselect', Multiselect)
 Vue.use(vSwitch)
 Vue.prototype.$loading = Loading.service
 Vue.prototype.$socket = webSocket

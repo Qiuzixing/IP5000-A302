@@ -4,16 +4,26 @@
       <div class="setting"
            v-if="this.$global.deviceType === 1">
         <span class="setting-title">Input Selection</span>
-        <multiselect v-model="inputSelect.val"
-                     :options="inputSelect.param"
-                     @input="setInputSelect"></multiselect>
+        <el-select v-model="inputSelect.val" @change="setInputSelect">
+          <el-option
+            v-for="item in inputSelect.param"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value">
+          </el-option>
+        </el-select>
       </div>
       <div class="setting"
            v-if="this.$global.deviceType === 2">
         <span class="setting-title">Input Selection</span>
-        <multiselect v-model="inputSelect.val"
-                     :options="inputSelect.param2"
-                     @input="setInputSelect"></multiselect>
+        <el-select v-model="inputSelect.val" @change="setInputSelect">
+          <el-option
+            v-for="item in inputSelect.param2"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value">
+          </el-option>
+        </el-select>
       </div>
       <div class="setting">
         <span class="setting-title">Stream ID</span>

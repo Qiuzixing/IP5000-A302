@@ -3,9 +3,14 @@
     <div class="setting-model">
       <div class="setting">
         <span class="setting-title">Switching Mode</span>
-        <multiselect v-model="switchMode.val"
-                     :options="switchMode.param"
-                     @input="setSwitchMode"></multiselect>
+        <el-select v-model="switchMode.val" @change="setSwitchMode">
+          <el-option
+            v-for="item in switchMode.param"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value">
+          </el-option>
+        </el-select>
       </div>
       <custom-sort :listMap="listMap"
                    v-model="lists"
