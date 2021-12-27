@@ -4237,7 +4237,7 @@ int Cfg_Update_Channel(void)
 	fwrite(strChannelSel.c_str(),1,strChannelSel.size(),fp);
 
 	fflush(fp);
-	fsync(fileno(fp));
+//	fsync(fileno(fp));
 	flock(fileno(fp), LOCK_UN);
 	fclose(fp);
 
