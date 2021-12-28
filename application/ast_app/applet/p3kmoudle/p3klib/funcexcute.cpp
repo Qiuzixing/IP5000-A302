@@ -1808,7 +1808,7 @@ int EX_GetHDCPMode(int index,HDCPMode_E *mode)
 int EX_GetHDCPStatus(int io,int index)
 {
 	int status = 0;
-#ifdef CONFIG_P3K_HOST
+
 	State_E tmp_mode;
 
 	char* cmd1 = "cat /sys/devices/platform/videoip/timing_info | sed -rn 's#^.*HDCP: (.*).*$#\\1#gp'";
@@ -1820,9 +1820,6 @@ int EX_GetHDCPStatus(int io,int index)
 		status = 1;
 	else
 		status = 0;
-#else
-	DBG_WarnMsg(" !!! This is Decoder\n");
-#endif
 
 	return status;
 }
