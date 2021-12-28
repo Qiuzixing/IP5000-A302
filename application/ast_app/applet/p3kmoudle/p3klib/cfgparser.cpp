@@ -138,12 +138,30 @@ int Cfg_Check_File(char * path)
 
 	}
 
+	if(nOffset == 0)
+	{
+		DBG_ErrMsg("Read offset = 0 \n ");
+		flock(fileno(fp), LOCK_UN);
+		fclose(fp);
+		return -1;
+	}
+
+	if(strlen(pBuf) == 0)
+	{
+		DBG_ErrMsg("strlen(pBuf) = 0 \n ");
+		flock(fileno(fp), LOCK_UN);
+		fclose(fp);
+		return -1;
+	}
+
 	char begin[1]="";
 	sscanf(pBuf,"%1s",&begin);
 
 	if(begin[0] != '{')
 	{
 		DBG_ErrMsg("ERROR! star %s \n ",begin);
+		flock(fileno(fp), LOCK_UN);
+		fclose(fp);
 		return -1;
 	}
 	else if(reader.parse(pBuf, root1)== false)
