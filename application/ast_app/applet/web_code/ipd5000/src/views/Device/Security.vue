@@ -39,7 +39,7 @@
           <div class="setting">
             <span class="setting-title"
                   style="width: 180px;">Private Key Password</span>
-            <input type="text"
+            <input type="password"
                    class="setting-text"
                    :disabled="httpsServer === 'off'"
                    v-model="httpPrivatePwd">

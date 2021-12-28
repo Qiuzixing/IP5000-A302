@@ -298,7 +298,7 @@ export default {
           image.onload = () => {
             const width = image.width
             const height = image.height
-            if (!(width === 640 && height === 360)) {
+            if (!(width <= 640 && height <= 360)) {
               this.imgErrorMsg = 'The image format must be PNG (640 x 360)'
               this.imgError = true
             } else {
