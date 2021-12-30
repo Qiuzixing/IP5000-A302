@@ -582,6 +582,7 @@ int CWeb::DownloadLogFileHandle(struct mg_connection *conn, void *cbdata)
 
 int CWeb::UpdateOverlayImageHandle(struct mg_connection *conn, void *cbdata)
 {
+    CMutexLocker locker(&s_HandleMutex);
     // clean old overlay image
     char szCmd[MAX_CMD_STR] = {0};
     snprintf(szCmd, sizeof(szCmd)-1, "rm -f %s/*.png", OVERLAY_FILE_PATH);
@@ -798,9 +799,47 @@ int CWeb::JsonDataHandle(struct mg_connection *conn, void *cbdata)
         strP3kConfCmd += strPath;
         strP3kConfCmd += "\r";
 
+        // overlay2_setting.json 特殊处理
+        if(strFile == OVERLAY_JSON_FILE)
+        {
+            string strOverlayInfo = "";
+            if(COperation::GetJsonFile(OVERLAY_JSON_FILE, strOverlayInfo))
+            {
+                Json::Value jsonOverlay;
+                Json::Reader readOverlay;
+                if(!reader.parse(strOverlayInfo, jsonOverlay))
+                {
+                   BC_INFO_LOG("overlay2_setting json parse failed");
+                   send_http_error_rsp(conn);
+                   return 1;
+                }
+
+                if(jsonOverlay["objects"].size() < 1)
+                {
+                    BC_ERROR_LOG("overlay2_setting objects size is 0");
+                    send_http_error_rsp(conn);
+                    return 1;
+                }
+
+                string strOverFile = jsonOverlay["objects"][0]["path"].asString();
+
+                int i = 0;
+                for(i; i < json["info"]["objects"].size(); i++)
+                {
+                    json["info"]["objects"][i]["path"] = strOverFile.c_str();
+                }
+            }
+            else
+            {
+                send_http_error_rsp(conn);
+                return 1;
+            }
+        }
+
         Json::FastWriter fastwiter;
         string strConfInfo = "";
         strConfInfo = fastwiter.write(json["info"]);
+
 
         if(COperation::SetJsonFile(strConfInfo.c_str(), strFile.c_str()))
         {
