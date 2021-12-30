@@ -78,7 +78,7 @@ typedef signed char     int8_t;
 typedef signed short    int16_t;
 typedef signed int      int32_t; 
 typedef signed char     bool_t;
-#define CEC_CMD_MAX_LENTH   20
+#define CEC_CMD_MAX_LENTH   16
 
 #pragma pack(1)
 enum IPX5000_A30_CMD {

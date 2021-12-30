@@ -735,7 +735,9 @@ void do_handle_set_audio_insert_extract(uint16_t cmd,char *cmd_param)
     ado_insert.channels = AUDIO_CH_2;
     ado_insert.i2sFormat = I2S_FORMAT_NORMAL;
     ado_insert.mclkRatio = MCLK_RATIO_256FS;
-    ado_insert.sampleDepth = AUDIO_SF_48KHZ;
+    ado_insert.sampleFreq = AUDIO_SF_48KHZ;
+    ado_insert.sampleDepth = AUDIO_SD_24BIT;
+
     APP_Comm_Send(cmd, (U8*)&ado_insert, sizeof(ado_insert));
 }
 
