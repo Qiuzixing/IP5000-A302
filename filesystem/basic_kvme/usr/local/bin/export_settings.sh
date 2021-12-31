@@ -9,6 +9,7 @@ METHOD=$1
 
 rm -rf "$SAVED_PREFIX"
 mkdir -p "$SAVED_PREFIX"
+cd /dev/shm
 rm -f settings.*
 
 case $METHOD in
@@ -32,6 +33,5 @@ case $METHOD in
     ;;
 esac
 
-cd /dev/shm
 tar cvf settings.tar settings
 gzip settings.tar
