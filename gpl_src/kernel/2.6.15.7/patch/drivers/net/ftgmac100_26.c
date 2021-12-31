@@ -305,7 +305,9 @@ static unsigned char IP_phy_addr[2] = { 0x0, 0x0 };
 static struct net_device *ftgmac100_netdev[IP_COUNT];
 //static struct resource ftgmac100_resource[IP_COUNT];
 static unsigned int DF_support = 0;
-
+#if VLAN_SETTING
+vlan_setting_param vlan_settings;
+#endif
 static inline void ast_dev_kfree_skb(struct sk_buff *skb)
 {
 #if NEW_AHU
@@ -2592,7 +2594,7 @@ static ssize_t store_rtl836x_reg(struct device *pdev, struct device_attribute *a
 		if (c == 2)
 		{
 			printk("Write 0x%x to Reg0x%x\n", value, index);
-			gb_rtl8367_phy_write_register(value,index);
+			gb_rtl8367_phy_write_register(index,value);
 		}
 		else if (c == 1) {
 			tmp = gb_rtl8367_phy_read_register(index);
@@ -2606,7 +2608,66 @@ static ssize_t store_rtl836x_reg(struct device *pdev, struct device_attribute *a
 	return count;
 }
 DEVICE_ATTR(rtl836x_reg, (S_IRUGO | S_IWUSR), NULL, store_rtl836x_reg);
+#if VLAN_SETTING
+static ssize_t store_eth0_settings(struct device *pdev, struct device_attribute *attr,
+		const char *buf, size_t count)
+{
+	unsigned int c,flag;
+	c = sscanf(buf, "%u %u %u %u", &vlan_settings.eth0.p3k_port_tag,&vlan_settings.eth0.rs232_gateway_tag,&vlan_settings.eth0.dante_port_tag,&vlan_settings.eth0.pvid);
+	if(c != 4)
+	{
+		printk("warning:param error,exit\n");
+		return count;
+	}
+	return count;
+}
+DEVICE_ATTR(eth0_settings, (S_IRUGO | S_IWUSR), NULL, store_eth0_settings);
 
+static ssize_t store_eth1_settings(struct device *pdev, struct device_attribute *attr,
+		const char *buf, size_t count)
+{
+	unsigned int c,flag;
+	c = sscanf(buf, "%u %u %u %u", &vlan_settings.eth1.p3k_port_tag,&vlan_settings.eth1.rs232_gateway_tag,&vlan_settings.eth1.dante_port_tag,&vlan_settings.eth1.pvid);
+	if(c != 4)
+	{
+		printk("warning:param error,exit\n");
+		return count;
+	}
+	return count;
+}
+DEVICE_ATTR(eth1_settings, (S_IRUGO | S_IWUSR), NULL, store_eth1_settings);
+
+static ssize_t store_set_vlan(struct device *pdev, struct device_attribute *attr,
+		const char *buf, size_t count)
+{
+	unsigned int c,flag;
+	c = sscanf(buf, "%u", &flag);
+	if(c != 1)
+	{
+		printk("warning:param error,exit\n");
+		return count;
+	}
+	else
+	{
+		switch(flag)
+		{
+			case 0:
+				break;
+			case 1:
+				a30_rtl8367_vlan_setting(&vlan_settings);
+				break;
+			case 2:
+				a30_rtl8364_vlan_setting(&vlan_settings);
+				break;
+			default:
+				break;
+		}
+	}
+	
+	return count;
+}
+DEVICE_ATTR(set_vlan, (S_IRUGO | S_IWUSR), NULL, store_set_vlan);
+#endif
 static ssize_t show_phy_reg(struct device *pdev, struct device_attribute *attr, char *buf)
 {
 	struct net_device *dev = (struct net_device *)pdev->driver_data;
@@ -3029,6 +3090,11 @@ static struct attribute *dev_attrs[] = {
 	&dev_attr_link_state.attr,
 	&dev_attr_phy_reg.attr,
 	&dev_attr_random.attr,
+#if VLAN_SETTING
+	&dev_attr_eth0_settings.attr,
+	&dev_attr_eth1_settings.attr,
+	&dev_attr_set_vlan.attr,
+#endif
 	&dev_attr_rtl836x_reg.attr,
 #if REALTEK_SWITCH_EEPROM
 	&dev_attr_eeprom_content.attr,
@@ -3136,6 +3202,16 @@ static int __init ftgmac100_probe(struct net_device *dev )
 #endif
 #if TEST_USE_HPTX || HPTX_SUPPORT
 	lp->maccr_val |= HPTXR_EN_bit;
+#endif
+
+#if VLAN_HACK
+	/* 
+	 * AST1520 VLAN Hack.
+	 * Ping frame (60 bytes) with vlan tag will be treated as runt frame and
+	 * dropped by MAC. To workaround it, receive runt frame and don't drop
+	 * vlan frame tagged as runt.
+	 */
+	lp->maccr_val |= RX_RUNT_bit;
 #endif
 
 	lp->tx_buff_size = lp->rx_buff_size = 1536;
@@ -3873,9 +3949,20 @@ static int ftgmac100_rcv(struct net_device *dev, unsigned int process_limit)
 			}
 			if (cur_desc->RUNT)
 			{
+			#if VLAN_HACK
+ 				/* VLAN hack for AST1520:
+ 				 * Correct for incorrect flagging of runt packets
+ 				 * with vlan tags... Just accept a runt packet that
+ 				 * has been flagged as vlan and whose size is at
+ 				 * least 60 bytes.
+ 				 */
+				if (!((cur_desc->VLAN_AVA) && (cur_desc->VDBC >= 60)))
+			#endif		
+				{
 				printk("RUNT\n");
 				lp->stats.rx_errors++;			// error frame....
 				break;
+				}
 			}
 			if (cur_desc->RX_ODD_NB)
 			{

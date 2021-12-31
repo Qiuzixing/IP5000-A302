@@ -3116,6 +3116,56 @@ handle_e_p3k_net_dante_hostname()
 	echo "handle_e_p3k_net_dante_hostname."
 }
 
+#e e_p3k_net_vlan_del::VID
+handle_e_p3k_net_vlan_del()
+{
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	ifconfig eth0.$1 down
+	vconfig rem eth0.$1
+}
+
+#e e_p3k_net_vlan_dhcp_on::vlan_tag
+handle_e_p3k_net_vlan_dhcp_on()
+{
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	vconfig add eth0 $1
+	ifconfig eth0.$1 up
+	astparam s network_card eth0.$1
+
+	udhcpc -i eth0.$1 -f &
+}
+
+#e e_p3k_net_vlan_dhcp_off::vlan_tag:ip:netmask
+handle_e_p3k_net_vlan_dhcp_off()
+{
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	vconfig add eth0 $1
+	ifconfig eth0.$1 $2 netmask $3 up
+	astparam s network_card
+}
+
+handle_e_p3k_vlan_set_rtl_chip()
+{
+	#kill rs232_process
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+
+	shift 2
+	# $1--media_p3k&rs232_vlan_tag
+	# $2--media_dante_vlan_tag
+	# $3--service_p3k&rs232_vlan_tag
+	# $4--service_dante_vlan_tag
+	# eth_settings: p3k_port_tag rs232_gateway_tag dante_port_tag pvid
+	echo $1 0 $2 0 > /sys/devices/platform/ftgmac/eth0_settings
+	echo $3 0 $4 0 > /sys/devices/platform/ftgmac/eth1_settings
+	echo 2 > /sys/devices/platform/ftgmac/set_vlan
+}
+
 handle_e_p3k_net()
 {
 	echo "handle_e_p3k_net."
@@ -3138,6 +3188,18 @@ handle_e_p3k_net()
 		;;
 		e_p3k_net_vlan::?*)
 			handle_e_p3k_net_vlan "$event"
+		;;
+		e_p3k_net_vlan_del::?*)
+			handle_e_p3k_net_vlan_del "$event"
+		;;
+		e_p3k_net_vlan_set_rtl_chip::?*)
+			handle_e_p3k_vlan_set_rtl_chip "$event"
+		;;
+		e_p3k_net_vlan_dhcp_on::?*)
+			handle_e_p3k_net_vlan_dhcp_on "$event"
+		;;
+		e_p3k_net_vlan_dhcp_off::?*)
+			handle_e_p3k_net_vlan_dhcp_off "$event"
 		;;
 		e_p3k_net_gw_port::?*)
 			handle_e_p3k_net_gw_port "$event"
@@ -3799,6 +3861,7 @@ init_param_from_flash()
 		fi
 	fi
 
+	astparam s network_card
 	astparam s tv_access
 	#Before the last power failure, it is possible to call save to clear these variables
 	astparam s fir_priority_board_status
@@ -3972,6 +4035,7 @@ export PATH="$PATH":/usr/local/bin
 cd /usr/local/bin
 . ./display.sh
 . ./include.sh
+. bash/utilities.sh
 . ./ir_decode.sh
 
 # Used to patch link_mgrX.sh itself.

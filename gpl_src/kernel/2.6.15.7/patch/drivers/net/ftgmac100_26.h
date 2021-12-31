@@ -44,7 +44,16 @@ typedef unsigned long int 		dword;
 #if (CONFIG_AST1500_SOC_VER >= 2)
 	#define NEW_JUMBO_FRAME
 #endif
-
+#if (CONFIG_AST1500_SOC_VER == 3)
+#define VLAN_HACK 1
+#else
+#define VLAN_HACK 0
+#endif
+#if (CONFIG_AST1500_SOC_VER == 3)
+#define VLAN_SETTING 1
+#else
+#define VLAN_SETTING 0
+#endif
 #define NCSI_SUPPORT 0
 #define CONFIG_FTGMAC100_NAPI
 #define FTGMAC100_NAPI_WEIGHT	1

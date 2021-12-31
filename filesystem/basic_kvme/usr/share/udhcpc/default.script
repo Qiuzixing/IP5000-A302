@@ -1,5 +1,9 @@
 #! /bin/sh
 . /usr/local/bin/include.sh
+NETWORK_CARD=`astparam g network_card`
+if echo "$NETWORK_CARD" | grep -q "not defined" ; then
+	NETWORK_CARD='eth0'
+fi
 	case "$1" in  
 		deconfig) 
 					echo "udhcpc deconfig"
@@ -12,9 +16,9 @@
 					;;
 		bound)
 					echo "udhcpc bound"
-					if /sbin/avahi-autoipd -c eth0; then
+					if /sbin/avahi-autoipd -c $NETWORK_CARD; then
 						echo "Stop avahi-autoipd"
-						/sbin/avahi-autoipd -k eth0
+						/sbin/avahi-autoipd -k $NETWORK_CARD
 					fi
 					[ -n "$broadcast" ] && BROADCAST="broadcast $broadcast"
 					[ -n "subnet" ] && NETMASK="netmask $subnet"
@@ -31,7 +35,9 @@
 					for i in $router; do
 						route add default gw $i
 					done
-					/usr/local/bin/ast_send_event -1 "e_ip_got::$ip"
+					if [ $NETWORK_CARD = 'eth0' ];then
+						/usr/local/bin/ast_send_event -1 "e_ip_got::$ip"
+					fi
 					lmparam s MY_NETMASK $subnet
 					lmparam s MY_GATEWAYIP $i
 					#ifconfig eth1 $eth1
@@ -47,12 +53,20 @@
 					#ifconfig eth1 $eth1
 					#echo "Start avahi-autoipd"
 					#/sbin/avahi-autoipd -wD eth0
-					if ! /sbin/avahi-autoipd -c eth0; then
+					if ! /sbin/avahi-autoipd -c $NETWORK_CARD; then
 						echo "Start avahi-autoipd"
 						if [ "$MODEL_NUMBER" = "KDS-DEC7" -o "$MODEL_NUMBER" = "WP-DEC7" ]; then
-							/sbin/avahi-autoipd -D eth0 --start=192.168.1.40 --script=/etc/avahi/avahi-autoipd.action
+							if [ $NETWORK_CARD = 'eth0' ];then
+								/sbin/avahi-autoipd -D eth0 --start=192.168.1.40 --script=/etc/avahi/avahi-autoipd.action --debug
+							else
+								/sbin/avahi-autoipd -D $NETWORK_CARD --start=169.254.1.40 --script=/etc/avahi/avahi-autoipd.action --debug -n
+							fi
 						else
-							/sbin/avahi-autoipd -D eth0 --start=192.168.1.39 --script=/etc/avahi/avahi-autoipd.action
+							if [ $NETWORK_CARD = 'eth0' ];then
+								/sbin/avahi-autoipd -D eth0 --start=192.168.1.39 --script=/etc/avahi/avahi-autoipd.action
+							else
+								/sbin/avahi-autoipd -D $NETWORK_CARD --start=169.254.1.39 --script=/etc/avahi/avahi-autoipd.action -n
+							fi
 						fi
 					fi
 					;;

@@ -102,6 +102,12 @@
 #define IPV4LL_HOSTMASK 0x0000FFFFL
 #define IPV4LL_BROADCAST 0xC0A8FFFFL
 
+#define IP_NETMASK_SETTING  1
+#if IP_NETMASK_SETTING
+#define IPV4LL_NETWORK_169 0xA9FE0000L
+#define IPV4LL_BROADCAST_169 0xA9FEFFFFL
+#endif
+
 #define ETHER_ADDRLEN 6
 #define ETHER_HDR_SIZE (2+2*ETHER_ADDRLEN)
 #define ARP_PACKET_SIZE (8+4+4+2*ETHER_ADDRLEN)
@@ -139,6 +145,9 @@ static int modify_proc_title = 1;
 static int force_bind = 0;
 #ifdef HAVE_CHROOT
 static int no_chroot = 0;
+#endif
+#if IP_NETMASK_SETTING
+static int netmask_flag = 0;
 #endif
 static int no_drop_root = 0;
 static int wrote_pid_file = 0;
@@ -210,8 +219,14 @@ static uint32_t pick_addr(uint32_t old_addr) {
         /* Reduce to 16 bits */
         while (r > 0xFFFF)
             r = (r >> 16) ^ (r & 0xFFFF);
-
+#if IP_NETMASK_SETTING
+        if(netmask_flag == 0)
+            addr = htonl(IPV4LL_NETWORK | (uint32_t) r);
+        else
+            addr = htonl(IPV4LL_NETWORK_169 | (uint32_t) r);
+#else
         addr = htonl(IPV4LL_NETWORK | (uint32_t) r);
+#endif
 
     } while (addr == old_addr || !is_ll_address(addr));
 
@@ -801,10 +816,28 @@ recv_packet(int fd __unused, ArpPacket **packet, size_t *packet_len)
 #endif /* __linux__ */
 
 int is_ll_address(uint32_t addr) {
+#if IP_NETMASK_SETTING
+    if(netmask_flag == 0)
+    {
+        return
+        ((ntohl(addr) & IPV4LL_NETMASK) == IPV4LL_NETWORK) &&
+        ((ntohl(addr) & 0x0000FF00) != 0x0000) &&
+        ((ntohl(addr) & 0x0000FF00) != 0xFF00);
+    }
+    else
+    {
+        return
+        ((ntohl(addr) & IPV4LL_NETMASK) == IPV4LL_NETWORK_169) &&
+        ((ntohl(addr) & 0x0000FF00) != 0x0000) &&
+        ((ntohl(addr) & 0x0000FF00) != 0xFF00);
+    }
+#else
     return
         ((ntohl(addr) & IPV4LL_NETMASK) == IPV4LL_NETWORK) &&
         ((ntohl(addr) & 0x0000FF00) != 0x0000) &&
         ((ntohl(addr) & 0x0000FF00) != 0xFF00);
+#endif
+
 }
 
 static struct timeval *elapse_time(struct timeval *tv, unsigned msec, unsigned jitter) {
@@ -1143,8 +1176,14 @@ static int loop(int iface, uint32_t addr) {
 
         for (i = 0; i < ETHER_ADDRLEN; i++)
             a += hw_address[i]*i;
-
+#if IP_NETMASK_SETTING
+        if(netmask_flag == 0)
+            addr = htonl(IPV4LL_NETWORK | (uint32_t) a);
+        else
+            addr = htonl(IPV4LL_NETWORK_169 | (uint32_t) a);
+#else
         addr = htonl(IPV4LL_NETWORK | (uint32_t) a);
+#endif
     }
 
     set_state(st, 1, addr);
@@ -1468,6 +1507,9 @@ static void help(FILE *f, const char *a0) {
             "       --no-chroot      Don't chroot()\n"
 #endif
             "       --no-proc-title  Don't modify process title\n"
+#if IP_NETMASK_SETTING
+            "    -n --netmask        The default is 192.168 netmask.After setting this parameter,it becomes 169.254 netmask\n"
+#endif
             "       --debug          Increase verbosity\n",
             a0);
 }
@@ -1501,12 +1543,15 @@ static int parse_command_line(int argc, char *argv[]) {
 #ifdef HAVE_CHROOT
         { "no-chroot",     no_argument,       NULL, OPTION_NO_CHROOT },
 #endif
+#if IP_NETMASK_SETTING
+        { "netmask",       no_argument,       NULL, 'n' },
+#endif
         { "no-proc-title", no_argument,       NULL, OPTION_NO_PROC_TITLE },
         { "debug",         no_argument,       NULL, OPTION_DEBUG },
         { NULL, 0, NULL, 0 }
     };
 
-    while ((c = getopt_long(argc, argv, "hDskrcVS:t:w", long_options, NULL)) >= 0) {
+    while ((c = getopt_long(argc, argv, "hDskrcVS:t:wn", long_options, NULL)) >= 0) {
 
         switch(c) {
             case 's':
@@ -1544,7 +1589,11 @@ static int parse_command_line(int argc, char *argv[]) {
             case 'w':
                 wait_for_address = 1;
                 break;
-
+            case 'n':
+#if IP_NETMASK_SETTING
+                netmask_flag = 1;
+#endif
+                break;
             case OPTION_NO_PROC_TITLE:
                 modify_proc_title = 0;
                 break;
