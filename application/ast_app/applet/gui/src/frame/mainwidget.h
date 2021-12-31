@@ -7,6 +7,7 @@
 #include <QTcpSocket>
 #include <QHBoxLayout>
 #include <QReadWriteLock>
+#include <QGraphicsOpacityEffect>
 #include "osdlabel.h"
 #include "p3ktcp.h"
 
@@ -49,12 +50,11 @@ public slots:
     void getResolutionFromTiming();
      void showLongDisplay();
 
-    void hideOsdMeun();
+    void hideOsdMeun(bool isStartOverlay = true);
     void showOsdMeun();
     void moveOsdMeun(int position);
     void updateOsdMenu();
 
-    void hideMouse();
     void reInit();
 
     void slotShowOverlay();
@@ -85,7 +85,7 @@ public slots:
     void updateChannelList();
 
     void slotUpdateDeviceInfo(QLabel *info);
-    void slotHideDeviceInfo();
+    void slotHideDeviceInfo(bool isStartOverlay = true);
 
 protected:
     virtual void keyPressEvent(QKeyEvent *e);
@@ -141,9 +141,8 @@ private:
     int m_nVideoWall_ID;
     int m_nVideoWall_R;
 
-    bool m_bReinit;
-
     QReadWriteLock m_lock;
+    QGraphicsOpacityEffect *m_opacityEffect;
 };
 
 #endif // MAINWIDGET_H

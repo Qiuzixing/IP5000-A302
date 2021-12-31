@@ -20,6 +20,7 @@
 #include <QLabel>
 #include <QWidgetAction>
 #include <QFileInfo>
+#include <QGraphicsOpacityEffect>
 
 #define MENUINFO_PATH      "/data/configs/kds-7/osd/osd.json"
 #define CHANNELS_LIST_PATH "/data/configs/kds-7/channel/channel_map.json"
@@ -38,6 +39,10 @@ OSDMeun::OSDMeun(QWidget *parent)
     ,m_pageChannels(5)
     ,m_deviceTimeout(10)
 {
+    QGraphicsOpacityEffect *opacityEffect=new QGraphicsOpacityEffect;
+    this->setGraphicsEffect(opacityEffect);
+    opacityEffect->setOpacity(0.9);
+
     // 解析菜单参数
     parseMeunJson(MENUINFO_PATH);
 

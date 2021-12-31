@@ -44,6 +44,7 @@
 #define ACADEMY_4K          3656
 
 using namespace std;
+int g_Transparency = 255;
 
 QMap<int, OSDLabel *> MainWidget::g_overlayMap;
 QSet<int> MainWidget::osdIdSet;
@@ -54,16 +55,7 @@ MainWidget::MainWidget(QWidget *parent) : QWidget(parent)
     ,m_CmdOuttime(-1)
     ,m_overlayStatus(false)
     ,m_bKvmMode(true)
-    ,m_bReinit(false)
 {
-    // 鼠标跟踪
-
-//    setCursor(Qt::BlankCursor);
-    //setMouseTracking(true);
-
-    // 直接设置隐藏不生效
-//    QTimer::singleShot(100,this,SLOT(hideMouse()));
-
     // 背景透明
     setAttribute(Qt::WA_TranslucentBackground);
 
@@ -116,13 +108,6 @@ MainWidget::~MainWidget()
 
 }
 
-void MainWidget::hideMouse()
-{
-    // 隐藏光标
-    this->setCursor(Qt::BlankCursor);
-}
-
-
 bool MainWidget::p3kconnected()
 {
     m_p3kTcp = P3ktcp::getInstance();
@@ -162,7 +147,7 @@ void MainWidget::onRecvData(QByteArray data)
     qDebug() << "Recv :" << datagram;
     if(datagram.contains("SET"))
     {
-        // 设置OSD显示状态，参数为mode
+        // 设置OSD显示状态，参数为mode;(实际上这个命令被用来控制设备信息显示)
         qDebug() << "SHOW OSD :";
         QStringList argList = datagram.split(" ");
 
@@ -183,35 +168,6 @@ void MainWidget::onRecvData(QByteArray data)
             bshow = true;
 
          setDeviceInfoDispaly(bshow);
-    }
-    else if(datagram.contains("START"))
-    {
-        // 开始显示overlay
-//        qDebug() << "SHOW OVERLAY :";
-//        QStringList argList = datagram.split(" ");
-
-//        if(argList.size() < 2)
-//        {
-//            qDebug() << "too few arg";
-//            return;
-//        }
-
-//        QString filename = argList.at(1) + ".json";
-
-//        if(!argList.at(2).isEmpty())
-//        {
-//            int timeout = argList.at(2).toInt();
-//            m_CmdOuttime = timeout;
-//        }
-
-//        // 解析overlay
-//        parseOverlayJson(filename);
-    }
-    else if(datagram.contains("STOP"))
-    {
-        qDebug() << "STOP OVERLAY :";
-        // 停止显示overlay
-        slotHideOverlay();
     }
     else if(datagram.contains("OPEN"))
     {
@@ -260,8 +216,7 @@ void MainWidget::setDeviceInfoDispaly(bool status)
         if(!g_bDeviceSleepMode)
         {
             // 互斥OSD、OVERLAY
-            m_bReinit = true;
-            hideOsdMeun();
+            hideOsdMeun(false);
             slotHideOverlay();
 
             showDeviceInfo();
@@ -277,28 +232,38 @@ void MainWidget::setDeviceInfoDispaly(bool status)
 
 void MainWidget::showDeviceInfo()
 {
+    qDebug() << "hide DeivceInfo";
+    m_deviceInfo->setVisible(true);
+
     // 默认显示在右下角
-    int xpos = g_nframebufferWidth-m_deviceInfo->width() - 2*OSD_XPOS;
-    int ypos = g_nframebufferHeight-m_deviceInfo->height() - OSD_YPOS;
+    qDebug() << "m_deviceInfo->width():" << m_deviceInfo->width();
+    qDebug() << "m_deviceInfo->height():" << m_deviceInfo->height();
+
+    int xpos = g_nframebufferWidth- m_deviceInfo->width() - 4*OSD_XPOS;
+    int ypos = g_nframebufferHeight- m_deviceInfo->height() - OSD_YPOS;
 
     qDebug() << "xpos:" << xpos;
     qDebug() << "ypos:" << ypos;
-    m_deviceInfo->setVisible(true);
 
     m_deviceInfo->move(xpos,ypos);
 
     // 移动到指定位置
     moveFramebuffer(BOTTOM_RIGHT);
 
-    DeviceInfoTimer.start(m_osdMeun->getDeviceInfoTimerout());
+    int timeout = m_osdMeun->getDeviceInfoTimerout();
+    qDebug() << "timeout:" << ypos;
+
+    DeviceInfoTimer.start(timeout);
 }
 
-void MainWidget::slotHideDeviceInfo()
+void MainWidget::slotHideDeviceInfo(bool isStartOverlay)
 {
     qDebug() << "hide DeivceInfo";
+
     DeviceInfoTimer.stop();
     m_deviceInfo->setVisible(false);
 
+    if(isStartOverlay)
     QTimer::singleShot(400,this,SLOT(showLongDisplay()));
 }
 
@@ -373,8 +338,7 @@ void MainWidget::syncConfig(QString path)
         // 分辨率文件发生改变
         qDebug("Resolution Change!");
         watch->removePath(RESOLUTION_CONFIG);
-        m_bReinit = true;
-        hideOsdMeun();
+        hideOsdMeun(false);
         watch->addPath(RESOLUTION_CONFIG);
     }
     else if(path.compare(SLEEP_IMAGE_PATH) == 0)
@@ -406,20 +370,15 @@ void MainWidget::syncConfig(QString path)
         qDebug() << "g_bOSDMeunDisplay:" << g_bOSDMeunDisplay;
         if(g_bOSDMeunDisplay)
         {
-            // Display依靠P3K不能依靠配置文件，会导致上电后直接显示OSD菜单
              updateChannelList();
-//             QTimer::singleShot(200,this,SLOT(updateChannelList()));
-//             showOsdMeun();
         }
     }
     else if(path.compare(OVERLAY_TEXT_PATH) == 0)
     {
-//        QTimer::singleShot(200,this,SLOT(parseOverlayText()));
-        parseOverlayText();
+         parseOverlayText();
     }
     else if(path.compare(OVERLAY_IMAGE_PATH) == 0)
     {
-//         QTimer::singleShot(200,this,SLOT(parseOverlayImage()));
          parseOverlayImage();
     }
 }
@@ -519,9 +478,8 @@ void MainWidget::getResolutionFromTiming()
 
             this->setFixedSize(g_nScreenWidth,g_nScreenHeight);
 
-            m_bReinit = true;
             qDebug() << "getResolutionFromTiming:hideOsdMeun_1";
-            hideOsdMeun();
+            hideOsdMeun(false);
             slotHideOverlay();
             destroyOsdAndOverlay();
 
@@ -544,9 +502,8 @@ void MainWidget::getResolutionFromTiming()
 
             this->setFixedSize(g_nScreenWidth,g_nScreenHeight);
 
-            m_bReinit = true;
             qDebug() << "getResolutionFromTiming:hideOsdMeun_2";
-            hideOsdMeun();
+            hideOsdMeun(false);
             slotHideOverlay();
             destroyOsdAndOverlay();
 
@@ -593,10 +550,9 @@ void MainWidget::handleKvmMsg(bool enable)
         g_bOSDMeunDisplay = true;
         m_bKvmMode = false;
 
-        // hide overlay
+        // hide overlay & deviceInfo
+        slotHideDeviceInfo(false);
         slotHideOverlay();
-
-//        m_osdMeun->setOverTime(parseKMJsonGetTimeout());
 
         m_osdMeun->parseMeunJson(MENUINFO_PATH);
         m_osdMeun->parseChannelJson();
@@ -691,6 +647,9 @@ void MainWidget::initOsdMeun()
 
 void MainWidget::initOverlay()
 {
+    m_opacityEffect = new QGraphicsOpacityEffect;
+//    m_opacityEffect->setOpacityMask(QBrush(QColor(0,0,0,0)));
+
     //上电解析overlay文件
     m_bFirst = true;
     parseOverlayJson("overlay1_setting.json");
@@ -705,17 +664,14 @@ void MainWidget::initOverlay()
 
 void MainWidget::initDeviceInfo()
 {
-//    m_deviceInfo = new QLabel(this);
-
     m_deviceInfo = m_sleepPanel->getDeviceInfo();
 
     QFont font;
-    int fontsize = 15 * ((float)g_nScreenWidth/g_nStdScreenWidth);
+    int fontsize = 15 * g_fScaleScreen;
     font.setPointSize(fontsize);
-    font.setBold(true);
-    font.setWeight(50 * g_fScaleScreen);
 
     m_deviceInfo->setFont(font);
+
     connect(&DeviceInfoTimer,SIGNAL(timeout()),this,SLOT(slotHideDeviceInfo()));
 }
 
@@ -738,14 +694,14 @@ void MainWidget::slotHideOverlay()
 {
     qDebug() << "overlay hide";
     if(m_imageOverlay != NULL)
-        m_imageOverlay->hide();
+        m_imageOverlay->setVisible(false);
 
     if(m_textOverlay != NULL)
-        m_textOverlay->hide();
+        m_textOverlay->setVisible(false);
 }
 
 
-void MainWidget::hideOsdMeun()
+void MainWidget::hideOsdMeun(bool isStartOverlay)
 {
     if(m_osdMeun == NULL)
         return;
@@ -765,11 +721,10 @@ void MainWidget::hideOsdMeun()
     g_bOSDMeunDisplay = false;
 
     // 隐藏OSD菜单时，继续显示常显Overlay
-    if(!m_bReinit)
+    if(isStartOverlay)
     QTimer::singleShot(400,this,SLOT(showLongDisplay()));
 
     m_osdMeun->setdisplayStatus(false);
-    m_bReinit = false;
 }
 
 void MainWidget::showOsdMeun()
@@ -872,7 +827,7 @@ void MainWidget::moveOsdMeun(int position)
 
     // 移动到指定位置
     moveFramebuffer(position);
-    setTransparency(20);
+//    setTransparency(20);
 
     m_osdMeun->startTimer();
 }
@@ -893,7 +848,8 @@ void MainWidget::showLongDisplay()
        if(m_imageOverlay->isLongDisplay())
        {
            showOverlay(m_imageOverlay,m_imageOverlay->getShowPos());
-           m_imageOverlay->show();
+           m_imageOverlay->setVisible(true);
+           return;
        }
    }
    else if(m_textOverlay != NULL)
@@ -901,7 +857,8 @@ void MainWidget::showLongDisplay()
        if(m_textOverlay->isLongDisplay())
        {
            showOverlay(m_textOverlay,m_textOverlay->getShowPos());
-           m_textOverlay->show();
+           m_textOverlay->setVisible(true);
+           return;
        }
    }
 }
@@ -909,14 +866,9 @@ void MainWidget::showLongDisplay()
 
 void MainWidget::showOverlay(OSDLabel *overlay,int position)
 {
-    // 隐藏菜单
-    if(m_osdMeun != NULL && g_bOSDMeunDisplay)
-    {
-        m_osdMeun->move(-this->width(),(this->height() - m_osdMeun->height())/2);
-        m_osdMeun->setVisible(false);
-        g_bOSDMeunDisplay = false;
-    }
-
+    // 隐藏菜单 & 设备信息
+    hideOsdMeun(false);
+    slotHideDeviceInfo(false);
 
      int xpos = 0;
      int ypos = 0;
@@ -925,9 +877,9 @@ void MainWidget::showOverlay(OSDLabel *overlay,int position)
 
      OSDLabel *text = overlay;
      text->adjustSize();
-     text->show();
+     text->setVisible(true);
 
-     if(g_nScreenWidth >= ACADEMY_4K)
+     if(/*g_nScreenWidth >= ACADEMY_4K*/0)
      {
          xpos = (g_nframebufferWidth-text->width())/2;
          ypos = (g_nframebufferHeight-text->height())/2;
@@ -1000,7 +952,7 @@ void MainWidget::showOverlay(OSDLabel *overlay,int position)
      text->move(xpos,ypos);
      moveFramebuffer(position);
      qDebug() << "m_Transparency" << m_Transparency;
-     setTransparency(m_Transparency);
+
 
      // 非常显，启动定时器
      if(!text->isLongDisplay())
@@ -1132,6 +1084,14 @@ void MainWidget::parseOverlayJson(QString jsonpath)
         cout << "Timeout:" << Timeout << endl;
         cout << "Transparency:" << Transparency << endl;
 
+        float Transparency_set = ((float)((100 - m_Transparency)*1.0)/100);
+        qDebug() << "Transparency_set:" << Transparency_set;
+
+        g_Transparency = (float)(((100 - m_Transparency)*1.0)/100)*255;
+        qDebug() << "g_Transparency:" << g_Transparency;
+
+        OSDLabel *delay_delet = NULL;
+
         // 读取数组信息
         if(root["objects"].isArray())
         {
@@ -1146,8 +1106,8 @@ void MainWidget::parseOverlayJson(QString jsonpath)
                         if(m_imageOverlay != NULL)
                         {
                             m_imageOverlay->hide();
-                            delete m_imageOverlay;
-                            m_imageOverlay = NULL;
+//                            delete m_imageOverlay;
+//                            m_imageOverlay = NULL;
                         }
                         in.close();
                         lock.UnLock();
@@ -1171,15 +1131,31 @@ void MainWidget::parseOverlayJson(QString jsonpath)
                     QString filepath = path.c_str();
 
                     // 释放前一个内存
-                    if(m_imageOverlay != NULL)
-                    {
-                        delete m_imageOverlay;
-                        m_imageOverlay = NULL;
-                    }
+                    OSDLabel * will_delet = m_imageOverlay;
+                    m_imageOverlay = NULL;
 
                     // 组装 overlay
                     m_imageOverlay = new OSDLabel(filepath,width,height,this);
                     m_imageOverlay->setShowPos(showPos);
+
+                    m_imageOverlay->setGraphicsEffect(m_opacityEffect);
+                    m_opacityEffect->setOpacity(Transparency_set);
+
+
+                    // 在这里删除是为了避免m_opacityEffect引起崩溃
+                    if(will_delet != NULL)
+                    {
+                        delete will_delet;
+                        will_delet = NULL;
+                    }
+
+                    if(delay_delet != NULL)
+                    {
+                        delete delay_delet;
+                        delay_delet = NULL;
+                    }
+
+
                     if(m_CmdOuttime == 0)
                     {
                         m_imageOverlay->setLongDisplay(true);
@@ -1286,15 +1262,24 @@ void MainWidget::parseOverlayJson(QString jsonpath)
                     qDebug() << "parseOverlayJson::showPos:" << showPos;
 
                     // 释放前一个内存
-                    if(m_textOverlay != NULL)
+                    OSDLabel * will_delet = m_textOverlay;
+                    m_textOverlay = NULL;
+
+                    if(will_delet != NULL)
                     {
-                        delete m_textOverlay;
-                        m_textOverlay = NULL;
+                        delete will_delet;
+                        will_delet = NULL;
                     }
 
                     // 组装 overlay
                     m_textOverlay = new OSDLabel(displayStr,fontsize,fontcolor,this);
                     m_textOverlay->setShowPos(showPos);
+
+                    if(will_delet != NULL)
+                    {
+                        delete will_delet;
+                        will_delet = NULL;
+                    }
 
                     if(m_CmdOuttime == 0)
                     {
@@ -1314,8 +1299,10 @@ void MainWidget::parseOverlayJson(QString jsonpath)
                     if(m_imageOverlay != NULL)
                     {
                         m_imageOverlay->hide();
-                        delete  m_imageOverlay;
+                        delay_delet = m_imageOverlay;
                         m_imageOverlay = NULL;
+//                        delete  m_imageOverlay;
+//                        m_imageOverlay = NULL;
                     }
 
                     if(m_bFirst)

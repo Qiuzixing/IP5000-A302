@@ -15,7 +15,6 @@
 //#include <QGuiApplication>
 #include <QImage>
 
-
 OSDLabel::OSDLabel(const QString& text, quint8 fontSize, quint32 fontColor, QWidget *parent)
     : QFrame(parent)
     ,m_bLongDisplay(false)
@@ -43,7 +42,9 @@ OSDLabel::OSDLabel(const QString& text, quint8 fontSize, quint32 fontColor, QWid
 
     m_coverBrush = QColor(0, 0, 0, 0);
 
-    palette.setColor(QPalette::WindowText, QColor(r, g, b, a));
+    qDebug() << "g_Transparency:" << g_Transparency;
+
+    palette.setColor(QPalette::WindowText, QColor(r, g, b, g_Transparency));
     setPalette(palette);
 
     connect(&displayerTimer,SIGNAL(timeout()),this,SLOT(overTimer()));
@@ -74,7 +75,7 @@ OSDLabel::OSDLabel(const QString &imagePath,int width,int height,QWidget *parent
     tmppix.fill(Qt::transparent);
     QPainter p(&tmppix);
 
-    m_coverBrush = QColor(0, 0, 0,0);//  背景
+    m_coverBrush = QColor(255, 255, 255,255);//  背景
 
     p.fillRect(0, 0, this->width(), this->height(), m_coverBrush);
     p.setCompositionMode(QPainter::CompositionMode_Source);

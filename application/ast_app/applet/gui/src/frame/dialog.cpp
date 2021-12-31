@@ -837,6 +837,7 @@ void Dialog::updateGUI()
 
                 // GUI sleep
                 emit sigStartSleepMode();
+                qDebug() << "updateGUI::INFO_R_SHOW";
 
 				infoL->setVisible(true);
 				infoC->setVisible(true);
@@ -855,6 +856,8 @@ void Dialog::updateGUI()
             // GUI sleep
             emit sigStartSleepMode();
 
+            qDebug() << "updateGUI::INFO_R_SHOW";
+
             infoL->setVisible(true);
             infoC->setVisible(true);
             infoR->setVisible(true);
@@ -868,7 +871,7 @@ void Dialog::updateGUI()
 
         picture_name.clear();
         picture_name.append(guiActionInfo.ub.show_info.picture_name);
-        qDebug() << "Qt GUI picture_name=" << picture_name;
+        qDebug() << "updateGUI::Qt GUI picture_name=" << picture_name;
         update();
     }
 }
@@ -877,7 +880,7 @@ void Dialog::setSleepPicture(char *path)
 {
     picture_name.clear();
     picture_name.append(path);
-    qDebug() << "Qt GUI picture_name=" << picture_name;
+    qDebug() << "setSleepPicture::Qt GUI picture_name=" << picture_name;
     update();
 }
 
