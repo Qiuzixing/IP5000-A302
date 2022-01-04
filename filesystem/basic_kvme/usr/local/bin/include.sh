@@ -1784,6 +1784,23 @@ query_board_type()
 init_temperature_sensor()
 {
 	echo 3 100000 > /sys/devices/platform/i2c/bus_init
+	#Compatible with old temperature sensors -- TMP1075
+	echo 3 0x90 0x0f > /sys/devices/platform/i2c/io_word
+	TMP1075_DEVICE_ID=$(cat /sys/devices/platform/i2c/io_word)	
+	if [ "$TMP1075_DEVICE_ID" = '7500' ];then
+		echo 3 0x90 0x00 > /sys/devices/platform/i2c/io_word
+		echo "#!/bin/sh
+TEMPERATURE=\`cat /sys/devices/platform/i2c/io_word\`
+((TEMPERATURE=16#\${TEMPERATURE:0:2}))
+if [ \$TEMPERATURE -ge 128 ];then
+	TEMPERATURE=-\$((256-\$TEMPERATURE))
+fi
+echo \"\$TEMPERATURE\"
+	" > /usr/local/bin/get_temperature
+		chmod +x /usr/local/bin/get_temperature
+		return
+	fi
+
 	echo 3 0x90 0x00 > /sys/devices/platform/i2c/io_word
 	VALUE=$(cat /sys/devices/platform/i2c/io_word)
 	if echo "$VALUE" | grep -q "fail"; then
