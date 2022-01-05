@@ -8,6 +8,8 @@
 
 #include <sys/file.h> //for flock()
 
+#include <math.h>
+
 #include "cfgparser.h"
 #include "funcexcute.h"
 #include "ast_send_event.h"
@@ -35,6 +37,9 @@ State_E				g_osd_enable;
 int                 g_Udp_Socket;
 int                 g_Udp_Inside_Socket;
 ConnectionList_S    *g_connectionlist_info;
+
+int 				g_init_control_port = 0;
+int 				g_init_control_vlan = 0;
 
 int 				g_bCfg = 0;
 
@@ -2458,61 +2463,58 @@ int Cfg_Init_NW_fromParam()
 	if(strstr(buf1,"not defined") != 0)
 	{
 		g_network_info.eth_info[0].dhcp_enable = 1;
-		g_network_info.eth_info[1].dhcp_enable = 1;
 	}
 	else if(strstr(buf1,"static") != 0)
 	{
-		int i = 0;
-		g_network_info.eth_info[i].dhcp_enable = 0;
+		g_network_info.eth_info[0].dhcp_enable = 0;
 
 		memset(buf1,0,64);
 		mysystem("astparam g ipaddr",buf1,64);
 
-		memset(g_network_info.eth_info[i].ipAddr,0,MAX_IP_ADDR_LEN);
+		memset(g_network_info.eth_info[0].ipAddr,0,MAX_IP_ADDR_LEN);
 		if(strstr(buf1,"not defined") != 0)
 		{
 #ifdef CONFIG_P3K_HOST
-			sprintf(g_network_info.eth_info[i].ipAddr,"169.254.0.222");
+			sprintf(g_network_info.eth_info[0].ipAddr,"169.254.0.222");
 #else
-			sprintf(g_network_info.eth_info[i].ipAddr,"169.254.0.111");
+			sprintf(g_network_info.eth_info[0].ipAddr,"169.254.0.111");
 #endif
 		}
 		else
 		{
-			sprintf(g_network_info.eth_info[i].ipAddr,buf1);
+			sprintf(g_network_info.eth_info[0].ipAddr,buf1);
 		}
 
 
 		memset(buf1,0,64);
 		mysystem("astparam g netmask",buf1,64);
 
-		memset(g_network_info.eth_info[i].mask,0,MAX_IP_ADDR_LEN);
+		memset(g_network_info.eth_info[0].mask,0,MAX_IP_ADDR_LEN);
 		if(strstr(buf1,"not defined") != 0)
 		{
-			sprintf(g_network_info.eth_info[i].mask,"255.255.0.0");
+			sprintf(g_network_info.eth_info[0].mask,"255.255.0.0");
 		}
 		else
 		{
-			sprintf(g_network_info.eth_info[i].mask,buf1);
+			sprintf(g_network_info.eth_info[0].mask,buf1);
 		}
 
 		memset(buf1,0,64);
 		mysystem("astparam g gatewayip",buf1,64);
 
-		memset(g_network_info.eth_info[i].gateway,0,MAX_IP_ADDR_LEN);
+		memset(g_network_info.eth_info[0].gateway,0,MAX_IP_ADDR_LEN);
 		if(strstr(buf1,"not defined") != 0)
 		{
-			sprintf(g_network_info.eth_info[i].gateway,"169.254.0.254");
+			sprintf(g_network_info.eth_info[0].gateway,"169.254.0.254");
 		}
 		else
 		{
-			sprintf(g_network_info.eth_info[i].gateway,buf1);
+			sprintf(g_network_info.eth_info[0].gateway,buf1);
 		}
 	}
 	else
 	{
 		g_network_info.eth_info[0].dhcp_enable = 1;
-		g_network_info.eth_info[1].dhcp_enable = 1;
 	}
 
 	memset(buf1,0,64);
@@ -2569,12 +2571,10 @@ int Cfg_Init_Network(void)
 	g_network_info.tcp_port = 5000;
 	g_network_info.udp_port = 50000;
 	g_network_info.method = Net_MULTICAST;
-	sprintf(g_network_info.multicast_ip,"225.0.100.0");
+	sprintf(g_network_info.multicast_ip,"0.0.0.0");
 	g_network_info.multicast_ttl = 64;
-	g_network_info.p3k_port = 0;
-	g_network_info.p3k_vlan = 0;
-	g_network_info.rs232_port = 0;
-	g_network_info.rs232_vlan = 0;
+	g_network_info.control_port = 0;
+	g_network_info.control_vlan = 0;
 	g_network_info.dante_port = 0;
 	g_network_info.dante_vlan = 0;
 	g_network_info.beacon_en = OFF;
@@ -2622,10 +2622,10 @@ int Cfg_Init_Network(void)
 			for(int i = 0; i < 2; i++)
 			{
 				Json::Value eth;
-				if((i == 0)&&(!root[JSON_NETWORK_ETH0].empty()))
-					eth = root[JSON_NETWORK_ETH0];
-				else if((i == 1)&&(!root[JSON_NETWORK_ETH1].empty()))
-					eth = root[JSON_NETWORK_ETH1];
+				if((i == 0)&&(!root[JSON_NETWORK_STREAM].empty()))
+					eth = root[JSON_NETWORK_STREAM];
+				else if((i == 1)&&(!root[JSON_NETWORK_CONTROL].empty()))
+					eth = root[JSON_NETWORK_CONTROL];
 				else
 					continue;
 
@@ -2658,19 +2658,6 @@ int Cfg_Init_Network(void)
 							sprintf(g_network_info.eth_info[i].gateway,addr.c_str());
 						}
 
-						if(!eth[JSON_NETWORK_DNS1].empty())
-						{
-							string addr = eth[JSON_NETWORK_DNS1].asString();
-							memset(g_network_info.eth_info[i].dns1,0,MAX_IP_ADDR_LEN);
-							sprintf(g_network_info.eth_info[i].dns1,addr.c_str());
-						}
-
-						if(!eth[JSON_NETWORK_DNS2].empty())
-						{
-							string addr = eth[JSON_NETWORK_DNS2].asString();
-							memset(g_network_info.eth_info[i].dns2,0,MAX_IP_ADDR_LEN);
-							sprintf(g_network_info.eth_info[i].dns2,addr.c_str());
-						}
 					}
 					else
 					{
@@ -2729,39 +2716,25 @@ int Cfg_Init_Network(void)
 			{
 				Json::Value& port = root[JSON_NETWORK_PORT_SET];
 
-				if(!port[JSON_NETWORK_P3K].empty())
+				if(!port[JSON_NETWORK_CONTROL].empty())
 				{
-					Json::Value& p3k_port = port[JSON_NETWORK_P3K];
+					Json::Value& control_port = port[JSON_NETWORK_CONTROL];
 
-					if(!p3k_port[JSON_NETWORK_PORT].empty())
+					if(!control_port[JSON_NETWORK_PORT].empty())
 					{
-						string port = p3k_port[JSON_NETWORK_PORT].asString();
+						string port = control_port[JSON_NETWORK_PORT].asString();
 						if(port == JSON_NETWORK_ETH0)
-							g_network_info.p3k_port = 0;
+							g_network_info.control_port = 0;
 						else
-							g_network_info.p3k_port = 1;
+							g_network_info.control_port = 1;
 					}
 
-					if(!p3k_port[JSON_NETWORK_VLAN].empty())
-						if(p3k_port[JSON_NETWORK_VLAN].isInt())
-							g_network_info.p3k_vlan = p3k_port[JSON_NETWORK_VLAN].asInt();
-				}
-				if(!port[JSON_NETWORK_RS232].empty())
-				{
-					Json::Value& rs232_port = port[JSON_NETWORK_RS232];
+					if(!control_port[JSON_NETWORK_VLAN].empty())
+						if(control_port[JSON_NETWORK_VLAN].isInt())
+							g_network_info.control_vlan = control_port[JSON_NETWORK_VLAN].asInt();
 
-					if(!rs232_port[JSON_NETWORK_PORT].empty())
-					{
-						string port = rs232_port[JSON_NETWORK_PORT].asString();
-						if(port == JSON_NETWORK_ETH0)
-							g_network_info.rs232_port = 0;
-						else
-							g_network_info.rs232_port = 1;
-					}
-
-					if(!rs232_port[JSON_NETWORK_VLAN].empty())
-						if(rs232_port[JSON_NETWORK_VLAN].isInt())
-							g_network_info.rs232_vlan = rs232_port[JSON_NETWORK_VLAN].asInt();
+					g_init_control_port = g_network_info.control_port;
+	 				g_init_control_vlan = g_network_info.control_vlan;
 				}
 
 				if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
@@ -2781,7 +2754,7 @@ int Cfg_Init_Network(void)
 
 						if(!dante_port[JSON_NETWORK_VLAN].empty())
 							if(dante_port[JSON_NETWORK_VLAN].isInt())
-								g_network_info.rs232_vlan = dante_port[JSON_NETWORK_VLAN].asInt();
+								g_network_info.dante_vlan = dante_port[JSON_NETWORK_VLAN].asInt();
 
 					}
 				}
@@ -5431,8 +5404,6 @@ int Cfg_Update_Network(void)
 			eth[JSON_NETWORK_IP] = g_network_info.eth_info[i].ipAddr;
 			eth[JSON_NETWORK_MASK] = g_network_info.eth_info[i].mask;
 			eth[JSON_NETWORK_GW] = g_network_info.eth_info[i].gateway;
-			eth[JSON_NETWORK_DNS1] = g_network_info.eth_info[i].dns1;
-			eth[JSON_NETWORK_DNS1] = g_network_info.eth_info[i].dns2;
 		}
 		else
 		{
@@ -5440,9 +5411,9 @@ int Cfg_Update_Network(void)
 		}
 
 		if(i == 0)
-			root[JSON_NETWORK_ETH0] = eth;
+			root[JSON_NETWORK_STREAM] = eth;
 		else
-			root[JSON_NETWORK_ETH1] = eth;
+			root[JSON_NETWORK_CONTROL] = eth;
 	}
 
 	if(g_network_info.daisy_chain == ON)
@@ -5460,30 +5431,22 @@ int Cfg_Update_Network(void)
 		root[JSON_NETWORK_METHOD] = JSON_NETWORK_MULTICAST;
 
 		Json::Value multi;
-		multi[JSON_NETWORK_GROUP_IP] = g_network_info.multicast_ip;
+		multi[JSON_NETWORK_GROUP_IP] = "0.0.0.0";
 		multi[JSON_NETWORK_TTL] = g_network_info.multicast_ttl;
 
 		root[JSON_NETWORK_MULTICAST] = multi;
 	}
 
 	Json::Value port;
-	Json::Value p3k;
-	Json::Value rs232;
+	Json::Value control;
 	Json::Value dante;
 
-	if(g_network_info.p3k_port == 0)
-		p3k[JSON_NETWORK_PORT] = JSON_NETWORK_ETH0;
+	if(g_network_info.control_port == 0)
+		control[JSON_NETWORK_PORT] = JSON_NETWORK_ETH0;
 	else
-		p3k[JSON_NETWORK_PORT] = JSON_NETWORK_ETH1;
- 	p3k[JSON_NETWORK_VLAN] = g_network_info.p3k_vlan;
- 	port[JSON_NETWORK_P3K] = p3k;
-
-	if(g_network_info.rs232_port == 0)
-		rs232[JSON_NETWORK_PORT] = JSON_NETWORK_ETH0;
-	else
-		rs232[JSON_NETWORK_PORT] = JSON_NETWORK_ETH1;
- 	rs232[JSON_NETWORK_VLAN] = g_network_info.rs232_vlan;
- 	port[JSON_NETWORK_RS232] = rs232;
+		control[JSON_NETWORK_PORT] = JSON_NETWORK_ETH1;
+ 	control[JSON_NETWORK_VLAN] = g_network_info.control_vlan;
+ 	port[JSON_NETWORK_CONTROL] = control;
 
 	if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
 	{
@@ -6764,26 +6727,17 @@ int Cfg_Set_Net_Multicast(char * ip,int ttl) //type:udp;tcp
 int Cfg_Get_Net_Multicast(char * ip,int* ttl)
 {
 	DBG_InfoMsg("Cfg_Set_Net_Method\n");
-//	if(g_network_info.method == Net_MULTICAST)
-//	{
-//		*ttl = g_network_info.multicast_ttl;
-//		strcpy(ip,g_network_info.multicast_ip);
-//	}
-//	else
-	{
-		*ttl = g_network_info.multicast_ttl;
-		strcpy(ip,"0.0.0.0");
-//		DBG_WarnMsg("Cfg_Get_Net_Multicast method:%d is Wrong!!!\n",g_network_info.method);
-	}
+
+	*ttl = g_network_info.multicast_ttl;
+	strcpy(ip,"0.0.0.0");
+
 	return 0;
 }
 int Cfg_Set_Net_GW_Port(NetGWType_E type, int port) //type:p3k,rs232,dante
 {
 	DBG_InfoMsg("Cfg_Set_Net_GW_Port\n");
-	if(type == Net_P3K) //p3k
-		g_network_info.p3k_port = port;
-	else if(type == Net_RS232) //RS232
-		g_network_info.rs232_port = port;
+	if(type == Net_CONTROL)
+		g_network_info.control_port = port;
 	else if(type == Net_DANTE) //Dante
 	{
 		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
@@ -6808,10 +6762,8 @@ int Cfg_Set_Net_GW_Port(NetGWType_E type, int port) //type:p3k,rs232,dante
 int Cfg_Get_Net_GW_Port(NetGWType_E type, int* port)
 {
 	DBG_InfoMsg("Cfg_Get_Net_GW_Port\n");
-	if(type == Net_P3K) //p3k
-		 *port = g_network_info.p3k_port;
-	else if(type == Net_RS232) //RS232
-		*port = g_network_info.rs232_port;
+	if(type == Net_CONTROL) //p3k
+		 *port = g_network_info.control_port;
 	else if(type == Net_DANTE) //Dante
 	{
 		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
@@ -6835,10 +6787,8 @@ int Cfg_Get_Net_GW_Port(NetGWType_E type, int* port)
 int Cfg_Set_Net_GW_Vlan(NetGWType_E type, int vlan) //type:p3k,rs232,dante
 {
 	DBG_InfoMsg("Cfg_Set_Net_GW_Vlan\n");
-	if(type == Net_P3K) //p3k
-		g_network_info.p3k_vlan = vlan;
-	else if(type == Net_RS232) //RS232
-		g_network_info.rs232_vlan = vlan;
+	if(type == Net_CONTROL) //p3k
+		g_network_info.control_vlan = vlan;
 	else if(type == Net_DANTE) //Dante
 	{
 		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
@@ -6863,10 +6813,8 @@ int Cfg_Set_Net_GW_Vlan(NetGWType_E type, int vlan) //type:p3k,rs232,dante
 int Cfg_Get_Net_GW_Vlan(NetGWType_E type, int* vlan)
 {
 	DBG_InfoMsg("Cfg_Get_Net_GW_Vlan\n");
-	if(type == Net_P3K) //p3k
-		*vlan = g_network_info.p3k_vlan;
-	else if(type == Net_RS232) //RS232
-		*vlan = g_network_info.rs232_vlan;
+	if(type == Net_CONTROL) //p3k
+		*vlan = g_network_info.control_vlan;
 	else if(type == Net_DANTE) //Dante
 	{
 		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
@@ -7401,3 +7349,59 @@ int Cfg_Set_Display_Sleep()
 
 	return 0;
 }
+
+int GetIPInfo(int netId,char* ip_addr,char* ip_mask)
+{
+	char eth[16] = "";
+	if(netId == 0)
+	{
+		sprintf(eth,"eth0");
+	}
+	else if(netId == 1)
+	{
+		if((g_init_control_vlan >=2)&&(g_init_control_vlan <=4093))
+			sprintf(eth,"eth0.%d",g_init_control_vlan);
+		else if(g_init_control_port == 0)
+			sprintf(eth,"eth0");
+		else if(g_init_control_port == 1)
+			sprintf(eth,"eth0.4094");
+	}
+	else
+	{
+		DBG_ErrMsg("netId=%d \n",netId);
+		return -1;
+	}
+
+	char ip_buf[32] = "";
+	int  mask;
+
+	char ip_cmd[128] = "";
+
+	sprintf(ip_cmd,"ip addr show %s | grep 'inet' |sed 's/^.*inet //g'|sed 's#brd.*$##g'",eth);
+	mysystem(ip_cmd, ip_buf, 32);
+
+	int count = sscanf(ip_buf,"%[^/]/%d",ip_addr,&mask);
+	unsigned int mask_code = 0;
+	if(strlen(ip_addr) < 7)
+	{
+		printf("ip_addr :%s\n",ip_addr);
+		sprintf(ip_addr,"0.0.0.0");
+	}
+
+	//DBG_InfoMsg("ip_addr=%s \n",ip_addr);
+
+	if((ip_mask!= NULL)&&(count == 2))
+	{
+		if((mask >= 8)&&(mask <= 32))
+		{
+			mask_code = (int)(pow(2,mask)-1);
+			mask_code = mask_code<<(32 - mask);
+			sprintf(ip_mask,"%d.%d.%d.%d",(mask_code&0xFF000000)>>24,(mask_code&0xFF0000)>>16,(mask_code&0xFF00)>>8,(mask_code&0xFF));
+		}
+
+		//DBG_InfoMsg("ip_mask=%s \n",ip_mask);
+	}
+
+	return 0;
+}
+

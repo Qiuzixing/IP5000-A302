@@ -206,16 +206,14 @@ extern "C" {
 #define JSON_LOG_WEEKLY			"weekly"
 
 #define JSON_NETWORK			"network_setting"
-#define JSON_NETWORK_ETH0		"eth0"
-#define JSON_NETWORK_ETH1		"eth1"
+#define JSON_NETWORK_STREAM		"stream"
+#define JSON_NETWORK_CONTROL	"control"
 #define JSON_NETWORK_MODE		"mode"
 #define JSON_NETWORK_STATIC		"static"
 #define JSON_NETWORK_DHCP		"dhcp"
 #define JSON_NETWORK_IP			"ip_address"
 #define JSON_NETWORK_MASK		"mask_address"
 #define JSON_NETWORK_GW			"gateway_address"
-#define JSON_NETWORK_DNS1		"dns1"
-#define JSON_NETWORK_DNS2		"dns2"
 #define JSON_NETWORK_DAISY		"daisy_chain"
 #define JSON_NETWORK_TCP		"tcp_port"
 #define JSON_NETWORK_UDP		"udp_port"
@@ -225,11 +223,12 @@ extern "C" {
 #define JSON_NETWORK_GROUP_IP	"group_ip"
 #define JSON_NETWORK_TTL		"ttl"
 #define JSON_NETWORK_PORT_SET	"port_setting"
-#define JSON_NETWORK_P3K		"p3k"
-#define JSON_NETWORK_RS232		"rs232"
 #define JSON_NETWORK_DANTE		"dante"
 #define JSON_NETWORK_PORT		"port"
 #define JSON_NETWORK_VLAN		"vlan_tag"
+#define JSON_NETWORK_ETH0		"eth0"
+#define JSON_NETWORK_ETH1		"eth1"
+
 #define JSON_NETWORK_BEACON_INFO	"beacon_info"
 #define JSON_NETWORK_BEACON_EN		"beacon_en"
 #define JSON_NETWORK_BEACON_IP		"beacon_ip"
@@ -460,17 +459,15 @@ typedef struct   _Gateway_Info
 
 typedef struct   _Network_Info
 {
-	NetWorkInfo_S eth_info[2];	//0:disable;1:enable
+	NetWorkInfo_S eth_info[2];	//0:stream;1:control
 	State_E		  daisy_chain;
 	int 		  tcp_port;
 	int 		  udp_port;
 	NetMethodType_E	  method;		// 1: unicast; 2:multi
 	char 		  multicast_ip[32];
 	int 		  multicast_ttl;
-	int 		  p3k_port;
-	int 		  p3k_vlan;
-	int 		  rs232_port;
-	int 		  rs232_vlan;
+	int 		  control_port;
+	int 		  control_vlan;
 	int 		  dante_port;
 	int 		  dante_vlan;
     State_E       beacon_en;
@@ -521,6 +518,8 @@ extern int                  g_Udp_Socket;
 extern int                  g_Udp_Inside_Socket;
 extern ConnectionList_S     *g_connectionlist_info;
 extern int 					g_bCfg;
+extern int 					g_init_control_port;
+extern int 					g_init_control_vlan;
 
 typedef enum _SyncInfoType_E
 {
@@ -704,6 +703,9 @@ int Cfg_Set_Enc_AVSignal_Info();
 int Cfg_Set_Dec_Usb_KVM();
 int Cfg_Set_Switch_Delay();
 int Cfg_Set_Display_Sleep();
+
+int GetIPInfo(int netId,char* ip_addr,char* ip_mask);
+
 
 #ifdef __cplusplus
 }

@@ -14,7 +14,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include "classsum.h"
-#include <unistd.h> 
+#include <unistd.h>
 
 #include "json/json.h"
 #include <iostream>
@@ -67,7 +67,7 @@ int mysystem(char* cmdstring, char* buf, int len)
 		buf[size - 1] = 0;
 	}
 
-	DBG_InfoMsg("mysystem cmdstring:%s,buf:%s\n",cmdstring,buf);
+	//DBG_InfoMsg("mysystem cmdstring:%s,buf:%s\n",cmdstring,buf);
 	return 0;
 }
 
@@ -892,18 +892,11 @@ int EX_GetIRGateway(void)
 
 int EX_SetMulticastStatus(char * ip,int ttl )
 {
-	//DBG_InfoMsg("ip=%s\n",ip);
-//	if(g_network_info.method == Net_MULTICAST)
+
 	{
 		Cfg_Set_Net_Multicast("0.0.0.0",ttl);
 		char sCmd[64] = "";
-//		sprintf(sCmd,"e_p3k_net_multicast::%s",ip);
-		//DBG_InfoMsg("ast_send_event %s\n",sCmd);
-//		ast_send_event(0xFFFFFFFF,sCmd);
-
-//		memset(sCmd,0,64);
 		sprintf(sCmd,"e_set_ttl::%d",ttl);
-		//DBG_InfoMsg("ast_send_event %s\n",sCmd);
 		ast_send_event(0xFFFFFFFF,sCmd);
 	}
 	return 0;
@@ -962,7 +955,7 @@ int EX_SetGatewayPort(int iGw_Type,int iNetw_Id)
 	}
 
 
-	if(((iGw_Type == Net_P3K)||(iGw_Type == Net_RS232)||(iGw_Type == Net_DANTE))
+	if(((iGw_Type == Net_CONTROL)||(iGw_Type == Net_DANTE))
 		&&((iNetw_Id == 0)||(iNetw_Id == 1)))
 	{
 		Cfg_Set_Net_GW_Port((NetGWType_E)iGw_Type,iNetw_Id);
@@ -993,7 +986,7 @@ int EX_GetGatewayPort(int iGw_Type)
 		}
 	}
 
-	if((iGw_Type == Net_P3K)||(iGw_Type == Net_RS232)||(iGw_Type == Net_DANTE))
+	if((iGw_Type == Net_CONTROL)||(iGw_Type == Net_DANTE))
 	{
 		Cfg_Get_Net_GW_Port((NetGWType_E)iGw_Type,&iNetw_Id);
 	}
@@ -1021,7 +1014,7 @@ int EX_GetVlanTag(int iGw_Type)
 		}
 	}
 
-	if((iGw_Type == Net_P3K)||(iGw_Type == Net_RS232)||(iGw_Type == Net_DANTE))
+	if((iGw_Type == Net_CONTROL)||(iGw_Type == Net_DANTE))
 	{
 		Cfg_Get_Net_GW_Vlan((NetGWType_E)iGw_Type,&iTag);
 	}
@@ -3094,7 +3087,7 @@ int EX_SetNetWorkConf(int netId,NetWorkInfo_S*netInfo)
 {
 	DBG_InfoMsg("EX_SetNetWorkConf ip %s\n",netInfo->ipAddr);
 
-	if((netId == 0)/*||(netId == 1)*/)
+	if(netId == 0)
 	{
 		if(g_network_info.eth_info[netId].dhcp_enable == 0)
 		{
@@ -3103,24 +3096,21 @@ int EX_SetNetWorkConf(int netId,NetWorkInfo_S*netInfo)
 
 			DBG_InfoMsg("ast_send_event %s\n",sCmd);
 			ast_send_event(0xFFFFFFFF,sCmd);
-
-			Cfg_Set_Net_Config(netId,netInfo);
 		}
 	}
+
+	if((netId == 0)||(netId == 1))
+		Cfg_Set_Net_Config(netId,netInfo);
 	return 0;
 }
 int EX_GetNetWorkConf(int netId,NetWorkInfo_S*netInfo)
 {
 	char ip_buf[32] = "";
 	char mask_buf[32] = "";
+	GetIPInfo(netId,ip_buf,mask_buf);
+
 	char gw_buf[32] = "";
-
-	char* ip_cmd = "ifconfig |grep inet| sed -n '1p'|awk '{print $2}'|awk -F ':' '{print $2}'";
-	char* mask_cmd = "ifconfig |grep inet| sed -n '1p'|awk '{print $4}'|awk -F ':' '{print $2}'";
 	char* gw_cmd = "route -n | grep eth0 | grep UG | awk '{print $2}'";
-
-	mysystem(ip_cmd, ip_buf, 32);
-	mysystem(mask_cmd, mask_buf, 32);
 	mysystem(gw_cmd, gw_buf, 32);
 
 	strcpy(netInfo->ipAddr,ip_buf);
@@ -3140,9 +3130,9 @@ int EX_SetNetPort(char* portType,int portNumber)
 	DBG_InfoMsg("EX_SetNetPort portType= %s portNumber =%d\n",portType,portNumber);
 	if((!strcmp(portType,"udp"))||(!strcmp(portType,"UDP")))
 	{
-	    
+
         if(portNumber == g_network_info.udp_port)
-        { 
+        {
             printf("new port == old port err\n");
             return 0;
         }
@@ -3152,33 +3142,33 @@ int EX_SetNetPort(char* portType,int portNumber)
         struct sockaddr_in myaddr;
     	myaddr.sin_family=AF_INET;
     	myaddr.sin_port = htons(49000);
-    	//inet_pton(AF_INET,"10.36.145.183",&myaddr.sin_addr.s_addr); //服务器的ip
-    	myaddr.sin_addr.s_addr = 0;//通配地址  将所有的地址通通绑定
+    	//inet_pton(AF_INET,"10.36.145.183",&myaddr.sin_addr.s_addr); //鏈嶅姟鍣ㄧ殑ip
+    	myaddr.sin_addr.s_addr = 0;//閫氶厤鍦板潃  灏嗘墍鏈夌殑鍦板潃閫氶€氱粦瀹?
     	if(bind(sock_fd,(struct sockaddr*)&myaddr,sizeof(myaddr))<0)
     		perror("bind");
-        char ip_buf[32] = "";
-    	char* ip_cmd = "ifconfig |grep inet| sed -n '1p'|awk '{print $2}'|awk -F ':' '{print $2}'";
-    	mysystem(ip_cmd, ip_buf, 32);
-        
-    	struct sockaddr_in addr;// ipv4套接字地址结构体 
+
+		char ip_buf[32] = "";
+
+		GetIPInfo(1,ip_buf,NULL);
+
+    	struct sockaddr_in addr;// ipv4濂楁帴瀛楀湴鍧€缁撴瀯浣?
     	addr.sin_family =AF_INET;
     	addr.sin_port = htons(old_port);  //服务器端口
     	inet_pton(AF_INET,ip_buf,&addr.sin_addr.s_addr); //服务器的ip
     	struct sockaddr_in server_addr;
     	socklen_t len = sizeof(server_addr);
         char buf[24] = "udp_port_change";
-        
+
         int ret = sendto(sock_fd,buf,strlen(buf),0, (struct sockaddr*)&addr,sizeof(addr));
         printf("--[%d]\n",ret);
         close(sock_fd);
     }
 	else if((!strcmp(portType,"tcp"))||(!strcmp(portType,"TCP")))
 	{
-	    
+
         if(portNumber != g_network_info.tcp_port)
         {
             Cfg_Set_Net_Port(Net_TCP,portNumber);
-            //system("./restartP3k.sh");
         }
 	}
     else
@@ -3423,8 +3413,8 @@ int EX_SetBeacon(int portNumber,int status,int rateSecond)
 int EX_GetBeaconInfo(int portNumber,BeaconInfo_S*info)
 {
     char ip_buf[32] = "";
-	char* ip_cmd = "ifconfig |grep inet| sed -n '1p'|awk '{print $2}'|awk -F ':' '{print $2}'";
-	mysystem(ip_cmd, ip_buf, 32);
+	GetIPInfo(1,ip_buf,NULL);
+
     //ip_buf,g_network_info.udp_port,g_network_info.tcp_port,g_device_info.mac_addr,g_version_info.model
 	info->portNumber = portNumber;
 	info->tcpPort = g_network_info.tcp_port;
@@ -3860,17 +3850,16 @@ void * Beacon_cb(void * fd)
     }*/
 
     char ip_buf[32] = "";
-	char* ip_cmd = "ifconfig |grep inet| sed -n '1p'|awk '{print $2}'|awk -F ':' '{print $2}'";
-	mysystem(ip_cmd, ip_buf, 32);
-    
+	GetIPInfo(1,ip_buf,NULL);
+
 	struct sockaddr_in dst_addr;
 	bzero(&dst_addr,sizeof(dst_addr));
 	dst_addr.sin_family = AF_INET;
 	dst_addr.sin_port = htons(g_network_info.beacon_port);
 	//dst_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-			
+
 	dst_addr.sin_addr.s_addr = inet_addr(g_network_info.beacon_ip);
-	
+
 	char  cBeaconInfo[1024] = "";
     //~01@BEACON-INFO 1,192.168.60.2,50000,5000,11-22-33-44-55-66,KDS-EN6,IPE5000
     sprintf(cBeaconInfo,"~01@BEACON-INFO 1,%s,%d,%d,%s,%s,%s\r\n",ip_buf,g_network_info.udp_port,g_network_info.tcp_port,g_device_info.mac_addr,g_version_info.model,g_device_info.hostname);
@@ -3894,7 +3883,7 @@ int EX_Beacon(int iPort_Id,int iStatus,int iTime)
 {
     if(iPort_Id == 1)
     {
-    	
+
         if(iStatus == 1)
         {
             g_network_info.beacon_en  = ON;
@@ -3905,7 +3894,7 @@ int EX_Beacon(int iPort_Id,int iStatus,int iTime)
 
             pthread_create(&Beacon_id, &s_tThreadAttr, Beacon_cb, NULL);
             pthread_detach(Beacon_id);
-        	
+
         }
         else
         {
@@ -3928,18 +3917,15 @@ int EX_Discovery(char *aflag,char*ip,int iPort)
 {
     char ip_buf[32] = "";
 	char mask_buf[32] = "";
-	char gw_buf[32] = "";
-    char Send_buf[128] = "";
-	char* ip_cmd = "ifconfig |grep inet| sed -n '1p'|awk '{print $2}'|awk -F ':' '{print $2}'";
-	char* mask_cmd = "ifconfig |grep inet| sed -n '1p'|awk '{print $4}'|awk -F ':' '{print $2}'";
-	char* gw_cmd = "route -n | grep eth0 | grep UG | awk '{print $2}'";
+	GetIPInfo(1,ip_buf,mask_buf);
 
-	mysystem(ip_cmd, ip_buf, 32);
-	mysystem(mask_cmd, mask_buf, 32);
+	char gw_buf[32] = "";
+	char* gw_cmd = "route -n | grep eth0 | grep UG | awk '{print $2}'";
 	mysystem(gw_cmd, gw_buf, 32);
 
+    char Send_buf[128] = "";
     //sprintf(Send_buf,"~01@NET-IP %s,%s,%s\r\n",ip_buf,mask_buf,gw_buf);
-   
+
     if(!strcasecmp(aflag,"TCP"))
     {
         sprintf(Send_buf,"~01@ETH-PORT %s,%d\r\n",aflag,g_network_info.tcp_port);

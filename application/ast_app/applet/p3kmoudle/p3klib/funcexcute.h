@@ -410,9 +410,8 @@ typedef enum _NetPortType_E
 
 typedef enum _NetGWType_E
 {
-	Net_P3K = 0,
-	Net_RS232 = 1,
-	Net_DANTE = 2,
+	Net_CONTROL = 0,
+	Net_DANTE   = 1,
 }NetGWType_E;
 
 typedef enum _BoardInfoType_E

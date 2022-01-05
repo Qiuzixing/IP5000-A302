@@ -628,14 +628,24 @@ int Tcp_NetGetNetCab(NetCab_T *cab)
 void * TcpCmd_cb(void * fd)
 {
     SocketWorkInfo_S*handle = (SocketWorkInfo_S*)fd;
+
+	char ip_buf[32] = "";
+	strcpy(ip_buf,g_InitIP);
+
     while(1)
     {
-        if(handle->serverport == g_network_info.tcp_port)
+		memset(ip_buf,0,32);
+		GetIPInfo(1,ip_buf,NULL);
+//		printf("[!!!!!!222222222IP Addr]g_InitIP:%s,ip_buf:%s\n",g_InitIP,ip_buf);
+		if((strcmp(ip_buf,g_InitIP) == 0)&&(handle->serverport == g_network_info.tcp_port))
         {
-            usleep(50*1000);
+            usleep(200*1000);
         }
         else
         {
+			printf("[!!!!!!IP Port]handle->serverport:%d; g_network_info.tcp_port:%d\n",handle->serverport,g_network_info.tcp_port);
+			printf("[!!!!!!IP Addr]g_InitIP:%s,ip_buf:%s\n",g_InitIP,ip_buf);
+			strcpy(g_InitIP,ip_buf);
             UnInitTcpSocket(sTimeOut);
             SOCKET_DestroyTcpServer(Tcp_NetGetNetReristHandle());
             Tcp_NetInit(g_network_info.tcp_port);
@@ -770,6 +780,11 @@ int main (int argc, char const *argv[])
 
     Cfg_Init_Network();
     int portNumber;
+
+	if(strlen(g_InitIP)<7)
+	{
+		GetIPInfo(1,g_InitIP,NULL);
+	}
 
     Tcp_NNetInit();
 	if(argc == 3)

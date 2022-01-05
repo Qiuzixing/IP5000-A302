@@ -52,7 +52,7 @@ typedef struct _NetServerParam_S{
 	NetTcpSerCloseCbFun closecb;
 }NetServerParam_S;
 
-char   g_InitIP[16]; 
+char   g_InitIP[16] = "";
 static int bTsockFlag;
 static int uTsockFlag;
 
