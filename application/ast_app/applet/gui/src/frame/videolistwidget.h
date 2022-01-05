@@ -59,6 +59,7 @@ public:
     int  setdisplayStatus(bool cfg){m_displayStatus = cfg;}
 
     void hideSettingPage();
+    void setChannelLocation(int id);
 
 signals:
     void selectItem(const QString &text);
@@ -86,6 +87,8 @@ public slots:
 protected:
     virtual void keyPressEvent(QKeyEvent *e);
     virtual void focusOutEvent(QFocusEvent *e);
+    virtual void mousePressEvent(QMouseEvent *event);
+    virtual void mouseDoubleClickEvent(QMouseEvent *event);
 
     void updateListWidget(int pageChannels);
 
@@ -132,13 +135,14 @@ private:
     QList<QAction*> list;
 
     QLabel *m_Select;
-    QPushButton *m_Search;
+    QLabel *m_Search;
     QPushButton *m_Page_up;
     QPushButton *m_Page_down;
     QPushButton *m_Apply;
     QPushButton *m_Exit;
 
     bool m_onSreachMode; // 搜索模式标记
+    bool m_needSelected;
 
     QTimer  osdOverTimer; // 定时器
     int  m_overTime;     // 超时时间

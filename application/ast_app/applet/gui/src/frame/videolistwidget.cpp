@@ -36,6 +36,7 @@ OSDMeun::OSDMeun(QWidget *parent)
     ,m_onSreachMode(false)
     ,m_displayStatus(false)
     ,m_displayConfig(false)
+    ,m_needSelected (false)
     ,m_pageChannels(5)
     ,m_deviceTimeout(10)
 {
@@ -64,8 +65,23 @@ void OSDMeun::focusOutEvent(QFocusEvent *e)
 
 }
 
+void OSDMeun::mousePressEvent(QMouseEvent *event)
+{
+    qDebug() << "OSDMeun::mousePressEvent::updateTimer";
+    updateTimer();
+    return  QWidget::mousePressEvent(event);
+}
+
+void OSDMeun::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    return  QWidget::mouseDoubleClickEvent(event);
+}
+
 void OSDMeun::keyPressEvent(QKeyEvent *e)
 {
+    qDebug() << "OSDMeun::keyPressEvent::updateTimer";
+    updateTimer();
+
     int key = e->key();
     int count = m_listWidget->count();
     QModelIndex currentIndex = m_listWidget->currentIndex();
@@ -74,21 +90,37 @@ void OSDMeun::keyPressEvent(QKeyEvent *e)
         // 按向下方向键时，移动光标选中下一个完成列表中的项
         int row = currentIndex.row() + 1;
         if (row >= count) {
-            row = 0;
+            // 超过当前页下翻，并选中第一项
+            m_needSelected = true;
+            m_Page_down->click();
         }
-        QModelIndex index = m_listWidget->model()->index(row, 0);
-        m_listWidget->setCurrentIndex(index);
-    } else if (Qt::Key_Up == key) {
+        else
+        {
+            QModelIndex index = m_listWidget->model()->index(row, 0);
+            qDebug() << "index:" << index;
+            m_listWidget->setCurrentIndex(index);
+        }
+    }
+    else if (Qt::Key_Up == key) {
         // 按向下方向键时，移动光标选中上一个完成列表中的项
         int row = currentIndex.row() - 1;
         if (row < 0) {
-            row = count - 1;
+            m_needSelected = true;
+            m_Page_up->click();
         }
-        QModelIndex index = m_listWidget->model()->index(row, 0);
-        m_listWidget->setCurrentIndex(index);
-    } else if (Qt::Key_Escape == key) {
+        else
+        {
+            QModelIndex index = m_listWidget->model()->index(row, 0);
+            m_listWidget->setCurrentIndex(index);
+        }
+    }
+    else if (Qt::Key_Escape == key)
+    {
         // 按下Esc键时，隐藏完成列表
-    } else if (Qt::Key_Enter == key || Qt::Key_Return == key) {
+        m_Exit->click();
+    }
+    else if (Qt::Key_Enter == key || Qt::Key_Return == key)
+    {
         // 按下回车键时，使用完成列表中选中的项，并隐藏完成列表
         if (currentIndex.isValid()) {
             QString text = m_listWidget->currentIndex().data().toString();
@@ -115,6 +147,14 @@ void OSDMeun::keyPressEvent(QKeyEvent *e)
 
             m_Apply->click();
         }
+    }
+    else if(Qt::Key_PageDown == key)
+    {
+        m_Page_down->click();
+    }
+    else if(Qt::Key_PageUp == key)
+    {
+        m_Page_up->click();
     }
 
     QWidget::keyPressEvent(e);
@@ -170,13 +210,15 @@ void OSDMeun::initPageNumList()
 
 void OSDMeun::initLayout()
 {
-    m_Select = new QLabel("Video Select",this);
+    m_Select = new QLabel("Channel Select",this);
     m_Select->setFixedSize(g_nOsdMenuWidth * g_fScaleScreen,g_nButtonHeight * g_fScaleScreen);
     m_Select->setStyleSheet("QLabel{color:white;border:1px solid #a9a9a9;}");
     m_Select->setAlignment(Qt::AlignCenter);
 
-    m_Search = new QPushButton("Setting",this);
-    m_Search->setFixedSize(g_nButtonWidth * g_fScaleScreen,g_nButtonHeight * g_fScaleScreen);
+    m_Search = new QLabel("Filter",this);
+    m_Search->setFixedSize(67 * g_fScaleScreen,g_nButtonHeight * g_fScaleScreen);
+    m_Search->setStyleSheet("QLabel{color:white;border:1px solid #a9a9a9;}");
+    m_Search->setAlignment(Qt::AlignCenter);
 
     m_Page_up = new QPushButton("Page Up",this);
     m_Page_up->setFixedSize(g_nButtonWidth * g_fScaleScreen,g_nButtonHeight * g_fScaleScreen);
@@ -191,7 +233,8 @@ void OSDMeun::initLayout()
     m_Exit->setFixedSize(g_nButtonWidth * g_fScaleScreen,g_nButtonHeight * g_fScaleScreen);
 
     m_inputEdit = new QLineEdit(this);
-    m_inputEdit->setFixedSize(g_nButtonWidth * g_fScaleScreen,g_nButtonHeight * g_fScaleScreen);
+    m_inputEdit->setFixedSize(133 * g_fScaleScreen,g_nButtonHeight * g_fScaleScreen);
+    m_inputEdit->setFocus();
 
     m_listWidget = new QListWidget(this);
     m_listWidget->setStyleSheet("QListWidget{outline:0px;}");
@@ -206,20 +249,19 @@ void OSDMeun::initLayout()
     setMeunFont();
 
     // 初始化设置页面频道数
-    initPageNumList();
+//    initPageNumList();
 
     // 初始化界面大小
     initButtonStyle();
 
-    m_Search->setMenu(pageNumList);
-    m_Search->menu()->setStyleSheet("QMenu{background-color:rgba(169,169,169,0.8);color:#FFFFFF;}""QMenu::item:selected{background-color:#838383;}");
+//    m_Search->setMenu(pageNumList);
+//    m_Search->menu()->setStyleSheet("QMenu{background-color:rgba(169,169,169,0.8);color:#FFFFFF;}""QMenu::item:selected{background-color:#838383;}");
 
     QHBoxLayout *layout = new QHBoxLayout();
     layout->setContentsMargins(0,0,0,0);
     layout->setSpacing(0);
-    layout->addWidget(m_inputEdit);
     layout->addWidget(m_Search);
-    layout->setStretch(2,1);
+    layout->addWidget(m_inputEdit);
 
     m_mainLayout = new QGridLayout(this);
     m_mainLayout->setContentsMargins(0,0,0,0);
@@ -253,7 +295,6 @@ void OSDMeun::setButtonFont()
     m_Apply->setFont(font);
     m_Exit->setFont(font);
     m_inputEdit->setFont(font);
-    m_Search->setFont(font);
 }
 
 void OSDMeun::setMeunFont()
@@ -269,12 +310,10 @@ void OSDMeun::styleSheetControl(QPushButton *button)
 
 void OSDMeun::initButtonStyle()
 {
-    styleSheetControl(m_Search);
     styleSheetControl(m_Page_up);
     styleSheetControl(m_Page_down);
     styleSheetControl(m_Apply);
     styleSheetControl(m_Exit);
-    pageNumList->setStyleSheet("color:white");
 }
 
 void OSDMeun::initConnect()
@@ -437,22 +476,12 @@ void OSDMeun::parseMeunJson(QString jsonpath)
     // 从文件中读取
    // string path = jsonpath.toStdString();
 
-    // m_lock.lockForRead();
     CFileMutex lock(MENUINFO_PATH);
     lock.Init();
 
     lock.Lock();
-//    FileLock(MENUINFO_PATH);
 
     int filesize = 2048;
-//    QFileInfo info(MENUINFO_PATH);
-//    if (info.exists()) {
-//        qDebug() << "info.size():" << info.size();
-//        filesize = info.size();
-//    } else {
-//        qDebug() << "文件路径不存在！";
-//        return;
-//    }
 
     ifstream in(MENUINFO_PATH,ios::binary);
 
@@ -462,28 +491,6 @@ void OSDMeun::parseMeunJson(QString jsonpath)
         return;
     }
     qDebug() << "Start Parse OSDjson";
-
-//    int fd = ::open(MENUINFO_PATH, O_RDONLY);
-//    if(fd == -1)
-//    {}
-
-//    char input[filesize];
-//    memset(input,0,filesize);
-//    int lock_result = ::flock(fd, LOCK_EX);
-//    qDebug() << "lock_result:" << lock_result;
-//    if(lock_result == 0)
-//    {
-
-//    }
-
-//    ::read(fd, input, filesize);
-//    qDebug() << "input" << input;
-
-
-//    if(flock(fd, LOCK_UN) == 0)
-//    {
-//        ::close(fd);
-//    }
 
     char input[filesize];
     memset(input,0,filesize);
@@ -582,7 +589,6 @@ void OSDMeun::parseMeunJson(QString jsonpath)
     {
         std::cout << "reader error:" << reader.getFormatedErrorMessages() << std::endl;
     }
-//    m_lock.unlock();
 }
 
 QFont OSDMeun::loadFontSize()
@@ -789,7 +795,7 @@ void OSDMeun::loadChannel(QStringList channelList)
         channelName = omittedString(channelName,displayStr);
 //        qDebug() << "displayStr:" << displayStr;
         QListWidgetItem *item = new QListWidgetItem(m_listWidget);
-        item->setSizeHint(QSize(200 * g_fScaleScreen,30 * g_fScaleScreen));
+        item->setSizeHint(QSize(g_nOsdMenuWidth * g_fScaleScreen,29 * g_fScaleScreen));
         item->setText(channelName);
         item->setTextColor(Qt::white);
         m_listWidget->insertItem(rowIndex,item);      
@@ -834,6 +840,15 @@ void OSDMeun::pageUpClicked()
         m_currentPage--;
         loadChannel(m_channelList);
     }
+
+    if(m_needSelected)
+    {
+        m_needSelected =false;
+        int count = m_listWidget->count();
+        QModelIndex index = m_listWidget->model()->index(count-1, 0);
+        qDebug() << "pageDownClicked::index:" << index;
+        m_listWidget->setCurrentIndex(index);
+    }
 }
 
 void  OSDMeun::pageDownClicked()
@@ -847,6 +862,14 @@ void  OSDMeun::pageDownClicked()
     {
         m_currentPage++;
         loadChannel(m_channelList);
+    }
+
+    if(m_needSelected)
+    {
+        m_needSelected =false;
+        QModelIndex index = m_listWidget->model()->index(0, 0);
+        qDebug() << "pageDownClicked::index:" << index;
+        m_listWidget->setCurrentIndex(index);
     }
 }
 
@@ -944,6 +967,19 @@ void OSDMeun::setListWidgetHeight()
 
  void OSDMeun::hideSettingPage()
  {
-    m_Search->menu()->hide();
+//    m_Search->menu()->hide();
  }
+
+void OSDMeun::setChannelLocation(int id)
+{
+    // 计算当前频道所在页
+    m_currentPage = (id % m_pageChannels)?(id/m_pageChannels + 1):id/m_pageChannels;
+
+    loadChannel(m_channelList);
+
+    // 当前页的第几项
+    int id_location = id % m_pageChannels;
+    QModelIndex index = m_listWidget->model()->index(id_location-1, 0);
+    m_listWidget->setCurrentIndex(index);
+}
 

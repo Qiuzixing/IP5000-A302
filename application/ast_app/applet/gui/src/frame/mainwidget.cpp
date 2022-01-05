@@ -55,7 +55,11 @@ MainWidget::MainWidget(QWidget *parent) : QWidget(parent)
     ,m_CmdOuttime(-1)
     ,m_overlayStatus(false)
     ,m_bKvmMode(true)
+    ,m_isSnedQueryCmd(false)
 {
+    // 鼠标追踪
+    setMouseTracking(true);
+
     // 背景透明
     setAttribute(Qt::WA_TranslucentBackground);
 
@@ -138,7 +142,14 @@ void MainWidget::parseCmdResult(QByteArray datagram)
         datagram = datagram.mid(4);
     }
 
-    QStringList argList = QString(datagram).split(" ").at(1).split(",");
+    QStringList argList = QString(datagram).split(" ");
+    if(argList.at(0).contains("KDS-CHANNEL-SELECT") && m_isSnedQueryCmd)
+    {
+        m_isSnedQueryCmd = false;
+        int id = argList.at(1).split(",").at(1).toUInt();
+        qDebug() << "id:" << id;
+        m_osdMeun->setChannelLocation(id);
+    }
 }
 
 void MainWidget::onRecvData(QByteArray data)
@@ -329,6 +340,17 @@ void MainWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
     QWidget::mouseDoubleClickEvent(event);
 }
+
+void MainWidget::mouseMoveEvent(QMouseEvent *event)
+{
+    if(m_osdMeun != NULL && g_bOSDMeunDisplay)
+    {
+        qDebug() << "MainWidget::mouseMoveEvent::updateTimer";
+        m_osdMeun->updateTimer();
+    }
+    QWidget::mouseMoveEvent(event);
+}
+
 
 void MainWidget::syncConfig(QString path)
 {
@@ -560,6 +582,17 @@ void MainWidget::handleKvmMsg(bool enable)
         m_osdMeun->setMeunFont();
 
         QTimer::singleShot(500,this,SLOT(showOsdMeun()));
+
+        // 获取了点击的频道id, 设置频道切换或发送信号
+        QString strCmd = QString("#KDS-CHANNEL-SELECT? video\r");
+        QByteArray byteCmd = strCmd.toLatin1();
+
+        qDebug() << "channel_byteCmd:" << byteCmd;
+        if(m_p3kTcp->sendCmdToP3k(byteCmd))
+        {
+            m_isSnedQueryCmd = true;
+            qDebug("Send Get ChannelID CMD Yes");
+        }
     }
     else
     {
