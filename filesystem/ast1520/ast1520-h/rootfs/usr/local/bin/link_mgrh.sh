@@ -1429,7 +1429,19 @@ handle_e_p3k_switch_pri()
 	_pri_2="$1"
 
 	shift 2
-	_pri_3="$1"
+
+	case "$MODEL_NUMBER" in
+		WP-SW2-EN7)
+			_pri_3=HDMI3
+		;;
+		KDS-SW3-EN7)
+			_pri_3="$1"
+		;;
+		*)
+			echo "error switch_pri parameter"
+			return
+		;;
+	esac
 
 	echo "set p3k switch pri!!! $_pri_1 $_pri_2 $_pri_3"
 	sconfig --priority "$_pri_1" "$_pri_2" "$_pri_3"
