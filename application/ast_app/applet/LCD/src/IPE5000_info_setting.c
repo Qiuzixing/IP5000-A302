@@ -1184,7 +1184,7 @@ static int CH_SELECT_E()
         key = recv_key_info_E();
         switch (key)
         {
-            case DOWN_KEY:
+            case UP_KEY:
             {
                 if (channel_id[i] < '9')
                 {
@@ -1205,7 +1205,7 @@ static int CH_SELECT_E()
                 show_a_char(2, 16+i*8, channel_id[i], 1, 1);
                 break;
             }
-            case UP_KEY:
+            case DOWN_KEY:
             {   
                 if (i == 2)
                 {
