@@ -7380,6 +7380,17 @@ int GetIPInfo(int netId,char* ip_addr,char* ip_mask)
 	sprintf(ip_cmd,"ip addr show %s | grep 'inet' |sed 's/^.*inet //g'|sed 's#brd.*$##g'",eth);
 	mysystem(ip_cmd, ip_buf, 32);
 
+	if(strlen(ip_buf) < 9)
+	{
+		printf("ip_buf :%s\n",ip_buf);
+		sprintf(ip_addr,"0.0.0.0");
+
+		if(ip_mask!= NULL)
+			sprintf(ip_mask,"0.0.0.0");
+
+		return 0;
+	}
+
 	int count = sscanf(ip_buf,"%[^/]/%d",ip_addr,&mask);
 	unsigned int mask_code = 0;
 	if(strlen(ip_addr) < 7)
@@ -7405,3 +7416,27 @@ int GetIPInfo(int netId,char* ip_addr,char* ip_mask)
 	return 0;
 }
 
+int UpdateLocalIP(char* ip_addr)
+{
+	char cmd1[64] = "";
+
+	sprintf(cmd1,"astparam s soip_local_addr %s",ip_addr);
+	system(cmd1);
+
+	return 0;
+}
+
+int NotifyIPtoSOIP2(char* ip_addr)
+{
+	UpdateLocalIP(ip_addr);
+
+	if(g_gateway_info.rs232_mode == ON)
+	{
+		char sCmd[64] = "";
+		sprintf(sCmd,"e_p3k_soip_gw_on::%d",g_gateway_info.rs232_port);
+		DBG_InfoMsg("ast_send_event %s\n",sCmd);
+		ast_send_event(0xFFFFFFFF,sCmd);
+	}
+
+	return 0;
+}

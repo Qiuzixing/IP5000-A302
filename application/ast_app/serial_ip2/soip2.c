@@ -1,5 +1,3 @@
-
-
 /*
  * Copyright (c) 2004-2012
  * ASPEED Technology Inc. All Rights Reserved
@@ -63,7 +61,7 @@ struct s_req_pkt
 	//char req[MAX_STR_LEN]; //CMD_CONNECT, etc...
 	char target_name[MAX_STR_LEN]; //ast-client1111.local
 	char target_ip[MAX_STR_LEN]; //255.255.255.255
-	char uart_config[MAX_STR_LEN]; //115200-8n1	
+	char uart_config[MAX_STR_LEN]; //115200-8n1
 };
 
 typedef struct
@@ -168,13 +166,13 @@ static int _block_fd(int fd)
 static int block_write(int fd, char *buf, int cnt)
 {
 	int size = cnt;
-	
+
 	if (!cnt)
 	{
 		dbg("block_write no cnt?! (%d)", strerror(errno));
 		return 0;
 	}
-	
+
 	_block_fd(fd);
 	cnt = write(fd, buf, cnt);
 	if (cnt < 0) {
@@ -191,13 +189,13 @@ static int block_write(int fd, char *buf, int cnt)
 static int block_send(int fd, char *buf, int cnt)
 {
 	int size = cnt;
-	
+
 	if (!cnt)
 	{
 		dbg("block_send not cnt?! (%d)", strerror(errno));
 		return 0;
 	}
-	
+
 	_block_fd(fd);
 	cnt = send(fd, buf, cnt, MSG_NOSIGNAL);
 	if (cnt < 0) {
@@ -375,7 +373,8 @@ int soip2_connect_to_host(int fd, struct s_req_pkt *req, int soip_port)
 				goto out;
 			}
 			if (ret > 0) {
-				// Socket selected for write
+				//Socket selected for write
+				dbg(" Socket selected for write");
 				lon = sizeof(int);
 				if (getsockopt(socket_fd, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &lon) < 0)
 				{
@@ -473,7 +472,7 @@ int handshake_client(int socket_fd, char *uart_port)
 		err("Error send ack pkt! (%d)", ret);
 		if (uart_fd > 0)
 			close(uart_fd);
-		
+
 		ret = -1;
 		goto out;
 	}
@@ -519,6 +518,7 @@ int soip2_client_loop(int uart_fd, int socket_fd)
 
 		if (FD_ISSET(uart_fd, &fds))
 		{
+			dbg(" FD_ISSET(uart_fd, &fds)");
 			/* Read client UART */
 			memset(ub, 0, MAXMESG);
 			uc = read(uart_fd, ub, MAXMESG);
@@ -531,6 +531,8 @@ int soip2_client_loop(int uart_fd, int socket_fd)
 		if (FD_ISSET(socket_fd, &fds))
 		{
 			/* Read socket */
+
+			dbg(" FD_ISSET(socket_fd, &fds)");
 			memset(sb, 0, MAXMESG);
 			sc = read(socket_fd, sb, MAXMESG);
 			if ((sc <= 0) && (errno != EAGAIN)) {
@@ -541,6 +543,8 @@ int soip2_client_loop(int uart_fd, int socket_fd)
 		}
 
 		if (sc) {
+
+			dbg(" sc");
 			/* Parse "^N" */
 			/*
 			end = strchr(sb, CTRL_CODE);
@@ -559,6 +563,8 @@ int soip2_client_loop(int uart_fd, int socket_fd)
 		}
 
 		if (uc) {
+
+			dbg(" uc");
 			/* Parse "^N" */
 			/*
 			end = strchr(ub, CTRL_CODE);
@@ -613,6 +619,8 @@ int soip2_host_loop(int uart_fd, int socket_fd)
 
 		if (FD_ISSET(uart_fd, &fds))
 		{
+
+			dbg(" uart_fd, &fds");
 			/* Read host UART */
 			memset(ub, 0, MAXMESG);
 			uc = read(uart_fd, ub, MAXMESG);
@@ -624,6 +632,8 @@ int soip2_host_loop(int uart_fd, int socket_fd)
 		}
 		if (FD_ISSET(socket_fd, &fds))
 		{
+
+			dbg(" socket_fd, &fds");
 			/* Read socket */
 			memset(sb, 0, MAXMESG);
 			sc = read(socket_fd, sb, MAXMESG);
@@ -645,6 +655,8 @@ int soip2_host_loop(int uart_fd, int socket_fd)
 			}
 			*/
 
+			dbg(" sc");
+
 			/* Send to host UART */
 			ret = block_write(uart_fd, sb, sc);
 			if (ret < 0)
@@ -657,6 +669,7 @@ int soip2_host_loop(int uart_fd, int socket_fd)
 		}
 
 		if (uc) {
+			dbg(" uc");
 			/* Send to socket */
 			ret = block_write(socket_fd, ub, uc);
 			if (ret < 0)
@@ -709,6 +722,8 @@ unsigned int do_soip2_test(char *uart_port, char *uart_config)
 
 		if (FD_ISSET(uart_fd, &fds))
 		{
+
+			dbg(" uart_fd, &fds read");
 			cnt = read(uart_fd, buf, MAXMESG);
 			if (cnt <= 0) {
 				ret = errno;
@@ -717,6 +732,8 @@ unsigned int do_soip2_test(char *uart_port, char *uart_config)
 			}
 			if (cnt)
 			{
+
+				dbg(" uart_fd, &fds write");
 				_block_fd(uart_fd);
 				cnt = write(uart_fd, buf, cnt);
 				_nonblock_fd(uart_fd);
@@ -741,7 +758,7 @@ unsigned int do_soip2_client(char *uart_port, char *uart_config, char *host_ip, 
 	int socket_fd = -1;
 	//signal(SIGINT, gotint);
 	//signal(SIGTERM, gotint);
-	
+
 	/*
 	** Open UART first and Wait for Commands
 	*/
@@ -788,7 +805,7 @@ unsigned int do_soip2_client(char *uart_port, char *uart_config, char *host_ip, 
 		socket_fd = -1;
 
 		//UART_PRINTF(uart_fd, "\n\r====<End of %s>====\n\r", req.target_name);
-		
+
 	}
 
 out:
@@ -799,7 +816,7 @@ out:
 
 	if (uart_fd > 0)
 		close(uart_fd);
-	
+
 	return ret;
 }
 
@@ -807,7 +824,7 @@ static int soip2_create_event_listener(void)
 {
 	struct sockaddr_nl src_addr;
 	int event_listener;
-	
+
 	event_listener = socket(PF_NETLINK, SOCK_RAW, NETLINK_USERSOCK);
 	if (event_listener == -1) {
 		err("Not root\n");
@@ -831,7 +848,7 @@ done:
 	return -1;
 }
 
-int soip2_host_start_listen(int soip_port)
+int soip2_host_start_listen(int soip_port,char *local_ip)
 {
 	int ret = -1;
 	struct sockaddr_in addr;
@@ -855,7 +872,15 @@ int soip2_host_start_listen(int soip_port)
 	addr.sin_family = AF_INET;
 	//addr.sin_port = htons(SOIP2_PORT);
 	addr.sin_port = htons(soip_port);
-	addr.sin_addr.s_addr = htonl(INADDR_ANY);
+
+	if(local_ip != NULL)
+	{
+		inet_pton(AF_INET,local_ip,&addr.sin_addr.s_addr);
+	}
+	else
+	{
+		addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	}
 
 	ret = bind(sock, (struct sockaddr *)&addr, sizeof(struct sockaddr_in));
 	if (ret < 0) {
@@ -874,7 +899,7 @@ int soip2_host_start_listen(int soip_port)
 out:
 	if (sock >= 0)
 		close(sock);
-	
+
 	return ret;
 }
 
@@ -887,7 +912,7 @@ static int soip2_recv_event(int listener, t_msg_hdr *msg)
 	int len = 0;
 	unsigned char tmp[NLMSG_SPACE(MAX_PAYLOAD)];
 	//char tempstr[MAX_PAYLOAD];
-	
+
 	memset(&dest_addr, 0, sizeof(dest_addr));
 	nlh = (struct nlmsghdr *)tmp;
 #if 0
@@ -932,8 +957,8 @@ static int soip2_recv_event(int listener, t_msg_hdr *msg)
 	*/
 	info("SOIP2 got event:%s\n", NLMSG_DATA(nlh));
 	//copy only the ip part, no need to have SOIP2_MSG_TAG
-	strncpy(msg->ip, 
-	       ((unsigned char*)NLMSG_DATA(nlh)) + strlen(SOIP2_MSG_TAG), 
+	strncpy(msg->ip,
+	       ((unsigned char*)NLMSG_DATA(nlh)) + strlen(SOIP2_MSG_TAG),
 	       8 );
 	dbg("SOIP2 got disconnect event with ip:%s\n", msg->ip);
 
@@ -941,9 +966,9 @@ static int soip2_recv_event(int listener, t_msg_hdr *msg)
 	//msg->CmdType = MSG_CMDTYPE_ACTION;
 	//msg->DataSize = len + 1; //plus null end
 	//msg->reserved = 0;
-	
+
 	len = strlen(msg->ip);
-	
+
 done:
 #if 0
 	if (nlh)
@@ -957,7 +982,7 @@ static void soip2_remove_connection(int fd)
 	/* remove from master set */
 	if (fd == fdmax)
 		fdmax--;
-	
+
 	dbg("soip2 Client on socket %d removed..\n", fd);
 
 	//if the removed client holds the token, give it back to host
@@ -982,7 +1007,7 @@ static void _soip2_remove_connection_by_ip(unsigned long nIp)
 			dbg("soip2 found disconnected client on socket %d removed it..\n", i);
 			soip2_remove_connection(i);
 		}
-	}	
+	}
 }
 
 static void soip2_remove_connection_by_ip(char *ip)
@@ -1055,7 +1080,7 @@ static int do_broadcast(int uc, char *ubuff)
 	int i;
 	int ret = -1;
 	int client_count = 0;
-	
+
 	/* Send to every client. */
 	for (i=0; i<=fdmax; i++)
 	{
@@ -1083,7 +1108,7 @@ static int do_broadcast(int uc, char *ubuff)
 }
 
 
-int do_soip2_host(char *uart_port, char *uart_config, const int token_time, const int soip_port)
+int do_soip2_host(char *uart_port, char *uart_config, const int token_time, const int soip_port, char *local_ip  )
 {
 	fd_set read_fds;
 	int i;
@@ -1127,7 +1152,7 @@ int do_soip2_host(char *uart_port, char *uart_config, const int token_time, cons
 			uart_fd = open_uart(uart_port, uart_config);
 
 		if(listener_fd < 0)
-			listener_fd = soip2_host_start_listen(soip_port);
+			listener_fd = soip2_host_start_listen(soip_port,local_ip);
 
 		if(event_fd < 0)
 			event_fd = soip2_create_event_listener();
@@ -1169,12 +1194,12 @@ int do_soip2_host(char *uart_port, char *uart_config, const int token_time, cons
 	for(;;)
 	{
 			struct timeval timeout;
-	
+
 			for(;;) {
-			
+
 				/* copy it */
 				read_fds = master_fd;
-	
+
 				timeout.tv_usec = 0;
 				timeout.tv_sec = TOKEN_CHECK_INTERVAL;
 				ret = select(fdmax+1, &read_fds, NULL, NULL, &timeout);
@@ -1206,24 +1231,30 @@ int do_soip2_host(char *uart_port, char *uart_config, const int token_time, cons
 					break;
 				}
 			}
-	 
+
 			/*run through the existing connections looking for data to be read*/
 			for(i = 0; i <= fdmax; i++)
 			{
+
+				dbg("i = %d",i);
 				if(FD_ISSET(i, &read_fds))
 				{ /* we got one... */
 					if(i == event_fd)
 					{
+
+						dbg("i == event_fd");
 						//we get event from msg_channel for client drop out notification
 						num_bytes = soip2_recv_event(event_fd, &msg);
 						//client disconnect event arrived
-						if (num_bytes > 0) 
+						if (num_bytes > 0)
 						{
 							soip2_remove_connection_by_ip(msg.ip);
 						}
 					}
 					else if(i == listener_fd)
 					{
+
+						dbg("i == listener_fd");
 						/* handle client connections */
 						socket_fd = soip2_new_connection(listener_fd);
 						if (socket_fd >= 0)
@@ -1238,6 +1269,8 @@ int do_soip2_host(char *uart_port, char *uart_config, const int token_time, cons
 					}
 					else if (i == uart_fd)
 					{
+
+					dbg("i == uart_fd");
 						memset(ub, 0, MAXMESG);
 						uc = read(i, ub, MAXMESG);
 						if ((uc < 0) && (errno != EAGAIN))
@@ -1246,7 +1279,7 @@ int do_soip2_host(char *uart_port, char *uart_config, const int token_time, cons
 							err("host uart read failed! (%s)", strerror(errno));
 							goto done;
 						}
-						
+
 						if (uc)
 						{
 							int client_count = 0;
@@ -1278,7 +1311,7 @@ int do_soip2_host(char *uart_port, char *uart_config, const int token_time, cons
 							soip2_remove_connection(i);
 							continue;
 						}
-						
+
 						if (token_store == listener_fd)
 						{
 							token_store = i;
@@ -1289,7 +1322,7 @@ int do_soip2_host(char *uart_port, char *uart_config, const int token_time, cons
 							if(token_store == i)
 								time_remain = token_time;
 						}
-						
+
 						if(token_store == i) //client holds the token, if not discard its transmission
 						{
 							ret = block_write(uart_fd, sb, sc);
@@ -1304,7 +1337,7 @@ int do_soip2_host(char *uart_port, char *uart_config, const int token_time, cons
 			}
 		}
 
-done:	
+done:
 	dbg("done called! (%s)", strerror(errno));
 
 	for(i = 0; i <= fdmax; i++)
@@ -1325,9 +1358,10 @@ int main(int argc, char **argv)
 	char *uart_port;
 	char *uart_config;
 	char *host_ip;
+	char *local_ip = NULL;
 	int soip_port = SOIP2_PORT;
 	int token_time = TOKEN_TIME;
-	
+
 	enum {
 		cmd_host,
 		cmd_client,
@@ -1339,7 +1373,7 @@ int main(int argc, char **argv)
 		int c;
 		int index = 0;
 
-		c = getopt_long(argc, argv, "hcf:d:b:to:p:", longopts, &index);
+		c = getopt_long(argc, argv, "hcf:d:b:to:p:l:", longopts, &index);
 
 		if (c == -1)
 			break;
@@ -1372,6 +1406,9 @@ int main(int argc, char **argv)
 			case 'p':
 				soip_port = atoi(optarg);
 				break;
+			case 'l':
+				local_ip = optarg;
+				break;
 			default:
 				err("getopt\n");
 		}
@@ -1379,7 +1416,7 @@ int main(int argc, char **argv)
 
 	switch (cmd) {
 		case cmd_host:
-			do_soip2_host(uart_port, uart_config, token_time, soip_port);
+			do_soip2_host(uart_port, uart_config, token_time, soip_port, local_ip);
 			break;
 		case cmd_client:
 			do_soip2_client(uart_port, uart_config, host_ip, soip_port);

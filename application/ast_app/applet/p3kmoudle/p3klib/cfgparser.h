@@ -705,6 +705,9 @@ int Cfg_Set_Switch_Delay();
 int Cfg_Set_Display_Sleep();
 
 int GetIPInfo(int netId,char* ip_addr,char* ip_mask);
+int UpdateLocalIP(char* ip_addr);
+int NotifyIPtoSOIP2(char* ip_addr);
+
 
 
 #ifdef __cplusplus

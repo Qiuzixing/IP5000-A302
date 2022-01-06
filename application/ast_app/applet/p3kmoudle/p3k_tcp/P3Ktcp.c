@@ -639,10 +639,15 @@ void * TcpCmd_cb(void * fd)
 //		printf("[!!!!!!222222222IP Addr]g_InitIP:%s,ip_buf:%s\n",g_InitIP,ip_buf);
 		if((strcmp(ip_buf,g_InitIP) == 0)&&(handle->serverport == g_network_info.tcp_port))
         {
-            usleep(200*1000);
+            usleep(1000*1000);
         }
         else
         {
+			if(strcmp(ip_buf,g_InitIP) != 0)
+			{
+				printf("!!!notifty to soip2\n");
+				NotifyIPtoSOIP2(ip_buf);
+			}
 			printf("[!!!!!!IP Port]handle->serverport:%d; g_network_info.tcp_port:%d\n",handle->serverport,g_network_info.tcp_port);
 			printf("[!!!!!!IP Addr]g_InitIP:%s,ip_buf:%s\n",g_InitIP,ip_buf);
 			strcpy(g_InitIP,ip_buf);
@@ -778,6 +783,8 @@ int main (int argc, char const *argv[])
         }
     }
 
+    Tcp_NNetInit();
+
     Cfg_Init_Network();
     int portNumber;
 
@@ -786,7 +793,8 @@ int main (int argc, char const *argv[])
 		GetIPInfo(1,g_InitIP,NULL);
 	}
 
-    Tcp_NNetInit();
+	UpdateLocalIP(g_InitIP);
+
 	if(argc == 3)
 	{
 		if(!memcmp(argv[2],"-l",strlen("-l")))

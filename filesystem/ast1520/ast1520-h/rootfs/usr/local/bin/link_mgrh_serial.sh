@@ -92,8 +92,12 @@ load_soip_h()
 		fi
 	fi
 
+	SOIP_LOCAL_ADDR=`astparam g soip_local_addr`
+	if echo "$SOIP_LOCAL_ADDR" | grep -q "not defined" ; then
+		SOIP_LOCAL_ADDR=`0.0.0.0`
+	fi
 
-	echo "load_soip_h SOIP_GUEST_ON($SOIP_GUEST_ON) SOIP_PORT($SOIP_PORT) SOIP_TYPE($SOIP_TYPE) S0_BAUDRATE($S0_BAUDRATE)"
+	echo "load_soip_h SOIP_GUEST_ON($SOIP_GUEST_ON) SOIP_PORT($SOIP_PORT) SOIP_TYPE($SOIP_TYPE) S0_BAUDRATE($S0_BAUDRATE) SOIP_LOCAL_ADDR($SOIP_LOCAL_ADDR)"
 
 	case "$SOIP_TYPE" in
 		1)
@@ -105,7 +109,7 @@ load_soip_h()
 		;;
 		2)
 			if [ "$SOIP_GUEST_ON" = 'y' ]; then
-				soip2 -h -f /dev/ttyS0 -b $S0_BAUDRATE -o $SOIP_TOKEN_TIMEOUT -p $SOIP_PORT
+				soip2 -h -f /dev/ttyS0 -b $S0_BAUDRATE -o $SOIP_TOKEN_TIMEOUT -p $SOIP_PORT -l $SOIP_LOCAL_ADDR
 			else
 				soip2 -h -f /dev/ttyS0 -b $S0_BAUDRATE -o $SOIP_TOKEN_TIMEOUT -p 6752
 			fi
