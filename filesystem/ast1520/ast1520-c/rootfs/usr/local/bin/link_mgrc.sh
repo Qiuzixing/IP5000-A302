@@ -643,11 +643,8 @@ handle_e_sys_ip_chg()
 	pkill -9 name_service
 	pkill -9 inetd
 	#pkill -9 httpd
-	pkill -9 lcd_display
-	pkill -9 web
 	pkill -9 telnetd
 	pkill -9 ldap_daemon
-	pkill -9 p3ktcp
 
 	#avahi-daemon -D
 	name_service -tclient
@@ -661,19 +658,6 @@ handle_e_sys_ip_chg()
 
 	node_responser --mac $MY_MAC &
 	heartbeat &
-	p3ktcp &
-	usleep 10000
-	web &
-
-	case $MODEL_NUMBER in
-		KDS-DEC7)
-			if [ $P3KCFG_FP_LOCK_ON = 'off' ];then
-				lcd_display IPD5000 &
-			fi
-		;;
-		*)
-		;;
-	esac
 
 	ulmparam s MY_IP $MY_IP
 	ast_send_event -1 e_reconnect
