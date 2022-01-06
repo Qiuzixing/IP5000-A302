@@ -40,9 +40,9 @@ OSDMeun::OSDMeun(QWidget *parent)
     ,m_pageChannels(5)
     ,m_deviceTimeout(10)
 {
-    QGraphicsOpacityEffect *opacityEffect=new QGraphicsOpacityEffect;
-    this->setGraphicsEffect(opacityEffect);
-    opacityEffect->setOpacity(0.9);
+//    QGraphicsOpacityEffect *opacityEffect=new QGraphicsOpacityEffect;
+//    this->setGraphicsEffect(opacityEffect);
+//    opacityEffect->setOpacity(0.9);
 
     // 解析菜单参数
     parseMeunJson(MENUINFO_PATH);
@@ -216,14 +216,14 @@ void OSDMeun::initLayout()
     m_Select->setAlignment(Qt::AlignCenter);
 
     m_Search = new QLabel("Filter",this);
-    m_Search->setFixedSize(67 * g_fScaleScreen,g_nButtonHeight * g_fScaleScreen);
+    m_Search->setFixedSize(90 * g_fScaleScreen,g_nButtonHeight * g_fScaleScreen);
     m_Search->setStyleSheet("QLabel{color:white;border:1px solid #a9a9a9;}");
     m_Search->setAlignment(Qt::AlignCenter);
 
-    m_Page_up = new QPushButton("Page Up",this);
+    m_Page_up = new QPushButton("Previous Page",this);
     m_Page_up->setFixedSize(g_nButtonWidth * g_fScaleScreen,g_nButtonHeight * g_fScaleScreen);
 
-    m_Page_down = new QPushButton("Page Down",this);
+    m_Page_down = new QPushButton("Next Page",this);
     m_Page_down->setFixedSize(g_nButtonWidth * g_fScaleScreen,g_nButtonHeight * g_fScaleScreen);
 
     m_Apply = new QPushButton("Apply",this);
@@ -233,7 +233,7 @@ void OSDMeun::initLayout()
     m_Exit->setFixedSize(g_nButtonWidth * g_fScaleScreen,g_nButtonHeight * g_fScaleScreen);
 
     m_inputEdit = new QLineEdit(this);
-    m_inputEdit->setFixedSize(133 * g_fScaleScreen,g_nButtonHeight * g_fScaleScreen);
+    m_inputEdit->setFixedSize(180 * g_fScaleScreen,g_nButtonHeight * g_fScaleScreen);
     m_inputEdit->setFocus();
 
     m_listWidget = new QListWidget(this);
@@ -243,6 +243,7 @@ void OSDMeun::initLayout()
     m_listWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_listWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_listWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    m_listWidget->setFocusPolicy(Qt::NoFocus);
 
     // 设置字体
     setButtonFont();
@@ -306,6 +307,7 @@ void OSDMeun::setMeunFont()
 void OSDMeun::styleSheetControl(QPushButton *button)
 {
     button->setStyleSheet("QPushButton{color:white; outline: none;}");
+//    button->setStyleSheet("QPushButton:focus{color:#FFFFFF; background:#838383; outline: none;}");
 }
 
 void OSDMeun::initButtonStyle()
@@ -314,6 +316,11 @@ void OSDMeun::initButtonStyle()
     styleSheetControl(m_Page_down);
     styleSheetControl(m_Apply);
     styleSheetControl(m_Exit);
+
+    m_Page_up->setFocusPolicy(Qt::NoFocus);
+    m_Page_down->setFocusPolicy(Qt::NoFocus);
+    m_Apply->setFocusPolicy(Qt::NoFocus);
+    m_Exit->setFocusPolicy(Qt::NoFocus);
 }
 
 void OSDMeun::initConnect()
@@ -336,6 +343,7 @@ void OSDMeun::initConnect()
 void OSDMeun::setCompleter(const QString &text)
 {
     qDebug() << "text:" << text;
+    updateTimer();
 
     m_onSreachMode = true;
 
@@ -748,23 +756,23 @@ void OSDMeun::loadChannel(QStringList channelList)
 
     qDebug() << "load_1" << totalpages;
 
-    if(m_currentPage < totalpages)
-    {
-        m_Page_down->setEnabled(true);
-    }
-    else
-    {
-        m_Page_down->setEnabled(false);
-    }
+//    if(m_currentPage < totalpages)
+//    {
+//        m_Page_down->setEnabled(true);
+//    }
+//    else
+//    {
+//        m_Page_down->setEnabled(false);
+//    }
 
-    if(m_currentPage > 1)
-    {
-        m_Page_up->setEnabled(true);
-    }
-    else
-    {
-        m_Page_up->setEnabled(false);
-    }
+//    if(m_currentPage > 1)
+//    {
+//        m_Page_up->setEnabled(true);
+//    }
+//    else
+//    {
+//        m_Page_up->setEnabled(false);
+//    }
 
     // 清除元素
     for(int index = m_listWidget->count() - 1; index >= 0; index--)
@@ -778,6 +786,10 @@ void OSDMeun::loadChannel(QStringList channelList)
     if(m_currentPage > totalpages)
     {
         m_currentPage = totalpages;
+    }
+    else if(m_currentPage < 1)
+    {
+        m_currentPage = 1;
     }
 
     int startindex = (m_currentPage - 1) * m_pageChannels;
@@ -841,14 +853,12 @@ void OSDMeun::pageUpClicked()
         loadChannel(m_channelList);
     }
 
-    if(m_needSelected)
-    {
-        m_needSelected =false;
-        int count = m_listWidget->count();
-        QModelIndex index = m_listWidget->model()->index(count-1, 0);
-        qDebug() << "pageDownClicked::index:" << index;
-        m_listWidget->setCurrentIndex(index);
-    }
+
+    m_needSelected =false;
+    int count = m_listWidget->count();
+    QModelIndex index = m_listWidget->model()->index(count-1, 0);
+    qDebug() << "pageDownClicked::index:" << index;
+    m_listWidget->setCurrentIndex(index);
 }
 
 void  OSDMeun::pageDownClicked()
@@ -864,13 +874,11 @@ void  OSDMeun::pageDownClicked()
         loadChannel(m_channelList);
     }
 
-    if(m_needSelected)
-    {
-        m_needSelected =false;
-        QModelIndex index = m_listWidget->model()->index(0, 0);
-        qDebug() << "pageDownClicked::index:" << index;
-        m_listWidget->setCurrentIndex(index);
-    }
+
+    m_needSelected =false;
+    QModelIndex index = m_listWidget->model()->index(0, 0);
+    qDebug() << "pageDownClicked::index:" << index;
+    m_listWidget->setCurrentIndex(index);
 }
 
 void OSDMeun::exitClicked()

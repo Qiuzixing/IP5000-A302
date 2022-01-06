@@ -44,7 +44,7 @@ OSDLabel::OSDLabel(const QString& text, quint8 fontSize, quint32 fontColor, QWid
 
     qDebug() << "g_Transparency:" << g_Transparency;
 
-    palette.setColor(QPalette::WindowText, QColor(r, g, b, g_Transparency));
+    palette.setColor(QPalette::WindowText, QColor(r, g, b, a));
     setPalette(palette);
 
     connect(&displayerTimer,SIGNAL(timeout()),this,SLOT(overTimer()));

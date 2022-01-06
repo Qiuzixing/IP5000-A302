@@ -573,7 +573,9 @@ void MainWidget::handleKvmMsg(bool enable)
         m_bKvmMode = false;
 
         // hide overlay & deviceInfo
-        slotHideDeviceInfo(false);
+        if(!g_bDeviceSleepMode)
+            slotHideDeviceInfo();
+
         slotHideOverlay();
 
         m_osdMeun->parseMeunJson(MENUINFO_PATH);
@@ -860,7 +862,7 @@ void MainWidget::moveOsdMeun(int position)
 
     // 移动到指定位置
     moveFramebuffer(position);
-//    setTransparency(20);
+    setTransparency(20);
 
     m_osdMeun->startTimer();
 }
@@ -985,6 +987,7 @@ void MainWidget::showOverlay(OSDLabel *overlay,int position)
      text->move(xpos,ypos);
      moveFramebuffer(position);
      qDebug() << "m_Transparency" << m_Transparency;
+     setTransparency(m_Transparency);
 
 
      // 非常显，启动定时器
@@ -1171,8 +1174,8 @@ void MainWidget::parseOverlayJson(QString jsonpath)
                     m_imageOverlay = new OSDLabel(filepath,width,height,this);
                     m_imageOverlay->setShowPos(showPos);
 
-                    m_imageOverlay->setGraphicsEffect(m_opacityEffect);
-                    m_opacityEffect->setOpacity(Transparency_set);
+//                    m_imageOverlay->setGraphicsEffect(m_opacityEffect);
+//                    m_opacityEffect->setOpacity(Transparency_set);
 
 
                     // 在这里删除是为了避免m_opacityEffect引起崩溃
