@@ -150,6 +150,8 @@ unload_soip_h()
 start_service()
 {
 	load_soip_h &
+
+	sleep 1
 }
 
 stop_service()

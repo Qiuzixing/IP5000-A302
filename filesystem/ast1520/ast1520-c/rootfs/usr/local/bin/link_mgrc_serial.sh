@@ -125,6 +125,8 @@ start_service()
 {
 	# soip will not return, put it in background
 	load_soip_c &
+
+	sleep 1
 }
 
 stop_service()
