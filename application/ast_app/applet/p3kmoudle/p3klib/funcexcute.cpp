@@ -1681,29 +1681,54 @@ int EX_GetAutoSwitchPriority(AudioInfo_S * gain,int count)
 					 	break;
 					}
 				}
-				else if((type == SIGNAL_AUDIO)&&(strcmp(g_version_info.model,IPE_MODULE) == 0))
+				else if(type == SIGNAL_AUDIO)
 				{
-					gain[num+1].direction = DIRECTION_IN;
-					gain[num+1].signal = SIGNAL_AUDIO;
-					if(port[i] == AUDIO_IN_HDMI)
+					if(strcmp(g_version_info.model,IPE_MODULE) == 0)
 					{
-						gain[num+1].portFormat = PORT_HDMI;
-						gain[num+1].portIndex = 1;
-						num++;
+						gain[num+1].direction = DIRECTION_IN;
+						gain[num+1].signal = SIGNAL_AUDIO;
+						if(port[i] == AUDIO_IN_HDMI)
+						{
+							gain[num+1].portFormat = PORT_HDMI;
+							gain[num+1].portIndex = 1;
+							num++;
+						}
+						else if(port[i] == AUDIO_IN_ANALOG)
+						{
+							if(g_audio_info.direction == DIRECTION_IN)
+							{
+								gain[num+1].portFormat = PORT_ANALOG_AUDIO;
+								gain[num+1].portIndex = 1;
+								num++;
+							}
+						}
+						else
+						{
+						//	num = i + 1;
+						 	break;
+						}
 					}
-					else if(port[i] == AUDIO_IN_ANALOG)
+					else //IPE_W_MODULE
 					{
-						if(g_audio_info.direction == DIRECTION_IN)
+						gain[num+1].direction = DIRECTION_IN;
+						gain[num+1].signal = SIGNAL_AUDIO;
+						if(port[i] == AUDIO_IN_HDMI)
+						{
+							gain[num+1].portFormat = PORT_HDMI;
+							gain[num+1].portIndex = 1;
+							num++;
+						}
+						else if(port[i] == AUDIO_IN_ANALOG)
 						{
 							gain[num+1].portFormat = PORT_ANALOG_AUDIO;
 							gain[num+1].portIndex = 1;
 							num++;
 						}
-					}
-					else
-					{
-					//	num = i + 1;
-					 	break;
+						else
+						{
+						//	num = i + 1;
+						 	break;
+						}					
 					}
 				}
 			}
