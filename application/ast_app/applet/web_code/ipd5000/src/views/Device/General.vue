@@ -69,13 +69,13 @@
                 class="btn btn-plain-primary"
                 @click="locateDev">APPLY</button>
       </div>
-      <div class="setting">
-        <span class="setting-title">Power Save</span>
-        <v-switch v-model="powerSave"
-                  active-value="1"
-                  inactive-value="0"
-                  @change="setPowerSave"></v-switch>
-      </div>
+<!--      <div class="setting">-->
+<!--        <span class="setting-title">Power Save</span>-->
+<!--        <v-switch v-model="powerSave"-->
+<!--                  active-value="1"-->
+<!--                  inactive-value="0"-->
+<!--                  @change="setPowerSave"></v-switch>-->
+<!--      </div>-->
       <div class="setting">
         <span class="setting-title">Inactivity Auto-standby Delay Duration</span>
         <el-input-number v-model="autoStandbyTime"
@@ -244,7 +244,7 @@ export default {
     this.$socket.sendMsg('#NET-MAC? 0')
     this.$socket.sendMsg('#SN? ')
     this.$socket.sendMsg('#LOCK-FP? ')
-    this.$socket.sendMsg('#STANDBY? ')
+    // this.$socket.sendMsg('#STANDBY? ')
     this.$socket.sendMsg('#UPG-TIME? ')
     this.$socket.sendMsg('#STANDBY-TIMEOUT? ')
     this.$socket.sendMsg('#VERSION? ')

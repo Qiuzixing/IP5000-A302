@@ -10,12 +10,6 @@
                     inactive-value="0"
                     @change="switchPwdStatus"></v-switch>
         </div>
-        <!-- <div class="setting">
-          <span class="setting-title">Current Password</span>
-          <input :type="showPassword ? 'text' : 'password'"
-                 v-model="pwd"
-                 class="setting-text">
-        </div> -->
         <div class="setting">
           <span class="setting-title">New Password</span>
           <input type="password"

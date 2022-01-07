@@ -154,7 +154,7 @@
           <div class="setting">
             <span class="setting-title"
                   style="width: 180px;">Private Key Password</span>
-            <input type="text"
+            <input type="password"
                    class="setting-text"
                    :disabled="server8021x === 'off'"
                    v-model="tls_private_password">

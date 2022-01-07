@@ -26,36 +26,39 @@
         </el-select>
       </div>
       <div class="setting">
-        <span class="setting-title">Stream ID</span>
-        <el-input-number v-model="channel"
-                         controls-position="right"
-                         :max="999"
-                         :min="1"></el-input-number>
-        <button type="button"
-                class="btn btn-plain-primary"
-                style="margin-left: 24px;"
-                @click="setChannel">APPLY</button>
+        <span class="setting-title">Channel ID</span>
+<!--        <el-input-number v-model="channel"-->
+<!--                         controls-position="right"-->
+<!--                         :max="999"-->
+<!--                         :min="1"></el-input-number>-->
+<!--        <button type="button"-->
+<!--                class="btn btn-plain-primary"-->
+<!--                style="margin-left: 24px;"-->
+<!--                @click="setChannel">APPLY</button>-->
+        <span>{{channel}}</span>
         <!-- <span>{{channel}}</span> -->
       </div>
       <div class="setting">
-        <span class="setting-title">Stream Name</span>
-        <div style="position: relative;">
-          <input type="text"
-                 class="setting-text"
-                 maxlength="24"
-                 v-model="channelName">
-          <span class="range-alert"
-                v-if="!isChannelName(channelName)"
-                style="top:34px;white-space: nowrap;">Alphanumeric and characters within length of 1 to 24 characters, spaces not allowed</span>
-        </div>
-        <button type="button"
-                class="btn btn-plain-primary"
-                style="margin-left: 24px;"
-                @click="setChannelName">APPLY</button>
+        <span class="setting-title">Channel Name</span>
+        <span>{{channelName}}</span>
+<!--        <div style="position: relative;">-->
+<!--          <input type="text"-->
+<!--                 class="setting-text"-->
+<!--                 maxlength="24"-->
+<!--                 v-model="channelName">-->
+<!--          <span class="range-alert"-->
+<!--                v-if="!isChannelName(channelName)"-->
+<!--                style="top:34px;white-space: nowrap;">Alphanumeric and characters within length of 1 to 24 characters, spaces not allowed</span>-->
+<!--        </div>-->
+<!--        <button type="button"-->
+<!--                class="btn btn-plain-primary"-->
+<!--                style="margin-left: 24px;"-->
+<!--                @click="setChannelName">APPLY</button>-->
       </div>
       <div class="setting" v-if="this.$global.deviceType !== 2">
         <span class="setting-title">Volume</span>
         <el-slider @change="setVolume"
+                   :disabled="volumeDisabled"
                    style="width: 200px"
                    :min="0"
                    :max="100"
@@ -66,7 +69,7 @@
         <span style="margin-left: 15px">{{volume}}</span>
       </div>
       <div class="setting"
-           style="margin-top: 36px;">
+           style="margin-top: 24px;">
         <span class="setting-title">Mute</span>
         <v-switch v-model="muteVal"
                   active-value="on"
@@ -143,7 +146,8 @@ export default {
       audioChannel: '',
       audioFormat: '',
       audioRate: '',
-      channelList: []
+      channelList: [],
+      volumeDisabled: true
     }
   },
   beforeCreate () {
@@ -155,6 +159,7 @@ export default {
     if (this.$global.deviceType) {
       this.$socket.sendMsg('#X-ROUTE? out.hdmi.1.video.1')
     }
+    this.$socket.sendMsg('#PORT-DIRECTION? both.analog.1.audio')
     this.$socket.sendMsg('#KDS-DEFINE-CHANNEL? ')
     this.$socket.sendMsg('#KDS-DEFINE-CHANNEL-NAME? ')
     this.$socket.sendMsg('#X-AUD-LVL? out.analog_audio.1.audio.1')
@@ -202,6 +207,10 @@ export default {
       }
       if (msg.search(/@KDS-RATIO /i) !== -1) {
         this.handleRatio(msg)
+        return
+      }
+      if (msg.search(/@PORT-DIRECTION /i) !== -1) {
+        this.handleDirection(msg)
         return
       }
       if (msg.search(/@X-AUD-DESC /i) !== -1) {
@@ -266,6 +275,11 @@ export default {
     },
     isChannelName (name) {
       return /^[a-zA-Z0-9][_\-a-zA-Z0-9]{0,23}$/.test(name)
+    },
+    handleDirection (msg) {
+      if (msg.search(/audio/i) !== -1) {
+        this.volumeDisabled = msg.split(',')[1].toLowerCase() === 'in'
+      }
     }
   }
 }

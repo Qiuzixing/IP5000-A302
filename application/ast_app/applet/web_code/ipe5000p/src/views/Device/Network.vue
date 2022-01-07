@@ -1,183 +1,127 @@
 <template>
   <div class="main-setting">
     <div class="setting-model">
-      <div class="setting"
-           style="margin-bottom: 0">
-        <h3 class="setting-model-title">IP Settings</h3>
-        <h3 class="setting-model-title">Eth 0</h3>
-        <h3 class="setting-model-title">Eth 1</h3>
-      </div>
-      <div class="setting">
-        <span class="setting-title">DHCP</span>
-        <div class="setting-title">
-          <v-switch v-model="ipMode0"
-                    style="width: 120px"
-                    active-value="1"
-                    inactive-value="0"></v-switch>
-        </div>
-        <div class="setting-title">
-          <v-switch v-model="ipMode1"
-                    style="width: 120px"
-                    active-value="1"
-                    inactive-value="0"></v-switch>
-        </div>
-      </div>
-      <div class="setting">
-        <span class="setting-title">IP Address</span>
-        <div class="setting-title">
-          <input type="text"
-                 :disabled="ipMode0 === '1'"
-                 class="setting-text"
-                 v-model="ipInfo0[0]">
-        </div>
-        <div class="setting-title">
-          <input type="text"
-                 :disabled="ipMode1 === '1'"
-                 class="setting-text"
-                 v-model="ipInfo1[0]">
-        </div>
-      </div>
-      <div class="setting">
-        <span class="setting-title">Mask Address</span>
-        <div class="setting-title">
-          <input type="text"
-                 :disabled="ipMode0 === '1'"
-                 class="setting-text"
-                 v-model="ipInfo0[1]">
-        </div>
-        <div class="setting-title">
-          <input type="text"
-                 :disabled="ipMode1 === '1'"
-                 class="setting-text"
-                 v-model="ipInfo1[1]">
-        </div>
-      </div>
-      <div class="setting">
-        <span class="setting-title">Gateway Address</span>
-        <div class="setting-title">
-          <input type="text"
-                 :disabled="ipMode0 === '1'"
-                 class="setting-text"
-                 v-model="ipInfo0[2]">
-        </div>
-        <div class="setting-title">
-          <input type="text"
-                 :disabled="ipMode1 === '1'"
-                 class="setting-text"
-                 v-model="ipInfo1[2]">
-        </div>
-      </div>
-      <div class="setting">
-        <span class="setting-title">Primary DNS</span>
-        <div class="setting-title">
-          <input type="text"
-                 :disabled="ipMode0 === '1'"
-                 class="setting-text"
-                 v-model="ipInfo0[3]">
-        </div>
-        <div class="setting-title">
-          <input type="text"
-                 :disabled="ipMode1 === '1'"
-                 class="setting-text"
-                 v-model="ipInfo1[3]">
-        </div>
-      </div>
-      <div class="setting">
-        <span class="setting-title">Secondary DNS</span>
-        <div class="setting-title">
-          <input type="text"
-                 :disabled="ipMode0 === '1'"
-                 class="setting-text"
-                 v-model="ipInfo0[4]">
-        </div>
-        <div class="setting-title">
-          <input type="text"
-                 :disabled="ipMode1 === '1'"
-                 class="setting-text"
-                 v-model="ipInfo1[4]">
-        </div>
-      </div>
-    </div>
-    <div class="setting-model">
-      <div class="setting"
-           style="margin-bottom: 0">
-        <h3 class="setting-model-title">Port Configuration</h3>
-        <h3 class="setting-model-title"
-            style="width: 80px;">Eth 0</h3>
-        <h3 class="setting-model-title"
-            style="width: 80px;">Eth 1</h3>
-        <h3 class="setting-model-title">VLAN tag</h3>
-      </div>
-      <div class="setting">
-        <span class="setting-title">P3K Port</span>
-        <div class="setting-title"
-             style="width: 80px;">
-          <radio-component v-model="configPort0"
-                           label="0"
-                           :isEmpty="true"
-                           style="margin-bottom: 0;"></radio-component>
-        </div>
-        <div class="setting-title"
-             style="width: 80px;">
-          <radio-component v-model="configPort0"
-                           label="1"
-                           :isEmpty="true"
-                           style="margin-bottom: 0;"></radio-component>
-        </div>
-        <div>
-          <el-input-number v-model="danteTag1"
-                           controls-position="right"
-                           :max="4095"
-                           :min="1"></el-input-number>
-        </div>
-      </div>
-      <div class="setting">
-        <span class="setting-title">RS232 Gateway Port</span>
-        <div class="setting-title"
-             style="width: 80px;">
-          <radio-component v-model="configPort1"
-                           label="0"
-                           :isEmpty="true"
-                           style="margin-bottom: 0;"></radio-component>
-        </div>
-        <div class="setting-title"
-             style="width: 80px;">
-          <radio-component v-model="configPort1"
-                           label="1"
-                           :isEmpty="true"
-                           style="margin-bottom: 0;"></radio-component>
-        </div>
-        <div>
-          <el-input-number v-model="danteTag2"
-                           controls-position="right"
-                           :max="4095"
-                           :min="1"></el-input-number>
-        </div>
-      </div>
-      <div class="setting"
-           v-if="this.$global.deviceType === 1">
-        <span class="setting-title">Dante Port</span>
-        <div class="setting-title"
-             style="width: 80px;">
-          <radio-component v-model="configPort2"
-                           label="0"
-                           :isEmpty="true"
-                           style="margin-bottom: 0;"></radio-component>
-        </div>
-        <div class="setting-title"
-             style="width: 80px;">
-          <radio-component v-model="configPort2"
-                           label="1"
-                           :isEmpty="true"
-                           style="margin-bottom: 0;"></radio-component>
-        </div>
-        <div>
-          <el-input-number v-model="danteTag3"
-                           controls-position="right"
-                           :max="4095"
-                           :min="1"></el-input-number>
-        </div>
-      </div>
+      <h3 class="setting-model-title">Interface Settings</h3>
+      <table class="table">
+        <thead>
+        <tr>
+          <th>Service Name</th>
+          <th>Port</th>
+          <th>802.1Q</th>
+          <th>VLAN Tag</th>
+          <th>DHCP</th>
+          <th>IP Address</th>
+          <th>Mask Address</th>
+          <th>Gateway Address</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+          <th>Stream</th>
+          <th>Media</th>
+          <th>N/A</th>
+          <th>N/A</th>
+          <th>
+            <v-switch v-model="ipMode0"
+                      style="width: 120px"
+                      active-value="1"
+                      inactive-value="0"></v-switch>
+          </th>
+          <th>
+            <input type="text"
+                   :disabled="ipMode0 === '1'"
+                   class="setting-text"
+                   style="width: 140px"
+                   v-model="ipInfo0[0]">
+          </th>
+          <th>
+            <input type="text"
+                   :disabled="ipMode0 === '1'"
+                   class="setting-text"
+                   style="width: 140px"
+                   v-model="ipInfo0[1]">
+          </th>
+          <th>
+            <input type="text"
+                   :disabled="ipMode0 === '1'"
+                   class="setting-text"
+                   style="width: 140px"
+                   v-model="ipInfo0[2]">
+          </th>
+        </tr>
+        <tr>
+          <th>P3K & Gateway</th>
+          <th>
+            <el-select style="width: 100px" v-model="configPort0">
+              <el-option value="0" label="Media"></el-option>
+              <el-option value="1" label="Service"></el-option>
+            </el-select>
+          </th>
+          <th>
+            <v-switch v-model="p3k802Q"
+                      style="width: 120px"></v-switch>
+          </th>
+          <th>
+            <el-input-number v-model="danteTag1"
+                             style="width: 80px"
+                             :disabled="!p3k802Q"
+                             controls-position="right"
+                             :max="4093"
+                             :min="2"></el-input-number>
+          </th>
+          <th>
+            <v-switch v-model="ipMode1"
+                      style="width: 120px"
+                      active-value="1"
+                      :disabled="configPort0 === '0' && !p3k802Q"
+                      inactive-value="0"></v-switch>
+          </th>
+          <th>
+            <input type="text"
+                   style="width: 140px"
+                   :disabled="ipMode1 === '1' || (configPort0 === '0' && !p3k802Q)"
+                   class="setting-text"
+                   v-model="ipInfo1[0]">
+          </th>
+          <th>
+            <input type="text"
+                   :disabled="ipMode1 === '1' || (configPort0 === '0' && !p3k802Q)"
+                   class="setting-text"
+                   style="width: 140px"
+                   v-model="ipInfo1[1]">
+          </th>
+          <th>
+            <input type="text"
+                   :disabled="ipMode1 === '1' || (configPort0 === '0' && !p3k802Q)"
+                   class="setting-text"
+                   style="width: 140px"
+                   v-model="ipInfo1[2]">
+          </th>
+        </tr>
+        <tr v-if="this.$global.deviceType === 1">
+          <th>Dante</th>
+          <th>
+            <el-select style="width: 100px" v-model="configPort1">
+              <el-option value="0" label="Media"></el-option>
+              <el-option value="1" label="Service"></el-option>
+            </el-select>
+          </th>
+          <th>
+            <v-switch
+              v-model="dante802Q"
+              style="width: 120px"></v-switch>
+          </th>
+          <th>
+            <el-input-number v-model="danteTag2"
+                             :disabled="!dante802Q"
+                             style="width: 80px"
+                             controls-position="right"
+                             :max="4093"
+                             :min="2"></el-input-number>
+          </th>
+        </tr>
+        </tbody>
+      </table>
     </div>
     <div class="setting">
       <div class="radio-setting"
@@ -185,21 +129,14 @@
         <span class="setting-model-title">IP Casting Mode</span>
         <div>
           <radio-component v-model="castMode"
-                           label="1">Unicast</radio-component>
+                           label="1">Unicast
+          </radio-component>
           <radio-component v-model="castMode"
-                           label="2">Multicast</radio-component>
+                           label="2">Multicast
+          </radio-component>
         </div>
       </div>
     </div>
-    <!-- <div class="setting">
-      <span class="setting-title">IP Multicast Address</span>
-      <div class="setting-title">
-        <input type="text"
-               v-model="multicastAddress"
-               class="setting-text"
-               :disabled="castMode == '1'">
-      </div>
-    </div> -->
     <div class="setting">
       <span class="setting-title">TTL</span>
       <div class="setting-title">
@@ -233,7 +170,8 @@
     </div>
     <footer>
       <button class="btn btn-primary"
-              @click="save">SAVE</button>
+              @click="save">SAVE
+      </button>
     </footer>
   </div>
 </template>
@@ -241,6 +179,7 @@
 <script>
 import radioComponent from '@/components/radio.vue'
 import { debounce } from 'lodash'
+
 export default {
   name: 'autoSwitch',
   components: {
@@ -257,7 +196,6 @@ export default {
       ipInfo1: [],
       configPort0: '0',
       configPort1: '0',
-      configPort2: '0',
       danteTag: '',
       tcp: '5000',
       serverTcpPort: '5001',
@@ -265,9 +203,10 @@ export default {
       castMode: '1',
       multicastAddress: '0,0,0,0',
       ttl: 64,
-      danteTag1: 1,
-      danteTag2: 1,
-      danteTag3: 1
+      danteTag1: 2,
+      danteTag2: 2,
+      p3k802Q: false,
+      dante802Q: false
     }
   },
   beforeCreate () {
@@ -281,16 +220,14 @@ export default {
     this.$socket.sendMsg('#NET-CONFIG? 0')
     this.$socket.sendMsg('#NET-CONFIG? 1')
     this.$socket.sendMsg('#KDS-GW-ETH? 0')
-    this.$socket.sendMsg('#KDS-GW-ETH? 1')
     this.$socket.sendMsg('#KDS-VLAN-TAG? 0')
-    this.$socket.sendMsg('#KDS-VLAN-TAG? 1')
     this.$socket.sendMsg('#KDS-METHOD? ')
     this.$socket.sendMsg('#KDS-MULTICAST? ')
     this.$socket.sendMsg('#ETH-PORT? TCP')
     this.$socket.sendMsg('#ETH-PORT? UDP')
     if (this.$global.deviceType === 1) {
-      this.$socket.sendMsg('#KDS-GW-ETH? 2')
-      this.$socket.sendMsg('#KDS-VLAN-TAG? 2')
+      this.$socket.sendMsg('#KDS-GW-ETH? 1')
+      this.$socket.sendMsg('#KDS-VLAN-TAG? 1')
     }
   },
   methods: {
@@ -338,18 +275,22 @@ export default {
       ipArr.push(ipParse[0] || '')
       ipArr.push(ipParse[1] || '')
       ipArr.push(ipParse[2] || '')
-      ipArr.push(ipParse[3] || '')
-      ipArr.push(ipParse[4] || '')
       this[ipIndex] = ipArr
     },
     handleDanteTag (msg) {
       const data = msg.split(' ')[1].split(',')
       if (data[0] === '0') {
-        this.danteTag1 = parseInt(data[1])
+        const tag = parseInt(data[1])
+        this.p3k802Q = tag !== 1
+        if (tag !== 1) {
+          this.danteTag1 = tag
+        }
       } else if (data[0] === '1') {
-        this.danteTag2 = parseInt(data[1])
-      } else if (data[0] === '2') {
-        this.danteTag3 = parseInt(data[1])
+        const tag = parseInt(data[1])
+        this.dante802Q = tag !== 1
+        if (tag !== 1) {
+          this.danteTag2 = tag
+        }
       }
     },
     handlePortConfig (msg) {
@@ -379,12 +320,10 @@ export default {
     }),
     setPortConfig () {
       this.$socket.sendMsg('#KDS-GW-ETH 0,' + this.configPort0)
-      this.$socket.sendMsg('#KDS-GW-ETH 1,' + this.configPort1)
-      this.$socket.sendMsg('#KDS-VLAN-TAG 0,' + this.danteTag1)
-      this.$socket.sendMsg('#KDS-VLAN-TAG 1,' + this.danteTag2)
+      this.$socket.sendMsg('#KDS-VLAN-TAG 0,' + (this.p3k802Q ? this.danteTag1 : 1))
       if (this.$global.deviceType === 1) {
-        this.$socket.sendMsg('#KDS-GW-ETH 2,' + this.configPort2)
-        this.$socket.sendMsg('#KDS-VLAN-TAG 2,' + this.danteTag3)
+        this.$socket.sendMsg('#KDS-GW-ETH 1,' + this.configPort1)
+        this.$socket.sendMsg('#KDS-VLAN-TAG 1,' + (this.dante802Q ? this.danteTag2 : 1))
       }
     },
     setIpCastingMode () {
@@ -404,6 +343,7 @@ export default {
       } else {
         this.$socket.sendMsg('#NET-DHCP 0,1')
       }
+      if (this.configPort0 === '0' && !this.p3k802Q) return
       if (this.ipMode1 !== '1') {
         this.$socket.sendMsg('#NET-DHCP 1,0')
         this.$socket.sendMsg('#NET-CONFIG 1,' + this.ipInfo1.join(','))
@@ -436,5 +376,23 @@ export default {
 
 .setting-model-title {
   width: 200px;
+}
+
+.table {
+  width: 100%;
+  max-width: 1280px;
+  table-layout: auto;
+  border-spacing: 0;
+
+  thead th {
+    color: #35acf8;
+  }
+
+  thead th,
+  tbody th {
+    height: 50px;
+    font-family: "open sans semiblold";
+    text-align: left;
+  }
 }
 </style>

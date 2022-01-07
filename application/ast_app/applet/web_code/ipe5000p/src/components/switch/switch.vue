@@ -74,10 +74,11 @@ export default {
   display: flex;
   background: #A6A6A6;
   border-radius: 5px;
-  &.disable{
+  &.disabled{
     background: #F3F3F3;
     .switch-btn{
       color: #D0D0D0;
+      cursor: not-allowed;
       &.switch-off.active,
       &.active{
         box-shadow: 0px 0px 3px #D0D0D0;

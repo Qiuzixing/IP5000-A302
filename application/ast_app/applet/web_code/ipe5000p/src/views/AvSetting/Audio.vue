@@ -39,7 +39,8 @@
             v-for="item in audioSource.param"
             :key="item.value"
             :label="item.label"
-            :value="item.value">
+            :value="item.value"
+            :disabled="item.disabled">
           </el-option>
         </el-select>
       </div>
@@ -52,7 +53,8 @@
             v-for="item in audioSource.encoderParam"
             :key="item.value"
             :label="item.label"
-            :value="item.value">
+            :value="item.value"
+            :disabled="item.disabled">
           </el-option>
         </el-select>
       </div>
@@ -249,6 +251,9 @@ export default {
     checkAudioSourceSelect () {
       if (this.$global.deviceType) {
         if (this.direction === 'out') {
+          if (this.audioSource.val === '1') {
+            this.audioSource.val = '2'
+          }
           this.audioSource.param = [
             {
               value: '0',
@@ -257,7 +262,7 @@ export default {
             {
               value: '1',
               label: 'Analog',
-              $isDisabled: true
+              disabled: true
             },
             {
               value: '2',
@@ -290,6 +295,9 @@ export default {
         }
       } else {
         if (this.direction === 'out') {
+          if (this.audioSource.val === '1') {
+            this.audioSource.val = '2'
+          }
           this.audioSource.encoderParam = [
             {
               value: '0',
@@ -298,7 +306,7 @@ export default {
             {
               value: '1',
               label: 'Analog',
-              $isDisabled: true
+              disabled: true
             },
             {
               value: '2',

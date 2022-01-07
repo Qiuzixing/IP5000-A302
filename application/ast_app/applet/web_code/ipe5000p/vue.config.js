@@ -1,4 +1,4 @@
-const version = 'V1.1.3'
+const version = 'V1.1.4'
 
 const path = require('path')
 function resolve (dir) {
@@ -79,7 +79,7 @@ if (process.env.NODE_ENV !== 'production') {
       } else if (message.startsWith('#X-PRIORITY?')) {
         // ws.send('~nn@X-PRIORITY out.stream.1.video, [in.usb_c.3.video,in.hdmi.1.video,in.hdmi.2.video]')
         // ws.send('~nn@X-PRIORITY out.stream.1.audio, [in.dante.1.audio,in.hdmi.1.audio,in.analog_audio.1.audio]')
-        ws.send('~nn@X-PRIORITY out.stream.1.audio, [in.hdmi.1.audio]')
+        ws.send('~nn@X-PRIORITY out.stream.1.audio, [in.hdmi.1.audio,in.analog_audio.1.audio]')
       } else if (message.startsWith('#HDCP-MOD? ')) {
         ws.send(`~nn@HDCP-MOD 1,${Math.round(Math.random())}`)
         ws.send(`~nn@HDCP-MOD 2,${Math.round(Math.random())}`)
@@ -88,7 +88,7 @@ if (process.env.NODE_ENV !== 'production') {
         ws.send(`~nn@CS-CONVERT 1,${Math.round(Math.random())}`)
       } else if (message.startsWith('#PORT-DIRECTION? ')) {
         ws.send('~nn@PORT-DIRECTION both.ir,1.ir,IN')
-        ws.send('~nn@PORT-DIRECTION both.analog.1.audio,OUT')
+        ws.send('~nn@PORT-DIRECTION both.analog.1.audio,IN')
       } else if (message.startsWith('NET-STAT ')) {
         ws.send('~01@NET-STAT [(TCP:80,0.0.0.0:0),LISTEN],[(TCP:5000,0.0.0.0:0),LISTEN],[(TCP:80,192.168.114.3:52400),ESTABLISHED],[(TCP:5000,192.168.1.100:51647),ESTABLISHED]')
       } else if (message.startsWith('#KDS-AUD-OUTPUT? ')) {
@@ -130,7 +130,8 @@ if (process.env.NODE_ENV !== 'production') {
       } else if (message.startsWith('#KDS-GW-ETH? ')) {
         ws.send('~nn@KDS-GW-ETH 0,0')
         ws.send('~nn@KDS-GW-ETH 1,1')
-        ws.send('~nn@KDS-GW-ETH 2,0')
+        ws.send('~nn@KDS-VLAN-TAG 0,234')
+        ws.send('~nn@KDS-VLAN-TAG 1,567')
       } else if (message.startsWith('#CEC-GW-PORT-ACTIVE? ')) {
         ws.send('~nn@CEC-GW-PORT-ACTIVE 0')
       } else if (message.startsWith('#LOGIN ')) {
