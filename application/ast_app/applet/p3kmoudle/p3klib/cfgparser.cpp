@@ -16,6 +16,15 @@
 
 #include "debugtool.h"
 
+#include <errno.h>
+#include <netdb.h>
+#include <net/if.h>
+#include <arpa/inet.h>
+#include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+
+
 Channel_Info 		g_channel_info;
 Channel_Select		g_channel_select;
 
@@ -7350,6 +7359,54 @@ int Cfg_Set_Display_Sleep()
 	return 0;
 }
 
+int get_local_ip(const char *eth_inf, char *ip)
+{
+	int i=0;
+	int sockfd;
+	struct ifconf ifconf;
+	char buf[512];
+	struct ifreq *ifreq;	  //初始化ifconf
+
+//	printf("get_local_ip: %s\n", eth_inf);
+
+	ifconf.ifc_len = 512;
+	ifconf.ifc_buf = buf;
+	if((sockfd = socket(AF_INET, SOCK_DGRAM, 0))<0)
+	{
+	  	perror("socket");
+	  	sprintf(ip,"0.0.0.0");
+		return -1;
+	}
+
+	ioctl(sockfd, SIOCGIFCONF, &ifconf);    //获取所有接口信息
+
+	//接下来一个一个的获取IP地址
+	ifreq = (struct ifreq*)buf;
+	for(i=(ifconf.ifc_len/sizeof(struct ifreq)); i>0; i--)
+	{
+	  	if(ifreq->ifr_flags == AF_INET)
+	  	{
+			  //for ipv4
+//			  printf("i = [%d] name = [%s]\n", i,ifreq->ifr_name);
+//			  printf("local addr = [%s]\n",inet_ntoa(((struct sockaddr_in*)&(ifreq->ifr_addr))->sin_addr));
+
+			  if(strstr(ifreq->ifr_name,eth_inf) != 0)
+			  {
+			  		sprintf(ip,inet_ntoa(((struct sockaddr_in*)&(ifreq->ifr_addr))->sin_addr));
+					close(sockfd);
+					return 0;
+			  }
+			  ifreq++;
+		}
+	}
+
+	sprintf(ip,"0.0.0.0");
+	close(sockfd);
+
+	return 0;
+}
+
+
 int GetIPInfo(int netId,char* ip_addr,char* ip_mask)
 {
 	char eth[16] = "";
@@ -7372,45 +7429,53 @@ int GetIPInfo(int netId,char* ip_addr,char* ip_mask)
 		return -1;
 	}
 
-	char ip_buf[32] = "";
-	int  mask;
 
-	char ip_cmd[128] = "";
-
-	sprintf(ip_cmd,"ip addr show %s | grep 'inet' |sed 's/^.*inet //g'|sed 's#brd.*$##g'",eth);
-	mysystem(ip_cmd, ip_buf, 32);
-
-	if(strlen(ip_buf) < 9)
+	if(ip_mask == NULL)
 	{
-		printf("ip_buf :%s\n",ip_buf);
-		sprintf(ip_addr,"0.0.0.0");
-
-		if(ip_mask!= NULL)
-			sprintf(ip_mask,"0.0.0.0");
-
-		return 0;
+		get_local_ip(eth, ip_addr);
+//		printf("GetIPInfo ip_addr = %s\n",ip_addr);
 	}
-
-	int count = sscanf(ip_buf,"%[^/]/%d",ip_addr,&mask);
-	unsigned int mask_code = 0;
-	if(strlen(ip_addr) < 7)
+	else
 	{
-		printf("ip_addr :%s\n",ip_addr);
-		sprintf(ip_addr,"0.0.0.0");
-	}
+		char ip_buf[32] = "";
+		int  mask;
+		char ip_cmd[128] = "";
 
-	//DBG_InfoMsg("ip_addr=%s \n",ip_addr);
+		sprintf(ip_cmd,"ip addr show %s | grep 'inet' |sed 's/^.*inet //g'|sed 's#brd.*$##g'",eth);
+		mysystem(ip_cmd, ip_buf, 32);
 
-	if((ip_mask!= NULL)&&(count == 2))
-	{
-		if((mask >= 8)&&(mask <= 32))
+		if(strlen(ip_buf) < 9)
 		{
-			mask_code = (int)(pow(2,mask)-1);
-			mask_code = mask_code<<(32 - mask);
-			sprintf(ip_mask,"%d.%d.%d.%d",(mask_code&0xFF000000)>>24,(mask_code&0xFF0000)>>16,(mask_code&0xFF00)>>8,(mask_code&0xFF));
+//			printf("ip_buf :%s\n",ip_buf);
+			sprintf(ip_addr,"0.0.0.0");
+
+			if(ip_mask!= NULL)
+				sprintf(ip_mask,"0.0.0.0");
+
+			return 0;
 		}
 
-		//DBG_InfoMsg("ip_mask=%s \n",ip_mask);
+		int count = sscanf(ip_buf,"%[^/]/%d",ip_addr,&mask);
+		unsigned int mask_code = 0;
+		if(strlen(ip_addr) < 7)
+		{
+//			printf("ip_addr :%s\n",ip_addr);
+			sprintf(ip_addr,"0.0.0.0");
+		}
+
+		//DBG_InfoMsg("ip_addr=%s \n",ip_addr);
+
+		if((ip_mask!= NULL)&&(count == 2))
+		{
+			if((mask >= 8)&&(mask <= 32))
+			{
+				mask_code = (int)(pow(2,mask)-1);
+				mask_code = mask_code<<(32 - mask);
+				sprintf(ip_mask,"%d.%d.%d.%d",(mask_code&0xFF000000)>>24,(mask_code&0xFF0000)>>16,(mask_code&0xFF00)>>8,(mask_code&0xFF));
+			}
+
+			//DBG_InfoMsg("ip_mask=%s \n",ip_mask);
+		}
 	}
 
 	return 0;

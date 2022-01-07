@@ -631,6 +631,7 @@ void * TcpCmd_cb(void * fd)
 
 	char ip_buf[32] = "";
 	strcpy(ip_buf,g_InitIP);
+	printf("[!!!!!!222222222IP Addr]g_InitIP:%s,ip_buf:%s\n",g_InitIP,ip_buf);
 
     while(1)
     {
