@@ -7175,7 +7175,7 @@ int Cfg_Set_Dec_Usb_KVM()
 			}
 			else
 			{
-				system("astparam s kmoip_roaming_layout;astparam save");
+				system("astparam s kmoip_roaming_layout;astparam save;e e_kmoip_roaming_chg");
 			}
 
 			if(!root[JSON_USB_KVM_TIMEOUT].empty())

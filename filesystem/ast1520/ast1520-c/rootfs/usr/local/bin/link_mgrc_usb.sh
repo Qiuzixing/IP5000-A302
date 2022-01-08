@@ -511,6 +511,8 @@ handle_ue_start()
 		esac
 	fi
 
+	foolproof_kmr_layout "$KMOIP_ROAMING_LAYOUT"
+
 	update_session_id
 
 	# get channel param

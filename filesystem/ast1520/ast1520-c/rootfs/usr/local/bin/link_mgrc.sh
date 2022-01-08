@@ -3529,6 +3529,26 @@ handle_e_display_sleep()
 	fi
 }
 
+handle_e_kmoip_roaming_chg()
+{
+	# Read after MULTICAST_ON
+	KMOIP_ROAMING_LAYOUT=`astparam g kmoip_roaming_layout`
+	if echo "$KMOIP_ROAMING_LAYOUT" | grep -q "not defined" ; then
+		KMOIP_ROAMING_LAYOUT=`astparam r kmoip_roaming_layout`
+		if echo "$KMOIP_ROAMING_LAYOUT" | grep -q "not defined" ; then
+			KMOIP_ROAMING_LAYOUT=""
+		fi
+	fi
+	# Unicast mode doesn't support KMoIP roaming. Overwrite it.
+	if [ "$MULTICAST_ON" = 'n' ]; then
+		# Empty string means disable.
+		KMOIP_ROAMING_LAYOUT=""
+	fi
+
+	ulmparam s KMOIP_ROAMING_LAYOUT $KMOIP_ROAMING_LAYOUT
+	ipc @u_lm_set s ue_start:$CH_SELECT_U
+}
+
 # Worst case 0.05s message loop without handling any event.
 state_machine()
 {
