@@ -104,7 +104,7 @@ check_again:
 			hk_idx = t;
 			hk_state = HK_DOWN;
 			timeout = jiffies + msecs_to_jiffies(750);
-			hit_cnt = 3;
+			hit_cnt = 2;	// Sid 2022-01-01, Just follow customer's requirement, with Double Click instead of Triple Click.
 			break;
 		case HK_DOWN:
 			t = match_hotkey_up(kmdrv, mod, key, hk_idx);
