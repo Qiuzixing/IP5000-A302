@@ -2583,9 +2583,9 @@ int Cfg_Init_Network(void)
 	sprintf(g_network_info.multicast_ip,"0.0.0.0");
 	g_network_info.multicast_ttl = 64;
 	g_network_info.control_port = 0;
-	g_network_info.control_vlan = 0;
+	g_network_info.control_vlan = 1;
 	g_network_info.dante_port = 0;
-	g_network_info.dante_vlan = 0;
+	g_network_info.dante_vlan = 1;
 	g_network_info.beacon_en = OFF;
     g_network_info.beacon_time = 10;
 	sprintf(g_network_info.beacon_ip,"224.0.0.250");

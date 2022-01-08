@@ -3080,7 +3080,7 @@ int EX_ResetDNSName(char *name)
 int EX_SetDHCPMode(int netid,int mode)
 {
 	DBG_InfoMsg("EX_SetDHCPMode ethid= %d mode =%d\n",netid,mode);
-	if((netid == 0)/*||(netid == 1)*/)
+	if(netid == 0)
 	{
 		if((mode == 0)||(mode == 1))
 		{
@@ -3095,6 +3095,11 @@ int EX_SetDHCPMode(int netid,int mode)
 
 			Cfg_Set_Net_DHCP(netid, mode);
 		}
+	}
+	else
+	{
+		if((mode == 0)||(mode == 1))
+			Cfg_Set_Net_DHCP(netid, mode);
 	}
 
 	return 0;

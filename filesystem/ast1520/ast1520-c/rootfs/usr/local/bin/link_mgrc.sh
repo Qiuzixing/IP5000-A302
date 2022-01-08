@@ -3100,6 +3100,70 @@ handle_e_p3k_net_dante_hostname()
 	echo "handle_e_p3k_net_dante_hostname."
 }
 
+init_p3k_net_vlan()
+{
+	echo "init_p3k_net_vlan"
+	local _media_control_vlan='0'
+	local _media_dante_vlan='0'
+	local _service_control_vlan='0'
+	local _service_dante_vlan='0'
+
+	local _control_vlan_tag='0'
+
+	case "$P3KCFG_CONTROL_PORT" in
+		eth0)
+			case "$P3KCFG_CONTROL_VLAN" in
+				1)
+					_media_control_vlan='1'
+					_control_vlan_tag='0'
+				;;
+				*)
+					_media_control_vlan="$P3KCFG_CONTROL_VLAN"
+					_control_vlan_tag="$P3KCFG_CONTROL_VLAN"
+				;;
+			esac
+		;;
+		eth1)
+			case "$P3KCFG_CONTROL_VLAN" in
+				1)
+					_service_control_vlan='1'
+					_control_vlan_tag='4094'
+				;;
+				*)
+					_service_control_vlan="$P3KCFG_CONTROL_VLAN"
+					_control_vlan_tag="$P3KCFG_CONTROL_VLAN"
+				;;
+			esac
+		;;
+		*)
+			echo "P3KCFG_CONTROL_PORT error param"
+		;;
+	esac
+
+
+	handle_e_p3k_vlan_set_rtl_chip e_p3k_net_vlan_set_rtl_chip::"$_media_control_vlan":"$_media_dante_vlan":"$_service_control_vlan":"$_service_dante_vlan"
+
+	case "$_control_vlan_tag" in
+		0)
+			echo "init_p3k_net_vlan control no vlan"
+		;;
+		*)
+			case "$P3KCFG_CONTROL_MODE" in
+				dhcp)
+					handle_e_p3k_net_vlan_dhcp_on e_p3k_net_vlan_dhcp_on::"$_control_vlan_tag"
+				;;
+				static)
+					handle_e_p3k_net_vlan_dhcp_off e_p3k_net_vlan_dhcp_off::"$_control_vlan_tag":"$P3KCFG_CONTROL_IP":"$P3KCFG_CONTROL_MASK"
+				;;
+				*)
+					echo "P3KCFG_CONTROL_MODE error param"
+				;;
+			esac
+		;;
+	esac
+
+}
+
 #e e_p3k_net_vlan_del::VID
 handle_e_p3k_net_vlan_del()
 {
@@ -3970,10 +4034,46 @@ init_param_from_p3k_cfg()
 		if echo "$P3KCFG_TTL" | grep -q "null" ; then
 			P3KCFG_TTL='64'
 		fi
+
+		P3KCFG_CONTROL_MODE=`jq -r '.network_setting.control.mode' $network_setting`
+		if echo "$P3KCFG_CONTROL_MODE" | grep -q "null" ; then
+			P3KCFG_CONTROL_MODE='dhcp'
+		fi
+
+		P3KCFG_CONTROL_IP=`jq -r '.network_setting.control.ip_address' $network_setting`
+		if echo "$P3KCFG_CONTROL_IP" | grep -q "null" ; then
+			P3KCFG_CONTROL_IP='0.0.0.0'
+		fi
+
+		P3KCFG_CONTROL_MASK=`jq -r '.network_setting.control.mask_address' $network_setting`
+		if echo "$P3KCFG_CONTROL_MASK" | grep -q "null" ; then
+			P3KCFG_CONTROL_MASK='255.255.0.0'
+		fi
+
+		P3KCFG_CONTROL_PORT=`jq -r '.network_setting.port_setting.control.port' $network_setting`
+		if echo "$P3KCFG_CONTROL_PORT" | grep -q "null" ; then
+			P3KCFG_CONTROL_PORT='eth0'
+		fi
+
+		P3KCFG_CONTROL_VLAN=`jq -r '.network_setting.port_setting.control.vlan_tag' $network_setting`
+		if echo "$P3KCFG_CONTROL_VLAN" | grep -q "null" ; then
+			P3KCFG_CONTROL_VLAN='1'
+		fi
 	else
+		P3KCFG_CONTROL_MODE='dhcp'
+		P3KCFG_CONTROL_IP='0.0.0.0'
+		P3KCFG_CONTROL_MASK='255.255.0.0'
+		P3KCFG_CONTROL_PORT='eth0'
+		P3KCFG_CONTROL_VLAN='1'
+
 		P3KCFG_TTL='64'
 	fi
 	echo "P3KCFG_TTL=$P3KCFG_TTL"
+	echo "P3KCFG_CONTROL_MODE=$P3KCFG_CONTROL_MODE"
+	echo "P3KCFG_CONTROL_IP=$P3KCFG_CONTROL_IP"
+	echo "P3KCFG_CONTROL_MASK=$P3KCFG_CONTROL_MASK"
+	echo "P3KCFG_CONTROL_PORT=$P3KCFG_CONTROL_PORT"
+	echo "P3KCFG_CONTROL_VLAN=$P3KCFG_CONTROL_VLAN"
 
 	if [ -f "$time_setting" ];then
 		P3KCFG_NTP_SRV_MODE=`jq -r '.time_setting.ntp_server.mode' $time_setting`
@@ -4101,6 +4201,7 @@ init_info_file
 #init_p3k_cfg_file
 init_param_from_p3k_cfg
 init_json_cfg_path
+init_p3k_net_vlan
 # $AST_PLATFORM = ast1500cv4 or ptv1500cv2 or pce1500cv3
 echo ""
 echo "#### platform info:$AST_PLATFORM ####"

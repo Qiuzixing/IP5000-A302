@@ -2104,6 +2104,100 @@ handle_e_p3k_download_fw_start()
 	control_board_led_status
 }
 
+init_p3k_net_vlan()
+{
+	echo "init_p3k_net_vlan"
+	local _media_control_vlan='0'
+	local _media_dante_vlan='0'
+	local _service_control_vlan='0'
+	local _service_dante_vlan='0'
+
+	local _control_vlan_tag='0'
+
+	case "$P3KCFG_CONTROL_PORT" in
+		eth0)
+			case "$P3KCFG_CONTROL_VLAN" in
+				1)
+					_media_control_vlan='1'
+					_control_vlan_tag='0'
+				;;
+				*)
+					_media_control_vlan="$P3KCFG_CONTROL_VLAN"
+					_control_vlan_tag="$P3KCFG_CONTROL_VLAN"
+				;;
+			esac
+		;;
+		eth1)
+			case "$P3KCFG_CONTROL_VLAN" in
+				1)
+					_service_control_vlan='1'
+					_control_vlan_tag='4094'
+				;;
+				*)
+					_service_control_vlan="$P3KCFG_CONTROL_VLAN"
+					_control_vlan_tag="$P3KCFG_CONTROL_VLAN"
+				;;
+			esac
+		;;
+		*)
+			echo "P3KCFG_CONTROL_PORT error param"
+		;;
+	esac
+
+	case "$MODEL_NUMBER" in
+		KDS-SW3-EN7)
+			case "$P3KCFG_DANTE_PORT" in
+				eth0)
+					case "$P3KCFG_DANTE_VLAN" in
+						1)
+							_media_dante_vlan='1'
+						;;
+						*)
+							_media_dante_vlan="$P3KCFG_CONTROL_VLAN"
+						;;
+					esac
+				;;
+				eth1)
+					case "$P3KCFG_DANTE_VLAN" in
+						1)
+							_service_dante_vlan='1'
+						;;
+						*)
+							_service_dante_vlan="$P3KCFG_CONTROL_VLAN"
+						;;
+					esac
+				;;
+				*)
+					echo "P3KCFG_DANTE_PORT error param"
+				;;
+			esac
+		;;
+		*)
+		;;
+	esac
+
+	handle_e_p3k_vlan_set_rtl_chip e_p3k_net_vlan_set_rtl_chip::"$_media_control_vlan":"$_media_dante_vlan":"$_service_control_vlan":"$_service_dante_vlan"
+
+	case "$_control_vlan_tag" in
+		0)
+			echo "init_p3k_net_vlan control no vlan"
+		;;
+		*)
+			case "$P3KCFG_CONTROL_MODE" in
+				dhcp)
+					handle_e_p3k_net_vlan_dhcp_on e_p3k_net_vlan_dhcp_on::"$_control_vlan_tag"
+				;;
+				static)
+					handle_e_p3k_net_vlan_dhcp_off e_p3k_net_vlan_dhcp_off::"$_control_vlan_tag":"$P3KCFG_CONTROL_IP":"$P3KCFG_CONTROL_MASK"
+				;;
+				*)
+					echo "P3KCFG_CONTROL_MODE error param"
+				;;
+			esac
+		;;
+	esac
+
+}
 #e e_p3k_net_vlan_del::VID
 handle_e_p3k_net_vlan_del()
 {
@@ -2119,6 +2213,8 @@ handle_e_p3k_net_vlan_dhcp_on()
 {
 	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
 
+	echo "handle_e_p3k_net_vlan_dhcp_on. $1 "
+
 	shift 2
 	vconfig add eth0 $1
 	ifconfig eth0.$1 up
@@ -2132,6 +2228,8 @@ handle_e_p3k_net_vlan_dhcp_off()
 {
 	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
 
+	echo "handle_e_p3k_net_vlan_dhcp_off. $1 $2 $3"
+
 	shift 2
 	vconfig add eth0 $1
 	ifconfig eth0.$1 $2 netmask $3 up
@@ -2140,6 +2238,7 @@ handle_e_p3k_net_vlan_dhcp_off()
 
 handle_e_p3k_vlan_set_rtl_chip()
 {
+
 	#kill rs232_process
 	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
 
@@ -2149,6 +2248,9 @@ handle_e_p3k_vlan_set_rtl_chip()
 	# $3--service_p3k&rs232_vlan_tag
 	# $4--service_dante_vlan_tag
 	# eth_settings: p3k_port_tag rs232_gateway_tag dante_port_tag pvid
+
+	echo "handle_e_p3k_vlan_set_rtl_chip. $1 $2 $3 $4"
+
 	echo $1 0 $2 0 > /sys/devices/platform/ftgmac/eth0_settings
 	echo $3 0 $4 0 > /sys/devices/platform/ftgmac/eth1_settings
 	case "$MODEL_NUMBER" in
@@ -2852,10 +2954,79 @@ init_param_from_p3k_cfg()
 		if echo "$P3KCFG_TTL" | grep -q "null" ; then
 			P3KCFG_TTL='64'
 		fi
+
+		P3KCFG_CONTROL_MODE=`jq -r '.network_setting.control.mode' $network_setting`
+		if echo "$P3KCFG_CONTROL_MODE" | grep -q "null" ; then
+			P3KCFG_CONTROL_MODE='dhcp'
+		fi
+
+		P3KCFG_CONTROL_IP=`jq -r '.network_setting.control.ip_address' $network_setting`
+		if echo "$P3KCFG_CONTROL_IP" | grep -q "null" ; then
+			P3KCFG_CONTROL_IP='0.0.0.0'
+		fi
+
+		P3KCFG_CONTROL_MASK=`jq -r '.network_setting.control.mask_address' $network_setting`
+		if echo "$P3KCFG_CONTROL_MASK" | grep -q "null" ; then
+			P3KCFG_CONTROL_MASK='255.255.0.0'
+		fi
+
+		P3KCFG_CONTROL_PORT=`jq -r '.network_setting.port_setting.control.port' $network_setting`
+		if echo "$P3KCFG_CONTROL_PORT" | grep -q "null" ; then
+			P3KCFG_CONTROL_PORT='eth0'
+		fi
+
+		P3KCFG_CONTROL_VLAN=`jq -r '.network_setting.port_setting.control.vlan_tag' $network_setting`
+		if echo "$P3KCFG_CONTROL_VLAN" | grep -q "null" ; then
+			P3KCFG_CONTROL_VLAN='1'
+		fi
+
+		case "$MODEL_NUMBER" in
+			KDS-SW3-EN7)
+				P3KCFG_DANTE_PORT=`jq -r '.network_setting.port_setting.dante.port' $network_setting`
+				if echo "$P3KCFG_DANTE_PORT" | grep -q "null" ; then
+					P3KCFG_DANTE_PORT='eth0'
+				fi
+
+				P3KCFG_DANTE_VLAN=`jq -r '.network_setting.port_setting.dante.vlan_tag' $network_setting`
+				if echo "$P3KCFG_DANTE_VLAN" | grep -q "null" ; then
+					P3KCFG_DANTE_VLAN='1'
+				fi
+			;;
+			*)
+			;;
+		esac
 	else
 		P3KCFG_TTL='64'
+			P3KCFG_CONTROL_MODE='dhcp'
+			P3KCFG_CONTROL_IP='0.0.0.0'
+			P3KCFG_CONTROL_MASK='255.255.0.0'
+			P3KCFG_CONTROL_PORT='eth0'
+			P3KCFG_CONTROL_VLAN='1'
+
+		case "$MODEL_NUMBER" in
+			KDS-SW3-EN7)
+				P3KCFG_DANTE_PORT='eth0'
+				P3KCFG_DANTE_VLAN='1'
+			;;
+			*)
+			;;
+		esac
 	fi
 	echo "P3KCFG_TTL=$P3KCFG_TTL"
+	echo "P3KCFG_CONTROL_MODE=$P3KCFG_CONTROL_MODE"
+	echo "P3KCFG_CONTROL_IP=$P3KCFG_CONTROL_IP"
+	echo "P3KCFG_CONTROL_MASK=$P3KCFG_CONTROL_MASK"
+	echo "P3KCFG_CONTROL_PORT=$P3KCFG_CONTROL_PORT"
+	echo "P3KCFG_CONTROL_VLAN=$P3KCFG_CONTROL_VLAN"
+
+	case "$MODEL_NUMBER" in
+		KDS-SW3-EN7)
+			echo "P3KCFG_DANTE_PORT=$P3KCFG_DANTE_PORT"
+			echo "P3KCFG_DANTE_VLAN=$P3KCFG_DANTE_VLAN"
+		;;
+		*)
+		;;
+	esac
 
 	if [ -f "$time_setting" ];then
 		P3KCFG_NTP_SRV_MODE=`jq -r '.time_setting.ntp_server.mode' $time_setting`
@@ -3031,6 +3202,7 @@ init_info_file
 #init_p3k_cfg_file
 init_param_from_p3k_cfg
 init_json_cfg_path
+init_p3k_net_vlan
 # $AST_PLATFORM = ast1500hv4 or ptv1500hv2 or pce1500hv3
 echo ""
 echo "#### platform info:$AST_PLATFORM ####"

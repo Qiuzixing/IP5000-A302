@@ -654,6 +654,8 @@ void * TcpCmd_cb(void * fd)
 			strcpy(g_InitIP,ip_buf);
             UnInitTcpSocket(sTimeOut);
             SOCKET_DestroyTcpServer(Tcp_NetGetNetReristHandle());
+
+			usleep(2000*1000);
             Tcp_NetInit(g_network_info.tcp_port);
             return;
         }
@@ -792,6 +794,17 @@ int main (int argc, char const *argv[])
 	if(strlen(g_InitIP)<7)
 	{
 		GetIPInfo(1,g_InitIP,NULL);
+	}
+
+	while(1)
+	{
+		if(strcmp(g_InitIP,"0.0.0.0") == 0)
+		{
+			usleep(1000*1000);
+			GetIPInfo(1,g_InitIP,NULL);
+		}
+		else
+			break;
 	}
 
 	UpdateLocalIP(g_InitIP);
