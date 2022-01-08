@@ -41,7 +41,6 @@ public:
 
 
     void setDeviceInfoDispaly(bool status);
-    void showDeviceInfo();
 
     void switchOSDMeun();
 
@@ -86,6 +85,7 @@ public slots:
 
     void slotUpdateDeviceInfo(QLabel *info);
     void slotHideDeviceInfo(bool isStartOverlay = true);
+    void showDeviceInfo();
 
 protected:
     virtual void keyPressEvent(QKeyEvent *e);

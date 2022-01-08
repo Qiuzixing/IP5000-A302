@@ -126,6 +126,7 @@ Dialog::Dialog(QWidget *parent) :
     infoL->setVisible(false);
     infoC->setVisible(false);
     infoR->setVisible(false);
+    m_bDeviceInfoDispaly = false;
 
     infoOSD = new QLabel(this);
     OSDFont.setPointSize(40);
@@ -843,9 +844,14 @@ void Dialog::updateGUI()
 				infoC->setVisible(true);
 				infoR->setVisible(true);
 			} else {
-				infoL->setVisible(false);
-				infoC->setVisible(false);
-				infoR->setVisible(false);
+
+                if(!m_bDeviceInfoDispaly)
+                {
+                    qDebug() << "updateGUI::INFO_R_HIDE";
+                    infoL->setVisible(false);
+                    infoC->setVisible(false);
+                    infoR->setVisible(false);
+                }
 			}
 		}
     }
@@ -864,9 +870,15 @@ void Dialog::updateGUI()
         }
         else
         {
-            infoL->setVisible(false);
-            infoC->setVisible(false);
-            infoR->setVisible(false);
+            qDebug() << "updateGUI::INFO_R_HIDE";
+
+            if(!m_bDeviceInfoDispaly)
+            {
+                qDebug() << "updateGUI::INFO_R_HIDE";
+                infoL->setVisible(false);
+                infoC->setVisible(false);
+                infoR->setVisible(false);
+            }
         }
 
         picture_name.clear();
@@ -884,15 +896,9 @@ void Dialog::setSleepPicture(char *path)
     update();
 }
 
-void Dialog::setInfoEnable(bool enable)
-{
-    infoL->setVisible(enable);
-    infoC->setVisible(enable);
-    infoR->setVisible(enable);
-}
-
 QLabel* Dialog::getDeviceInfo()
 {
+//    QLabel *info = new QLabel(infoR->text());
     return infoR;
 }
 

@@ -105,6 +105,7 @@ private:
     void styleSheetControl(QPushButton *button);
 
     void writeOsdJson(int pageChannels);
+    void setControlsHide();
 
 private:
     QLineEdit *m_inputEdit;

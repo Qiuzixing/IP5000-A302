@@ -90,7 +90,7 @@ public:
     ~Dialog();
     void setSelectedNode(QString);
     void setSleepPicture(char *path);
-    void setInfoEnable(bool enable);
+    void setDeviceInfoStatus(bool status){m_bDeviceInfoDispaly = status;}
     QLabel* getDeviceInfo();
 
 signals:
@@ -137,6 +137,8 @@ private:
 
 	QByteArray BARHOSTNAMEHEAD;
     QByteArray MULTICAST_IP_PREFIX;
+
+    bool m_bDeviceInfoDispaly;
 
     QStringList readNodesFromFile(void);
     QStringList parseNodes(void);

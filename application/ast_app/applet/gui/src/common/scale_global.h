@@ -15,8 +15,8 @@ const int g_nStdScreenHeight = 1080;    // 标准显示屏幕高度
 const int g_nframebufferWidth = 1280;
 const int g_nframebufferHeight = 720;
 
-const int g_nOsdMenuWidth = 270;
-const int g_nButtonWidth = 135;
+const int g_nOsdMenuWidth = 240;
+const int g_nButtonWidth = 120;
 
 const int g_nButtonHeight = 30;
 const int g_nItemRowHeight = 30;

@@ -230,7 +230,8 @@ void MainWidget::setDeviceInfoDispaly(bool status)
             hideOsdMeun(false);
             slotHideOverlay();
 
-            showDeviceInfo();
+            m_sleepPanel->setDeviceInfoStatus(true);
+            QTimer::singleShot(400,this,SLOT(showDeviceInfo()));
         }
     }
     else
@@ -271,11 +272,13 @@ void MainWidget::slotHideDeviceInfo(bool isStartOverlay)
 {
     qDebug() << "hide DeivceInfo";
 
+    m_sleepPanel->setDeviceInfoStatus(false);
+
     DeviceInfoTimer.stop();
     m_deviceInfo->setVisible(false);
 
     if(isStartOverlay)
-    QTimer::singleShot(400,this,SLOT(showLongDisplay()));
+        QTimer::singleShot(400,this,SLOT(showLongDisplay()));
 }
 
 void MainWidget::focusOutEvent(QFocusEvent *e)
@@ -302,9 +305,9 @@ void MainWidget::getKMControl()
 
     // 显示光标
 //    this->setCursor(Qt::ArrowCursor);
-#ifdef Q_OS_LINUX
-    QWSServer::setCursorVisible(true);
-#endif
+//#ifdef Q_OS_LINUX
+//    QWSServer::setCursorVisible(true);
+//#endif
 }
 
 void MainWidget::freeKMControl()
@@ -321,9 +324,9 @@ void MainWidget::freeKMControl()
 
     // 隐藏光标
 //    this->setCursor(Qt::BlankCursor);
-#ifdef Q_OS_LINUX
-    QWSServer::setCursorVisible(false);
-#endif
+//#ifdef Q_OS_LINUX
+//    QWSServer::setCursorVisible(false);
+//#endif
 }
 
 void MainWidget::paintEvent(QPaintEvent *event)
@@ -574,7 +577,7 @@ void MainWidget::handleKvmMsg(bool enable)
 
         // hide overlay & deviceInfo
         if(!g_bDeviceSleepMode)
-            slotHideDeviceInfo();
+            slotHideDeviceInfo(false);
 
         slotHideOverlay();
 
@@ -583,7 +586,7 @@ void MainWidget::handleKvmMsg(bool enable)
         m_osdMeun->setListWidgetHeight();
         m_osdMeun->setMeunFont();
 
-        QTimer::singleShot(500,this,SLOT(showOsdMeun()));
+        QTimer::singleShot(400,this,SLOT(showOsdMeun()));
 
         // 获取了点击的频道id, 设置频道切换或发送信号
         QString strCmd = QString("#KDS-CHANNEL-SELECT? video\r");
@@ -596,16 +599,11 @@ void MainWidget::handleKvmMsg(bool enable)
             qDebug("Send Get ChannelID CMD Yes");
         }
     }
-    else
-    {
-        m_bKvmMode = true;
-        hideOsdMeun();
-    }
 }
 
 void MainWidget::slotUpdateDeviceInfo(QLabel *info)
 {
-//    m_deviceInfo = info;
+//    m_deviceInfo->setText(info->text());
 
 //    QFont font;
 //    int fontsize = 15 * ((float)g_nScreenWidth/g_nStdScreenWidth);
@@ -741,8 +739,6 @@ void MainWidget::hideOsdMeun(bool isStartOverlay)
     if(m_osdMeun == NULL)
         return;
 
-    m_osdMeun->hideSettingPage();
-
     qDebug() << "main_0_4_1";
     qDebug() << "Meun Hide";
     m_osdMeun->move(-this->width(),(this->height() - m_osdMeun->height())/2);
@@ -757,7 +753,7 @@ void MainWidget::hideOsdMeun(bool isStartOverlay)
 
     // 隐藏OSD菜单时，继续显示常显Overlay
     if(isStartOverlay)
-    QTimer::singleShot(400,this,SLOT(showLongDisplay()));
+        QTimer::singleShot(400,this,SLOT(showLongDisplay()));
 
     m_osdMeun->setdisplayStatus(false);
 }
@@ -781,11 +777,6 @@ void MainWidget::showOsdMeun()
 
 void MainWidget::moveOsdMeun(int position)
 {
-    if(!g_bDeviceSleepMode)
-    {
-        m_sleepPanel->setInfoEnable(false);
-    }
-
     int xpos = 0;
     int ypos = 0;
 
@@ -882,8 +873,8 @@ void MainWidget::showLongDisplay()
    {
        if(m_imageOverlay->isLongDisplay())
        {
+           qDebug() << "showLongDisplay::m_imageOverlay";
            showOverlay(m_imageOverlay,m_imageOverlay->getShowPos());
-           m_imageOverlay->setVisible(true);
            return;
        }
    }
@@ -891,8 +882,8 @@ void MainWidget::showLongDisplay()
    {
        if(m_textOverlay->isLongDisplay())
        {
+           qDebug() << "showLongDisplay::m_textOverlay";
            showOverlay(m_textOverlay,m_textOverlay->getShowPos());
-           m_textOverlay->setVisible(true);
            return;
        }
    }
@@ -901,6 +892,7 @@ void MainWidget::showLongDisplay()
 
 void MainWidget::showOverlay(OSDLabel *overlay,int position)
 {
+    qDebug() << "showOverlay";
     // 隐藏菜单 & 设备信息
     hideOsdMeun(false);
     slotHideDeviceInfo(false);

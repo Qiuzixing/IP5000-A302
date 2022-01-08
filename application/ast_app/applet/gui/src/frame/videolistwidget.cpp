@@ -216,7 +216,7 @@ void OSDMeun::initLayout()
     m_Select->setAlignment(Qt::AlignCenter);
 
     m_Search = new QLabel("Filter",this);
-    m_Search->setFixedSize(90 * g_fScaleScreen,g_nButtonHeight * g_fScaleScreen);
+    m_Search->setFixedSize(80 * g_fScaleScreen,g_nButtonHeight * g_fScaleScreen);
     m_Search->setStyleSheet("QLabel{color:white;border:1px solid #a9a9a9;}");
     m_Search->setAlignment(Qt::AlignCenter);
 
@@ -233,7 +233,7 @@ void OSDMeun::initLayout()
     m_Exit->setFixedSize(g_nButtonWidth * g_fScaleScreen,g_nButtonHeight * g_fScaleScreen);
 
     m_inputEdit = new QLineEdit(this);
-    m_inputEdit->setFixedSize(180 * g_fScaleScreen,g_nButtonHeight * g_fScaleScreen);
+    m_inputEdit->setFixedSize(160 * g_fScaleScreen,g_nButtonHeight * g_fScaleScreen);
     m_inputEdit->setFocus();
 
     m_listWidget = new QListWidget(this);
@@ -279,6 +279,16 @@ void OSDMeun::initLayout()
 
     this->setLayout(m_mainLayout);
     qDebug() << "setLayout  finished";
+
+    setControlsHide();
+}
+
+void OSDMeun::setControlsHide()
+{
+    m_Page_up->hide();
+    m_Page_down->hide();
+    m_Apply->hide();
+    m_Exit->hide();
 }
 
 void OSDMeun::setButtonFont()
@@ -521,6 +531,8 @@ void OSDMeun::parseMeunJson(QString jsonpath)
         string enabled = root["device_info"]["enabled"].asString();
         int device_timeout = root["device_info"]["timeout"].asInt();
         m_deviceTimeout = device_timeout * 60 * 1000;
+        if(m_deviceTimeout < 60000)
+            m_deviceTimeout = 60 * 1000;
 
         QString EnabledStr = enabled.c_str();
 
@@ -566,14 +578,7 @@ void OSDMeun::parseMeunJson(QString jsonpath)
         m_overTime = timeout * 1000;        // 转为秒数
 
         m_FontSize = fontsize;
-        if(g_nScreenWidth == 3840)
-        {
-            if(channelnum > 7)
-                m_pageChannels = 7;
-            else
-                m_pageChannels = channelnum;
-        }
-        else if(channelnum == 0)
+        if(channelnum == 0)
         {
             m_pageChannels = 5;
         }
@@ -884,6 +889,7 @@ void  OSDMeun::pageDownClicked()
 void OSDMeun::exitClicked()
 {
     // 发送信号隐藏菜单
+    qDebug() << "OSDMeun::exitClicked";
     osdOverTimer.stop();
     emit hideOsdMenu();
 }
@@ -970,7 +976,7 @@ void OSDMeun::setListWidgetHeight()
 
  int OSDMeun::getOSDMeunHeight()
  {
-     return g_nButtonHeight*4 + g_nItemRowHeight * m_pageChannels;
+     return g_nButtonHeight*2 + g_nItemRowHeight * m_pageChannels;
  }
 
  void OSDMeun::hideSettingPage()
