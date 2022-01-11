@@ -3213,6 +3213,11 @@ fi
 
 handle_button_on_boot
 
+#ipe5000p -- Check whether the typec chip needs to be upgraded
+#if [ $MODEL_NUMBER = 'KDS-SW3-EN7' ];then
+	#typec_update.sh
+#fi
+
 case "$MODEL_NUMBER" in
 	WP-SW2-EN7)
 		if communication_with_mcu -u -b 4; then

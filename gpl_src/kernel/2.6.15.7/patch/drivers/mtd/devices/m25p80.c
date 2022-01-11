@@ -1442,6 +1442,360 @@ static struct platform_driver m25p80_driver = {
 };
 #endif
 
+#define MX25U1632F_CHIP	1
+
+#define __DSPModReg32(addr, data, mask) \
+		*(volatile u32 *)(IO_ADDRESS(addr)) = \
+	(((*(volatile u32 *)(IO_ADDRESS(addr)))&(~(mask))) \
+		| (u32)((data)&(mask)))
+#define ClrRegBits(addr, bit_mask) __DSPModReg32(addr, 0, bit_mask)
+#define SetRegBits(addr, bit_mask) __DSPModReg32(addr, bit_mask, bit_mask)
+#define ReadMemoryLong(baseaddress,offset)        (*(volatile u32 *)(IO_ADDRESS((u32)(baseaddress)+(u32)(offset))))
+
+#define GPIO_MUX_SCU90 			0x1E6E2090
+#define GPIO_MUX_SCU94 			0x1E6E2094
+
+#define GPIOE_H_DIR_REG			0x1e780024
+#define GPIOE_H_DATA_REG		0x1e780020
+
+static void spi_switch_init(void)
+{
+	u32 bit_mask = 1;
+	u32 bit_clear = 0x000000c0;
+	u32 bit_set = 0x03000000;
+#ifdef CONFIG_ARCH_AST1500_HOST
+	ClrRegBits(GPIO_MUX_SCU90,bit_clear);
+	ClrRegBits(GPIO_MUX_SCU94,bit_mask<<5);
+
+	SetRegBits(GPIOE_H_DIR_REG,bit_set);
+#endif
+}
+
+static void spi_switch_low(void)
+{
+	u32 bit_mask = 1;
+	u32 bit_clear = 0x03000000;
+#ifdef CONFIG_ARCH_AST1500_HOST
+	ClrRegBits(GPIOE_H_DATA_REG,bit_clear);
+#endif
+}
+
+static void spi_switch_high(void)
+{
+	u32 bit_mask = 1;
+	u32 bit_set = 0x03000000;
+#ifdef CONFIG_ARCH_AST1500_HOST
+	SetRegBits(GPIOE_H_DATA_REG,bit_set);
+#endif
+}
+
+static void spi_switch_to_mx25u1632f(void)
+{	
+	spi_switch_init();
+	spi_switch_high();
+}
+
+static void spi_switch_to_default(void)
+{	
+	spi_switch_init();
+	spi_switch_low();
+}
+
+#ifdef MX25U1632F_CHIP
+#define MX25U1632F_OP_WREN 			0x06
+#define MX25U1632F_OP_RDSR 			0x05
+#define MX25U1632F_OP_READ 			0x03
+#define MX25U1632F_OP_EARSE 		0x20
+#define MX25U1632F_OP_EARSE_ALL 	0x60
+
+#define MX25U1632F_SR_WEL 2
+#define MX25U1632F_SR_WIP 1
+
+//Because the hardware passes through two SPI switches, the speed can only reach 15MB
+/*	
+	SPI drive clock register correspondence
+	0x00	--	HCLK/16
+	0x01	--	HCLK/14
+	0x02	--	HCLK/12
+	0x03	--	HCLK/10
+	0x04	--	HCLK/8
+	0x05	--	HCLK/6
+	0x06	--	HCLK/4
+	0x07	--	HCLK/2
+	0x08	--	HCLK/15
+	0x09	--	HCLK/13
+	0x0a	--	HCLK/11
+	0x0b	--	HCLK/9
+	0x0c	--	HCLK/7
+	0x0d	--	HCLK/5
+	0x0e	--	HCLK/3
+	0x0f	--	HCLK
+*/
+#define MX25U1632F_TCK_WRITE		0x00
+#define MX25U1632F_TCK_EARSE		0x00
+#define MX25U1632F_TCK_READ			0x00
+
+static void mx25u1632f_write_reg(struct m25p *flash, u8 opcode)
+{
+	u32 val;
+
+	val = (MX25U1632F_TCK_WRITE << 8) | CE_LOW | USERMODE;
+	*(volatile u32 *)(flash->AST_SMC_config_reg_addr) = val;
+	udelay(200);
+
+	*(volatile u8 *)(flash->SPI_Flash_base) = opcode;
+	udelay(10);
+
+	val = (MX25U1632F_TCK_WRITE << 8) | CE_HIGH | USERMODE;
+	*(volatile u32 *)(flash->AST_SMC_config_reg_addr) = val;
+	udelay(200);
+}
+
+static void mx25u1632f_read_reg(struct m25p *flash, u8 opcode, u8 *data, int len)
+{
+	u32 val, i;
+
+	val = (MX25U1632F_TCK_WRITE << 8) | CE_LOW | USERMODE;
+	*(volatile u32 *)(flash->AST_SMC_config_reg_addr) = val;
+	udelay(200);
+
+	*(volatile u8 *)(flash->SPI_Flash_base) = opcode;
+	udelay(10);
+
+	for (i = 0; i < len; i++) {
+		*data = *(volatile u8 *)(flash->SPI_Flash_base);
+		data++;
+	}
+
+	val = (MX25U1632F_TCK_WRITE << 8) | CE_HIGH | USERMODE;
+	*(volatile u32 *)(flash->AST_SMC_config_reg_addr) = val;
+	udelay(200);
+}
+
+static u8 mx25u1632f_read_sr(struct m25p *flash)
+{
+	u8 sr;
+
+	mx25u1632f_read_reg(flash, MX25U1632F_OP_RDSR, &sr, 1);
+	return sr;
+}
+
+static inline void mx25u1632f_write_enable(struct m25p *flash)
+{
+	u8 code = MX25U1632F_OP_WREN;
+	u8 sr = 0;
+	mx25u1632f_write_reg(flash, code);
+
+#if defined(STATUS_REG_CHECK)
+	while (!(MX25U1632F_SR_WEL & mx25u1632f_read_sr(flash)))
+	{
+		//msleep(10);
+	}
+#endif
+}
+
+static void mx25u1632f_write_buffer(struct m25p *flash, const u8 *src, u32 addr, int len)
+{
+	u32	j;
+	u32	ulCtrlData;
+	spi_switch_to_mx25u1632f();
+	mx25u1632f_write_enable(flash);
+
+	ulCtrlData  = (MX25U1632F_TCK_WRITE << 8);
+	ulCtrlData |= CE_LOW | USERMODE;
+	*(volatile u32 *)(flash->AST_SMC_config_reg_addr) = ulCtrlData;
+	udelay(200);
+
+	*(volatile u8 *)(flash->SPI_Flash_base) = (u8)(OPCODE_PP);
+	udelay(10);
+
+	barrier();
+	*(volatile u8 *)(flash->SPI_Flash_base) = (u8)((addr & 0xff0000) >> 16);
+	udelay(10);
+	barrier();
+	*(volatile u8 *)(flash->SPI_Flash_base) = (u8)((addr & 0x00ff00) >> 8);
+	udelay(10);
+	barrier();
+	*(volatile u8 *)(flash->SPI_Flash_base) = (u8)((addr & 0x0000ff));
+	udelay(10);
+
+	for (j = 0; j < len; j++) {
+		barrier();
+		*(u8 *)(flash->SPI_Flash_base) = *(u8 *)(src++);
+		udelay(10);
+	}
+
+	ulCtrlData  = (MX25U1632F_TCK_WRITE << 8);
+	ulCtrlData |= CE_HIGH | USERMODE;
+	*(volatile u32 *)(flash->AST_SMC_config_reg_addr) = ulCtrlData;
+	udelay(200);
+
+	barrier();
+#if defined(STATUS_REG_CHECK)
+	while (MX25U1632F_SR_WIP & mx25u1632f_read_sr(flash))
+	{
+		//msleep(10);
+	}
+#endif
+	spi_switch_to_default();
+}
+
+static void mx25u1632f_earse_chip_all(struct m25p *flash)
+{
+	u32	ulCtrlData;
+
+	spi_switch_to_mx25u1632f();
+
+	mx25u1632f_write_enable(flash);
+	ulCtrlData	= (MX25U1632F_TCK_EARSE << 8);
+	ulCtrlData |= CE_LOW | USERMODE;
+	*(volatile u32 *)(flash->AST_SMC_config_reg_addr) = ulCtrlData;
+	udelay(200);
+
+	*(volatile u8 *)(flash->SPI_Flash_base) = (u8)(MX25U1632F_OP_EARSE_ALL);
+	udelay(10);
+
+	ulCtrlData	= (MX25U1632F_TCK_EARSE << 8);
+	ulCtrlData |= CE_HIGH | USERMODE;
+	*(volatile u32 *)(flash->AST_SMC_config_reg_addr) = ulCtrlData;
+	udelay(200);
+
+	barrier();
+#if defined(STATUS_REG_CHECK)
+	while (MX25U1632F_SR_WIP & mx25u1632f_read_sr(flash))
+	{
+		//msleep(10);
+	}
+#endif
+	spi_switch_to_default();
+}
+
+static void mx25u1632f_earse_buffer(struct m25p *flash, u32 offset)
+{
+	u32	ulCtrlData;
+
+	mx25u1632f_write_enable(flash);
+	ulCtrlData	= (MX25U1632F_TCK_EARSE << 8);
+	ulCtrlData |= CE_LOW | USERMODE;
+	*(volatile u32 *)(flash->AST_SMC_config_reg_addr) = ulCtrlData;
+	udelay(200);
+
+	*(volatile u8 *)(flash->SPI_Flash_base) = (u8)(MX25U1632F_OP_EARSE);
+	udelay(10);
+
+	barrier();
+	*(volatile u8 *)(flash->SPI_Flash_base) = (u8)((offset & 0xff0000) >> 16);
+	udelay(10);
+	barrier();
+	*(volatile u8 *)(flash->SPI_Flash_base) = (u8)((offset & 0x00ff00) >> 8);
+	udelay(10);
+	barrier();
+	*(volatile u8 *)(flash->SPI_Flash_base) = (u8)((offset & 0x0000ff));
+	udelay(10);
+	
+	ulCtrlData	= (MX25U1632F_TCK_EARSE << 8);
+	ulCtrlData |= CE_HIGH | USERMODE;
+	*(volatile u32 *)(flash->AST_SMC_config_reg_addr) = ulCtrlData;
+	udelay(200);
+
+	barrier();
+#if defined(STATUS_REG_CHECK)
+	while (MX25U1632F_SR_WIP & mx25u1632f_read_sr(flash))
+	{
+		//msleep(10);
+	}
+#endif
+}
+
+static void mx25u1632f_read_buffer(struct m25p *flash, u32 addr, u8 *data, int len)
+{
+	u32	i,val;
+	u32	ulCtrlData;
+	spi_switch_to_mx25u1632f();
+	ulCtrlData  = (MX25U1632F_TCK_WRITE << 8);
+	ulCtrlData |= CE_LOW | USERMODE;
+	*(volatile u32 *)(flash->AST_SMC_config_reg_addr) = ulCtrlData;
+	udelay(200);
+
+	*(volatile u8 *)(flash->SPI_Flash_base) = (u8)(MX25U1632F_OP_READ);
+	udelay(10);
+	barrier();
+	*(volatile u8 *)(flash->SPI_Flash_base) = (u8)((addr & 0xff0000) >> 16);
+	barrier();
+	*(volatile u8 *)(flash->SPI_Flash_base) = (u8)((addr & 0x00ff00) >> 8);
+	barrier();
+	*(volatile u8 *)(flash->SPI_Flash_base) = (u8)((addr & 0x0000ff));
+	udelay(10);
+
+	for (i = 0; i < len; i++) {
+		*data = *(volatile u8 *)(flash->SPI_Flash_base);
+		data++;
+	}
+
+	val = (MX25U1632F_TCK_WRITE << 8) | CE_HIGH | USERMODE;
+	*(volatile u32 *)(flash->AST_SMC_config_reg_addr) = val;
+	udelay(200);
+	spi_switch_to_default();
+}
+
+static ssize_t store_mx25u1632f_read(struct device *dev, struct device_attribute *attr,
+		const char *buf, size_t count)
+{
+	struct m25p *flash = (struct m25p *)dev->driver_data;
+	uint32_t addr = 0;
+	uint32_t len = 0;
+	u8 data[4] = {0};
+	u8 i = 0;
+	sscanf(buf, "%x", &addr);
+	down(&flash->lock);
+	mx25u1632f_read_buffer(flash,addr,data,4);
+	up(&flash->lock);
+	for(i = 0;i<4;i++)
+	{
+		printk("data[%d] = 0x%x\n",i,data[i]);
+	}
+
+	return count;
+}
+DEVICE_ATTR(mx25u1632f_read, (S_IWUSR), NULL, store_mx25u1632f_read);
+
+static ssize_t store_mx25u1632f_write_file(struct device *dev, struct device_attribute *attr,
+		const char *buf, size_t count)
+{
+	struct m25p *flash = (struct m25p *)dev->driver_data;
+	static uint32_t flash_addr = 0x00;
+	down(&flash->lock);
+	mx25u1632f_write_buffer(flash,(u8*)buf,flash_addr,count);
+	up(&flash->lock);
+	flash_addr += count;
+
+	return count;
+}
+DEVICE_ATTR(mx25u1632f_write_file, (S_IWUSR), NULL, store_mx25u1632f_write_file);
+
+static ssize_t store_mx25u1632f_earse_all(struct device *dev, struct device_attribute *attr,
+		const char *buf, size_t count)
+{
+	struct m25p *flash = (struct m25p *)dev->driver_data;
+	down(&flash->lock);
+	mx25u1632f_earse_chip_all(flash);
+	up(&flash->lock);
+	return count;
+}
+DEVICE_ATTR(mx25u1632f_earse_all, (S_IWUSR), NULL, store_mx25u1632f_earse_all);
+
+static struct attribute *dev_attrs[] = {
+	&dev_attr_mx25u1632f_read.attr,
+	&dev_attr_mx25u1632f_write_file.attr,
+	&dev_attr_mx25u1632f_earse_all.attr,
+	NULL,
+};
+
+static struct attribute_group dev_attr_group = {
+	.attrs = dev_attrs,
+};
+#endif
+
 static int m25p80_init(void)
 {
 #ifdef CONFIG_SPI_ASTSMC
@@ -1472,6 +1826,14 @@ static int m25p80_init(void)
 		printk("platform_device_register m25p80_dev err\n");
 		goto err_reg_platform_device;
 	}
+#ifdef MX25U1632F_CHIP
+	ret = sysfs_create_group(&m25p80_dev.dev.kobj, &dev_attr_group);
+	if (ret) {
+		printk("can't create sysfs files\n");
+		goto err_reg_platform_device;
+
+	}
+#endif
 	printk("m25p80 device registered\n");
 
 	printk("m25p80.ko loaded\n");
