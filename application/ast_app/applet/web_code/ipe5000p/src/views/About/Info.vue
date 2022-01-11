@@ -29,7 +29,7 @@
       </div>
     </div>
     <footer>
-      &copy;&nbsp;&nbsp;2021 - Kramer Electronics Ltd. all rights reserved.
+      &copy;&nbsp;&nbsp;2022 - Kramer Electronics Ltd. all rights reserved.
     </footer>
   </div>
 </template>

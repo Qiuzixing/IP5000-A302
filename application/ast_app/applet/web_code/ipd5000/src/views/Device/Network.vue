@@ -28,11 +28,16 @@
                       inactive-value="0"></v-switch>
           </th>
           <th>
-            <input type="text"
-                   :disabled="ipMode0 === '1'"
-                   class="setting-text"
-                   style="width: 140px"
-                   v-model="ipInfo0[0]">
+            <div style="position:relative;">
+              <input type="text"
+                     :disabled="ipMode0 === '1'"
+                     class="setting-text"
+                     style="width: 140px"
+                     v-model="ipInfo0[0]">
+              <span class="range-alert"
+                    v-if="ipInfo0Error"
+                    style="top:36px;white-space: nowrap;">The IP address is invalid</span>
+            </div>
           </th>
           <th>
             <input type="text"
@@ -77,11 +82,16 @@
                       inactive-value="0"></v-switch>
           </th>
           <th>
-            <input type="text"
-                   style="width: 140px"
-                   :disabled="ipMode1 === '1' || (configPort0 === '0' && !p3k802Q) || daisyChain === '1'"
-                   class="setting-text"
-                   v-model="ipInfo1[0]">
+            <div style="position: relative;">
+              <input type="text"
+                     style="width: 140px"
+                     :disabled="ipMode1 === '1' || (configPort0 === '0' && !p3k802Q) || daisyChain === '1'"
+                     class="setting-text"
+                     v-model="ipInfo1[0]">
+              <span class="range-alert"
+                    v-if="ipInfo1Error && !(this.configPort0 === '0' && !this.p3k802Q)"
+                    style="top:36px;white-space: nowrap;">The IP address is invalid</span>
+            </div>
           </th>
           <th>
             <input type="text"
@@ -117,9 +127,11 @@
         <span class="setting-model-title">IP Casting Mode</span>
         <div>
           <radio-component v-model="castMode"
-                           label="1">Unicast</radio-component>
+                           label="1">Unicast
+          </radio-component>
           <radio-component v-model="castMode"
-                           label="2">Multicast</radio-component>
+                           label="2">Multicast
+          </radio-component>
         </div>
       </div>
     </div>
@@ -165,7 +177,8 @@
     </div>
     <footer>
       <button class="btn btn-primary"
-              @click="save">SAVE</button>
+              @click="save">SAVE
+      </button>
     </footer>
   </div>
 </template>
@@ -201,7 +214,9 @@ export default {
       danteTag3: 1,
       p3k802Q: false,
       dante802Q: false,
-      daisyChain: '0'
+      daisyChain: '0',
+      ipInfo0Error: false,
+      ipInfo1Error: false
 
     }
   },
@@ -287,11 +302,13 @@ export default {
       this.ttl = parseInt(data[1])
     },
     save () {
-      this.$socket.sendMsg('#KDS-DAISY-CHAIN ' + this.daisyChain)
-      this.setPortConfig()
-      this.setIpCastingMode()
-      this.setTcpUDP()
-      this.setIp()
+      if (this.validIP()) {
+        this.$socket.sendMsg('#KDS-DAISY-CHAIN ' + this.daisyChain)
+        this.setPortConfig()
+        this.setIpCastingMode()
+        this.setTcpUDP()
+        this.setIp()
+      }
     },
     setPortConfig () {
       if (this.daisyChain === '0') {
@@ -316,6 +333,7 @@ export default {
       } else {
         this.$socket.sendMsg('#NET-DHCP 0,1')
       }
+      if (this.configPort0 === '0' && !this.p3k802Q) return
       if (this.daisyChain === '0') {
         if (this.ipMode1 !== '1') {
           this.$socket.sendMsg('#NET-DHCP 1,0')
@@ -328,6 +346,82 @@ export default {
     daisyChainChange (val) {
       if (val === '1') {
         this.configPort0 = '0'
+      }
+    },
+    validIP () {
+      if (this.ipMode0 !== '1') {
+        this.ipInfo0Error = !this.isValidIP(this.ipInfo0[0], this.ipInfo0[1], this.ipInfo0[2])
+        if (this.ipInfo0Error) {
+          return false
+        }
+      }
+      if (!(this.configPort0 === '0' && !this.p3k802Q)) {
+        if (this.daisyChain === '0' && this.ipMode1 !== '1') {
+          this.ipInfo1Error = !this.isValidIP(this.ipInfo1[0], this.ipInfo1[1], this.ipInfo1[2])
+          if (this.ipInfo1Error) {
+            return false
+          }
+        }
+      }
+      this.ipInfo0Error = false
+      this.ipInfo1Error = false
+      return true
+    },
+    isValidIP (ipAddr, netmask, gateway) {
+      if (ipAddr.startsWith('255') || ipAddr.startsWith('127')) {
+        return false
+      }
+      if (isIp4addr(ipAddr) && isIp4addr(netmask) && isIp4addr(gateway)) {
+        // 判断ip参数是否有效
+        const ipCheck = ipAddr.split('.')
+        const nmCheck = netmask.split('.')
+        const gwCheck = gateway.split('.')
+
+        const ipArr = []
+        const maskArr = []
+        const gatewayArr = []
+
+        ipArr[0] = 0xff & parseInt(ipCheck[0])
+        ipArr[1] = 0xff & parseInt(ipCheck[1])
+        ipArr[2] = 0xff & parseInt(ipCheck[2])
+        ipArr[3] = 0xff & parseInt(ipCheck[3])
+
+        gatewayArr[0] = 0xff & parseInt(gwCheck[0])
+        gatewayArr[1] = 0xff & parseInt(gwCheck[1])
+        gatewayArr[2] = 0xff & parseInt(gwCheck[2])
+        gatewayArr[3] = 0xff & parseInt(gwCheck[3])
+
+        maskArr[0] = 0xff & parseInt(nmCheck[0])
+        maskArr[1] = 0xff & parseInt(nmCheck[1])
+        maskArr[2] = 0xff & parseInt(nmCheck[2])
+        maskArr[3] = 0xff & parseInt(nmCheck[3])
+
+        // 主机号第一个自己不能全为0 或者 1
+        if (ipArr[3] & ~maskArr[3] === 0 || ipArr[3] & ~maskArr[3] === 255) {
+          return false
+        }
+
+        if (!((((ipArr[0]) & (maskArr[0])) === ((gatewayArr[0]) & (maskArr[0]))) &&
+          (((ipArr[1]) & (maskArr[1])) === ((gatewayArr[1]) & (maskArr[1]))) &&
+          (((ipArr[2]) & (maskArr[2])) === ((gatewayArr[2]) & (maskArr[2]))) &&
+          (((ipArr[3]) & (maskArr[3])) === ((gatewayArr[3]) & (maskArr[3]))))) {
+          // 设置的ip和网关不合法
+          if (gateway === '0.0.0.0') {
+            return true
+          }
+          // console.error('Default gateway is not at the same network(subnet), which is defined on basis of IP address and subnet mask.')
+          return false
+        }
+        return true
+      } else {
+        // ip地址设置错误
+        // console.error('Please input correctly!')
+        return false
+      }
+
+      function isIp4addr (ip) {
+        const reg = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
+        return reg.test(ip)
       }
     }
   }
@@ -356,6 +450,7 @@ export default {
 .setting-model-title {
   width: 200px;
 }
+
 .table {
   width: 100%;
   max-width: 1280px;

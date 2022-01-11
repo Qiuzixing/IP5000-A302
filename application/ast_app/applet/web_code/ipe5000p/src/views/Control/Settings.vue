@@ -32,7 +32,7 @@
                    v-model="cecCmd">
             <span v-if="hexError"
                   class="range-alert"
-                  style="white-space: nowrap;">Please enter hexadecimal</span>
+                  style="white-space: nowrap;top: 35px;">Please enter hexadecimal (example: ff36)</span>
           </div>
           <button class="btn btn-plain-primary"
                   :disabled="cecGateWay === '0'"
@@ -311,10 +311,9 @@ export default {
       this.$socket.sendMsg('#CEC-GW-PORT-ACTIVE ' + this.cecGateWayPort)
     },
     sendCECCmd () {
-      const cmd = this.cecCmd.replace(/\s/g, '')
-      if (this.checkHex(cmd)) {
+      if (this.checkHex(this.cecCmd)) {
         this.hexError = false
-        this.$socket.sendMsg(`#CEC-SND 1,1,1,${cmd.length / 2},${cmd}`)
+        this.$socket.sendMsg(`#CEC-SND 1,1,1,${this.cecCmd.length / 2},${this.cecCmd}`)
       } else {
         this.hexError = true
       }

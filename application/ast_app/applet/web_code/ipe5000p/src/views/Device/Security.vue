@@ -12,11 +12,13 @@
         <radio-component v-model="https"
                          :disabled="httpsServer === 'off'"
                          @change="notHttpsFile=false"
-                         label="in">Internal Certificate</radio-component>
+                         label="in">Internal Certificate
+        </radio-component>
         <radio-component v-model="https"
                          :disabled="httpsServer === 'off'"
                          label="out"
-                         @change="notHttpsFile=false">Server Certificate</radio-component>
+                         @change="notHttpsFile=false">Server Certificate
+        </radio-component>
         <div v-if="https === 'out'"
              style="margin-left: 30px">
           <div class="setting">
@@ -40,6 +42,7 @@
             <span class="setting-title"
                   style="width: 180px;">Private Key Password</span>
             <input type="password"
+                   maxLength="24"
                    class="setting-text"
                    :disabled="httpsServer === 'off'"
                    v-model="httpPrivatePwd">
@@ -47,10 +50,11 @@
         </div>
         <button class="btn btn-primary"
                 style="margin-left: 30px"
-                @click="setHTTPS">APPLY & REBOOT</button>
+                @click="setHTTPS">APPLY & REBOOT
+        </button>
         <p class="error"
            style="margin-left: 30px;"
-           v-if="notHttpsFile">{{httpsErrorAlert}}</p>
+           v-if="notHttpsFile">{{ httpsErrorAlert }}</p>
       </div>
     </div>
     <div class="setting-model">
@@ -69,18 +73,23 @@
         </radio-component>
         <div v-if="security801 === 'eap_mschap'"
              style="margin-left: 30px">
-          <div class="setting">
+          <div class="setting" style="position: relative;">
             <span class="setting-title"
                   style="width: 180px;">Username</span>
             <input type="text"
+                   maxLength="24"
                    class="setting-text"
                    :disabled="server8021x === 'off'"
                    v-model="mschap_username">
+            <span class="range-alert"
+                  v-if="mschap_username && !isValidName(mschap_username)"
+                  style="top:36px;white-space: nowrap;">Alphanumeric and characters within length of 1 to 24 characters, spaces not allowed</span>
           </div>
           <div class="setting">
             <span class="setting-title"
                   style="width: 180px;">Password</span>
             <input type="password"
+                   maxLength="24"
                    class="setting-text"
                    :disabled="server8021x === 'off'"
                    v-model="mschap_password">
@@ -89,16 +98,21 @@
         <radio-component v-model="security801"
                          :disabled="server8021x === 'off'"
                          @change="server8021error=false"
-                         label="eap_tls">EAP-TLS</radio-component>
+                         label="eap_tls">EAP-TLS
+        </radio-component>
         <div v-if="security801 === 'eap_tls'"
              style="margin-left: 30px">
-          <div class="setting">
+          <div class="setting" style="position: relative;">
             <span class="setting-title"
                   style="width: 180px;">Username</span>
             <input type="text"
+                   maxLength="24"
                    class="setting-text"
                    :disabled="server8021x === 'off'"
                    v-model="tls_username">
+            <span class="range-alert"
+                  v-if="tls_username && !isValidName(tls_username)"
+                  style="top:36px;white-space: nowrap;">Alphanumeric and characters within length of 1 to 24 characters, spaces not allowed</span>
           </div>
           <div class="setting">
             <span class="setting-title"
@@ -155,6 +169,7 @@
             <span class="setting-title"
                   style="width: 180px;">Private Key Password</span>
             <input type="password"
+                   maxLength="24"
                    class="setting-text"
                    :disabled="server8021x === 'off'"
                    v-model="tls_private_password">
@@ -162,10 +177,11 @@
         </div>
         <button class="btn btn-primary"
                 style="margin-left: 30px"
-                @click="set8021x">APPLY</button>
+                @click="set8021x">APPLY
+        </button>
         <p class="error"
            style="margin-left: 30px;"
-           v-if="server8021error">{{server8021Alert}}</p>
+           v-if="server8021error">{{ server8021Alert }}</p>
       </div>
     </div>
   </div>
@@ -173,6 +189,7 @@
 
 <script>
 import radioComponent from '@/components/radio.vue'
+
 export default {
   name: 'autoSwitch',
   components: {
@@ -281,11 +298,12 @@ export default {
             this.server8021error = true
             return
           }
-          if (!this.mschap_username) {
+          if (!this.mschap_password) {
             this.server8021Alert = 'Please enter password'
             this.server8021error = true
             return
           }
+          if (!this.isValidName(this.mschap_username) || !this.isValidName(this.mschap_password)) return
           formData.append('mschap_username', this.mschap_username)
           formData.append('mschap_password', this.mschap_password)
         } else {
@@ -314,6 +332,7 @@ export default {
             this.server8021error = true
             return
           }
+          if (!this.isValidName(this.tls_username) || !this.isValidName(this.tls_private_password)) return
           formData.append('tls_username', this.tls_username)
           formData.append('tls_ca_certificate', this.$refs.tls_ca_certificate.files[0])
           formData.append('tls_client_certificate', this.$refs.tls_client_certificate.files[0])
@@ -332,6 +351,9 @@ export default {
         }
       }
       xhr.send(formData)
+    },
+    isValidName (name) {
+      return /^[a-zA-Z0-9][_\-a-zA-Z0-9]{0,23}$/.test(name)
     }
   }
 }
@@ -340,10 +362,12 @@ export default {
 .setting-title {
   width: 220px;
 }
+
 .upload-icon {
   cursor: pointer;
   width: 26px;
 }
+
 .error {
   color: #d50000;
   font-size: 12px;

@@ -101,8 +101,7 @@ export default {
   data () {
     return {
       deviceStatus: '1',
-      temperature: 50,
-      log: [],
+      temperature: 0,
       hdmiin1: false,
       hdmiin2: false,
       usbin3: false,
@@ -118,7 +117,6 @@ export default {
   created () {
     this.$socket.sendMsg('#DEV-STATUS? ')
     this.$socket.sendMsg('#HW-TEMP? 0,0')
-    this.$socket.sendMsg('#LOG-RESET? ')
     this.$socket.sendMsg('#SIGNALS-LIST? ')
   },
   methods: {
@@ -133,10 +131,6 @@ export default {
       }
       if (msg.search(/@SIGNALS-LIST /i) !== -1) {
         this.handleSignal(msg)
-        return
-      }
-      if (msg.search(/@LOG-RESET /i) !== -1) {
-        this.handleLog(msg)
       }
     },
     handleDevStatus (msg) {
@@ -144,14 +138,6 @@ export default {
     },
     handleTemp (msg) {
       this.temperature = parseInt(msg.split(' ')[1].split(',')[1])
-    },
-    handleLog (msg) {
-      const data = msg.split(' ')[1].split(',')
-      this.log.push({
-        type: data[0],
-        date: data[1],
-        time: data[2]
-      })
     },
     handleSignal (msg) {
       this.hdmiin1 = msg.search(/in.hdmi.1/i) !== -1
@@ -194,36 +180,5 @@ export default {
   width: 16px;
   height: 16px;
   border-radius: 100%;
-}
-.res-title {
-  display: flex;
-  span {
-    padding: 5px;
-    font-family: "open sans semiblold";
-  }
-  span:first-child {
-    width: 280px;
-    background: #f3f3f3;
-    margin-right: 24px;
-  }
-  span:last-child {
-    width: 220px;
-    background: #f3f3f3;
-  }
-}
-.res-info {
-  max-height: 280px;
-  overflow-y: auto;
-  .res-info-item {
-    display: flex;
-    span {
-      width: 280px;
-      word-wrap: break-word;
-      padding: 5px;
-    }
-    span:first-child {
-      margin-right: 24px;
-    }
-  }
 }
 </style>

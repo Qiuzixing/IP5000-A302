@@ -2,7 +2,7 @@
   <div class="main-setting">
     <div class="setting-model">
       <h3 class="setting-model-title">General Preferences</h3>
-      <div class="setting">
+      <div class="setting" style="position: relative;">
         <span class="setting-title">Host Name</span>
         <input class="setting-text"
                type="text"
@@ -12,6 +12,9 @@
                 class="btn btn-plain-primary"
                 style="margin-left: 15px;"
                 @click="setHostName">APPLY</button>
+        <span class="range-alert"
+              v-if="!isValidName(hostname)"
+              style="top:36px;white-space: nowrap;">Alphanumeric and characters within length of 1 to 24 characters, spaces not allowed</span>
       </div>
       <div class="setting">
         <span class="setting-title">Device Model</span>
@@ -68,23 +71,6 @@
         <button type="button"
                 class="btn btn-plain-primary"
                 @click="locateDev">APPLY</button>
-      </div>
-<!--      <div class="setting">-->
-<!--        <span class="setting-title">Power Save</span>-->
-<!--        <v-switch v-model="powerSave"-->
-<!--                  active-value="1"-->
-<!--                  inactive-value="0"-->
-<!--                  @change="setPowerSave"></v-switch>-->
-<!--      </div>-->
-      <div class="setting">
-        <span class="setting-title">Inactivity Auto-standby Delay Duration</span>
-        <el-input-number v-model="autoStandbyTime"
-                         controls-position="right"
-                         :max="30"
-                         :min="0"></el-input-number>
-        <button class="btn btn-plain-primary"
-                style="margin-left: 15px;"
-                @click="setAutoStandbyTime">APPLY</button>
       </div>
     </div>
     <div class="setting-model">
@@ -216,7 +202,6 @@ export default {
       version: '',
       dialogVisibleReset: false,
       dialogVisibleFactory: false,
-      autoStandbyTime: 30,
       fileList: [],
       progress: 0,
       showProgress: false,
@@ -243,8 +228,6 @@ export default {
     this.$socket.sendMsg('#NET-MAC? 0')
     this.$socket.sendMsg('#SN? ')
     this.$socket.sendMsg('#LOCK-FP? ')
-    // this.$socket.sendMsg('#STANDBY? ')
-    this.$socket.sendMsg('#STANDBY-TIMEOUT? ')
     this.$socket.sendMsg('#UPG-TIME? ')
     this.$socket.sendMsg('#VERSION? ')
     this.$socket.sendMsg('#STANDBY-VERSION? ')
@@ -286,10 +269,6 @@ export default {
       }
       if (msg.search(/@STANDBY-VERSION /i) !== -1) {
         this.handleStandbyVer(msg)
-        return
-      }
-      if (msg.search(/@STANDBY-TIMEOUT /i) !== -1) {
-        this.handleAutoStandbyTime(msg)
         return
       }
       if (msg.search(/@VERSION /i) !== -1) {
@@ -344,19 +323,15 @@ export default {
       this.$socket.sendMsg('#FACTORY')
     },
     setHostName () {
-      this.$socket.sendMsg(`#NAME 0,${this.hostname}`)
+      if (this.isValidName(this.hostname)) {
+        this.$socket.sendMsg(`#NAME 0,${this.hostname}`)
+      }
     },
     setDeviceModel () {
       this.$socket.sendMsg(`#MODEL ${this.deviceModel}`)
     },
     locateDev () {
       this.$socket.sendMsg('#IDV')
-    },
-    setAutoStandbyTime () {
-      this.$socket.sendMsg(`#STANDBY-TIMEOUT ${this.autoStandbyTime}`)
-    },
-    handleAutoStandbyTime (msg) {
-      this.autoStandbyTime = parseInt(msg.split(' ')[1])
     },
     rollBack () {
       this.$socket.sendMsg('#ROLLBACK')
@@ -438,6 +413,9 @@ export default {
         }
         xhr.send(formData)
       }
+    },
+    isValidName (name) {
+      return /^[a-zA-Z0-9][_\-a-zA-Z0-9]{0,23}$/.test(name)
     }
   }
 }

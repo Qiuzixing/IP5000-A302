@@ -2,7 +2,7 @@
   <div class="main-setting">
     <div class="setting-model">
       <h3 class="setting-model-title">General Preferences</h3>
-      <div class="setting">
+      <div class="setting" style="position: relative;">
         <span class="setting-title">Host Name</span>
         <input class="setting-text"
                type="text"
@@ -11,25 +11,29 @@
         <button type="button"
                 class="btn btn-plain-primary"
                 style="margin-left: 15px;"
-                @click="setHostName">APPLY</button>
+                @click="setHostName">APPLY
+        </button>
+        <span class="range-alert"
+              v-if="!isValidName(hostname)"
+              style="top:36px;white-space: nowrap;">Alphanumeric and characters within length of 1 to 24 characters, spaces not allowed</span>
       </div>
       <div class="setting">
         <span class="setting-title">Device Model</span>
-        <span>{{deviceModel}}</span>
+        <span>{{ deviceModel }}</span>
         <!--        <input type="text" class="setting-text" v-model="">-->
         <!--        <button type="button" class="btn btn-plain-primary" style="margin-left: 15px;" @click="setDeviceModel">APPLY</button>-->
       </div>
       <div class="setting">
         <span class="setting-title">Device H/W Release</span>
-        <span>{{HWVer}}</span>
+        <span>{{ HWVer }}</span>
       </div>
       <div class="setting">
         <span class="setting-title">MAC Address</span>
-        <span>{{macAddr}}</span>
+        <span>{{ macAddr }}</span>
       </div>
       <div class="setting">
         <span class="setting-title">Serial Number</span>
-        <span>{{serialNum}}</span>
+        <span>{{ serialNum }}</span>
       </div>
       <div class="setting">
         <span class="setting-title">Front Panel Lock </span>
@@ -51,11 +55,13 @@
         <button type="button"
                 class="btn btn-plain-primary"
                 @click="importConfig"
-                style="margin-left: 15px; margin-right: 15px;">IMPORT</button>
+                style="margin-left: 15px; margin-right: 15px;">IMPORT
+        </button>
 
         <button type="button"
                 class="btn btn-plain-primary"
-                @click="exportConfig">EXPORT</button>
+                @click="exportConfig">EXPORT
+        </button>
         <input type="file"
                ref="uploadConfig"
                style="display:none;"
@@ -67,24 +73,8 @@
         <span class="setting-title">Locate Device</span>
         <button type="button"
                 class="btn btn-plain-primary"
-                @click="locateDev">APPLY</button>
-      </div>
-<!--      <div class="setting">-->
-<!--        <span class="setting-title">Power Save</span>-->
-<!--        <v-switch v-model="powerSave"-->
-<!--                  active-value="1"-->
-<!--                  inactive-value="0"-->
-<!--                  @change="setPowerSave"></v-switch>-->
-<!--      </div>-->
-      <div class="setting">
-        <span class="setting-title">Inactivity Auto-standby Delay Duration</span>
-        <el-input-number v-model="autoStandbyTime"
-                         controls-position="right"
-                         :max="30"
-                         :min="0"></el-input-number>
-        <button class="btn btn-plain-primary"
-                style="margin-left: 15px;"
-                @click="setAutoStandbyTime">APPLY</button>
+                @click="locateDev">APPLY
+        </button>
       </div>
     </div>
     <div class="setting-model">
@@ -93,7 +83,7 @@
            style="margin-bottom:24px;">
         <span class="setting-title"
               style="line-height: 36px;">Firmware Version</span>
-        <span style="width: 180px;line-height: 36px;">{{version}}</span>
+        <span style="width: 180px;line-height: 36px;">{{ version }}</span>
         <el-upload action="/upload/upgradesoftware"
                    :before-upload="beforeUpload"
                    :on-progress="progressEvent"
@@ -102,21 +92,23 @@
                    :show-file-list="false"
                    ref="upload">
           <button class="btn btn-plain-primary"
-                  style="margin-left: 15px;">UPGRADE</button>
+                  style="margin-left: 15px;">UPGRADE
+          </button>
 
         </el-upload>
         <!-- <upload-components :show="false">UPGRADE</upload-components> -->
       </div>
       <div class="setting">
         <span class="setting-title">Last Upgrade Date/Time</span>
-        <span>{{upgradeTime}}</span>
+        <span>{{ upgradeTime }}</span>
       </div>
       <div class="setting">
         <span class="setting-title">Firmware Standby Version </span>
-        <span style="width: 180px;">{{standbyVer}}</span>
+        <span style="width: 180px;">{{ standbyVer }}</span>
         <button class="btn btn-plain-primary"
                 style="margin-left: 15px;"
-                @click="rollBack">ROLLBACK</button>
+                @click="rollBack">ROLLBACK
+        </button>
       </div>
     </div>
     <div class="setting-model">
@@ -125,12 +117,14 @@
         <button type="button"
                 class="btn btn-plain-primary"
                 style="margin-right: 70px"
-                @click="dialogVisibleReset = true">RESTART</button>
+                @click="dialogVisibleReset = true">RESTART
+        </button>
         <button type="button"
                 class="btn btn-plain-primary"
                 @click="dialogVisibleFactory = true"><img src="../../assets/img/warning.svg"
-               style="vertical-align: middle;margin-top: -5px"
-               alt="">RESET</button>
+                                                          style="vertical-align: middle;margin-top: -5px"
+                                                          alt="">RESET
+        </button>
       </div>
     </div>
     <el-dialog title="RESTART"
@@ -164,12 +158,12 @@
                width="500px">
       <div>
         <p class="upgrade-info"
-           v-if="fileError">(3/3) Firmware upgrading failed. Error code {{errMsg}}.</p>
+           v-if="fileError">(3/3) Firmware upgrading failed. Error code {{ errMsg }}.</p>
         <p class="upgrade-info"
            v-if="upgradeComplete">(3/3) Firmware upgrading completed. Rebooting...</p>
         <p class="upgrade-info"
-           v-if="isUpgrade">(2/3) Firmware installing {{upgradeProgress}}%</p>
-        <p class="upgrade-info">(1/3) Firmware uploading {{uploadProgress}}%</p>
+           v-if="isUpgrade">(2/3) Firmware installing {{ upgradeProgress }}%</p>
+        <p class="upgrade-info">(1/3) Firmware uploading {{ uploadProgress }}%</p>
         <!-- <p class="upgrade-info"
            v-for="(item, index) in upgradeInfo"
            :key="index">{{item}}</p> -->
@@ -197,10 +191,22 @@ export default {
       exportAndImport: {
         val: '3',
         param: [
-          { value: '0', label: 'All Without IP' },
-          { value: '1', label: 'Streams' },
-          { value: '2', label: 'AV Settings only' },
-          { value: '3', label: 'All including IP' }
+          {
+            value: '0',
+            label: 'All Without IP'
+          },
+          {
+            value: '1',
+            label: 'Streams'
+          },
+          {
+            value: '2',
+            label: 'AV Settings only'
+          },
+          {
+            value: '3',
+            label: 'All including IP'
+          }
         ]
       },
       displayOverlay: 'off',
@@ -217,7 +223,6 @@ export default {
       version: '',
       dialogVisibleReset: false,
       dialogVisibleFactory: false,
-      autoStandbyTime: 30,
       fileList: [],
       progress: 0,
       showProgress: false,
@@ -244,9 +249,7 @@ export default {
     this.$socket.sendMsg('#NET-MAC? 0')
     this.$socket.sendMsg('#SN? ')
     this.$socket.sendMsg('#LOCK-FP? ')
-    // this.$socket.sendMsg('#STANDBY? ')
     this.$socket.sendMsg('#UPG-TIME? ')
-    this.$socket.sendMsg('#STANDBY-TIMEOUT? ')
     this.$socket.sendMsg('#VERSION? ')
     this.$socket.sendMsg('#STANDBY-VERSION? ')
   },
@@ -287,10 +290,6 @@ export default {
       }
       if (msg.search(/@STANDBY-VERSION /i) !== -1) {
         this.handleStandbyVer(msg)
-        return
-      }
-      if (msg.search(/@STANDBY-TIMEOUT /i) !== -1) {
-        this.handleAutoStandbyTime(msg)
         return
       }
       if (msg.search(/@VERSION /i) !== -1) {
@@ -345,19 +344,15 @@ export default {
       this.$socket.sendMsg('#FACTORY')
     },
     setHostName () {
-      this.$socket.sendMsg(`#NAME 0,${this.hostname}`)
+      if (this.isValidName(this.hostname)) {
+        this.$socket.sendMsg(`#NAME 0,${this.hostname}`)
+      }
     },
     setDeviceModel () {
       this.$socket.sendMsg(`#MODEL ${this.deviceModel}`)
     },
     locateDev () {
       this.$socket.sendMsg('#IDV')
-    },
-    setAutoStandbyTime () {
-      this.$socket.sendMsg(`#STANDBY-TIMEOUT ${this.autoStandbyTime}`)
-    },
-    handleAutoStandbyTime (msg) {
-      this.autoStandbyTime = parseInt(msg.split(' ')[1])
     },
     rollBack () {
       this.$socket.sendMsg('#ROLLBACK')
@@ -439,6 +434,9 @@ export default {
         }
         xhr.send(formData)
       }
+    },
+    isValidName (name) {
+      return /^[a-zA-Z0-9][_\-a-zA-Z0-9]{0,23}$/.test(name)
     }
   }
 }

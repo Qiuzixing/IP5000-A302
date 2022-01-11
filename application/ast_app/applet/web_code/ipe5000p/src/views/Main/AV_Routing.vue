@@ -27,16 +27,14 @@
       </div>
       <div class="setting">
         <span class="setting-title">Channel ID</span>
-<!--        <el-input-number v-model="channel"-->
-<!--                         controls-position="right"-->
-<!--                         :max="999"-->
-<!--                         :min="1"></el-input-number>-->
-<!--        <button type="button"-->
-<!--                class="btn btn-plain-primary"-->
-<!--                style="margin-left: 24px;"-->
-<!--                @click="setChannel">APPLY</button>-->
-        <span>{{channel}}</span>
-        <!-- <span>{{channel}}</span> -->
+        <el-input-number v-model="channel"
+                         controls-position="right"
+                         :max="999"
+                         :min="1"></el-input-number>
+        <button type="button"
+                class="btn btn-plain-primary"
+                style="margin-left: 24px;"
+                @click="setChannel">APPLY</button>
       </div>
       <div class="setting">
         <span class="setting-title">Channel Name</span>

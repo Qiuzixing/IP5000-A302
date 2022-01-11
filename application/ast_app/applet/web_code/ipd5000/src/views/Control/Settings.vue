@@ -32,7 +32,7 @@
                    v-model="cecCmd">
             <span v-if="hexError"
                   class="range-alert"
-                  style="white-space: nowrap;">Please enter hexadecimal</span>
+                  style="white-space: nowrap;top: 35px;">Please enter hexadecimal (example: ff36)</span>
           </div>
 
           <button class="btn btn-plain-primary"
@@ -310,10 +310,9 @@ export default {
       this.$socket.sendMsg('#CEC-GW-PORT-ACTIVE ' + this.cecGateWayPort)
     },
     sendCECCmd () {
-      const cmd = this.cecCmd.replace(/\s/g, '')
-      if (this.checkHex(cmd)) {
+      if (this.checkHex(this.cecCmd)) {
         this.hexError = false
-        this.$socket.sendMsg(`#CEC-SND 1,1,1,${cmd.length / 2},${cmd}`)
+        this.$socket.sendMsg(`#CEC-SND 1,1,1,${this.cecCmd.length / 2},${this.cecCmd}`)
       } else {
         this.hexError = true
       }
@@ -323,7 +322,7 @@ export default {
       this.cecResList.unshift({ cmd: data[4], type: data[5] })
     },
     checkHex (cmd) {
-      return cmd.match(/^([0-9a-fA-F]{2}([0-9a-fA-F]{2}){0,14})$/)
+      return cmd.match(/^([0-9a-fA-F]{2}([0-9a-fA-F]{2}){0,15})$/)
     },
     handleRS232Param (msg) {
       const data = msg.split(',')
