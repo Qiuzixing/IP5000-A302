@@ -464,6 +464,11 @@ typedef enum _BoardInfoType_E
 	BOARD_BUILD_DATE
 }BoardInfoType_E;
 
+#define EX_NO_ERR 		0			//P3K_NO_ERROR,
+#define EX_CMD_ERR 	 	-1			//ERR_COMMAND_NOT_AVAILABLE,
+#define EX_PARAM_ERR 	-2			//ERR_PARAMETER_OUT_OF_RANGE,
+#define EX_MODE_ERR		-3			//ERR_WRONG_MODE,
+
 int GetBoardInfo(BoardInfoType_E type, char* info, unsigned int size);
 
 int  EX_SetAudSrcMode(int mode);
