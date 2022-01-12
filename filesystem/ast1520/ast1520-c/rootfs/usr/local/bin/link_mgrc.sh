@@ -1655,7 +1655,7 @@ handle_e_stop_usb()
 handle_e_start_kmoip()
 {
 	# Allow user to start/stop kmoip by his will.
-	if [ $NO_KMOIP = 'n' ]; then
+	if [ $NO_KMOIP = 'n' -a $STATE != 's_init' ]; then
 		ipc @u_lm_set s ue_start_kmoip
 	fi
 }
