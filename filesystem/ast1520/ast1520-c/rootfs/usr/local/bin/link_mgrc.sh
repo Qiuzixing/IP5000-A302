@@ -2937,6 +2937,24 @@ handle_ce_gw()
 				;;
 			esac
 		;;
+		WP-DEC7)
+			case $1 in
+				over_ip)
+					NO_CEC='n'
+					CEC_GATWAY='off'
+					ipc @c_lm_set s ce_start:$CH_SELECT_C
+				;;
+				hdmi_out)
+					NO_CEC='y'
+					CEC_GATWAY='on'
+					CEC_SEND_DIR='hdmi_out'
+					echo 1 > /sys/devices/platform/cec/cec_report
+					ipc @c_lm_set s ce_stop
+				;;
+				*)
+				;;
+			esac
+		;;
 		*)
 		;;
 	esac
