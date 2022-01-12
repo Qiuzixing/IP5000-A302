@@ -56,6 +56,7 @@ int SOCKET_TcpSendMessage(int sockfd,char *msg,int len);
 
 int SOCKET_Connect(char*ip,int port);
 
+int SendToConList(char * data);
 //udp ×é²¥
 int SOCKET_CreateUdpMulticast(SocketWorkInfo_S *multicasthandle);
 

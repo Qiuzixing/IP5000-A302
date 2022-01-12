@@ -106,7 +106,7 @@ static int CheckSelectRead(fd_set *readfds,SocketList_S *head,SocketList_S *sock
 		return -1;
 	}
 
-	if(SOCKETTYPE_ENUM_MAIN == sockInfo->socketType){//Ö÷Ì×½Ó×Ö
+	if(SOCKETTYPE_ENUM_MAIN == sockInfo->socketType){//ä¸»å¥—æŽ¥å­—
 		cliSockfd = accept(sockInfo->sockfd, (struct sockaddr*)&client_addr, &addr_len);
 		if(cliSockfd <= 0){
 			DBG_ErrMsg("accept err\n");
@@ -128,7 +128,9 @@ static int CheckSelectRead(fd_set *readfds,SocketList_S *head,SocketList_S *sock
         
 		//snprintf(newnode->ip,16,"%s",inet_ntoa(client_addr.sin_addr));
 		list_add_tail(&(head->_list),&(newnode->_list));
-	}else if(SOCKETTYPE_ENUM_SUB == sockInfo->socketType){//´ÓÌ×½Ó×Ö
+		char * data = "con_list";
+        SendToConList(data);
+	}else if(SOCKETTYPE_ENUM_SUB == sockInfo->socketType){//ï¿½ï¿½ï¿½×½ï¿½ï¿½ï¿½
 		//cli = (NetCliInfo_T *)malloc_checkout(sizeof(NetCliInfo_T));
 		//if(NULL == cli){
 		//	return KEY_FALSE;
@@ -139,19 +141,19 @@ static int CheckSelectRead(fd_set *readfds,SocketList_S *head,SocketList_S *sock
 		while(    bTsockFlag==1){
 			FD_ZERO(&readfd);
 			FD_ZERO(&errorfd);
-			FD_SET(sockInfo->sockfd,&readfd); //Ìí¼ÓÃèÊö·û
+			FD_SET(sockInfo->sockfd,&readfd); //æ·»åŠ æè¿°ç¬¦
 			FD_SET(sockInfo->sockfd,&errorfd);
 		 	maxfd = sockInfo->sockfd;
 			timeout.tv_sec = 0;
-			timeout.tv_usec = 100000;//selectº¯Êý»á²»¶ÏÐÞ¸ÄtimeoutµÄÖµ£¬ËùÒÔÃ¿´ÎÑ­»·¶¼Ó¦¸ÃÖØÐÂ¸³Öµ[windows²»ÊÜ´ËÓ°Ïì]
+			timeout.tv_usec = 100000;//selectå‡½æ•°ä¼šä¸æ–­ä¿®æ”¹timeoutçš„å€¼ï¼Œæ‰€ä»¥æ¯æ¬¡å¾ªçŽ¯éƒ½åº”è¯¥é‡æ–°èµ‹å€¼[windowsä¸å—æ­¤å½±å“]
 			ret  = select (maxfd + 1, &readfd, NULL, &errorfd, &timeout);
 			if (ret > 0){
 				if(0 == FD_ISSET(sockInfo->sockfd, &readfd)){
 					goto READ_ERROR;
 				}
-				ret = recv(sockInfo->sockfd,cli->recvmsg+cli->recvLen,sizeof(cli->recvmsg)-cli->recvLen,0);//»ñÈ¡ÍøÂçÏûÏ¢
+				ret = recv(sockInfo->sockfd,cli->recvmsg+cli->recvLen,sizeof(cli->recvmsg)-cli->recvLen,0);//èŽ·å–ç½‘ç»œæ¶ˆæ¯
 				if(ret >  0){
-					//ÊÕµ½ÕýÈ·ÏûÏ¢´¦Àí
+					//æ”¶åˆ°æ­£ç¡®æ¶ˆæ¯å¤„ç†
 					memcpy(cli->fromIP,sockInfo->ip,IP_ADRESS_LEN);
 					cli->fromPort= sockInfo->port;
 					cli->recvLen += ret;
@@ -169,13 +171,15 @@ static int CheckSelectRead(fd_set *readfds,SocketList_S *head,SocketList_S *sock
 					//}
 					//DF_DEBUG("recv no end");
 				}else{
-					//¿Í»§¶ËÖ÷¶¯¹Ø±ÕÌ×½Ó×Ö»òÁ´½Ó´íÎó¹Ø±ÕÌ×½Ó×Ö
+					//å®¢æˆ·ç«¯ä¸»åŠ¨å…³é—­å¥—æŽ¥å­—æˆ–é“¾æŽ¥é”™è¯¯å…³é—­å¥—æŽ¥å­—
 					//DF_DEBUG("clinet close socked,ret = %d",ret);
 					cli->recvSocket = sockInfo->sockfd;
 					char * closetcp = "close";
 					memcpy(cli->recvmsg,closetcp,strlen(closetcp));
 					param->readcb(cli);
 					DBG_ErrMsg("clinet close socked\n");
+					char * data = "con_list";
+        			SendToConList(data);
 					//sTimeOut
 				goto READ_ERROR;
 				}
@@ -190,7 +194,7 @@ static int CheckSelectRead(fd_set *readfds,SocketList_S *head,SocketList_S *sock
 				//DF_DEBUG("select error");
 				goto READ_ERROR;
 			}
-			usleep(10*1000);//³ÌÐò¿ÕÅÜ CPU²»ÖÁÓÚ100%
+			usleep(10*1000);//ç¨‹åºç©ºè·‘ CPUä¸è‡³äºŽ100%
 		}
 	}
 	return 0;
@@ -228,7 +232,7 @@ READ_ERROR:
          DBG_ErrMsg("tcp server init ERR\n ");
          return -1;
      }
-     //ÉèÖÃ¶Ë¿Ú¸´ÓÃ
+     //è®¾ç½®ç«¯å£å¤ç”¨
      setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (const void *)&opt, sizeof(opt));
      bindfd = bind(sockfd,(struct sockaddr *)&server_addr,sizeof(struct sockaddr));
      if(bindfd != 0)
@@ -275,7 +279,7 @@ READ_ERROR:
 		DBG_ErrMsg("tcp server init ERR\n ");
 		return -1;
 	}
-	//ÉèÖÃ¶Ë¿Ú¸´ÓÃ
+	//è®¾ç½®ç«¯å£å¤ç”¨
 	setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (const void *)&opt, sizeof(opt));
 	bindfd = bind(sockfd,(struct sockaddr *)&server_addr,sizeof(struct sockaddr));
 	if(bindfd != 0)
@@ -340,12 +344,12 @@ READ_ERROR:
 		maxfd = -1;
 		list_for_each(node,&(head->_list)){
 			sockInfo = (SocketList_S *)node_to_item(node,SocketList_S,_list);
-			FD_SET(sockInfo->sockfd,&readfd); //Ìí¼ÓÃèÊö·û
+			FD_SET(sockInfo->sockfd,&readfd); //æ·»åŠ æè¿°ç¬¦
 			FD_SET(sockInfo->sockfd,&errorfd);
 			if(maxfd < sockInfo->sockfd) maxfd = sockInfo->sockfd;
 		}
 		timeout.tv_sec = 1;
-		timeout.tv_usec = 5000000;//selectº¯Êý»á²»¶ÏÐÞ¸ÄtimeoutµÄÖµ£¬ËùÒÔÃ¿´ÎÑ­»·¶¼Ó¦¸ÃÖØÐÂ¸³Öµ[windows²»ÊÜ´ËÓ°Ïì]
+		timeout.tv_usec = 5000000;//selectå‡½æ•°ä¼šä¸æ–­ä¿®æ”¹timeoutçš„å€¼ï¼Œæ‰€ä»¥æ¯æ¬¡å¾ªçŽ¯éƒ½åº”è¯¥é‡æ–°èµ‹å€¼[windowsä¸å—æ­¤å½±å“]
 		ret  = select (maxfd + 1, &readfd, NULL, &errorfd, &timeout);
 		if (ret > 0){
 			//list_for_each(node, &(head->_list)){
@@ -382,7 +386,7 @@ READ_ERROR:
 				}
 			}
 		}
-		usleep(20*1000);//³ÌÐò¿ÕÅÜ CPU²»ÖÁÓÚ100%
+		usleep(20*1000);//ç¨‹åºç©ºè·‘ CPUä¸è‡³äºŽ100%
 	}
 }
 
@@ -528,7 +532,7 @@ int SOCKET_TcpSendMessage(int sockfd,char *msg,int len)
 //		DF_DEBUG("select start");
 		iSend = select(sockfd + 1, NULL, &wset, &errorfd, &tv);
 //		DF_DEBUG("select end");
-		if (iSend > 0)//3.5ÃëÖ®ÄÚ¿ÉÒÔsend£¬¼´socket¿ÉÒÔÐ´Èë
+		if (iSend > 0)//3.5ç§’ä¹‹å†…å¯ä»¥sendï¼Œå³socketå¯ä»¥å†™å…¥
 		{
 			if(0 != FD_ISSET(sockfd, &errorfd)){
 				return -1;
@@ -564,7 +568,7 @@ int SOCKET_TcpSendMessage(int sockfd,char *msg,int len)
 			}
 			continue;
 		}
-		else  //3.5ÃëÖ®ÄÚsocket»¹ÊÇ²»¿ÉÒÔÐ´Èë£¬ÈÏÎª·¢ËÍÊ§°Ü
+		else  //3.5ç§’ä¹‹å†…socketè¿˜æ˜¯ä¸å¯ä»¥å†™å…¥ï¼Œè®¤ä¸ºå‘é€å¤±è´¥
 		{
 			DBG_ErrMsg("socketfd %d send data length %d  err\n",sockfd,len);
 			ret = -1;
@@ -613,7 +617,7 @@ void *udpServerThead(void *arg)
 {
 	prctl(PR_SET_NAME, (unsigned long)"udpServerThead", 0,0,0);
 	unsigned int socklen, n;
-	/* Ñ­»·½ÓÊÕÍøÂçÉÏÀ´µÄ×é²¥ÏûÏ¢ */
+	/* å¾ªçŽ¯æŽ¥æ”¶ç½‘ç»œä¸Šæ¥çš„ç»„æ’­æ¶ˆæ¯ */
 	NetCliInfo_T cliinfo;
 	memset(&cliinfo,0,sizeof(NetCliInfo_T));
 	NetCliInfo_T *cli = &cliinfo;
@@ -635,7 +639,7 @@ void *udpServerThead(void *arg)
 		//	free(cli);
 			continue;
 		}else {
-			/* ³É¹¦½ÓÊÕµ½Êý¾Ý±¨ */
+			/* æˆåŠŸæŽ¥æ”¶åˆ°æ•°æ®æŠ¥ */
 			cli->fromPort = ntohs(peeraddr.sin_port);
 			inet_ntop(AF_INET,&peeraddr.sin_addr,cli->fromIP,IP_ADRESS_LEN);
 			//DF_DEBUG("SUCCESS RECV MSG\r\n");
@@ -661,26 +665,26 @@ int NetMulicastServerSocketInit(char *mulicastip,int mulicastPort)
 	unsigned  char  one = 1;
     char  sock_opt = 1;
 
-	/* ´´½¨ socket ÓÃÓÚUDPÍ¨Ñ¶ */
+	/* åˆ›å»º socket ç”¨äºŽUDPé€šè®¯ */
 	sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 	if (sockfd < 0) {
 		DBG_ErrMsg("socket creating err in udptalk\n");
 		return -1;
 	}
 
-	/* ÉèÖÃÒª¼ÓÈë×é²¥µÄµØÖ· */
+	/* è®¾ç½®è¦åŠ å…¥ç»„æ’­çš„åœ°å€ */
 	memset(&mreq, 0,sizeof(struct ip_mreq));
 	mreq.imr_multiaddr.s_addr = inet_addr(mulicastip);
 	mreq.imr_interface.s_addr = htonl(INADDR_ANY);
 
  	if((setsockopt(sockfd, SOL_SOCKET,SO_REUSEADDR, ( void  *) &sock_opt,  sizeof  (sock_opt)))== -1) {
 
-     }  // ÉèÖÃ ÔÊÐíÖØÓÃ±¾µØµØÖ·ºÍ¶Ë¿Ú
+     }  // è®¾ç½® å…è®¸é‡ç”¨æœ¬åœ°åœ°å€å’Œç«¯å£
 
     if  ((setsockopt(sockfd, IPPROTO_IP,IP_MULTICAST_LOOP,&one,  sizeof  (unsigned  char ))) == -1){
 
      }  //
-	/* °Ñ±¾»ú¼ÓÈë×é²¥µØÖ·£¬¼´±¾»úÍø¿¨×÷Îª×é²¥³ÉÔ±£¬Ö»ÓÐ¼ÓÈë×é²ÅÄÜÊÕµ½×é²¥ÏûÏ¢ */
+	/* æŠŠæœ¬æœºåŠ å…¥ç»„æ’­åœ°å€ï¼Œå³æœ¬æœºç½‘å¡ä½œä¸ºç»„æ’­æˆå‘˜ï¼Œåªæœ‰åŠ å…¥ç»„æ‰èƒ½æ”¶åˆ°ç»„æ’­æ¶ˆæ¯ */
 
 
 	if (setsockopt(sockfd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char *)&mreq,sizeof(struct ip_mreq)) < 0) {
@@ -695,7 +699,7 @@ int NetMulicastServerSocketInit(char *mulicastip,int mulicastPort)
 	peeraddr.sin_port = htons(mulicastPort);
 	peeraddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	//inet_pton(AF_INET, mulicastip, &peeraddr.sin_addr);
-	/* °ó¶¨×Ô¼ºµÄ¶Ë¿ÚºÍIPÐÅÏ¢µ½socketÉÏ */
+	/* ç»‘å®šè‡ªå·±çš„ç«¯å£å’ŒIPä¿¡æ¯åˆ°socketä¸Š */
 	if (bind(sockfd, (struct sockaddr *) &peeraddr,sizeof(struct sockaddr_in)) != 0 ){
 		DBG_ErrMsg("Bind error\n");
 		//assert(0);
@@ -760,7 +764,7 @@ int  SOCKET_UdpSendMessage(char *ip, int port,char *msg,int len,char *ethname)
 	struct sockaddr_in peeraddr;
 	unsigned int socklen;
 	int sockfd;
-	/* ´´½¨ socket ÓÃÓÚUDPÍ¨Ñ¶ */
+	/* åˆ›å»º socket ç”¨äºŽUDPé€šè®¯ */
 	sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 	if(sockfd <= 0){
 		DBG_ErrMsg("socket err\n");
@@ -773,8 +777,8 @@ int  SOCKET_UdpSendMessage(char *ip, int port,char *msg,int len,char *ethname)
 	peeraddr.sin_port = htons(port);
 	inet_pton(AF_INET,ip, &peeraddr.sin_addr);
 
-	//struct sockaddr_in addrSelf;//±¾µØµØÖ·
-    //addrSelf.sin_addr.S_un.S_addr = inet_addr(ethIP);//Ö¸¶¨Íø¿¨µÄµØÖ·
+	//struct sockaddr_in addrSelf;//æœ¬åœ°åœ°å€
+    //addrSelf.sin_addr.S_un.S_addr = inet_addr(ethIP);//æŒ‡å®šç½‘å¡çš„åœ°å€
     //addrSelf.sin_family = AF_INET;
 	//bind(sockfd , (struct sockaddr *)&addrSelf , sizeof(struct sockaddr_in));
 
@@ -798,4 +802,36 @@ int  SOCKET_UdpSendMessage(char *ip, int port,char *msg,int len,char *ethname)
 
 }
 
+int SendToConList(char * data)
+{
+    int sock_fd = socket(AF_INET,SOCK_DGRAM,0);
+	if(sock_fd < 0)
+		perror("");
+	//??ï¿½ï¿½???
+	struct sockaddr_in myaddr;
+	myaddr.sin_family=AF_INET;
+	myaddr.sin_port = htons(8080);
+	myaddr.sin_addr.s_addr = 0;//ï¿½ï¿½ï¿½?ï¿½ï¿½ï¿½ï¿½???ï¿½ï¿½??ï¿½  ?ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½?????ï¿½ï¿½??ï¿½ï¿½ï¿½ï¿½?ï¿½ï¿½ï¿½???ï¿½ï¿½???
+	if(bind(sock_fd,(struct sockaddr*)&myaddr,sizeof(myaddr))<0)
+		perror("bind");
+
+	struct sockaddr_in addr;// ipv4?ï¿½ï¿½ï¿½ï¿½??ï¿½ï¿½?-ï¿½ï¿½??ï¿½ï¿½??ï¿½??ï¿½ï¿½?????ï¿½ï¿½ 
+	addr.sin_family =AF_INET;
+	addr.sin_port = htons(60001);  //????????ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½
+	inet_pton(AF_INET,"127.0.0.1",&addr.sin_addr.s_addr); //????????ï¿½ï¿½???ip
+	struct sockaddr_in server_addr;
+	socklen_t len = sizeof(server_addr);
+	char ip[16]="";
+	char buf[1024]="";
+    memset(buf,0,sizeof(buf));
+    sprintf(buf,"#P3K-NOTIFY %s\r",data);
+    int ret = sendto(sock_fd,buf,strlen(buf),0,(struct sockaddr*)&addr,sizeof(addr));
+    if(ret > 0)
+    {
+        printf("snedto %d",ret);
+    }
+	close(sock_fd);
+
+	return 0;
+}
 

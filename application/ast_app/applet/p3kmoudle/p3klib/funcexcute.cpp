@@ -3725,27 +3725,110 @@ int EX_GetSignalList(char info[][MAX_SIGNALE_LEN],int num)
 	return tmpnum;
 }
 
+
+void fun(char *str)
+{
+	char *str_c=str;
+	int i,j=0;
+	for(i=0;str[i]!='\0';i++)
+	{
+		if(str[i]!=' ')
+			str_c[j++]=str[i];
+	}
+	str_c[j]='\0';
+	str=str_c;
+}
+
+int getIndexOfSigns(char ch)
+{
+    if(ch >= '0' && ch <= '9')
+    {
+        return ch - '0';
+    }
+    if(ch >= 'A' && ch <='F')
+    {
+        return ch - 'A' + 10;
+    }
+    if(ch >= 'a' && ch <= 'f')
+    {
+        return ch - 'a' + 10;
+    }
+    return -1;
+}
+
+long hexToDec(char *source)
+{
+    long sum = 0;
+    long t = 1;
+    int i, len;
+
+    len = strlen(source);
+    for(i=len-1; i>=0; i--)
+    {
+        sum += t * getIndexOfSigns(*(source + i));
+        t *= 16;
+    }
+    return sum;
+}
+
+void IPHextoDec(char * hexIp,char * DecIp)
+{
+	char ip1[2] = {0};
+	char ip2[2] = {0};
+	char ip3[2] = {0};
+	char ip4[2] = {0};
+	char ip[16] = {0};
+	sscanf(hexIp,"%2s%2s%2s%2s",ip1,ip2,ip3,ip4);
+	sprintf(ip,"%d.%d.%d.%d",hexToDec(ip4),hexToDec(ip3),hexToDec(ip2),hexToDec(ip1));
+	memcpy(DecIp,ip,strlen(ip));
+}
+
 int EX_GetConnectionList(char info[][MAX_SIGNALE_LEN],int num)
 {
-    char str[64] = "";
-    int i = 0;
-    char strtcp[64]= "";
-    char strudp[64]= "";
-    sprintf(strtcp,"[(TCP:%d,0.0.0.0:0),LISTEN]",g_network_info.tcp_port);
-    sprintf(strudp,"[(UDP:%d,0.0.0.0:0),LISTEN]",g_network_info.udp_port);
-    memcpy(info[i],strtcp,strlen(strtcp));
-    i++;
-    Connection_Info *pcur = g_connectionlist_info->head->next;//pcur指向首节点
-	while (pcur != NULL)
-	{
-		memset(str,0,sizeof(str));
-        sprintf(str,"[(TCP:%d,%s:%d),ESTABLISHED]",g_network_info.tcp_port,pcur->ip,pcur->port);
-        memcpy(info[i],str,strlen(str));
-		pcur = pcur->next;
-        i++;
+    FILE *fp;
+	int i = 0;
+	char tcptmp[1024] = {0};
+	char strNum[8] = {0};
+	char strlocalIP[16] = {0};
+	char strlocalPORT[8] = {0};
+	char strIP[16] = {0};
+	char strPORT[8] = {0};
+	char strFLAG[4] = {0};
+	char strOther[512] = {0};
+	char tmp[16] = "";
+	fp = fopen("/proc/net/tcp", "r");
+	if (fp == NULL) {
+		DBG_ErrMsg("ERROR! can't open /proc/net/tcp\n");
+		return -1;
 	}
-    memcpy(info[i],strudp,strlen(strudp));
-    i++;
+	do{
+		memset(tcptmp,0,strlen(tcptmp));
+		memset(strlocalIP,0,strlen(strlocalIP));
+		memset(strlocalPORT,0,strlen(strlocalPORT));
+		memset(strIP,0,strlen(strIP));
+		memset(strPORT,0,strlen(strPORT));
+		memset(strFLAG,0,strlen(strFLAG));
+		fgets(tcptmp, 1023,fp);
+		fun(tcptmp);
+		char strsrc[64] = "";
+		//trim_string_eol(info);
+		sscanf(tcptmp,"%[0-9]:%8s:%4s%8s:%4s%2s%s",strNum,strlocalIP,strlocalPORT,strIP,strPORT,strFLAG,strOther);
+		if(atoi(strFLAG) == 1)
+		{
+			int iLocalport = hexToDec(strlocalPORT);
+			if(iLocalport == 80 || iLocalport == 443 || iLocalport == g_network_info.tcp_port || iLocalport == g_gateway_info.rs232_port)
+			{
+				char strDecIP[16] = "";
+				char strinfo[64] = "";
+				IPHextoDec(strIP,strDecIP);
+				sprintf(strinfo,"[(TCP:%d,%s:%d),ESTABLISHED]",iLocalport,strDecIP,hexToDec(strPORT));
+				memcpy(info[i],strinfo,strlen(strinfo));
+				i++;
+				//printf("{{%s}}\n",strinfo);
+			}
+		}
+	}while(strlen(tcptmp) > 1);
+	fclose(fp);
 	return i;
 }
 
