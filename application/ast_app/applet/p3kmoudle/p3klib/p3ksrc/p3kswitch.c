@@ -2631,7 +2631,7 @@ static int P3K_SetLockFP(char*reqparam,char*respParam,char*userdata)
 	s32Ret = EX_SetLockFP(flag);
 	if(s32Ret)
 	{
-		DBG_ErrMsg("EX_GetSerialNumber err\n");
+		DBG_ErrMsg("P3K_SetLockFP err\n");
 	}
 
 	memcpy(respParam,reqparam,strlen(reqparam));

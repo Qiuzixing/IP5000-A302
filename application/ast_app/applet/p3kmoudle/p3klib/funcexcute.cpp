@@ -4675,6 +4675,13 @@ int EX_GetSerialNumber(char*data)
 int EX_SetLockFP(int lockFlag)
 {
 	DBG_InfoMsg("EX_SetLockFP %d\n",lockFlag);
+
+	if(lockFlag == g_device_info.fp_lock)
+	{
+		DBG_WarnMsg(" !!! Mode para\n");
+		return EX_MODE_ERR;
+	}
+
 	if((lockFlag == 0)||(lockFlag == 1))
 	{
 		Cfg_Set_Dev_FPLock((State_E)lockFlag);
