@@ -4072,6 +4072,18 @@ int EX_AddComRoute(ComRouteInfo_S*info,int comId)
 {
 	if(comId == 1)
 	{
+		if((info->portNumber<5000)||(info->portNumber>5999))
+		{
+			DBG_WarnMsg(" !!! Error para\n");
+			return EX_PARAM_ERR;
+		}
+
+		if(info->portNumber == g_network_info.tcp_port)
+		{
+			DBG_WarnMsg(" !!! Error para\n");
+			return EX_PARAM_ERR;
+		}
+
 		Cfg_Set_GW_COM_Add(info->portNumber);
 
 		//system("astparam s no_soip n;astparam save");
@@ -4460,6 +4472,17 @@ int EX_SetNetPort(char* portType,int portNumber)
     }
 	else if((!strcmp(portType,"tcp"))||(!strcmp(portType,"TCP")))
 	{
+		if((portNumber<5000)||(portNumber>5999))
+		{
+			DBG_WarnMsg(" !!! Error para\n");
+			return EX_PARAM_ERR;
+		}
+
+		if(portNumber == g_gateway_info.rs232_port)
+		{
+			DBG_WarnMsg("EX_SetNetPort portType: %s Error\n",portType);
+			return EX_PARAM_ERR;
+		}
         if(portNumber != g_network_info.tcp_port)
         {
             Cfg_Set_Net_Port(Net_TCP,portNumber);
