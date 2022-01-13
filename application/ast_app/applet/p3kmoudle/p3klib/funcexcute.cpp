@@ -1523,7 +1523,7 @@ int EX_SetRollback(char * type)
 
 		Cfg_Update_Version();
 		system("astparam misc s cursys b");
-		system("reboot");
+//		system("reboot");
 	}
 	else if(strstr(buf1,"b") != 0)
 	{
@@ -1533,13 +1533,14 @@ int EX_SetRollback(char * type)
 
 		Cfg_Update_Version();
 		system("astparam misc s cursys a");
-		system("reboot");
+//		system("reboot");
 	}
 	else
 	{
 		return EX_NO_ERR;
 	}
 
+	ast_send_event(0xFFFFFFFF,"e_p3k_reset");
 
 	return EX_NO_ERR;
 }
@@ -4773,7 +4774,8 @@ int EX_GetBeaconInfo(int portNumber,BeaconInfo_S*info)
 int EX_DeviceReset(void)
 {
 	DBG_InfoMsg("EX_DeviceReset\n");
-	system("reboot");
+	ast_send_event(0xFFFFFFFF,"e_p3k_reset");
+	//system("sleep 5;reboot&");
 	return EX_NO_ERR;
 }
 int EX_FactoryRecovery(void)

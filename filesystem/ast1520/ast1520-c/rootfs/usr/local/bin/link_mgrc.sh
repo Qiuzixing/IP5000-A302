@@ -3486,6 +3486,16 @@ handle_e_p3k_soip()
 
 }
 
+handle_e_p3k_reset()
+{
+	echo "handle_e_p3k_reset."
+
+	sleep 5
+
+	echo "handle_e_p3k_reset.reboot"
+	reboot
+}
+
 handle_e_p3k()
 {
 	echo "handle_e_p3k."
@@ -3531,6 +3541,9 @@ handle_e_p3k()
 		;;
 		e_p3k_soip_?*)
 			handle_e_p3k_soip "$event"
+		;;
+		e_p3k_reset)
+			handle_e_p3k_reset
 		;;
 		*)
 		;;
