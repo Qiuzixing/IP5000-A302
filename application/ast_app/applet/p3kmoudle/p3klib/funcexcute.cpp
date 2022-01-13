@@ -68,7 +68,7 @@ int mysystem(char* cmdstring, char* buf, int len)
 	}
 
 	//DBG_InfoMsg("mysystem cmdstring:%s,buf:%s\n",cmdstring,buf);
-	return 0;
+	return EX_NO_ERR;
 }
 
 int GetBoardInfo(BoardInfoType_E type, char* info, unsigned int size)
@@ -238,7 +238,7 @@ int GetBoardInfo(BoardInfoType_E type, char* info, unsigned int size)
 
 
 	DBG_InfoMsg("GetBoardInfo type:%d,info:%s end\n",type,info);
-	return 0;
+	return EX_NO_ERR;
 }
 
 int classTest(int a,int b)
@@ -253,7 +253,7 @@ int classTest(int a,int b)
 int sendCmdtoGUI(const char *buf)
 {
 	DBG_InfoMsg("sendCmdtoGUI \n");
-	//return 0;
+	//return EX_NO_ERR;
 
 	//
 	char sendbuf[BUFSIZE] = {0};
@@ -302,6 +302,382 @@ int sendCmdtoGUI(const char *buf)
 	return mode;
 }
 
+int IsPortValid(  PortDirectionType_E direction, PortSignalType_E portFormat,int portIndex,	SignalType_E signal,int index)
+{
+	DBG_InfoMsg("direction = %d, portFormat = %d, portIndex = %d, signal = %d, index = %d\n",direction ,portFormat, portIndex, signal,index);
+	//cec,rs232,usb
+	if(portFormat == PORT_RS232)
+	{
+		if((portIndex == 1)&&(signal == SIGNAL_RS232)&&(index == 1))
+		{
+			return EX_NO_ERR;
+		}
+	}
+	else if(portFormat == PORT_USB_A) // IPD+IPE_P
+	{
+		if((portIndex == 1)&&(index == 1)&&(signal == SIGNAL_USB)&&
+			((strcmp(g_version_info.model,IPD_MODULE) == 0)
+			 ||(strcmp(g_version_info.model,IPE_P_MODULE) == 0)))
+		{
+			return EX_NO_ERR;
+		}
+	}
+	else if(portFormat == PORT_USB_B) // IPE+IPE_P
+	{
+		if((portIndex == 1)&&(index == 1)&&(signal == SIGNAL_USB)&&
+			((strcmp(g_version_info.model,IPE_MODULE) == 0)
+			 ||(strcmp(g_version_info.model,IPE_P_MODULE) == 0)))
+		{
+			return EX_NO_ERR;
+		}
+	}
+	//video,audio,ir
+	else if((direction == DIRECTION_IN)&&(index == 1))
+	{
+		if((signal == SIGNAL_VIDEO)||(signal == SIGNAL_CEC))
+		{
+			if(strcmp(g_version_info.model,IPE_MODULE) == 0)
+			{
+				if((portFormat == PORT_HDMI)&&(portIndex == 1))
+				{
+					return EX_NO_ERR;
+				}
+			}
+			else if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+			{
+				if(portFormat == PORT_HDMI)
+				{
+					//for web Main > AV Routing hdmi.3
+					if((portIndex == 1)||(portIndex == 2)||(portIndex == 3))
+					{
+						return EX_NO_ERR;
+					}
+				}
+				else if((portFormat == PORT_USB_C)&&(portIndex == 3))
+				{
+					return EX_NO_ERR;
+				}
+			}
+			else if(strcmp(g_version_info.model,IPE_W_MODULE) == 0)
+			{
+				if((portFormat == PORT_HDMI)&&(portIndex == 1))
+				{
+					return EX_NO_ERR;
+				}
+				else if((portFormat == PORT_USB_C)&&(portIndex == 2))
+				{
+					return EX_NO_ERR;
+				}
+			}
+			else if(strcmp(g_version_info.model,IPD_MODULE) == 0)
+			{
+				if((portFormat == PORT_HDMI)&&(portIndex == 1))
+				{
+					return EX_NO_ERR;
+				}
+				else if((portFormat == PORT_STREAM)&&(portIndex == 1))
+				{
+					return EX_NO_ERR;
+				}
+			}
+			else//IPD_W_MODULE
+			{
+				if((portFormat == PORT_STREAM)&&(portIndex == 1))
+				{
+					return EX_NO_ERR;
+				}
+			}
+		}
+		else if(signal == SIGNAL_AUDIO)
+		{
+			if(portFormat == PORT_HDMI)
+			{
+				if(strcmp(g_version_info.model,IPE_MODULE) == 0)
+				{
+					if(portIndex == 1)
+						return EX_NO_ERR;
+				}
+				else if(strcmp(g_version_info.model,IPE_W_MODULE) == 0)
+				{
+					if(portIndex == 1)
+						return EX_NO_ERR;
+				}
+				else if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+				{
+					if((portIndex == 1)&&(portIndex -= 2))
+						return EX_NO_ERR;
+				}
+			}
+			else if(portFormat == PORT_USB_C)
+			{
+				if(strcmp(g_version_info.model,IPE_W_MODULE) == 0)
+				{
+					if(portIndex == 2)
+						return EX_NO_ERR;
+				}
+				else if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+				{
+					if(portIndex == 3)
+						return EX_NO_ERR;
+				}
+			}
+			else if(portFormat == PORT_ANALOG_AUDIO)
+			{
+				if((portIndex == 1)&&
+					((strcmp(g_version_info.model,IPE_MODULE) == 0)
+					 ||(strcmp(g_version_info.model,IPE_W_MODULE) == 0)
+					 ||(strcmp(g_version_info.model,IPE_P_MODULE) == 0)))
+				{
+					//for web AV Settings > Audio IPE_P_MODULE
+					//(#X-PRIORITY out.hdmi.1.audio,[in.dante.1.audio,in.hdmi.1.audio,in.analog_audio.1.audio])
+					//if(g_audio_info.direction == DIRECTION_IN)
+						return EX_NO_ERR;
+				}
+			}
+			else if(portFormat == PORT_DANTE)
+			{
+				if((portIndex == 1)&&(strcmp(g_version_info.model,IPE_P_MODULE) == 0))
+				{
+					return EX_NO_ERR;
+				}
+			}
+			else if(portFormat == PORT_STREAM)
+			{
+				if((portIndex == 1)&&
+					((strcmp(g_version_info.model,IPD_MODULE) == 0)
+					 ||(strcmp(g_version_info.model,IPD_W_MODULE) == 0)))
+				{
+					return EX_NO_ERR;
+				}
+			}
+		}
+		else if(signal == SIGNAL_IR)
+		{
+			if((portIndex == 1)&&(portFormat == PORT_RS232))
+			{
+				if(g_gateway_info.ir_direction == DIRECTION_IN)
+				{
+					return EX_NO_ERR;
+				}
+			}
+		}
+	}
+	else if((direction == DIRECTION_OUT)&&(index == 1))
+	{
+		if((signal == SIGNAL_VIDEO)||(signal == SIGNAL_CEC))
+		{
+			if(portFormat == PORT_HDMI)
+			{
+				if((portIndex == 1)&&
+				((strcmp(g_version_info.model,IPE_MODULE) == 0)
+				 ||(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+				 ||(strcmp(g_version_info.model,IPD_MODULE) == 0)
+				 ||(strcmp(g_version_info.model,IPD_W_MODULE) == 0)))
+				{
+					return EX_NO_ERR;
+				}
+			}
+			else if(portFormat == PORT_STREAM)
+			{
+				if((portIndex == 1)&&
+					((strcmp(g_version_info.model,IPE_MODULE) == 0)
+					 ||(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+					 ||(strcmp(g_version_info.model,IPE_W_MODULE) == 0)))
+				{
+					return EX_NO_ERR;
+				}
+			}
+		}
+		else if(signal == SIGNAL_AUDIO)
+		{
+			if(portFormat == PORT_HDMI)
+			{
+				if((portIndex == 1)&&
+				((strcmp(g_version_info.model,IPE_MODULE) == 0)
+				 ||(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+				 ||(strcmp(g_version_info.model,IPD_MODULE) == 0)
+				 ||(strcmp(g_version_info.model,IPD_W_MODULE) == 0)))
+				{
+					return EX_NO_ERR;
+				}
+			}
+			else if(portFormat == PORT_STREAM)
+			{
+				if((portIndex == 1)&&
+					((strcmp(g_version_info.model,IPE_MODULE) == 0)
+					 ||(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+					 ||(strcmp(g_version_info.model,IPE_W_MODULE) == 0)))
+				{
+					return EX_NO_ERR;
+				}
+			}
+			else if(portFormat == PORT_DANTE)
+			{
+				if((portIndex == 1)&&(strcmp(g_version_info.model,IPE_P_MODULE) == 0))
+				{
+					return EX_NO_ERR;
+				}
+			}
+			else if(portFormat == PORT_ANALOG_AUDIO)
+			{
+				if(portIndex == 1)
+				{
+					if((strcmp(g_version_info.model,IPE_MODULE) == 0)
+						 ||(strcmp(g_version_info.model,IPE_P_MODULE) == 0))
+					{
+						if(g_audio_info.direction == DIRECTION_OUT)
+							return EX_NO_ERR;
+					}
+					else if((strcmp(g_version_info.model,IPD_MODULE) == 0)
+						 ||(strcmp(g_version_info.model,IPD_W_MODULE) == 0))
+					{
+						return EX_NO_ERR;
+					}
+				}
+			}
+		}
+		else if(signal == SIGNAL_IR)
+		{
+			if((portIndex == 1)&&(portFormat == PORT_RS232))
+			{
+				if(g_gateway_info.ir_direction == DIRECTION_OUT)
+				{
+					return EX_NO_ERR;
+				}
+			}
+		}
+	}
+	else if((direction == DIRECTION_BOTH)&&(index == 1))
+	{
+		if((portIndex == 1)&&
+			((portFormat == PORT_RS232)
+			||(portFormat == PORT_ANALOG_AUDIO)
+			||(portFormat == PORT_IR)))
+		{
+			return EX_NO_ERR;
+		}
+	}
+
+	DBG_WarnMsg(" !!! Error Param \n");
+
+	return EX_PARAM_ERR;
+}
+
+bool IsPortActive(  PortDirectionType_E direction, PortSignalType_E portFormat,int portIndex,SignalType_E signal,int index)
+{
+	if(IsPortValid(direction,portFormat,portIndex,signal,index) == EX_PARAM_ERR)
+	{
+		DBG_WarnMsg(" !!! Error Param \n");
+		return false;
+	}
+
+#ifdef CONFIG_P3K_HOST
+	if(direction == DIRECTION_IN)
+	{
+		if(signal == SIGNAL_VIDEO)
+		{
+			if((strcmp(g_version_info.model,IPE_P_MODULE) == 0)||(strcmp(g_version_info.model,IPE_W_MODULE) == 0))
+			{
+				char buf[64];
+				memset(buf,0,64);
+				//Get Cuurent hdmi in
+				mysystem("/usr/local/bin/sconfig --show input", buf, 64);
+				if(strstr(buf,"HDMI3") != 0)
+				{
+					if((portFormat == PORT_USB_C)&&(portIndex == 3))
+						return true;
+				}
+				else if(strstr(buf,"HDMI2") != 0)
+				{
+					if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+					{
+						if((portFormat == PORT_HDMI)&&(portIndex == 2))
+							return true;
+					}
+					else
+					{
+						if((portFormat == PORT_USB_C)&&(portIndex == 2))
+							return true;
+					}
+				}
+				else if(strstr(buf,"HDMI1") != 0)//HDMI1
+				{
+					if((portFormat == PORT_HDMI)&&(portIndex == 1))
+						return true;
+				}
+			}
+		}
+		else if(signal == SIGNAL_AUDIO)
+		{
+			char buf[64];
+			memset(buf,0,64);
+
+			mysystem("/usr/local/bin/sconfig --show audio-input", buf, 64);
+			if(strstr(buf,"hdmi") != 0)
+			{
+				if(portFormat == PORT_HDMI)
+				{
+					//get current hdmi
+					memset(buf,0,64);
+					//Get Cuurent hdmi in
+					mysystem("/usr/local/bin/sconfig --show input", buf, 64);
+					if(strstr(buf,"HDMI3") != 0)
+					{
+						if((portFormat == PORT_USB_C)&&(portIndex == 3))
+							return true;
+					}
+					else if(strstr(buf,"HDMI2") != 0)
+					{
+						if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+						{
+							if((portFormat == PORT_HDMI)&&(portIndex == 2))
+								return true;
+						}
+						else
+						{
+							if((portFormat == PORT_USB_C)&&(portIndex == 2))
+								return true;
+						}
+					}
+					else if(strstr(buf,"HDMI1") != 0)//HDMI1
+					{
+						if((portFormat == PORT_HDMI)&&(portIndex == 1))
+							return true;
+					}
+				}
+			}
+			else if(strstr(buf,"analog") != 0)
+			{
+				if((portFormat == PORT_ANALOG_AUDIO)&&(g_audio_info.direction == DIRECTION_IN))
+					return true;
+			}
+			else if(strstr(buf,"dante") != 0)
+			{
+				if((strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+					&&(portFormat == PORT_DANTE))
+				 	return true;
+			}
+			else if(strstr(buf,"no") != 0)
+				return false;
+		}
+	}
+	else if(direction == DIRECTION_OUT)
+	{
+		if((signal == SIGNAL_AUDIO)&&(strcmp(g_version_info.model,IPE_P_MODULE) == 0))
+		{
+			for(int i=0;i<=3;i++)
+			{
+				if(g_audio_info.dst_port[i] == portFormat)
+					return true;
+			}
+		}
+	}
+
+#else
+	return true;
+#endif
+	return false;
+}
 //"#KDS-AUD" 0:hdmi;1:analog;4:dante
 int  EX_SetAudSrcMode(int mode)
 {
@@ -321,9 +697,7 @@ int  EX_SetAudSrcMode(int mode)
 		{
 			sprintf(sCmd,"e_p3k_audio_src::no");
 			DBG_WarnMsg(" !!! Error g_audio_info.direction == DIRECTION_OUT \n");
-			ast_send_event(0xFFFFFFFF,sCmd);
-			Cfg_Set_Autoswitch_Source(SIGNAL_AUDIO,mode);
-			return -1;
+			return EX_MODE_ERR;
 		}
 	}
 	else if(mode == 2)	 //no
@@ -340,15 +714,13 @@ int  EX_SetAudSrcMode(int mode)
 		{
 			sprintf(sCmd,"e_p3k_audio_src::no");
 			DBG_WarnMsg("This is not switcher!!!\n");
-			ast_send_event(0xFFFFFFFF,sCmd);
-			Cfg_Set_Autoswitch_Source(SIGNAL_AUDIO,mode);
-			return -1;
+			return EX_CMD_ERR;
 		}
 	}
 	else
 	{
-		DBG_ErrMsg(" !!! Error mode:%d \n",mode);
-		return 0;
+		DBG_WarnMsg(" !!! Error mode:%d \n",mode);
+		return EX_PARAM_ERR;
 	}
 	DBG_InfoMsg("ast_send_event %s\n",sCmd);
 	ast_send_event(0xFFFFFFFF,sCmd);
@@ -356,8 +728,9 @@ int  EX_SetAudSrcMode(int mode)
 	Cfg_Set_Autoswitch_Source(SIGNAL_AUDIO,mode);
 #else
 	DBG_WarnMsg(" !!! This is Decoder\n");
+	return EX_CMD_ERR;
 #endif
-	return 0;
+	return EX_NO_ERR;
 }
 int  EX_GetAudSrcMode(int *mode)
 {
@@ -367,7 +740,7 @@ int  EX_GetAudSrcMode(int *mode)
 
 #ifdef CONFIG_P3K_CLIENT
 	DBG_WarnMsg("This is not encoder!!!\n");
-	return 0;
+	return EX_CMD_ERR;
 #endif
 
 	//Get Cuurent hdmi in
@@ -388,22 +761,43 @@ int  EX_GetAudSrcMode(int *mode)
 		else
 		{
 			DBG_WarnMsg("This is not switcher!!!\n");
-			return -1;
+			return EX_CMD_ERR;
 		}
 	}
 	else if(strstr(buf,"no") != 0)
 		*mode = 2;
+	else
+		*mode = 2;
 
 //	Cfg_Get_Autoswitch_Source(SIGNAL_AUDIO,mode);
-	return 0;
+	return EX_NO_ERR;
 }
 
+//only for analog out
 int EX_SetAudGainLevel(PortInfo_S*info,int gain)
 {
 	DBG_InfoMsg("gain =%d\n",gain);
 	char sCmd[64] = "";
 
-	if(info->signal == SIGNAL_AUDIO)
+#ifdef CONFIG_P3K_HOST
+	if(g_audio_info.direction == DIRECTION_IN)
+	{
+		DBG_WarnMsg(" !!! Error Mode \n");
+		return EX_MODE_ERR;
+	}
+#endif
+
+	if(IsPortValid(info->direction, info->portFormat, info->portIndex, info->signal, info->index) == EX_PARAM_ERR)
+	{
+		DBG_WarnMsg("IsPortValid Err\n");
+		return EX_PARAM_ERR;
+	}
+	if((info->signal == SIGNAL_AUDIO)
+		&&(info->direction == DIRECTION_OUT)
+		&&(info->portFormat == PORT_ANALOG_AUDIO)
+		&&(info->portIndex == 1)
+		&&(info->index == 1)
+		&&((gain >=0)&&(gain <= 100)))
 	{
 		sprintf(sCmd,"e_p3k_audio_level::%d",gain);
 
@@ -414,10 +808,11 @@ int EX_SetAudGainLevel(PortInfo_S*info,int gain)
 	}
 	else
 	{
-		return 0;
+		DBG_WarnMsg(" !!! Error Param \n");
+		return EX_PARAM_ERR;
 	}
 
-	return 0;
+	return EX_NO_ERR;
 }
 
 int EX_SetAudAnalogGainDir(AudioInfo_S*info,char * gain)
@@ -426,8 +821,24 @@ int EX_SetAudAnalogGainDir(AudioInfo_S*info,char * gain)
 	PortSignalType_E type;
 	PortDirectionType_E direction;
 
+	if(IsPortValid(info->direction, info->portFormat, info->portIndex, info->signal, 1) == EX_PARAM_ERR)
+	{
+		DBG_WarnMsg(" !!! Error Param \n");
+		return EX_PARAM_ERR;
+	}
+
 	char sCmd[64] = "";
 	type = info->portFormat;
+
+	if((info->portIndex != 1)
+		||((info->portFormat != PORT_IR)&&(info->portFormat != PORT_ANALOG_AUDIO))
+		||((info->signal != SIGNAL_IR)&&(info->signal != SIGNAL_AUDIO))
+		||(info->direction != DIRECTION_BOTH))
+	{
+		DBG_ErrMsg("parameter error\n");
+		return EX_PARAM_ERR;
+	}
+
 	if(info->portFormat == PORT_IR)
 	{
 		if((!strcmp(gain,"IN"))||(!strcmp(gain,"in")))
@@ -442,8 +853,9 @@ int EX_SetAudAnalogGainDir(AudioInfo_S*info,char * gain)
 		}
 		else
 		{
+			DBG_WarnMsg(" !!! Error Param \n");
 			printf("EX_SetIRDir Error, gain =%s\n",gain);
-			return 0;
+			return EX_PARAM_ERR;
 		}
 	}
 	else if(info->portFormat == PORT_ANALOG_AUDIO)
@@ -461,18 +873,21 @@ int EX_SetAudAnalogGainDir(AudioInfo_S*info,char * gain)
 		else
 		{
 			printf("EX_SetAudioDir Error, gain =%s\n",gain);
-			return 0;
+
+			DBG_WarnMsg(" !!! Error Param \n");
+			return EX_PARAM_ERR;
 		}
 	}
 	else
 	{
-		return 0;
+		DBG_WarnMsg(" !!! Error Param \n");
+		return EX_PARAM_ERR;
 	}
 	DBG_InfoMsg("ast_send_event %s\n",sCmd);
 	ast_send_event(0xFFFFFFFF,sCmd);
 
 	Cfg_Set_Port_Dir(type,direction);
-	return 0;
+	return EX_NO_ERR;
 }
 
 
@@ -480,6 +895,21 @@ int EX_GetAudAnalogGainDir(AudioInfo_S*info,char * gain)
 {
 	PortSignalType_E type;
 	PortDirectionType_E direction;
+
+	if(IsPortValid(info->direction, info->portFormat, info->portIndex, info->signal, 1) == EX_PARAM_ERR)
+	{
+		DBG_WarnMsg(" !!! Error Param \n");
+		return EX_PARAM_ERR;
+	}
+
+	if((info->portIndex != 1)
+		||((info->portFormat != PORT_IR)&&(info->portFormat != PORT_ANALOG_AUDIO))
+		||((info->signal != SIGNAL_IR)&&(info->signal != SIGNAL_AUDIO))
+		||(info->direction != DIRECTION_BOTH))
+	{
+		DBG_ErrMsg("parameter error\n");
+		return EX_PARAM_ERR;
+	}
 
 	if((info->portFormat == PORT_IR)||(info->portFormat == PORT_ANALOG_AUDIO))
 	{
@@ -489,55 +919,89 @@ int EX_GetAudAnalogGainDir(AudioInfo_S*info,char * gain)
 
 	if(direction == DIRECTION_OUT)
 		strcpy(gain,"out");
-	else
+	else if(direction == DIRECTION_IN)
 		strcpy(gain,"in");
+	else
+	{
+#ifdef CONFIG_P3K_HOST
+		strcpy(gain,"in");
+#else
+		strcpy(gain,"out");
+#endif
+	}
 
-	return 0;
+	return EX_NO_ERR;
 }
 
 
 
 int EX_SetEDIDMode(EdidInfo_S *info)
 {
+	DBG_InfoMsg(">>EX_SetEDIDMode %d,%d\n",info->input_id,info->index);
+
+#ifdef CONFIG_P3K_HOST
+	if(info->input_id != 1)
+	{
+		DBG_WarnMsg(" !!! Error Param \n");
+		return EX_PARAM_ERR;
+	}
 	//DBG_InfoMsg("gain =%s\n",gain);
 	if(g_edid_info.lock_mode == ON)
 	{
 		DBG_InfoMsg(">>>>>>>g_edid_info.lock_mode == ON\n");
-		return 0;
+		DBG_WarnMsg(" !!! Error Mode \n");
+		return EX_MODE_ERR;
 	}
 
-	DBG_InfoMsg(">>EX_SetEDIDMode %d,%d\n",info->input_id,info->index);
-#ifdef CONFIG_P3K_HOST
 	char sCmd[64] = "";
 	if(info->mode == PASSTHRU)
 	{
 		if(strlen(g_edid_info.net_src) > 0)
 			sprintf(sCmd,"e_p3k_video_edid_passthru::%s",g_edid_info.net_src);
+		else
+		{
+			DBG_WarnMsg(" !!! Error para\n");
+			return EX_PARAM_ERR;
+		}
 	}
 	else if(info->mode == DEFAULT)
 		sprintf(sCmd,"e_p3k_video_edid_default");
 	else if(info->mode == CUSTOM)
 	{
-		sprintf(sCmd,"e_p3k_video_edid_custom::%d",info->index);
+		if((info->index >=0)&&(info->index <=(MAX_EDID-1)))
+			sprintf(sCmd,"e_p3k_video_edid_custom::%d",info->index);
+		else
+		{
+			DBG_WarnMsg(" !!! Error Param \n");
+			return EX_PARAM_ERR;
+		}
 	}
 	else
 	{
 		DBG_WarnMsg(" !!! Error para mode:%d\n",info->mode);
-		return 0;
+		return EX_PARAM_ERR;
 	}
 	DBG_InfoMsg("ast_send_event %s\n",sCmd);
 	ast_send_event(0xFFFFFFFF,sCmd);
 	Cfg_Set_EDID_Mode(info->mode,info->index);
 #else
 	DBG_WarnMsg(" !!! This is Decoder\n");
+	return EX_CMD_ERR;
 #endif
-	return 0;
+	return EX_NO_ERR;
+
 }
 
 int EX_GetEDIDMode(int cmdID,EdidInfo_S * info)
 {
 	EdidModeType_E mode;
 	int idx;
+
+	if(cmdID != 1)
+	{
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
+	}
 
 	Cfg_Get_EDID_Mode(&mode,&idx);
 
@@ -550,73 +1014,105 @@ int EX_GetEDIDMode(int cmdID,EdidInfo_S * info)
 	else
 		info->index = 0;
 	DBG_InfoMsg(">>EX_GetEDIDMode\n");
-	return 0;
+	return EX_NO_ERR;
 }
 
 int EX_AddEDID(EdidName_S * info)
 {
 	DBG_InfoMsg(">>EX_AddEDID %d %s\n",info->index,info->name);
+
+#ifdef CONFIG_P3K_HOST
 	if(g_edid_info.lock_mode == ON)
 	{
 		DBG_InfoMsg(">>>>>>>g_edid_info.lock_mode == ON\n");
-		return 0;
+
+		DBG_WarnMsg(" !!! Error Mode \n");
+		return EX_MODE_ERR;
 	}
 
-#ifdef CONFIG_P3K_HOST
-	char sCmd[64] = "";
-	sprintf(sCmd,"e_p3k_video_edid_add::%d::%s",info->index,info->name);
-	DBG_InfoMsg("ast_send_event %s\n",sCmd);
-	ast_send_event(0xFFFFFFFF,sCmd);
+	if((info->index >=1)&&(info->index <=(MAX_EDID-1)))
+	{
+		char sCmd[64] = "";
+		sprintf(sCmd,"e_p3k_video_edid_add::%d::%s",info->index,info->name);
+		DBG_InfoMsg("ast_send_event %s\n",sCmd);
+		ast_send_event(0xFFFFFFFF,sCmd);
+	}
+	else
+	{
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
+	}
 #else
 	DBG_WarnMsg(" !!! This is Decoder\n");
+	return EX_CMD_ERR;
 #endif
-	return 0;
+	return EX_NO_ERR;
+
 }
 
 int EX_RemoveEDID(int comID)
 {
 	DBG_InfoMsg(">>EX_RemoveEDID %d \n",comID);
+
+#ifdef CONFIG_P3K_HOST
 	if(g_edid_info.lock_mode == ON)
 	{
 		DBG_InfoMsg(">>>>>>>g_edid_info.lock_mode == ON\n");
-		return 0;
+
+		DBG_WarnMsg(" !!! Error Mode \n");
+		return EX_MODE_ERR;
 	}
 
-	if(comID <= 0)
+	if((comID < 1)||(comID > (MAX_EDID-1)))
 	{
 		DBG_WarnMsg(">>>>>>>comID : %d is Wrong!!!\n",comID);
-		return 0;
+		return EX_PARAM_ERR;
 	}
 
 	if(comID < g_edid_info.active_id)
 		g_edid_info.active_id = g_edid_info.active_id -1;
 
-#ifdef CONFIG_P3K_HOST
 	char sCmd[64] = "";
 	sprintf(sCmd,"e_p3k_video_edid_remove::%d",comID);
 	DBG_InfoMsg("ast_send_event %s\n",sCmd);
 	ast_send_event(0xFFFFFFFF,sCmd);
 #else
 	DBG_WarnMsg(" !!! This is Decoder\n");
+	return EX_CMD_ERR;
 #endif
-	return 0;
+	return EX_NO_ERR;
+
 }
 
 int EX_SetActiveEDID(int input_ID,int index_ID )
 {
 	DBG_InfoMsg(">>EX_SetActiveEDID %d,%d \n",input_ID,index_ID);
+
+#ifdef CONFIG_P3K_HOST
 	if(g_edid_info.lock_mode == ON)
 	{
 		DBG_WarnMsg(">>>>>>>g_edid_info.lock_mode == ON\n");
-		return 0;
+		return EX_MODE_ERR;
 	}
 
 	if(g_edid_info.edid_mode != CUSTOM)
 	{
-		DBG_WarnMsg(">>>>>>>g_edid_info.edid_mode != PASSTHRU\n");
-		return 0;
+		DBG_WarnMsg(">>>>>>>g_edid_info.edid_mode != CUSTOM\n");
+		return EX_MODE_ERR;
 	}
-#ifdef CONFIG_P3K_HOST
+
+	if(input_ID != 1)
+	{
+		DBG_WarnMsg("input_ID != 1\n");
+		return EX_PARAM_ERR;
+	}
+
+	if(index_ID > (MAX_EDID-1))
+	{
+		DBG_WarnMsg("index_ID > (MAX_EDID-1)\n");
+		return EX_PARAM_ERR;
+	}
+
 	char sCmd[64] = "";
 	sprintf(sCmd,"e_p3k_video_edid_custom::%d",index_ID);
 	DBG_InfoMsg("ast_send_event %s\n",sCmd);
@@ -625,31 +1121,41 @@ int EX_SetActiveEDID(int input_ID,int index_ID )
 	Cfg_Set_EDID_Active(index_ID);
 #else
 	DBG_WarnMsg(" !!! This is Decoder\n");
+	return EX_CMD_ERR;
 #endif
-	return 0;
+	return EX_NO_ERR;
+
 }
 
 int EX_SetEDIDNetSrc(int input_ID,char*macAddr )
 {
 	DBG_InfoMsg(">>EX_SetEDIDNetSrc id=%d mac=%s \n",input_ID,macAddr);
+
+#ifdef CONFIG_P3K_HOST
 	if(g_edid_info.lock_mode == ON)
 	{
 		DBG_WarnMsg(">>>>>>>g_edid_info.lock_mode == ON\n");
-		return 0;
+		return EX_MODE_ERR;
 	}
 
 	if(g_edid_info.edid_mode != PASSTHRU)
 	{
 		DBG_WarnMsg(">>>>>>>g_edid_info.edid_mode != PASSTHRU\n");
-		return 0;
+		return EX_MODE_ERR;
 	}
 
 	if(strlen(macAddr) <= 0)
 	{
 		DBG_WarnMsg(">>>>>>>strlen(macAddr) <= 0\n");
-		return 0;
+		return EX_PARAM_ERR;
 	}
-#ifdef CONFIG_P3K_HOST
+
+	if(input_ID != 1)
+	{
+		DBG_WarnMsg("input_ID != 1\n");
+		return EX_PARAM_ERR;
+	}
+
 	char sCmd[64] = "";
 	sprintf(sCmd,"e_p3k_video_edid_passthru::%s",macAddr);
 	DBG_InfoMsg("ast_send_event %s\n",sCmd);
@@ -658,22 +1164,27 @@ int EX_SetEDIDNetSrc(int input_ID,char*macAddr )
 	Cfg_Set_EDID_NetSrc(macAddr);
 #else
 	DBG_WarnMsg(" !!! This is Decoder\n");
+	return EX_CMD_ERR;
 #endif
-	return 0;
+	return EX_NO_ERR;
+
 }
 int EX_GetEDIDNetSrc(int input_ID,char*macAddr )
 {
 	//char * version = "00-14-22-01-23-45";
 	//memcpy(macAddr,version,strlen(version));
 	Cfg_Get_EDID_NetSrc(macAddr);
-	return 0;
+	return EX_NO_ERR;
 }
 
 int EX_GetRecvMsgNum(int msg,char*date )
 {
-	int iMsgNum = 100;
+	//int iMsgNum = 100;
+	//DBG_WarnMsg("Not support!!!\n");
 
-	return iMsgNum;
+	sprintf(date,"0");
+
+	return EX_CMD_ERR;
 }
 
 int EX_GetVidOutRatio(char*date )
@@ -690,27 +1201,19 @@ int EX_GetVidOutRatio(char*date )
 		memcpy(date,buf1,strlen(buf1));
 	else
 		strcpy(date,"N/A");
-	return 0;
+	return EX_NO_ERR;
 }
 
 int EX_SetChannelName(char date[32] )
 {
 #ifdef CONFIG_P3K_HOST
-		Cfg_Set_EncChannel_Name(date);
-#else
-		DBG_WarnMsg(" !!! This is Decoder\n");
-#endif
-
+	Cfg_Set_EncChannel_Name(date);
 	DBG_InfoMsg("AV channel Name %s\n",date);
-
-	return 0;
-}
-
-int EX_SetDanteName(char date[32])
-{
-	DBG_InfoMsg("Set Encoder Dante Hostl Name. %s\n",date);
-
-	return 0;
+#else
+	DBG_WarnMsg(" !!! This is Decoder\n");
+	return EX_CMD_ERR;
+#endif
+	return EX_NO_ERR;
 }
 
 int EX_SetVidMute(MuteInfo_S * mute )
@@ -718,6 +1221,185 @@ int EX_SetVidMute(MuteInfo_S * mute )
 
 	DBG_InfoMsg(">>EX_SetVidMute %d,%d,%d,%d,%d,%d\n",mute->direction,mute->portFormat,mute->portIndex,
 		mute->signal,mute->index,mute->state);
+
+	if(IsPortValid(mute->direction, mute->portFormat, mute->portIndex, mute->signal, mute->index) == EX_PARAM_ERR)
+	{
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
+	}
+
+	if(mute->signal != SIGNAL_AUDIO)
+	{
+		DBG_WarnMsg("mute->signal != SIGNAL_AUDIO\n");
+		return EX_PARAM_ERR;
+	}
+
+	if(mute->portFormat == PORT_HDMI)
+	{
+		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+		{
+			if(mute->direction != DIRECTION_IN)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+
+			if((mute->portIndex != 1)&&(mute->portIndex != 2))
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+		}
+		else if((strcmp(g_version_info.model,IPE_MODULE) == 0)
+			||(strcmp(g_version_info.model,IPE_W_MODULE) == 0))
+		{
+			if(mute->direction != DIRECTION_IN)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+
+			if(mute->portIndex != 1)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+		}
+		else if((strcmp(g_version_info.model,IPD_MODULE) == 0)
+			||(strcmp(g_version_info.model,IPD_W_MODULE) == 0))
+		{
+			if(mute->direction != DIRECTION_OUT)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+
+			if(mute->portIndex != 1)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+		}
+	}
+	else if(mute->portFormat == PORT_ANALOG_AUDIO)
+	{
+		if(mute->portIndex != 1)
+		{
+			DBG_ErrMsg("parameter error\n");
+			return EX_PARAM_ERR;
+		}
+
+		if((strcmp(g_version_info.model,IPD_MODULE) == 0)
+			||(strcmp(g_version_info.model,IPD_W_MODULE) == 0))
+		{
+			if(mute->direction != DIRECTION_OUT)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+		}
+		else if(strcmp(g_version_info.model,IPE_W_MODULE) == 0)
+		{
+			if(mute->direction != DIRECTION_IN)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+		}
+		else
+		{
+			if(mute->direction != g_audio_info.direction)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+		}
+	}
+	else if(mute->portFormat == PORT_DANTE)
+	{
+		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+		{
+			if(mute->portIndex != 1)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+		}
+		else
+		{
+			DBG_ErrMsg("parameter error\n");
+			return EX_PARAM_ERR;
+		}
+	}
+	else if(mute->portFormat == PORT_STREAM)
+	{
+		if((strcmp(g_version_info.model,IPD_MODULE) == 0)
+			||(strcmp(g_version_info.model,IPD_W_MODULE) == 0))
+		{
+			if(mute->direction != DIRECTION_IN)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+
+			if(mute->portIndex != 1)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+		}
+		else
+		{
+			if(mute->direction != DIRECTION_OUT)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+
+			if(mute->portIndex != 1)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+		}
+	}
+	else if(mute->portFormat == PORT_USB_C)
+	{
+		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+		{
+			if(mute->direction != DIRECTION_IN)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+
+			if(mute->portIndex != 3)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+		}
+		else if(strcmp(g_version_info.model,IPE_W_MODULE) == 0)
+		{
+			if(mute->direction != DIRECTION_IN)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+
+			if(mute->portIndex != 2)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+		}
+		else
+		{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+		}
+	}
+
 	//0	¨C off for unmute  1	¨C on for mute
 	char sCmd[64] = "";
 	if(mute->signal == SIGNAL_AUDIO)
@@ -730,10 +1412,10 @@ int EX_SetVidMute(MuteInfo_S * mute )
 	else
 	{
 		DBG_WarnMsg(" !!!parameter Error signal=%d\n",mute->signal);
-		return 0;
+		return EX_PARAM_ERR;
 	}
 
-	return 0;
+	return EX_NO_ERR;
 }
 
 
@@ -742,7 +1424,7 @@ int EX_SetTimeOut(int  iTime )
 
 	DBG_InfoMsg(">>EX_SetTimeOut %d\n",iTime);
 	Cfg_Set_User_LogoutTime(iTime);
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_GetTimeOut(void)
 {
@@ -759,6 +1441,11 @@ int EX_SetVideoWallStretch(int  index,int mode )
 {
 	DBG_InfoMsg(">>EX_SetVideoWallStretch %d\n",index);
 #ifdef CONFIG_P3K_CLIENT
+	if(index != g_videowall_info.relative_position)
+	{
+		DBG_WarnMsg(" !!! Error para index:%d\n",index);
+		return EX_MODE_ERR;
+	}
 	if((mode == 0)||(mode == 1))
 	{
 		Cfg_Set_VM_Stretch(mode);
@@ -771,14 +1458,23 @@ int EX_SetVideoWallStretch(int  index,int mode )
 	else
 	{
 		DBG_WarnMsg(" !!! Error para mode:%d\n",mode);
+		return EX_PARAM_ERR;
 	}
 #else
 	DBG_WarnMsg(" !!! This is Encoder\n");
+	return EX_CMD_ERR;
 #endif
-	return 0;
+	return EX_NO_ERR;
+
 }
 int EX_GetVideoWallStretch(int  index)
 {
+	if(index != g_videowall_info.relative_position)
+	{
+		DBG_WarnMsg(" !!! Error para index:%d\n",index);
+		return EX_MODE_ERR;
+	}
+
 	int mode =1;
 	Cfg_Get_VM_Stretch(&mode);
 
@@ -791,7 +1487,7 @@ int EX_SetStandbyTimeOut(int  iTime )
 	DBG_InfoMsg(">>EX_SetStandbyTimeOut %d\n",iTime);
 	Cfg_Set_Dev_StandbyTime(iTime);
 
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_GetStandbyTimeOut(void)
 {
@@ -817,7 +1513,7 @@ int EX_SetRollback(char * type)
 	if(strstr(buf1,"not defined") != 0)
 	{
 		DBG_WarnMsg("EX_SetRollback not defined\n");
-		return 0;
+		return EX_MODE_ERR;
 	}
 	else if(strstr(buf1,"a") != 0)
 	{
@@ -841,11 +1537,11 @@ int EX_SetRollback(char * type)
 	}
 	else
 	{
-		return 0;
+		return EX_NO_ERR;
 	}
 
 
-	return 0;
+	return EX_NO_ERR;
 }
 
 
@@ -854,33 +1550,7 @@ int EX_SetIRGateway(int  iIr_mode)
 	DBG_InfoMsg("Tr gw mode = %d\n",iIr_mode);
 	Cfg_Set_GW_IR_Mode((State_E)iIr_mode);
 
-#if 1
-/*	if(iIr_mode == 1)
-	{
-		system("astparam s ir_guest_on y;");
-		system("astparam s ir_sw_decode_on y;astparam save");
-	}
-	else
-	{
-		system("astparam s ir_guest_on n;");
-		system("astparam s ir_sw_decode_on n;astparam save");
-	}
-*/
-#else
-	char sCmd[64] = "";
-	if((iIr_mode == 0)||(iIr_mode == 1))
-	{
-		sprintf(sCmd,"e_p3k_ir_gw::%d",iIr_mode);
-	}
-	else
-	{
-		DBG_WarnMsg(" !!! Error para iIr_mode:%d\n",iIr_mode);
-		return 0;
-	}
-	DBG_InfoMsg("ast_send_event %s\n",sCmd);
-	ast_send_event(0xFFFFFFFF,sCmd);
-#endif
-	return 0;
+	return EX_NO_ERR;
 }
 
 int EX_GetIRGateway(void)
@@ -892,26 +1562,13 @@ int EX_GetIRGateway(void)
 
 int EX_SetMulticastStatus(char * ip,int ttl )
 {
+	Cfg_Set_Net_Multicast("0.0.0.0",ttl);
+	char sCmd[64] = "";
+	sprintf(sCmd,"e_set_ttl::%d",ttl);
+	ast_send_event(0xFFFFFFFF,sCmd);
 
-	{
-		Cfg_Set_Net_Multicast("0.0.0.0",ttl);
-		char sCmd[64] = "";
-		sprintf(sCmd,"e_set_ttl::%d",ttl);
-		ast_send_event(0xFFFFFFFF,sCmd);
-	}
-	return 0;
+	return EX_NO_ERR;
 }
-
-int EX_RmEDID(int iEDID)
-{
-	int id = 2;
-	if(id == iEDID)
-	{
-		return -1;
-	}
-		return 0;
-}
-
 
 
 int EX_SetPassword(char * login_level,char * iNew_Pass)
@@ -920,25 +1577,29 @@ int EX_SetPassword(char * login_level,char * iNew_Pass)
 
 	if(!strcmp(login_level,"admin"))
 		Cfg_Set_User_Pass(1,iNew_Pass);
-	else if(!strcmp(login_level,"user"))
-		Cfg_Set_User_Pass(0,iNew_Pass);
 	else
+	{
 		DBG_WarnMsg("EX_SetPassword login_level:%s is Wrong!!!\n",login_level);
+		return EX_PARAM_ERR;
+	}
 
-	return 0;
+	return EX_NO_ERR;
 }
 
 
-int EX_GetPassword(char * login_level)
+int EX_GetPassword(char * login_level, char * ologin_Pass)
 {
 	char * admin = "admin";
-	int pass=33333;
-	if(0 == memcmp(login_level,admin,strlen(admin)))
+
+	if(0 == strcmp(login_level,admin))
 	{
 		DBG_InfoMsg("name=%s\n",login_level);
-		return pass;
+		strcpy(ologin_Pass,g_user_info.password);
+		return EX_NO_ERR;
 	}
-	return 0;
+
+	DBG_WarnMsg(" !!! Error para\n");
+	return EX_PARAM_ERR;
 }
 
 int EX_SetGatewayPort(int iGw_Type,int iNetw_Id)
@@ -950,7 +1611,7 @@ int EX_SetGatewayPort(int iGw_Type,int iNetw_Id)
 		if(strcmp(g_version_info.model,IPE_P_MODULE)!= 0)
 		{
 			DBG_WarnMsg("This is not switcher!!!\n");
-			return -1;
+			return EX_PARAM_ERR;
 		}
 	}
 
@@ -967,9 +1628,10 @@ int EX_SetGatewayPort(int iGw_Type,int iNetw_Id)
 	else
 	{
 		DBG_WarnMsg("EX_SetGatewayPort iGw_Type:%d is Wrong!!!\n",iGw_Type);
+		return EX_PARAM_ERR;
 	}
 
-	return 0;
+	return EX_NO_ERR;
 }
 
 int EX_GetGatewayPort(int iGw_Type)
@@ -982,7 +1644,7 @@ int EX_GetGatewayPort(int iGw_Type)
 		if(strcmp(g_version_info.model,IPE_P_MODULE)!= 0)
 		{
 			DBG_WarnMsg("This is not switcher!!!\n");
-			return -1;
+			return EX_PARAM_ERR;;
 		}
 	}
 
@@ -993,13 +1655,14 @@ int EX_GetGatewayPort(int iGw_Type)
 	else
 	{
 		DBG_WarnMsg("EX_GetGatewayPort iGw_Type:%d is Wrong!!!\n",iGw_Type);
+		return EX_PARAM_ERR;;
 	}
 
 	return iNetw_Id;
 }
 
 
-// iGw_Type: 0 p3k; 1: RS232; 2: Dante
+// iGw_Type: 0 p3k & RS232; 1: Dante
 int EX_GetVlanTag(int iGw_Type)
 {
 	int iTag = 11;
@@ -1010,7 +1673,7 @@ int EX_GetVlanTag(int iGw_Type)
 		if(strcmp(g_version_info.model,IPE_P_MODULE)!= 0)
 		{
 			DBG_WarnMsg("This is not switcher!!!\n");
-			return -1;
+			return EX_PARAM_ERR;
 		}
 	}
 
@@ -1021,12 +1684,13 @@ int EX_GetVlanTag(int iGw_Type)
 	else
 	{
 		DBG_WarnMsg("EX_GetVlanTag iGw_Type:%d is Wrong!!!\n",iGw_Type);
+		return EX_PARAM_ERR;;
 	}
 
 	return iTag;
 }
 
-// iGw_Type: 0 p3k; 1: RS232; 2: Dante
+// iGw_Type: 0 p3k & RS232; 1: Dante
 int EX_SetVlanTag(int iGw_Type,int iTag)
 {
 	DBG_InfoMsg("iGw_Type=%d\n",iGw_Type);
@@ -1036,11 +1700,11 @@ int EX_SetVlanTag(int iGw_Type,int iTag)
 		if(strcmp(g_version_info.model,IPE_P_MODULE)!= 0)
 		{
 			DBG_WarnMsg("This is not switcher!!!\n");
-			return -1;
+			return EX_PARAM_ERR;
 		}
 	}
 
-	if((iGw_Type == 0)||(iGw_Type == 1)||(iGw_Type == 2))
+	if((iGw_Type == Net_CONTROL)||(iGw_Type == Net_DANTE))
 	{
 		Cfg_Set_Net_GW_Vlan((NetGWType_E)iGw_Type,iTag);
 
@@ -1052,9 +1716,12 @@ int EX_SetVlanTag(int iGw_Type,int iTag)
 	else
 	{
 		printf("EX_SetVlanTag iGw_Type:%d is Wrong!!!\n",iGw_Type);
+
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
 	}
 
-	return 0;
+	return EX_NO_ERR;
 }
 
 int EX_SetMethod(int  mode )
@@ -1070,9 +1737,14 @@ int EX_SetMethod(int  mode )
 		DBG_InfoMsg("ast_send_event %s\n",sCmd);
 		ast_send_event(0xFFFFFFFF,sCmd);
 	}
+	else
+	{
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
+	}
 
 	Cfg_Set_Net_Method((NetMethodType_E)mode);
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_GetMethod(void)
 {
@@ -1084,7 +1756,6 @@ int EX_GetMethod(void)
 
 int EX_SetOsdDisplay(int    mode )
 {
-	char buf[64] = "";
 	State_E osd_mode = OFF;
 
 	if(mode == 0)
@@ -1094,7 +1765,7 @@ int EX_SetOsdDisplay(int    mode )
 	else
 	{
 		DBG_ErrMsg(">>mode Err %d\n",mode);
-		return -1;
+		return EX_PARAM_ERR;
 	}
 
 	Cfg_Set_OSD_Diaplay(osd_mode);
@@ -1103,7 +1774,9 @@ int EX_SetOsdDisplay(int    mode )
 	sprintf(SetOsdDisplay,"SET_OSD_DISPALY  %d",mode);
 	int ret = sendCmdtoGUI(SetOsdDisplay);
 
-	return 0;
+	DBG_InfoMsg("sendCmdtoGUI ret = %d",ret);
+
+	return EX_NO_ERR;
 }
 int EX_GetOsdDisplay(void)
 {
@@ -1113,7 +1786,7 @@ int EX_GetOsdDisplay(void)
 	return mode;
 }
 
-int EX_SetDaisyChain(int  mode )
+int EX_SetDaisyChain(int     mode )
 {
 	DBG_InfoMsg(">>EX_SetDaisyChain %d\n",mode);
 	if((mode == 0)||(mode == 1))
@@ -1125,8 +1798,13 @@ int EX_SetDaisyChain(int  mode )
 		ast_send_event(0xFFFFFFFF,sCmd);
 		Cfg_Set_Net_DaisyChain((State_E)mode);
 	}
+	else
+	{
+		DBG_ErrMsg(">>mode Err %d\n",mode);
+		return EX_PARAM_ERR;
+	}
 
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_GetDaisyChain(void)
 {
@@ -1139,6 +1817,184 @@ int EX_GetDaisyChain(void)
 
 int EX_GetVidMute(MuteInfo_S * mute)
 {
+	if(IsPortValid(mute->direction, mute->portFormat, mute->portIndex, mute->signal, mute->index) == EX_PARAM_ERR)
+	{
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
+	}
+
+	if(mute->signal != SIGNAL_AUDIO)
+	{
+		DBG_WarnMsg("mute->signal != SIGNAL_AUDIO\n");
+		return EX_PARAM_ERR;
+	}
+
+	if(mute->portFormat == PORT_HDMI)
+	{
+		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+		{
+			if(mute->direction != DIRECTION_IN)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+
+			if((mute->portIndex != 1)&&(mute->portIndex != 2))
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+		}
+		else if((strcmp(g_version_info.model,IPE_MODULE) == 0)
+			||(strcmp(g_version_info.model,IPE_W_MODULE) == 0))
+		{
+			if(mute->direction != DIRECTION_IN)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+
+			if(mute->portIndex != 1)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+		}
+		else if((strcmp(g_version_info.model,IPD_MODULE) == 0)
+			||(strcmp(g_version_info.model,IPD_W_MODULE) == 0))
+		{
+			if(mute->direction != DIRECTION_OUT)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+
+			if(mute->portIndex != 1)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+		}
+	}
+	else if(mute->portFormat == PORT_ANALOG_AUDIO)
+	{
+		if(mute->portIndex != 1)
+		{
+			DBG_ErrMsg("parameter error\n");
+			return EX_PARAM_ERR;
+		}
+
+		if((strcmp(g_version_info.model,IPD_MODULE) == 0)
+			||(strcmp(g_version_info.model,IPD_W_MODULE) == 0))
+		{
+			if(mute->direction != DIRECTION_OUT)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+		}
+		else if(strcmp(g_version_info.model,IPE_W_MODULE) == 0)
+		{
+			if(mute->direction != DIRECTION_IN)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+		}
+		else
+		{
+			if(mute->direction != g_audio_info.direction)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+		}
+	}
+	else if(mute->portFormat == PORT_DANTE)
+	{
+		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+		{
+			if(mute->portIndex != 1)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+		}
+		else
+		{
+			DBG_ErrMsg("parameter error\n");
+			return EX_PARAM_ERR;
+		}
+	}
+	else if(mute->portFormat == PORT_STREAM)
+	{
+		if((strcmp(g_version_info.model,IPD_MODULE) == 0)
+			||(strcmp(g_version_info.model,IPD_W_MODULE) == 0))
+		{
+			if(mute->direction != DIRECTION_IN)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+
+			if(mute->portIndex != 1)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+		}
+		else
+		{
+			if(mute->direction != DIRECTION_OUT)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+
+			if(mute->portIndex != 1)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+		}
+	}
+	else if(mute->portFormat == PORT_USB_C)
+	{
+		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+		{
+			if(mute->direction != DIRECTION_IN)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+
+			if(mute->portIndex != 3)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+		}
+		else if(strcmp(g_version_info.model,IPE_W_MODULE) == 0)
+		{
+			if(mute->direction != DIRECTION_IN)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+
+			if(mute->portIndex != 2)
+			{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+			}
+		}
+		else
+		{
+				DBG_ErrMsg("parameter error\n");
+				return EX_PARAM_ERR;
+		}
+	}
+
 	//int mute_mode = 0;
 	//return mute_mode;
 	State_E state;
@@ -1146,7 +2002,7 @@ int EX_GetVidMute(MuteInfo_S * mute)
 	Cfg_Get_AV_Mute(&state);
 
 	mute->state = state;
-	return 0;
+	return EX_NO_ERR;
 }
 
 int EX_SetVidOutput(char info[][MAX_PARAM_LEN],int count )
@@ -1191,7 +2047,8 @@ int EX_SetVidOutput(char info[][MAX_PARAM_LEN],int count )
 				else
 				{
 					DBG_WarnMsg("ERROR g_audio_info.direction == DIRECTION_IN\n");
-					//return 0;
+					DBG_ErrMsg("parameter error\n");
+					return EX_PARAM_ERR;
 				}
 			}
 			else if(out_id == AUDIO_OUT_DANTE)
@@ -1202,6 +2059,11 @@ int EX_SetVidOutput(char info[][MAX_PARAM_LEN],int count )
 					port[nCount] = PORT_DANTE;
 					nCount++;
 				}
+				else
+				{
+					DBG_ErrMsg("parameter error\n");
+					return EX_PARAM_ERR;
+				}
 			}
 			else if(out_id == AUDIO_OUT_STREAM)
 			{
@@ -1209,18 +2071,21 @@ int EX_SetVidOutput(char info[][MAX_PARAM_LEN],int count )
 				port[nCount] = PORT_STREAM;
 				nCount++;
 			}
+			else
+			{
+				DBG_WarnMsg(" !!! Error para\n");
+				return EX_PARAM_ERR;
+			}
 		}
 	}
 
 
-
-//	if(nCount > 0)
 	{
 		Cfg_Set_Audio_Dest(nCount,port);
 		DBG_InfoMsg("ast_send_event %s\n",sCmd);
 		ast_send_event(0xFFFFFFFF,sCmd);
 	}
-	return 0;
+	return EX_NO_ERR;
 }
 
 
@@ -1282,7 +2147,7 @@ int EX_GetVidOutput(char * date)
 
 	DBG_InfoMsg("EX_GetVidOutput %s\n",date);
 
-	return 0;
+	return EX_NO_ERR;
 }
 
 int EX_GetHWVersion(char * date)
@@ -1294,7 +2159,7 @@ int EX_GetHWVersion(char * date)
 	{
 		GetBoardInfo(BOARD_HW_VERSION, date, 24);
 	}
-	return 0;
+	return EX_NO_ERR;
 }
 
 int EX_GetStandbyVersion(char * date)
@@ -1303,7 +2168,7 @@ int EX_GetStandbyVersion(char * date)
 	//memcpy(date,version,strlen(version));
 
 	strcpy(date,g_version_info.standby_version);
-	return 0;
+	return EX_NO_ERR;
 }
 
 int EX_GetDevStatus(void)
@@ -1325,21 +2190,21 @@ int EX_GetHWTemp(int  id,int iMode)
 
 	if(iMode == 1)
 		iTemp = 18*iTemp/10 + 32;
+	else if(iMode != 0)
+	{
+		DBG_ErrMsg("parameter error\n");
+		return EX_PARAM_ERR;
+	}
 
 	return iTemp;
 }
 
 int EX_GetUPGTime(char * day,char * time)
 {
-//	char *str = "05-12-2018";
-//	char *str1 = "14:30:00";
-//	memcpy(day,str,strlen(str));
-//	memcpy(time,str1,strlen(str1));
-
 	DBG_InfoMsg(" EX_GetUPGTime\n");
 	sscanf(g_version_info.upg_time,"%[^,],%s",day,time);
 
-	return 0;
+	return EX_NO_ERR;
 }
 
 int EX_GetChannelName(char * date)
@@ -1347,27 +2212,42 @@ int EX_GetChannelName(char * date)
 #ifdef CONFIG_P3K_HOST
 		Cfg_Get_EncChannel_Name(date);
 #else
-		DBG_InfoMsg(" !!! This is Decoder\n");
+		DBG_WarnMsg(" !!! This is Decoder\n");
+	return EX_CMD_ERR;
 #endif
+	return EX_NO_ERR;
 
-//	char name[32] = "bbc";
-//	memcpy(date,name,strlen(name));
-	return 0;
 }
 
-int EX_GetDanteName(char * date)
+int EX_GetActiveEDID(int input_ID )
 {
-	if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+#ifdef CONFIG_P3K_HOST
+	if(input_ID != 1)
 	{
-		char name[32] = "KDS-7-MAC";
-		memcpy(date,name,strlen(name));
+		DBG_WarnMsg("input_ID != 1\n");
+		return EX_PARAM_ERR;
 	}
-	else
-	{
-		DBG_ErrMsg(" !!! This is not switcher\n");
-		return -1;
-	}
-	return 0;
+
+	int index = 1;
+
+	Cfg_Get_EDID_Active(&index);
+	return index;
+#else
+	DBG_WarnMsg(" !!! This is Decoder\n");
+	return EX_CMD_ERR;
+#endif
+}
+
+int EX_GetEdidList(char info[][MAX_EDID_LEN],int num)
+{
+#ifdef CONFIG_P3K_HOST
+ 	int tmpnum = 0;
+	tmpnum = Cfg_Get_EDID_List(info,num);
+	return tmpnum;
+#else
+	DBG_WarnMsg(" !!! This is Decoder\n");
+	return EX_CMD_ERR;
+#endif
 }
 
 int EX_GetSendMsgNum(int msg,char*date )
@@ -1377,36 +2257,36 @@ int EX_GetSendMsgNum(int msg,char*date )
 	return iMsgNum;
 }
 
-int EX_GetActiveEDID(int input_ID )
-{
-	int index = 1;
-
-	Cfg_Get_EDID_Active(&index);
-	return index;
-}
-
-int EX_GetEdidList(char info[][MAX_EDID_LEN],int num)
-{
- 	int tmpnum = 0;
-	//char *str ="[0,DEFAULT]";
-	//char *str1= "[2,SONY]";
-	//char *str2= "[5,PANASONIC]";
-	//memcpy(info[0],str,strlen(str));
-	//memcpy(info[1],str1,strlen(str1));
-	//memcpy(info[2],str1,strlen(str2));
-
-	tmpnum = Cfg_Get_EDID_List(info,num);
-	return tmpnum;
-}
-
-
 int EX_GetAudGainLevel(PortInfo_S*info,int *gain)
 {
-	//int tmpGain = 20;
-	// *gain = tmpGain;
+#ifdef CONFIG_P3K_HOST
+	if(g_audio_info.direction == DIRECTION_IN)
+	{
+		DBG_WarnMsg(" !!! Error Mode \n");
+		return EX_MODE_ERR;
+	}
+#endif
+	if(IsPortValid(info->direction, info->portFormat, info->portIndex, info->signal, info->index) == EX_PARAM_ERR)
+	{
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
+	}
 
-	Cfg_Get_AV_Volume(gain);
-	return  0;
+	if((info->signal == SIGNAL_AUDIO)
+		&&(info->direction == DIRECTION_OUT)
+		&&(info->portFormat == PORT_ANALOG_AUDIO)
+		&&(info->portIndex == 1)
+		&&(info->index == 1))
+	{
+		Cfg_Get_AV_Volume(gain);
+	}
+	else
+	{
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
+	}
+
+	return  EX_NO_ERR;
 }
 int EX_GetAudParam(PortInfo_S*info,AudioSignalInfo_S*param)
 {
@@ -1414,11 +2294,29 @@ int EX_GetAudParam(PortInfo_S*info,AudioSignalInfo_S*param)
 	memset(param->format,0,16);
 	param->sampleRate= SAMPLE_RATE_NONE;
 
+	if(IsPortActive(info->direction, info->portFormat, info->portIndex, info->signal, info->index) == EX_PARAM_ERR)
+	{
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
+	}
+
+	if(info->signal != SIGNAL_AUDIO)
+	{
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
+	}
+
 #ifdef CONFIG_P3K_HOST
 	char* cmd_ch = "cat /sys/devices/platform/1500_i2s/input_audio_info | sed -rn 's#^.*Valid Ch: (.*).*$#\\1#gp'";
 	char* cmd_type = "cat /sys/devices/platform/1500_i2s/input_audio_info | sed -rn 's#^.*Type: (.*).*$#\\1#gp'";
 	char* cmd_freq = "cat /sys/devices/platform/1500_i2s/input_audio_info | sed -rn 's#^.*Sample Freq: (.*)KHz.*$#\\1#gp'";
 #else
+	if(info->direction != DIRECTION_OUT)
+	{
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
+	}
+
 	char* cmd_ch = "cat /sys/devices/platform/1500_i2s/output_audio_info | sed -rn 's#^.*Valid Ch: (.*).*$#\\1#gp'";
 	char* cmd_type = "cat /sys/devices/platform/1500_i2s/output_audio_info | sed -rn 's#^.*Type: (.*).*$#\\1#gp'";
 	char* cmd_freq = "cat /sys/devices/platform/1500_i2s/output_audio_info | sed -rn 's#^.*Sample Freq: (.*)KHz.*$#\\1#gp'";
@@ -1466,15 +2364,52 @@ int EX_SetAutoSwitchMode(PortInfo_S*info,AVConnectMode_E mode)
 {
 	DBG_InfoMsg("EX_SetAutoSwitchMode mode =%d\n",mode);
 #ifdef CONFIG_P3K_HOST
+	if(IsPortValid(info->direction, info->portFormat, info->portIndex, info->signal, info->index) == EX_PARAM_ERR)
+	{
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
+	}
+
+	if((info->direction != DIRECTION_OUT)
+		||(info->portIndex != 1)
+		||(info->index != 1))
+
+	{
+		DBG_WarnMsg(" !!!parameter Error\n");
+		return EX_PARAM_ERR;
+	}
+
 	char sCmd[64] = "";
 	if(info->signal == SIGNAL_VIDEO)
+	{
+		if(strcmp(g_version_info.model,IPE_MODULE) == 0)
+		{
+			DBG_WarnMsg("!!!Error Cmd\n");
+			return EX_CMD_ERR;
+		}
+
+		if((info->portFormat != PORT_HDMI)&&(info->portFormat != PORT_STREAM))
+		{
+			DBG_WarnMsg(" !!!parameter Error portFormat=%d\n",info->portFormat);
+			return EX_PARAM_ERR;
+		}
 		sprintf(sCmd,"e_p3k_switch_mode");
+	}
 	else if(info->signal == SIGNAL_AUDIO)
+	{
+		if((info->portFormat != PORT_HDMI)
+			&&(info->portFormat != PORT_STREAM)
+			&&(info->portFormat != PORT_ANALOG_AUDIO))
+		{
+			DBG_WarnMsg(" !!!parameter Error portFormat=%d\n",info->portFormat);
+			return EX_PARAM_ERR;
+		}
 		sprintf(sCmd,"e_p3k_audio_mode");
+	}
 	else
 	{
 		DBG_WarnMsg(" !!!parameter Error signal=%d\n",info->signal);
-		return 0;
+		return EX_PARAM_ERR;
 	}
 
 	if(mode == CONNECT_MANUAL)
@@ -1486,7 +2421,7 @@ int EX_SetAutoSwitchMode(PortInfo_S*info,AVConnectMode_E mode)
 	else
 	{
 		DBG_WarnMsg(" !!!parameter Error mode = %d\n",mode);
-		return 0;
+		return EX_PARAM_ERR;
 	}
 
 	DBG_InfoMsg("ast_send_event %s\n",sCmd);
@@ -1495,11 +2430,60 @@ int EX_SetAutoSwitchMode(PortInfo_S*info,AVConnectMode_E mode)
 	Cfg_Set_Autoswitch_Mode(info->signal,mode);
 #else
 	DBG_WarnMsg(" !!! This is Decoder\n");
+	return EX_CMD_ERR;
 #endif
-	return 0;
+	return EX_NO_ERR;
+
 }
 int EX_GetAutoSwitchMode(PortInfo_S*info,AVConnectMode_E *mode)
 {
+#ifdef CONFIG_P3K_HOST
+
+	if(IsPortValid(info->direction, info->portFormat, info->portIndex, info->signal, info->index) == EX_PARAM_ERR)
+	{
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
+	}
+
+	if((info->direction != DIRECTION_OUT)
+		||(info->portIndex != 1)
+		||(info->index != 1))
+
+	{
+		DBG_WarnMsg(" !!!parameter Error\n");
+		return EX_PARAM_ERR;
+	}
+
+	if(info->signal == SIGNAL_VIDEO)
+	{
+		if(strcmp(g_version_info.model,IPE_MODULE) == 0)
+		{
+			DBG_WarnMsg("!!!Error Cmd\n");
+			return EX_CMD_ERR;
+		}
+
+		if((info->portFormat != PORT_HDMI)&&(info->portFormat != PORT_STREAM))
+		{
+			DBG_WarnMsg(" !!!parameter Error portFormat=%d\n",info->portFormat);
+			return EX_PARAM_ERR;
+		}
+	}
+	else if(info->signal == SIGNAL_AUDIO)
+	{
+		if((info->portFormat != PORT_HDMI)
+			&&(info->portFormat != PORT_STREAM)
+			&&(info->portFormat != PORT_ANALOG_AUDIO))
+		{
+			DBG_WarnMsg(" !!!parameter Error portFormat=%d\n",info->portFormat);
+			return EX_PARAM_ERR;
+		}
+	}
+	else
+	{
+		DBG_WarnMsg(" !!!parameter Error signal=%d\n",info->signal);
+		return EX_PARAM_ERR;
+	}
+
 	if((info->signal == SIGNAL_VIDEO)||(info->signal == SIGNAL_AUDIO))
 	{
 		Cfg_Get_Autoswitch_Mode(info->signal,mode);
@@ -1507,10 +2491,15 @@ int EX_GetAutoSwitchMode(PortInfo_S*info,AVConnectMode_E *mode)
 	else
 	{
 		DBG_WarnMsg(" !!!parameter Error signal = %d\n",info->signal);
-		return 0;
+		return EX_PARAM_ERR;
 	}
 
-	return 0;
+#else
+		DBG_WarnMsg(" !!! This is Decoder\n");
+		return EX_CMD_ERR;
+#endif
+		return EX_NO_ERR;
+
 }
 
 //#X-PRIORITY <direction_type>. <port_format>. <port_index> .<signal_type> , [<direction_type>. <port_format>. <port_index>.<signal_type> ,...]<CR>
@@ -1519,19 +2508,82 @@ int EX_SetAutoSwitchPriority(AudioInfo_S * info,AudioInfo_S * gain,int count)
 	DBG_InfoMsg("EX_SetAutoSwitchPriority,Count = %d\n",count);
 	if((count == 0)||(count >4))
 	{
+		DBG_WarnMsg(" !!! Error para\n");
 		DBG_WarnMsg(" !!! Error Count = %d\n",count);
-		return 0;
+		return EX_PARAM_ERR;
 	}
 
 #ifdef CONFIG_P3K_HOST
+
 	int port[4] = {255,255,255,255};
 	char sCmd[128] = "";
 	if(gain[0].signal == SIGNAL_VIDEO)
 	{
+		if(strcmp(g_version_info.model,IPE_MODULE) == 0)
+		{
+			DBG_WarnMsg("!!!Error Cmd\n");
+			return EX_CMD_ERR;
+		}
+
 		sprintf(sCmd,"e_p3k_switch_pri");
 
 		for(int i = 1;i < count;i++)
 		{
+			if(IsPortValid(gain[i].direction, gain[i].portFormat, gain[i].portIndex, gain[i].signal, 1) == EX_PARAM_ERR)
+			{
+				DBG_WarnMsg(" !!! Error para\n");
+				return EX_PARAM_ERR;
+			}
+
+			if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+			{
+				if(gain[i].portFormat == PORT_HDMI)
+				{
+					if((gain[i].portIndex != 1)&&(gain[i].portIndex != 2))
+					{
+						DBG_WarnMsg(" !!! Error para\n");
+						return EX_PARAM_ERR;
+					}
+				}
+				else if(gain[i].portFormat == PORT_USB_C)
+				{
+					if(gain[i].portIndex != 3)
+					{
+						DBG_WarnMsg(" !!! Error para\n");
+						return EX_PARAM_ERR;
+					}
+				}
+				else
+				{
+					DBG_WarnMsg(" !!! Error para\n");
+					return EX_PARAM_ERR;
+				}
+			}
+			else //IPE_W
+			{
+				if(gain[i].portFormat == PORT_HDMI)
+				{
+					if(gain[i].portIndex != 1)
+					{
+						DBG_WarnMsg(" !!! Error para\n");
+						return EX_PARAM_ERR;
+					}
+				}
+				else if(gain[i].portFormat == PORT_USB_C)
+				{
+					if(gain[i].portIndex != 2)
+					{
+						DBG_WarnMsg(" !!! Error para\n");
+						return EX_PARAM_ERR;
+					}
+				}
+				else
+				{
+					return EX_PARAM_ERR;
+				}
+
+
+			}
 			sprintf(sCmd,"%s::HDMI%d",sCmd,gain[i].portIndex);
 			port[i] = gain[i].portIndex;
 		}
@@ -1543,23 +2595,97 @@ int EX_SetAutoSwitchPriority(AudioInfo_S * info,AudioInfo_S * gain,int count)
 
 		for(int i = 1; i < count;i++)
 		{
+			if(IsPortValid(gain[i].direction, gain[i].portFormat, gain[i].portIndex, gain[i].signal, 1) == EX_PARAM_ERR)
+			{
+				DBG_WarnMsg("IsPortValid\n");
+				return EX_PARAM_ERR;
+			}
+
 			if(gain[i].portFormat == PORT_HDMI)
 			{
+				if(strcmp(g_version_info.model,IPE_MODULE) == 0)
+				{
+					if(gain[i].portIndex != 1)
+					{
+						DBG_WarnMsg("gain[i].portIndex != 1\n");
+						return EX_PARAM_ERR;
+					}
+				}
+				else if(strcmp(g_version_info.model,IPE_W_MODULE) == 0)
+				{
+					if(gain[i].portIndex != 1)
+					{
+						DBG_WarnMsg("gain[i].portIndex != 1\n");
+						return EX_PARAM_ERR;
+					}
+				}
+				else
+				{
+					if((gain[i].portIndex != 1)&&(gain[i].portIndex != 2))
+					{
+						DBG_WarnMsg(" !!! Error para\n");
+						return EX_PARAM_ERR;
+					}
+				}
+
+				sprintf(sCmd,"%s::hdmi",sCmd);
+				port[jjj] = AUDIO_IN_HDMI;
+				jjj++;
+			}
+			else if(gain[i].portFormat == PORT_USB_C)
+			{
+				if(strcmp(g_version_info.model,IPE_MODULE) == 0)
+				{
+					DBG_WarnMsg(" !!! Error para\n");
+					return EX_PARAM_ERR;
+				}
+				else if(strcmp(g_version_info.model,IPE_W_MODULE) == 0)
+				{
+					if(gain[i].portIndex != 2)
+					{
+						DBG_WarnMsg("gain[i].portIndex != 2\n");
+						return EX_PARAM_ERR;
+					}
+				}
+				else
+				{
+					if(gain[i].portIndex != 3)
+					{
+						DBG_WarnMsg("gain[i].portIndex != 3\n");
+						return EX_PARAM_ERR;
+					}
+				}
+
 				sprintf(sCmd,"%s::hdmi",sCmd);
 				port[jjj] = AUDIO_IN_HDMI;
 				jjj++;
 			}
 			else if(gain[i].portFormat == PORT_ANALOG_AUDIO)
 			{
+				if(gain[i].portIndex != 1)
+				{
+					DBG_WarnMsg("gain[i].portIndex != 1\n");
+					return EX_PARAM_ERR;
+				}
 				if(g_audio_info.direction == DIRECTION_IN)
 				{
 					sprintf(sCmd,"%s::analog",sCmd);
 					port[jjj] = AUDIO_IN_ANALOG;
 					jjj++;
 				}
+				else
+				{
+					DBG_WarnMsg("g_audio_info.direction != DIRECTION_IN\n");
+					return EX_PARAM_ERR;
+				}
 			}
 			else if(gain[i].portFormat == PORT_DANTE)
 			{
+				if(gain[i].portIndex != 1)
+				{
+					DBG_WarnMsg("gain[i].portIndex != 1\n");
+					return EX_PARAM_ERR;
+				}
 				if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
 				{
 					sprintf(sCmd,"%s::dante",sCmd);
@@ -1567,12 +2693,17 @@ int EX_SetAutoSwitchPriority(AudioInfo_S * info,AudioInfo_S * gain,int count)
 					jjj++;
 				}
 			}
+			else
+			{
+				DBG_WarnMsg("gain[%d].portFormat %d\n",i,gain[i].portFormat);
+				return EX_PARAM_ERR;
+			}
 		}
 	}
 	else
 	{
 		DBG_WarnMsg(" !!!EX_SetAutoSwitchPriority parameter Error\n");
-		return 0;
+		return EX_PARAM_ERR;
 	}
 	DBG_InfoMsg("ast_send_event %s\n",sCmd);
 	ast_send_event(0xFFFFFFFF,sCmd);
@@ -1580,15 +2711,30 @@ int EX_SetAutoSwitchPriority(AudioInfo_S * info,AudioInfo_S * gain,int count)
 	Cfg_Set_Autoswitch_Priority(gain[0].signal,port[1],port[2],port[3]);
 #else
 	DBG_WarnMsg(" !!! This is Decoder\n");
+	return EX_CMD_ERR;
 #endif
+	return EX_NO_ERR;
 
-	return 0;
 }
 
 int EX_GetAutoSwitchPriority(AudioInfo_S * gain,int count)
 {
 	int num = 0;
 #ifdef CONFIG_P3K_HOST
+	if(IsPortValid(gain[0].direction, gain[0].portFormat, gain[0].portIndex, gain[0].signal, 1) == EX_PARAM_ERR)
+	{
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
+	}
+
+	if((gain[0].direction != DIRECTION_OUT)
+		||(gain[0].portIndex != 1)
+		||((gain[0].signal != SIGNAL_VIDEO)&&(gain[0].signal != SIGNAL_AUDIO)))
+	{
+		DBG_WarnMsg(" !!!parameter Error\n");
+		return EX_PARAM_ERR;
+	}
+
 	SignalType_E type = gain[0].signal;
 	if((gain[0].signal == SIGNAL_VIDEO)||(gain[0].signal == SIGNAL_AUDIO))
 	{
@@ -1728,7 +2874,7 @@ int EX_GetAutoSwitchPriority(AudioInfo_S * gain,int count)
 						{
 						//	num = i + 1;
 						 	break;
-						}					
+						}
 					}
 				}
 			}
@@ -1737,10 +2883,11 @@ int EX_GetAutoSwitchPriority(AudioInfo_S * gain,int count)
 	else
 	{
 		DBG_WarnMsg(" !!!EX_GetAutoSwitchPriority parameter Error\n");
-		return 0;
+		return EX_PARAM_ERR;
 	}
 #else
 	DBG_WarnMsg(" !!! This is Decoder\n");
+	return EX_CMD_ERR;
 #endif
 
 	return num;
@@ -1748,23 +2895,23 @@ int EX_GetAutoSwitchPriority(AudioInfo_S * gain,int count)
 int EX_CopyEDID(EDIDPortInfo_S*src,EDIDPortInfo_S*dest,int bitMap,int safemode)
 {
 
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_GetEDIDSupport(int index ,int mode ,int *size)
 {
 	*size = 256;
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_SetEDIDColorSpaceMode(PortInfo_S *info,ColorSpaceMode_E mode)
 {
 	DBG_InfoMsg("EX_SetEDIDColorSpaceMode mode =%d\n",mode);
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_GetEDIDColorSpaceMode(PortInfo_S *info,ColorSpaceMode_E *mode)
 {
 
 	 *mode = COLOR_RGB;
-	return 0;
+	return EX_NO_ERR;
 }
 
 int EX_SetEDIDLockStatus(int index,int lock)
@@ -1774,8 +2921,10 @@ int EX_SetEDIDLockStatus(int index,int lock)
 	Cfg_Set_EDID_Lock((State_E)lock);
 #else
 	DBG_WarnMsg(" !!! This is Decoder\n");
+	return EX_CMD_ERR;
 #endif
-return 0;
+	return EX_NO_ERR;
+
 }
 int EX_GetEDIDLockStatus(int index,int *lock)
 {
@@ -1786,8 +2935,10 @@ int EX_GetEDIDLockStatus(int index,int *lock)
 	*lock = (int)tmp_lock;
 #else
 	DBG_WarnMsg(" !!! This is Decoder\n");
+	return EX_CMD_ERR;
 #endif
-	return 0;
+	return EX_NO_ERR;
+
 }
 int EX_SetHDCPMode(int index,HDCPMode_E mode)
 {
@@ -1802,14 +2953,17 @@ int EX_SetHDCPMode(int index,HDCPMode_E mode)
 	else
 	{
 		DBG_WarnMsg(" !!! Error para mode:%d\n",mode);
+		return EX_PARAM_ERR;
 	}
 	DBG_InfoMsg("ast_send_event %s\n",sCmd);
 	ast_send_event(0xFFFFFFFF,sCmd);
 	Cfg_Set_AV_HDCP(index, (State_E)mode);
 #else
 	DBG_WarnMsg(" !!! This is Decoder\n");
+	return EX_CMD_ERR;
 #endif
-	return 0;
+	return EX_NO_ERR;
+
 }
 int EX_GetHDCPMode(int index,HDCPMode_E *mode)
 {
@@ -1820,8 +2974,10 @@ int EX_GetHDCPMode(int index,HDCPMode_E *mode)
 	*mode = (HDCPMode_E)tmp_mode;
 #else
 	DBG_WarnMsg(" !!! This is Decoder\n");
+	return EX_CMD_ERR;
 #endif
-	return 0;
+	return EX_NO_ERR;
+
 }
 int EX_GetHDCPStatus(int io,int index)
 {
@@ -1865,18 +3021,21 @@ int EX_SetViewMode(ViewMode_E mode,ViewModeInfo_S*info)
 	else
 	{
 		DBG_WarnMsg(" !!! Error para mode:%d,h = %d,v = %d\n",mode,info->hStyle,info->vStyle);
+		return EX_PARAM_ERR;
 	}
 #else
 	DBG_WarnMsg(" !!! This is Encoder\n");
+	return EX_CMD_ERR;
 #endif
-	return 0;
+	return EX_NO_ERR;
+
 }
 int EX_GetViewMode(ViewMode_E *mode,ViewModeInfo_S*info)
 {
     *mode = VIEW_MODE_VIDEOWALL;
 	Cfg_Get_VM_Mod(&(info->hStyle),&(info->vStyle));
 
-	return 0;
+	return EX_NO_ERR;
 }
 
 int EX_SetWndBezelInfo( int mode ,int index, WndBezelinfo_S*info)
@@ -1903,19 +3062,22 @@ int EX_SetWndBezelInfo( int mode ,int index, WndBezelinfo_S*info)
 	else
 	{
 		DBG_WarnMsg(" !!! Error para index:%d\n",index);
+		return EX_PARAM_ERR;
 	}
 
 
 #else
 	DBG_WarnMsg(" !!! This is Encoder\n");
+	return EX_CMD_ERR;
 #endif
-	return 0;
+	return EX_NO_ERR;
+
 }
 int EX_GetWndBezelInfo( int *mode ,int *index, WndBezelinfo_S*info)
 {
 	*mode = 0;
 	Cfg_Get_VM_Bezel(index,info);
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_SetVideoWallSetupInfo(int id,VideoWallSetupInfo_S *info)
 {
@@ -1949,9 +3111,14 @@ int EX_SetVideoWallSetupInfo(int id,VideoWallSetupInfo_S *info)
 			{
 				ast_send_event(0xFFFFFFFF,"e_vw_rotate_5");
 			}
-			else
+			else if(info->rotation == ROTATION_90)
 			{
 				ast_send_event(0xFFFFFFFF,"e_vw_rotate_0");
+			}
+			else
+			{
+				DBG_WarnMsg(" !!! Error para\n");
+				return EX_PARAM_ERR;
 			}
 
 			Cfg_Set_VM_Setup(id,info->rotation);
@@ -1960,12 +3127,15 @@ int EX_SetVideoWallSetupInfo(int id,VideoWallSetupInfo_S *info)
 	else
 	{
 		DBG_WarnMsg(" !!! Error para id:%d,info->rotation:%d\n",id,info->rotation);
+		return EX_PARAM_ERR;
 	}
 
 #else
 	DBG_WarnMsg(" !!! This is Encoder\n");
+	return EX_CMD_ERR;
 #endif
-	return 0;
+	return EX_NO_ERR;
+
 }
 int EX_GetVideoWallSetupInfo(int* id,VideoWallSetupInfo_S *info)
 {
@@ -1973,7 +3143,7 @@ int EX_GetVideoWallSetupInfo(int* id,VideoWallSetupInfo_S *info)
 	Cfg_Get_VM_Setup(id,&rotation);
 
 	info->rotation = (VideoRotation_E)rotation;
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_StartOverlay(char*confFile,int outtime)
 {
@@ -1981,7 +3151,7 @@ int EX_StartOverlay(char*confFile,int outtime)
 	sprintf(startOverlayCmd,"START_OVERLAY %s %d",confFile,outtime);
 	int mode = sendCmdtoGUI(startOverlayCmd);
 	DBG_InfoMsg("filename = %s, outtime =%d mode =%d\n",confFile,outtime,mode);
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_StopOverlay(void)
 {
@@ -1989,7 +3159,7 @@ int EX_StopOverlay(void)
 
 	int mode = sendCmdtoGUI(stopOverlay);
 	DBG_InfoMsg(" mode =%d\n",mode);
-	return 0;
+	return EX_NO_ERR;
 }
 
 int EX_SetEncoderAVChannelId(int id)
@@ -2004,8 +3174,10 @@ int EX_SetEncoderAVChannelId(int id)
 	Cfg_Set_EncChannel_ID(id);
 #else
 	DBG_WarnMsg(" !!! This is Decoder\n");
+	return EX_CMD_ERR;
 #endif
-	return 0;
+	return EX_NO_ERR;
+
 }
 int EX_GetEncoderAVChannelId(int *id)
 {
@@ -2013,8 +3185,10 @@ int EX_GetEncoderAVChannelId(int *id)
 	Cfg_Get_EncChannel_ID(id);
 #else
 	DBG_WarnMsg(" !!! This is Decoder\n");
+	return EX_CMD_ERR;
 #endif
-	return 0;
+	return EX_NO_ERR;
+
 }
 
 int EX_SetDecoderAVChannelId(ChSelect_S * id)
@@ -2089,8 +3263,10 @@ int EX_SetDecoderAVChannelId(ChSelect_S * id)
 	Cfg_Set_DecChannel_ID(id);
 #else
 	DBG_WarnMsg(" !!! This is Encoder\n");
+	return EX_CMD_ERR;
 #endif
-	return 0;
+	return EX_NO_ERR;
+
 }
 int EX_GetDecoderAVChannelId(ChSelect_S * id)
 {
@@ -2116,17 +3292,17 @@ int EX_GetDecoderAVChannelId(ChSelect_S * id)
 			id->ch_id = 1;
 	}
 
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_SetVideoImageStatus(int scalerId,VideoStatusType_E status)
 {
 	DBG_InfoMsg(" EX_SetVideoImageStatus status =%d\n",status);
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_GetVideoImageStatus(int scalerId,VideoStatusType_E *status)
 {
 	*status = VIDEO_ENABLED;
-	return 0;
+	return EX_NO_ERR;
 }
 
 int EX_SetVideoCodecAction(CodecActionType_E type)
@@ -2137,10 +3313,15 @@ int EX_SetVideoCodecAction(CodecActionType_E type)
 		sprintf(sCmd,"e_reconnect");
 	else if(type == CODEC_ACTION_STOP)
 		sprintf(sCmd,"e_stop_link");
+	else if(type == CODEC_ACTION_SAVECONFIG)
+	{
+		system("sync");
+		return EX_NO_ERR;
+	}
 	else
 	{
 		DBG_WarnMsg(" !!! Error para %d\n",type);
-		return 0;
+		return EX_PARAM_ERR;
 	}
 
 	DBG_InfoMsg("ast_send_event %s\n",sCmd);
@@ -2148,13 +3329,13 @@ int EX_SetVideoCodecAction(CodecActionType_E type)
 
 	Cfg_Set_AV_Action(type);
 
-	return 0;
+	return EX_NO_ERR;
 }
 
 int EX_GetVideoCodecAction(CodecActionType_E *type)
 {
 	Cfg_Get_AV_Action(type);
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_SetColorSpaceConvertMode(int index,int convertMode)
 {
@@ -2172,7 +3353,7 @@ int EX_SetColorSpaceConvertMode(int index,int convertMode)
 	else
 	{
 		DBG_WarnMsg(" !!! Error para %d\n",convertMode);
-		return 0;
+		return EX_PARAM_ERR;
 	}
 	DBG_InfoMsg("ast_send_event %s\n",sCmd);
 	ast_send_event(0xFFFFFFFF,sCmd);
@@ -2180,8 +3361,10 @@ int EX_SetColorSpaceConvertMode(int index,int convertMode)
 	Cfg_Set_Video_RGB(convertMode);
 #else
 	DBG_WarnMsg(" !!! This is Encoder\n");
+	return EX_CMD_ERR;
 #endif
-	return 0;
+	return EX_NO_ERR;
+
 }
 int EX_GetColorSpaceConvertMode(int index,int *convertMode)
 {
@@ -2189,8 +3372,10 @@ int EX_GetColorSpaceConvertMode(int index,int *convertMode)
 	Cfg_Get_Video_RGB(convertMode);
 #else
 	DBG_WarnMsg(" !!! This is Encoder\n");
+	return EX_CMD_ERR;
 #endif
-	return 0;
+	return EX_NO_ERR;
+
 }
 
 //e_p3k_video_scale::pass|1080p60|1080p50|2160p30|2160p25|720p60
@@ -2215,13 +3400,13 @@ int EX_SetVideoImageScaleMode(int mode,int res)
 		else
 		{
 			DBG_WarnMsg(" !!! Error para res:%d\n",res);
-			return 0;
+			return EX_PARAM_ERR;
 		}
 	}
 	else
 	{
 		DBG_WarnMsg(" !!! Error para mode:%d\n",mode);
-		return 0;
+		return EX_PARAM_ERR;
 	}
 
 	DBG_InfoMsg("ast_send_event %s\n",sCmd);
@@ -2231,9 +3416,10 @@ int EX_SetVideoImageScaleMode(int mode,int res)
 
 #else
 	DBG_WarnMsg(" !!! This is Encoder\n");
+	return EX_CMD_ERR;
 #endif
+	return EX_NO_ERR;
 
-	return 0;
 }
 
 
@@ -2363,7 +3549,7 @@ int EX_GetVideoImageScaleMode(int *mode,char*res)
 	}
 
 
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_GetVideoViewReslotion(int mode, int index, int nativeFlag,int * res)
 {
@@ -2403,17 +3589,17 @@ int EX_GetVideoViewReslotion(int mode, int index, int nativeFlag,int * res)
 
 	*res = a;
 
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_GetVideoFrameRate(int *fps)
 {
 	*fps = 60;
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_GetVideoBitRate(int *kbps)
 {
       *kbps=1000;
-	return 0;
+	return EX_NO_ERR;
 }
 
 int EX_SendCECMsg(CECMessageInfo_S*info)
@@ -2427,49 +3613,10 @@ int EX_SendCECMsg(CECMessageInfo_S*info)
 	{
 		DBG_WarnMsg("CEC Gateway Disable\n");
 		sendStatus = 1;
-		return 1;
+		return EX_MODE_ERR;
 	}
 	else
 	{
-		//check port
-/*		if((strcmp(g_version_info.model,IPE_P_MODULE) == 0)||(strcmp(g_version_info.model,IPE_W_MODULE) == 0))
-		{
-			//get current input
-			char buf[16] = "";
-			memset(buf,0,16);
-
-			int cur_port = 1;
-
-			//Get Cuurent hdmi in
-			mysystem("/usr/local/bin/sconfig --show input", buf, 16);
-			if(strstr(buf,"HDMI1") != 0)
-				cur_port = 1;
-			else if(strstr(buf,"HDMI2") != 0)
-				cur_port = 2;
-			else if(strstr(buf,"HDMI3") != 0)
-			{
-				if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
-					cur_port = 3;
-			}
-
-			if(info->portId != cur_port)
-			{
-				DBG_WarnMsg("cec param Err info->portId = %d cur_port =%d\n",info->portId,cur_port);
-				return 4;
-			}
-
-			DBG_WarnMsg("cec param info->portId = %d\n",info->portId);
-		}
-		else
-		{
-			if(info->portId != 1)
-			{
-				DBG_WarnMsg("cec param Err info->portId = %d\n",info->portId);
-				return 4;
-			}
-		}
-*/
-
 		DBG_WarnMsg("cec param info->portId = %d\n",info->portId);
 		if((info->hexByte > 0)&&(info->hexByte <= 16))
 		{
@@ -2477,13 +3624,13 @@ int EX_SendCECMsg(CECMessageInfo_S*info)
 			if(strlen(info->cmdComent) != (info->hexByte * 2))
 			{
 				DBG_WarnMsg("cec param Err info->hexByte = %d , info->cmdComent = %s\n",info->hexByte,info->cmdComent);
-				return 4;
+				return EX_PARAM_ERR;
 			}
 
 			if(strspn(info->cmdComent, "0123456789abcdefABCDEF")!=strlen(info->cmdComent))
 			{
 				DBG_WarnMsg("cec cmd Err %s\n",info->cmdComent);
-				return 6;
+				return EX_PARAM_ERR;
 			}
 
 			sprintf(sCmd,"e_p3k_cec_send:");
@@ -2493,7 +3640,7 @@ int EX_SendCECMsg(CECMessageInfo_S*info)
 		else
 		{
 			DBG_WarnMsg(" !!! Error para info->hexByte:%d\n",info->hexByte);
-			return 4;
+			return EX_PARAM_ERR;
 		}
 	}
 	DBG_InfoMsg("ast_send_event %s\n",sCmd);
@@ -2506,7 +3653,7 @@ int EX_RecvCECNtfy(int *port,int*hexByte,char*cmdComment)
 	*port = 0;
 	*hexByte = 2;
 	strcpy(cmdComment,"AB01");
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_SetCECGateWayMode(int mode)
 {
@@ -2519,7 +3666,7 @@ int EX_SetCECGateWayMode(int mode)
 			&&((mode == 2)||(mode == 3)))
 		{
 			DBG_WarnMsg(" !!! IPE_W_MODULE, Error para mode:%d\n",mode);
-			return -1;
+			return EX_PARAM_ERR;
 		}
 
 		if(mode == 0)
@@ -2535,7 +3682,7 @@ int EX_SetCECGateWayMode(int mode)
 			&&((mode == 1)||(mode == 3)))
 		{
 			DBG_WarnMsg(" !!! IPD_W_MODULE, Error para mode:%d\n",mode);
-			return -1;
+			return EX_PARAM_ERR;
 		}
 
 		if(mode == 0)
@@ -2555,10 +3702,10 @@ int EX_SetCECGateWayMode(int mode)
 	else
 	{
 		DBG_WarnMsg(" !!! Error para mode:%d\n",mode);
-		return 0;
+		return EX_PARAM_ERR;
 	}
 
-	return 0;
+	return EX_NO_ERR;
 }
 
 int EX_GetCECGateWayMode(void)
@@ -2576,7 +3723,7 @@ int EX_SendIRmessage(IRMessageInfo_S*info)
 	if((g_gateway_info.ir_mode == OFF)||(g_gateway_info.ir_direction == DIRECTION_IN))
 	{
 		DBG_ErrMsg("SendIR Err! g_gateway_info.ir_mode = %d, g_gateway_info.ir_direction = %d\n",g_gateway_info.ir_mode,g_gateway_info.ir_direction);
-		return 8;
+		return EX_MODE_ERR;
 	}
 
 	char sCmd[512] = "";
@@ -2584,7 +3731,7 @@ int EX_SendIRmessage(IRMessageInfo_S*info)
 	if(strspn(info->cmdComent, "0123456789abcdefABCDEF")!=strlen(info->cmdComent))
 	{
 		DBG_WarnMsg("IR cmd Err %s\n",info->cmdComent);
-		return 4;
+		return EX_PARAM_ERR;
 	}
 
 	sprintf(sCmd,"irs");
@@ -2596,7 +3743,7 @@ int EX_SendIRmessage(IRMessageInfo_S*info)
 
 	DBG_InfoMsg("system %s\n",sCmd);
 
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_SendIRStop(int irId,int serialNumb,char*command)
 {
@@ -2605,11 +3752,18 @@ int EX_SendIRStop(int irId,int serialNumb,char*command)
 }
 int EX_SetRouteMatch(PortInfo_S*inPortInfo,PortInfo_S*matchPortInfo,int num)
 {
+
 	char sCmd[128] = "";
 
 	DBG_InfoMsg("EX_SetRouteMatch  num=====%d  %d   %d\n",num, inPortInfo[2].index,matchPortInfo->index);
 
 #ifdef CONFIG_P3K_HOST
+	if(IsPortValid(matchPortInfo->direction, matchPortInfo->portFormat, matchPortInfo->portIndex, matchPortInfo->signal, matchPortInfo->index) == EX_PARAM_ERR)
+	{
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
+	}
+
 	if(matchPortInfo->signal == SIGNAL_VIDEO)
 	{
 		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
@@ -2650,6 +3804,12 @@ int EX_SetRouteMatch(PortInfo_S*inPortInfo,PortInfo_S*matchPortInfo,int num)
 
 		for(int i = 0; i < num;i++)
 		{
+			if(IsPortValid(inPortInfo[i].direction, inPortInfo[i].portFormat, inPortInfo[i].portIndex, inPortInfo[i].signal, inPortInfo[i].index) == EX_PARAM_ERR)
+			{
+				DBG_WarnMsg(" !!! Error para\n");
+				return EX_PARAM_ERR;
+			}
+
 			if(inPortInfo[i].portFormat == PORT_HDMI)
 			{
 				sprintf(sCmd,"%s::hdmi",sCmd);
@@ -2696,6 +3856,12 @@ int EX_SetRouteMatch(PortInfo_S*inPortInfo,PortInfo_S*matchPortInfo,int num)
 	ast_send_event(0xFFFFFFFF,sCmd);
 #else
 	DBG_WarnMsg(" !!! This is Decoder\n");
+	if(IsPortValid(matchPortInfo->direction, matchPortInfo->portFormat, matchPortInfo->portIndex, matchPortInfo->signal, matchPortInfo->index) == EX_PARAM_ERR)
+	{
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
+	}
+
 	if(matchPortInfo->signal == SIGNAL_VIDEO)
 	{
 		if(matchPortInfo->portFormat == PORT_HDMI)
@@ -2717,7 +3883,7 @@ int EX_SetRouteMatch(PortInfo_S*inPortInfo,PortInfo_S*matchPortInfo,int num)
 		else
 		{
 			DBG_WarnMsg("!!! Error matchPortInfo->portFormat %d\n",matchPortInfo->portFormat);
-			return -1;
+			return EX_PARAM_ERR;
 		}
 
 		ast_send_event(0xFFFFFFFF,sCmd);
@@ -2727,14 +3893,18 @@ int EX_SetRouteMatch(PortInfo_S*inPortInfo,PortInfo_S*matchPortInfo,int num)
 		printf("!!! matchPortInfo->signal == SIGNAL_TEST\n");
 
 	}
-
-
 #endif
-	return 0;
+	return EX_NO_ERR;
 }
 
 int EX_GetRouteMatch(PortInfo_S*inPortInfo,PortInfo_S*matchPortInfo)
 {
+	if(IsPortValid(inPortInfo->direction, inPortInfo->portFormat, inPortInfo->portIndex, inPortInfo->signal, inPortInfo->index) == EX_PARAM_ERR)
+	{
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
+	}
+
 	if((inPortInfo->signal == SIGNAL_VIDEO)
 		&&(inPortInfo->direction == DIRECTION_OUT))
 	{
@@ -2841,90 +4011,133 @@ int EX_GetRouteMatch(PortInfo_S*inPortInfo,PortInfo_S*matchPortInfo)
 	}
 	else
 	{
-		// ???
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
 	}
-	return 0;
+
+	return EX_NO_ERR;
+
 }
 
 int EX_SetUartConf(UartMessageInfo_S*conf)
 {
-	Cfg_Set_GW_Uart_Param(*conf);
+	if(conf->comNumber == 1)
+	{
+		Cfg_Set_GW_Uart_Param(*conf);
 
-	char cmd[128] = "";
-	if(conf->parity == PARITY_ODD)
-//		sprintf(cmd,"astparam s s0_baudrate %d-%do%d;astparam save",conf->rate,conf->bitWidth,(int)conf->stopBitsMode);
-		sprintf(cmd,"e_p3k_soip_param::%d-%do%d",conf->rate,conf->bitWidth,(int)conf->stopBitsMode);
-	else if(conf->parity == PARITY_EVEN)
-//		sprintf(cmd,"astparam s s0_baudrate %d-%de%d;astparam save",conf->rate,conf->bitWidth,(int)conf->stopBitsMode);
-		sprintf(cmd,"e_p3k_soip_param::%d-%de%d",conf->rate,conf->bitWidth,(int)conf->stopBitsMode);
+		char cmd[128] = "";
+		if(conf->parity == PARITY_ODD)
+			sprintf(cmd,"e_p3k_soip_param::%d-%do%d",conf->rate,conf->bitWidth,(int)conf->stopBitsMode);
+		else if(conf->parity == PARITY_EVEN)
+			sprintf(cmd,"e_p3k_soip_param::%d-%de%d",conf->rate,conf->bitWidth,(int)conf->stopBitsMode);
+		else
+			sprintf(cmd,"e_p3k_soip_param::%d-%dn%d",conf->rate,conf->bitWidth,(int)conf->stopBitsMode);
+
+		DBG_InfoMsg("ast_send_event %s\n",cmd);
+		ast_send_event(0xFFFFFFFF,cmd);
+	}
 	else
-//		sprintf(cmd,"astparam s s0_baudrate %d-%dn%d;astparam save",conf->rate,conf->bitWidth,(int)conf->stopBitsMode);
-		sprintf(cmd,"e_p3k_soip_param::%d-%dn%d",conf->rate,conf->bitWidth,(int)conf->stopBitsMode);
+	{
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
+	}
 
-	DBG_InfoMsg("ast_send_event %s\n",cmd);
-	ast_send_event(0xFFFFFFFF,cmd);
-
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_GetUartConf(int comId,UartMessageInfo_S*conf)
 {
-	UartMessageInfo_S tmpconf;
+	if(comId == 1)
+	{
+		UartMessageInfo_S tmpconf;
 
-	Cfg_Get_GW_Uart_Param(&tmpconf);
+		Cfg_Get_GW_Uart_Param(&tmpconf);
 
-	conf->bitWidth = tmpconf.bitWidth;
-	conf->comNumber = comId;
-	conf->rate = tmpconf.rate;
-	conf->stopBitsMode = tmpconf.stopBitsMode;
-	conf->serialType =0;
-	conf->term_485 = 0;
-	conf->parity = tmpconf.parity;
+		conf->bitWidth = tmpconf.bitWidth;
+		conf->comNumber = comId;
+		conf->rate = tmpconf.rate;
+		conf->stopBitsMode = tmpconf.stopBitsMode;
+		conf->serialType =0;
+		conf->term_485 = 0;
+		conf->parity = tmpconf.parity;
+	}
+	else
+	{
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
+	}
 
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_AddComRoute(ComRouteInfo_S*info,int comId)
 {
-	Cfg_Set_GW_COM_Add(info->portNumber);
+	if(comId == 1)
+	{
+		Cfg_Set_GW_COM_Add(info->portNumber);
 
-	//system("astparam s no_soip n;astparam save");
-	char sCmd[64] = "";
-	sprintf(sCmd,"e_p3k_soip_gw_on::%d",info->portNumber);
-	DBG_InfoMsg("ast_send_event %s\n",sCmd);
-	ast_send_event(0xFFFFFFFF,sCmd);
+		//system("astparam s no_soip n;astparam save");
+		char sCmd[64] = "";
+		sprintf(sCmd,"e_p3k_soip_gw_on::%d",info->portNumber);
+		DBG_InfoMsg("ast_send_event %s\n",sCmd);
+		ast_send_event(0xFFFFFFFF,sCmd);
+	}
+	else
+	{
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
+	}
 
-	return 0;
+
+	return EX_NO_ERR;
 }
 int EX_RemoveComRoute(int comId)
 {
-	Cfg_Set_GW_COM_Remove();
+	if(comId == 1)
+	{
+		Cfg_Set_GW_COM_Remove();
 
-	DBG_InfoMsg("ast_send_event e_p3k_soip_gw_off\n");
-	ast_send_event(0xFFFFFFFF,"e_p3k_soip_gw_off");
-	//system("astparam s no_soip y;astparam save");
-	return 0;
+		DBG_InfoMsg("ast_send_event e_p3k_soip_gw_off\n");
+		ast_send_event(0xFFFFFFFF,"e_p3k_soip_gw_off");
+	}
+	else
+	{
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
+	}
+	return EX_NO_ERR;
 }
 int EX_GetComRoute(int comId,ComRouteInfo_S*info)
 {
 	State_E mode;
 	int port;
 
-	Cfg_Get_GW_COM_Status(&mode,&port);
-	if(mode == ON)
+	if(comId == 1)
 	{
-		info->HeartTimeout = 60;
-		info->portNumber = port;
-		info->portType = 0;
-		info->rePlay = 0;
+		Cfg_Get_GW_COM_Status(&mode,&port);
+		if(mode == ON)
+		{
+			info->HeartTimeout = 60;
+			info->portNumber = port;
+			info->portType = 0;
+			info->rePlay = 0;
+		}
+		else
+		{
+			info->HeartTimeout = 0;
+			info->portNumber = 0;
+			info->portType = 0;
+			info->rePlay = 0;
+
+			DBG_WarnMsg(" !!! Error Mode \n");
+			return EX_NO_ERR;
+			//return EX_MODE_ERR;
+		}
 	}
 	else
 	{
-		info->HeartTimeout = 0;
-		info->portNumber = 0;
-		info->portType = 0;
-		info->rePlay = 0;
-		return -1;
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
 	}
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_GetOpenTunnelParam(int tunnelId,TunnelParam_S*param)
 {
@@ -2936,62 +4149,72 @@ int EX_GetOpenTunnelParam(int tunnelId,TunnelParam_S*param)
 	param->rePlay = 0;
 	strcpy(param->ipAddr,"192.168.0.122");
 	strcpy(param->comName,"COM");
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_SetUSBCtrl(int type)
 {
     DBG_InfoMsg("EX_SetUSBCtrl =%d\n",type);
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_GetMulticastInfo(char*ip,int *ttl)
 {
 	Cfg_Get_Net_Multicast(ip,ttl);
-	return 0;
+	return EX_NO_ERR;
 }
 
 int EX_SetMacAddr(int netid,char*macAddr)
 {
 	DBG_InfoMsg("EX_SetMacAddr mac =%s\n",macAddr);
-
-	int nMac[6];
-	if(macAddr != NULL)
+	if((netid == 0)||(netid == 1))
 	{
-		char cmd[128] = "";
-
-		int ret = sscanf(macAddr,"%02x-%02x-%02x-%02x-%02x-%02x",&nMac[0],&nMac[1],&nMac[2],&nMac[3],&nMac[4],&nMac[5]);
-
-		if(ret == 6)
+		int nMac[6];
+		if(macAddr != NULL)
 		{
-			DBG_WarnMsg("ret = %d\n",ret);
-			sprintf(cmd,"astparam w ethaddr %02x:%02x:%02x:%02x:%02x:%02x;astparam save ro",nMac[0],nMac[1],nMac[2],nMac[3],nMac[4],nMac[5]);
-			system(cmd);
+			char cmd[128] = "";
+
+			int ret = sscanf(macAddr,"%02x-%02x-%02x-%02x-%02x-%02x",&nMac[0],&nMac[1],&nMac[2],&nMac[3],&nMac[4],&nMac[5]);
+
+			if(ret == 6)
+			{
+				DBG_WarnMsg("ret = %d\n",ret);
+				sprintf(cmd,"astparam w ethaddr %02x:%02x:%02x:%02x:%02x:%02x;astparam save ro",nMac[0],nMac[1],nMac[2],nMac[3],nMac[4],nMac[5]);
+				system(cmd);
+			}
+			else
+			{
+				DBG_WarnMsg(" !!! Error para\n");
+				return EX_PARAM_ERR;
+			}
 		}
 		else
 		{
-			return -1;
+			DBG_WarnMsg("macAddr == NULL\n");
+			return EX_PARAM_ERR;
 		}
 	}
 	else
-	{
-		DBG_WarnMsg("macAddr == NULL\n");
-	}
+    {
+		DBG_WarnMsg("EX_SetMacAddr netId : %d Error\n",netid );
+		return EX_PARAM_ERR;
+    }
 
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_GetMacAddr(int netid,char*macAddr)
 {
 //	strcpy(macAddr,"00-14-22-01-23-45");
 	DBG_InfoMsg("EX_GetMacAddr %s\n",g_device_info.mac_addr);
-	int nMac[6];
-	if(macAddr != NULL)
+	if((netid == 0)||(netid == 1))
 	{
-		sscanf(g_device_info.mac_addr,"%x:%x:%x:%x:%x:%x",&nMac[0],&nMac[1],&nMac[2],&nMac[3],&nMac[4],&nMac[5]);
+		int nMac[6];
+		if(macAddr != NULL)
+		{
+			sscanf(g_device_info.mac_addr,"%x:%x:%x:%x:%x:%x",&nMac[0],&nMac[1],&nMac[2],&nMac[3],&nMac[4],&nMac[5]);
 
-		sprintf(macAddr,"%02x-%02x-%02x-%02x-%02x-%02x",nMac[0],nMac[1],nMac[2],nMac[3],nMac[4],nMac[5]);
+			sprintf(macAddr,"%02x-%02x-%02x-%02x-%02x-%02x",nMac[0],nMac[1],nMac[2],nMac[3],nMac[4],nMac[5]);
+		}
 	}
-
-	netid = 0;
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_SetDNSName(int id,char*name)
 {
@@ -3005,11 +4228,10 @@ int EX_SetDNSName(int id,char*name)
 				if(strcmp(g_audio_info.dante_name,name) == 0)
 				{
 					DBG_WarnMsg(" !!! dante_name %s is the same\n",name);
-					return 0;
+					return EX_NO_ERR;
 				}
 				else
 				{
-
 					char sCmd[64] = "";
 					sprintf(sCmd,"e_p3k_net_dante_name::%s",name);
 					DBG_InfoMsg("ast_send_event %s\n",sCmd);
@@ -3020,11 +4242,11 @@ int EX_SetDNSName(int id,char*name)
 		else
 		{
 			DBG_WarnMsg(" !!! This is not switcher\n");
-			return -1;
+			return EX_PARAM_ERR;
 		}
 #else
 		DBG_WarnMsg(" !!! This is Decoder\n");
-		return -1;
+		return EX_PARAM_ERR;
 #endif
 	}
 	else if(id == 0)
@@ -3039,12 +4261,13 @@ int EX_SetDNSName(int id,char*name)
 	}
 	else
 	{
-		return -1;
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
 	}
 
 	Cfg_Set_Dev_HostName(id,name);
 
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_GetDNSName(int id,char*name)
 {
@@ -3062,20 +4285,21 @@ int EX_GetDNSName(int id,char*name)
 		else
 		{
 			DBG_WarnMsg(" !!! This is not switcher\n");
-			return -1;
+			return EX_CMD_ERR;
 		}
 	}
 	else
 	{
-		return -1;
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
 	}
 	//strcpy(name,"room-1");
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_ResetDNSName(char *name)
 {
 	strcpy(name,"kramer_0102");
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_SetDHCPMode(int netid,int mode)
 {
@@ -3095,14 +4319,29 @@ int EX_SetDHCPMode(int netid,int mode)
 
 			Cfg_Set_Net_DHCP(netid, mode);
 		}
+		else
+		{
+			DBG_WarnMsg("EX_SetDHCPMode mode : %d Error\n",mode );
+			return EX_PARAM_ERR;
+		}
 	}
-	else
+	else if(netid == 1)
 	{
 		if((mode == 0)||(mode == 1))
 			Cfg_Set_Net_DHCP(netid, mode);
+		else
+		{
+			DBG_WarnMsg("EX_SetDHCPMode mode : %d Error\n",mode );
+			return EX_PARAM_ERR;
+		}
+	}
+	else
+	{
+		DBG_WarnMsg("EX_SetDHCPMode netId : %d Error\n",netid );
+		return EX_PARAM_ERR;
 	}
 
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_GetDHCPMode(int netid,int* mode)
 {
@@ -3111,7 +4350,14 @@ int EX_GetDHCPMode(int netid,int* mode)
 	{
 		*mode = g_network_info.eth_info[netid].dhcp_enable;
 	}
-	return 0;
+	else
+    {
+		DBG_WarnMsg("EX_GetDHCPMode netId : %d Error\n",netid );
+		return EX_PARAM_ERR;
+    }
+
+	return EX_NO_ERR;
+
 }
 int EX_SetNetWorkConf(int netId,NetWorkInfo_S*netInfo)
 {
@@ -3127,11 +4373,30 @@ int EX_SetNetWorkConf(int netId,NetWorkInfo_S*netInfo)
 			DBG_InfoMsg("ast_send_event %s\n",sCmd);
 			ast_send_event(0xFFFFFFFF,sCmd);
 		}
+		else
+	    {
+			DBG_WarnMsg("EX_SetNetWorkConf netId : %s dhcp_enable == 0\n",netId );
+			return EX_MODE_ERR;
+    	}
 	}
 
 	if((netId == 0)||(netId == 1))
+	{
 		Cfg_Set_Net_Config(netId,netInfo);
-	return 0;
+		if(g_network_info.eth_info[netId].dhcp_enable == 1)
+		{
+			DBG_WarnMsg("EX_SetNetWorkConf netId : %s dhcp_enable == 0\n",netId );
+			return EX_MODE_ERR;
+		}
+	}
+	else
+    {
+		DBG_WarnMsg("EX_SetNetWorkConf netId : %s Error\n",netId );
+		return EX_PARAM_ERR;
+    }
+
+	return EX_NO_ERR;
+
 }
 int EX_GetNetWorkConf(int netId,NetWorkInfo_S*netInfo)
 {
@@ -3153,7 +4418,7 @@ int EX_GetNetWorkConf(int netId,NetWorkInfo_S*netInfo)
 
 	strcpy(netInfo->dns1,"0.0.0.0");
 	strcpy(netInfo->dns2,"0.0.0.0");
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_SetNetPort(char* portType,int portNumber)
 {
@@ -3164,7 +4429,7 @@ int EX_SetNetPort(char* portType,int portNumber)
         if(portNumber == g_network_info.udp_port)
         {
             printf("new port == old port err\n");
-            return 0;
+            return EX_NO_ERR;
         }
         int old_port = g_network_info.udp_port;
         Cfg_Set_Net_Port(Net_UDP,portNumber);
@@ -3173,7 +4438,7 @@ int EX_SetNetPort(char* portType,int portNumber)
     	myaddr.sin_family=AF_INET;
     	myaddr.sin_port = htons(49000);
     	//inet_pton(AF_INET,"10.36.145.183",&myaddr.sin_addr.s_addr); //鏈嶅姟鍣ㄧ殑ip
-    	myaddr.sin_addr.s_addr = 0;//閫氶厤鍦板潃  灏嗘墍鏈夌殑鍦板潃閫氶€氱粦瀹?
+    	myaddr.sin_addr.s_addr = 0;//閫氶厤鍦板潃  灏嗘墍鏈夌殑鍦板潃閫氶€氱粦�?
     	if(bind(sock_fd,(struct sockaddr*)&myaddr,sizeof(myaddr))<0)
     		perror("bind");
 
@@ -3183,7 +4448,7 @@ int EX_SetNetPort(char* portType,int portNumber)
 
     	struct sockaddr_in addr;// ipv4濂楁帴瀛楀湴鍧€缁撴瀯浣?
     	addr.sin_family =AF_INET;
-    	addr.sin_port = htons(old_port);  //服务器端口
+    	addr.sin_port = htons(old_port);  //服务器端�?
     	inet_pton(AF_INET,ip_buf,&addr.sin_addr.s_addr); //服务器的ip
     	struct sockaddr_in server_addr;
     	socklen_t len = sizeof(server_addr);
@@ -3195,16 +4460,18 @@ int EX_SetNetPort(char* portType,int portNumber)
     }
 	else if((!strcmp(portType,"tcp"))||(!strcmp(portType,"TCP")))
 	{
-
         if(portNumber != g_network_info.tcp_port)
         {
             Cfg_Set_Net_Port(Net_TCP,portNumber);
         }
 	}
     else
-		printf("EX_SetNetPort portType: %s Error\n",portType);
+    {
+		DBG_WarnMsg("EX_SetNetPort portType: %s Error\n",portType);
+		return EX_PARAM_ERR;
+    }
 
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_GetNetPort(char* portType,int *portNumber)
 {
@@ -3213,9 +4480,12 @@ int EX_GetNetPort(char* portType,int *portNumber)
 	else if((!strcmp(portType,"tcp"))||(!strcmp(portType,"TCP")))
 		Cfg_Get_Net_Port(Net_TCP,portNumber);
 	else
+	{
 		DBG_WarnMsg("EX_GetNetPort portType: %s Error\n",portType);
+		return EX_PARAM_ERR;
+	}
 
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_SetSecurityStatus(int status)
 {
@@ -3224,34 +4494,40 @@ int EX_SetSecurityStatus(int status)
 	{
 		Cfg_Set_User_Secur((State_E)status);
 	}
-	return 0;
+	else
+	{
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
+	}
+	return EX_NO_ERR;
 }
 
 int EX_GetSecurityStatus(int* status)
 {
 	DBG_InfoMsg("EX_GetSecurityStatus\n");
 	Cfg_Get_User_Secur((State_E*)status);
-	return 0;
+	return EX_NO_ERR;
 }
 
 int EX_Login(char*name,char*password)
 {
 	DBG_InfoMsg("EX_Login name= %s password =%s\n",name,password);
-	if((!memcmp(name,"admin",strlen("admin")))
+	if((!strcmp(name,"admin"))
 		&&((! strcmp(password,g_user_info.password))/*||(! strcmp(password,"33333"))*/))
 	{
-		return 0;
+		return EX_NO_ERR;
 	}
-	return -1;
+	DBG_WarnMsg(" !!! Error para\n");
+	return EX_PARAM_ERR;
 }
 int EX_GetLoginInfo(char*name,char*password)
 {
 	strcpy(name,"admin");
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_Logout(void)
 {
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_GetDevVersion(char*version)
 {
@@ -3262,7 +4538,7 @@ int EX_GetDevVersion(char*version)
 	}
 
 	//strcpy(version,tmp);
-	return 0;
+	return EX_NO_ERR;
 }
 
 int EX_GetBootVersion(char*version)
@@ -3272,7 +4548,7 @@ int EX_GetBootVersion(char*version)
 		strcpy(version,"v1.1.4");
 	}
 
-	return 0;
+	return EX_NO_ERR;
 }
 
 #define EMPTY_FW_STATUS		"ongoing,0,0"
@@ -3330,7 +4606,7 @@ int EX_Upgrade(void)
 	CreateFWStatusFile();
 	ast_send_event(0xFFFFFFFF,"e_p3k_upgrade_fw");
 
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_SetDeviceNameModel(char*mod)
 {
@@ -3346,8 +4622,9 @@ int EX_SetDeviceNameModel(char*mod)
 	else
 	{
 		DBG_WarnMsg("model Err,strlen(mod)=%d\n",strlen(mod));
+		return EX_PARAM_ERR;
 	}
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_GetDeviceNameModel(char*mod)
 {
@@ -3358,7 +4635,7 @@ int EX_GetDeviceNameModel(char*mod)
 		strcpy(mod,g_version_info.model);
 	}
 
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_SetSerialNumber(char*data)
 {
@@ -3374,14 +4651,16 @@ int EX_SetSerialNumber(char*data)
 		else
 		{
 			DBG_WarnMsg("strspn(data)== %d\n",strspn(data, "0123456789"));
+			return EX_PARAM_ERR;
 		}
 	}
 	else
 	{
 		DBG_WarnMsg("data Err!\n",strspn(data, "0123456789"));
+		return EX_PARAM_ERR;
 	}
 
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_GetSerialNumber(char*data)
 {
@@ -3405,7 +4684,12 @@ int EX_SetLockFP(int lockFlag)
 			ast_send_event(0xFFFFFFFF,"e_p3k_fp_lock_on");
 
 	}
-	return 0;
+	else
+	{
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
+	}
+	return EX_NO_ERR;
 }
 int EX_GetLockFP(int *lockFlag)
 {
@@ -3415,30 +4699,30 @@ int EX_GetLockFP(int *lockFlag)
 
 	*lockFlag = (int)tmp_flag;
 
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_SetIDV(void)
 {
 	ast_send_event(0xFFFFFFFF,"e_p3k_flag_me");
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_SetStandbyMode(int Mode)
 {
 	DBG_InfoMsg("EX_SetStandbyMode %d\n",Mode);
-	return 0;
+	return EX_NO_ERR;
 }
 
 int EX_GetStandbyMode(int * value)
 {
 	int mode = 1;
 	value = &mode;
-	return 0;
+	return EX_NO_ERR;
 }
 
 int EX_SetBeacon(int portNumber,int status,int rateSecond)
 {
 	DBG_InfoMsg("EX_SetBeacon portNumber= %d status= %d rateSecond=%d\n",portNumber,status,rateSecond);
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_GetBeaconInfo(int portNumber,BeaconInfo_S*info)
 {
@@ -3450,24 +4734,24 @@ int EX_GetBeaconInfo(int portNumber,BeaconInfo_S*info)
 	info->tcpPort = g_network_info.tcp_port;
 	info->udpPort = g_network_info.udp_port;
 	strcpy(info->deviceMod,g_version_info.model);
-    strcpy(info->deviceName,g_device_info.hostname);  
+    strcpy(info->deviceName,g_device_info.hostname);
 	strcpy(info->ipAddr,ip_buf);
 	strcpy(info->macAddr,g_device_info.mac_addr);
 
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_DeviceReset(void)
 {
 	DBG_InfoMsg("EX_DeviceReset\n");
 	system("reboot");
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_FactoryRecovery(void)
 {
 	DBG_InfoMsg("EX_FactoryRecovery\n");
 
 	ast_send_event(0xFFFFFFFF,"e_button_link_5");
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_GetDevBuildDate(char *date,char*hms)
 {
@@ -3478,7 +4762,7 @@ int EX_GetDevBuildDate(char *date,char*hms)
 
 		sscanf(buf,"%s,%s",date,hms);
 	}
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_SetTimeAndDate(char*weekDay,char*date,char*hms)
 {
@@ -3511,8 +4795,13 @@ int EX_SetTimeAndDate(char*weekDay,char*date,char*hms)
 			printf("set time error");
 		}
 	}
+	else
+	{
+		DBG_WarnMsg(" !!! Error Mode \n");
+		return EX_MODE_ERR;
+	}
 
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_GetTimeAndDate(char*weekDay,char*date,char*hms)
 {
@@ -3535,7 +4824,7 @@ int EX_GetTimeAndDate(char*weekDay,char*date,char*hms)
 	sprintf(weekDay,"%s",str[ptime->tm_wday]);
 	sprintf(date,"%02d-%02d-%04d",ptime->tm_mon+1,ptime->tm_mday,ptime->tm_year+1900);
 	sprintf(hms,"%02d:%02d:%02d",ptime->tm_hour,ptime->tm_min,ptime->tm_sec);
-	return 0;
+	return EX_NO_ERR;
 }
 
 int EX_GetLogResetEvent(int * iLog,char*date,char*hms)
@@ -3550,21 +4839,30 @@ int EX_GetLogResetEvent(int * iLog,char*date,char*hms)
 	//auto -1 ,mamual  -2
 	sprintf(date,"%02d/%02d/%04d",ptime->tm_mday,ptime->tm_mon+1,ptime->tm_year+1900);
 	sprintf(hms,"%02d:%02d:%02d",ptime->tm_hour,ptime->tm_min,ptime->tm_sec);
-	return 0;
+	return EX_NO_ERR;
 }
 
 int EX_SetTimeZero(int tz,int timingMethod)
 {
 	DBG_InfoMsg("EX_SetTimeZero tz = %d,timingMethod = %d\n",tz,timingMethod);
-	Cfg_Set_Time_Loc(tz,timingMethod);
 
-	return 0;
+	if((tz >= -12)&&(tz <= 12))
+	{
+		Cfg_Set_Time_Loc(tz,timingMethod);
+	}
+	else
+	{
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
+	}
+
+	return EX_NO_ERR;
 }
 int EX_GetTimeZero(int *tz,int *timingMethod)
 {
 	Cfg_Get_Time_Loc(tz,timingMethod);
 
-	return 0;
+	return EX_NO_ERR;
 }
 int EX_SetTimeSyncInfo(TimeSyncConf_S*syncInfo)
 {
@@ -3575,24 +4873,24 @@ int EX_SetTimeSyncInfo(TimeSyncConf_S*syncInfo)
 	{
 		ast_send_event(0xFFFFFFFF,"e_p3k_ntp_enable_off");
 	}
-	else
+	else if(syncInfo->enable == 1)
 	{
 		char sCmd[128] = "";
 		sprintf(sCmd,"e_p3k_ntp_enable_on::%s::%d",syncInfo->serverIp,syncInfo->syncInerval);
 		DBG_InfoMsg("ast_send_event %s\n",sCmd);
 		ast_send_event(0xFFFFFFFF,sCmd);
 	}
-	return 0;
+	else
+	{
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
+	}
+	return EX_NO_ERR;
 }
 int EX_GetTimeSyncInfo(TimeSyncConf_S*syncInfo)
 {
-	int status = 0;
-	//syncInfo->enable = 0;
-	//syncInfo->syncInerval = 10;
-	//strcpy(syncInfo->serverIp,"192.168.0.168");
-
 	Cfg_Get_Time_Srv(syncInfo);
-	return status;
+	return EX_NO_ERR;
 }
 int EX_GetSignalList(char info[][MAX_SIGNALE_LEN],int num)
 {
@@ -3842,7 +5140,7 @@ int EX_GetPortList(char info[][MAX_PORT_LEN],int num)
 }
 int EX_GetActiveCliNUm(void)
 {
-	int num = 6;
+	int num = 0;
 	return num ;
 }
 int EX_SetLogEvent(int action,int period)
@@ -3863,7 +5161,7 @@ int EX_SetLogEvent(int action,int period)
 	else
 	{
 		DBG_ErrMsg("action: %d\n",action);
-		return -1;
+		return EX_PARAM_ERR;
 	}
 
 	if(period == 2)
@@ -3873,14 +5171,14 @@ int EX_SetLogEvent(int action,int period)
 	else
 	{
 		DBG_ErrMsg("period: %d\n",period);
-		return -1;
+		return EX_PARAM_ERR;
 	}
 
 	DBG_InfoMsg("ast_send_event %s\n",sCmd);
 	ast_send_event(0xFFFFFFFF,sCmd);
 
 	Cfg_Set_Log_Action(action,period);
-	return 0;
+	return EX_NO_ERR;
 }
 
 int EX_GetLogEvent(int * action,int * period)
@@ -3888,7 +5186,7 @@ int EX_GetLogEvent(int * action,int * period)
 	DBG_InfoMsg("EX_SetLogEvent action = %d period= %d\n",action,period);
 	Cfg_Get_Log_Action(action,period);
 
-	return 0;
+	return EX_NO_ERR;
 }
 
 int EX_GetLogTail(int lineNumber,char log[][MAX_ONELOG_LEN])
@@ -3939,7 +5237,7 @@ int EX_SetCfgModify(char* cfgName)
 		Cfg_Set_Display_Sleep();
 	}
 
-	return 0;
+	return EX_NO_ERR;
 }
 
 void * Beacon_cb(void * fd)
@@ -3981,7 +5279,7 @@ void * Beacon_cb(void * fd)
       printf("[%s]\n",cBeaconInfo);
 	while(1){
 		if(g_network_info.beacon_en == ON)
-        {      
+        {
 		    ret = sendto(g_Udp_Socket,cBeaconInfo,strlen(cBeaconInfo),0,(struct sockaddr *)&dst_addr,sizeof(dst_addr));
 		}
         else{
@@ -3999,20 +5297,31 @@ int EX_Beacon(int iPort_Id,int iStatus,int iTime)
 
         if(iStatus == 1)
         {
-            g_network_info.beacon_en  = ON;
+			if(g_network_info.beacon_en  != ON)
+            {
+				g_network_info.beacon_en  = ON;
 
-			pthread_attr_t	s_tThreadAttr;
-			pthread_attr_init(&s_tThreadAttr);
-			pthread_attr_setstacksize(&s_tThreadAttr, 512*1024);
+				pthread_attr_t	s_tThreadAttr;
+				pthread_attr_init(&s_tThreadAttr);
+				pthread_attr_setstacksize(&s_tThreadAttr, 512*1024);
 
-            pthread_create(&Beacon_id, &s_tThreadAttr, Beacon_cb, NULL);
-            pthread_detach(Beacon_id);
+	            pthread_create(&Beacon_id, &s_tThreadAttr, Beacon_cb, NULL);
+	            pthread_detach(Beacon_id);
+			}
 
         }
-        else
+        else if(iStatus == 0)
         {
-            g_network_info.beacon_en  = OFF;
+			if(g_network_info.beacon_en  != OFF)
+            {
+				g_network_info.beacon_en  = OFF;
+			}
         }
+		else
+		{
+			DBG_WarnMsg(" !!! Error para\n");
+			return EX_PARAM_ERR;
+		}
     }
     if(1 <= iTime && iTime <= 1800)
     {
@@ -4020,10 +5329,12 @@ int EX_Beacon(int iPort_Id,int iStatus,int iTime)
     }
     else
     {
-        g_network_info.beacon_time = 10;
+        //g_network_info.beacon_time = 10;
+		DBG_WarnMsg(" !!! Error para\n");
+        return EX_PARAM_ERR;
     }
     Cfg_Update(NETWORK_INFO);
-	return 0;
+	return EX_NO_ERR;
 }
 //g_network_info
 int EX_Discovery(char *aflag,char*ip,int iPort)
@@ -4055,16 +5366,16 @@ int EX_Discovery(char *aflag,char*ip,int iPort)
     {
         sprintf(Send_buf,"~01@NET-IP %s\r\n",ip_buf);
     }
-	struct sockaddr_in addr;// ipv4套接字地址结构体 
+	struct sockaddr_in addr;// ipv4套接字地址结构�?
 	addr.sin_family =AF_INET;
-	addr.sin_port = htons(iPort);// iPort //服务器端口  
+	addr.sin_port = htons(iPort);// iPort //服务器端�?
 	inet_pton(AF_INET,ip,&addr.sin_addr.s_addr); //服务器的ip
 	struct sockaddr_in server_addr;
 	socklen_t len = sizeof(server_addr);
 
     int ret = sendto(g_Udp_Socket,Send_buf,strlen(Send_buf),0, (struct sockaddr*)&addr,sizeof(addr));
     printf("sendto ip:%s,port:%d [%d]{%s}\n",ip,iPort,ret,Send_buf);
-	return 0;
+	return EX_NO_ERR;
 }
 
 int EX_ConfBeaconInfo(char *muticastIP,int port)
@@ -4086,15 +5397,20 @@ int EX_ConfBeaconInfo(char *muticastIP,int port)
         pthread_create(&Beacon_id, NULL, Beacon_cb, NULL);
         pthread_detach(Beacon_id);
     }
-    
-    return 0;
+	else
+	{
+		DBG_WarnMsg(" !!! Error Mode \n");
+		return EX_MODE_ERR;
+	}
+
+    return EX_NO_ERR;
 }
 
 int EX_GetBeaconConf(char *muticastIP,int *port)
 {
     memcpy(muticastIP,g_network_info.beacon_ip,strlen(g_network_info.beacon_ip));
-    *port = g_network_info.beacon_port ; 
-    return 0;
+    *port = g_network_info.beacon_port ;
+    return EX_NO_ERR;
 }
 
 int EX_GetBeacon(int *iPort_Id,int *iStatus,int *iTime)
@@ -4103,13 +5419,13 @@ int EX_GetBeacon(int *iPort_Id,int *iStatus,int *iTime)
     if(g_network_info.beacon_en == ON)
     {
         *iStatus = 1;
-        }
+    }
     else
     {
         *iStatus = 0;
-        }
+    }
     *iTime = g_network_info.beacon_time;
-	return 0;
+	return EX_NO_ERR;
 }
 
 
@@ -4145,7 +5461,7 @@ int EX_NTFYPhraser(Notify_S *s_NTFYInfo,char *tmpparam)
         if(buttonbool == 0){
             return -1;
         }
-    }    
+    }
     if(s_NTFYInfo->NCmd == NTFY_INPUT || s_NTFYInfo->NCmd == NTFY_OUTPUT)
     {
         int i = 0;
@@ -4189,13 +5505,13 @@ int EX_NTFYPhraser(Notify_S *s_NTFYInfo,char *tmpparam)
     	}
     }
     printf("{s_NTFYInfo [%d][%d]}\n",s_NTFYInfo->NCmd,s_NTFYInfo->iParamNum);
-    return 0;
+    return EX_NO_ERR;
 }
 
 int EX_TESTMODE()
 {
     buttonbool = 1;
-    return 0;
+    return EX_NO_ERR;
 }
 
 

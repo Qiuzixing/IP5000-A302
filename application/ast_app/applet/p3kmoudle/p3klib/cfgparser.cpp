@@ -683,8 +683,6 @@ int Cfg_Init_Audio(void)
 			g_audio_info.input_pri[2] = AUDIO_IN_NONE;
 			if(!root[JSON_PRIORITY].empty())
 			{
-
-
 				Json::Value& JsonPriorityArray = root[JSON_PRIORITY];
 				//printf("JsonPriorityArray.size() = %d\n",JsonPriorityArray.size());
 
@@ -4331,8 +4329,11 @@ int Cfg_Update_Audio(void)
 			}
 			else if(g_audio_info.input_pri[i] == AUDIO_IN_ANALOG)
 			{
-				JasonPri = JSON_AUDIO_ANALOG;
-				jjj++;
+				if(g_audio_info.direction == DIRECTION_IN)
+				{
+					JasonPri = JSON_AUDIO_ANALOG;
+					jjj++;
+				}
 			}
 			else if(g_audio_info.input_pri[i] == AUDIO_IN_DANTE)
 			{
@@ -4361,8 +4362,11 @@ int Cfg_Update_Audio(void)
 			}
 			else if(g_audio_info.dst_port[i] == PORT_ANALOG_AUDIO)
 			{
-				JsonDst = JSON_AUDIO_ANALOG;
-				jjj++;
+				if(g_audio_info.direction == DIRECTION_OUT)
+				{
+					JsonDst = JSON_AUDIO_ANALOG;
+					jjj++;
+				}
 			}
 			else if(g_audio_info.dst_port[i] == PORT_DANTE)
 			{
@@ -4422,8 +4426,11 @@ int Cfg_Update_Audio(void)
 			}
 			else if(g_audio_info.input_pri[i] == AUDIO_IN_ANALOG)
 			{
-				JasonPri = JSON_AUDIO_ANALOG;
-				jjj++;
+				if(g_audio_info.direction == DIRECTION_IN)
+				{
+					JasonPri = JSON_AUDIO_ANALOG;
+					jjj++;
+				}
 			}
 			else
 				continue;
@@ -4441,8 +4448,11 @@ int Cfg_Update_Audio(void)
 
 			if(g_audio_info.dst_port[i] == PORT_ANALOG_AUDIO)
 			{
-				JsonDst = JSON_AUDIO_ANALOG;
-				jjj++;
+				if(g_audio_info.direction == DIRECTION_OUT)
+				{
+					JsonDst = JSON_AUDIO_ANALOG;
+					jjj++;
+				}
 			}
 			else if(g_audio_info.dst_port[i] == PORT_STREAM)
 			{

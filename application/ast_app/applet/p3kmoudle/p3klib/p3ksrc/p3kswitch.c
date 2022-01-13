@@ -1944,6 +1944,11 @@ static int P3K_GetComRouteInfo(char*reqparam,char*respParam,char*userdata)
 	int comId = 0;;
 	int ret = 0;
 	ComRouteInfo_S info;
+	if(0 == strcmp(str[0],"*"))
+		comId = 1;
+	else
+		comId = atoi(str[0]);
+
 	ret = EX_GetComRoute(comId,&info);
 
 	if(ret == 0) //enable
@@ -3587,30 +3592,6 @@ static int P3K_SetChannelName(char*reqparam,char*respParam,char*userdata)//P3K_S
 	return 0;
 }
 
-//Set Encoder Dante Hostl Name.
-static int P3K_SetDanteName(char*reqparam,char*respParam,char*userdata)
-{
-	//#KDS-DANTE-NAME  xxxx<CR>
-	//~nn@KDS-DANTE-NAME  xxxx<CR><LF>
-	DBG_InfoMsg("P3K_SetDanteName\n");
-	int s32Ret = 0;
-	int count = 0;
-	char aName[32]= {0};
-	char tmpparam[MAX_PARAM_LEN] = {0};
-	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
-
-	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
-	memcpy(aName,str[0],strlen(str[0]));
-
-	s32Ret =  EX_SetDanteName(aName);
-	if(s32Ret)
-	{
-		DBG_ErrMsg("EX_SetDanteName err\n");
-	}
-	memcpy(respParam,reqparam,strlen(reqparam));
-	return 0;
-}
-
 static int P3K_GetChannelName(char*reqparam,char*respParam,char*userdata)//
 {
 	//#KDS-DEFINE-Name?<CR>
@@ -3624,25 +3605,6 @@ static int P3K_GetChannelName(char*reqparam,char*respParam,char*userdata)//
 	if(s32Ret)
 	{
 		DBG_ErrMsg("EX_GetChannelName err\n");
-	}
-	sprintf(tmpparam,"%s",aName);
-	memcpy(respParam,tmpparam,strlen(tmpparam));
-	return 0;
-}
-
-static int P3K_GetDanteName(char*reqparam,char*respParam,char*userdata)//
-{
-	//#KDS-DANTE-NAME ? <CR>
-	//~nn@KDS-DANTE-NAME  xxxx<CR><LF>
-	DBG_InfoMsg("P3K_GetDanteName\n");
-	int s32Ret = 0;
-	char aName[32]= {0};
-	char tmpparam[MAX_PARAM_LEN] = {0};
-
-	s32Ret =  EX_GetDanteName(aName);
-	if(s32Ret)
-	{
-		DBG_ErrMsg("EX_GetDanteName err\n");
 	}
 	sprintf(tmpparam,"%s",aName);
 	memcpy(respParam,tmpparam,strlen(tmpparam));
@@ -4234,15 +4196,16 @@ static int P3K_GetPassword(char*reqparam,char*respParam,char*userdata)
 	int s32Ret = 0;
 	int count =0;
 	char aLogin_level[16] = {0};
+	char ologin_Pass[32] = {0};
 	int iPassWord = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	memcpy(aLogin_level,str[0],strlen(str[0]));
-	iPassWord = EX_GetPassword(aLogin_level);
+	iPassWord = EX_GetPassword(aLogin_level,ologin_Pass);
 	if(iPassWord)
 	{
-		sprintf(tmpparam,"%s,%d",aLogin_level,iPassWord);
+		sprintf(tmpparam,"%s,%s",aLogin_level,ologin_Pass);
 	}
 	memcpy(respParam,tmpparam,strlen(tmpparam));
 	return 0;
@@ -4347,7 +4310,7 @@ static int P3K_RmEDID(char*reqparam,char*respParam,char*userdata)
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	iEDID = atoi(str[0]);
 	sprintf(tmpparam,"%d",iEDID);
-	ret =  EX_RemoveEDID(iEDID);//EX_RmEDID(iEDID);
+	ret =  EX_RemoveEDID(iEDID);
 	if(ret != 0)
 	{
 		memset(tmpparam,0,sizeof(tmpparam));
@@ -4851,11 +4814,4 @@ int P3K_CheckedSpeciCmd(char*cmd)
 	return 0;
 }
 
-
-
-
-/*
-								{"NAME",P3K_SetDanteName},
-									{"NAME?",P3K_GetDanteName},
-*/
 

@@ -621,8 +621,7 @@ int EX_GetHWVersion(char * date);
 int EX_GetDevStatus(void);
 int EX_GetHWTemp(int  id,int iMode);
 int EX_GetAutoSwitchPriority(AudioInfo_S * gain,int count);
-int EX_SetDanteName(char date[32]);
-int EX_GetDanteName(char * date);
+
 int EX_GetStandbyVersion(char * date);
 int EX_GetUPGTime(char * day,char * time);
 int EX_SetVidOutput(char info[][MAX_PARAM_LEN],int count );
@@ -641,7 +640,7 @@ int EX_GetGatewayPort(int iGw_Type);
 int EX_SetVlanTag(int iGw_Type,int iTag);
 int EX_GetVlanTag(int iGw_Type);
 int EX_SetPassword(char * login_level,char * iNew_Pass);
-int EX_GetPassword(char * login_level);
+int EX_GetPassword(char * login_level,char * ologin_Pass);
 int EX_SetRollback(char * type);
 int EX_GetLogEvent(int * action,int * period);
 int EX_GetLogResetEvent(int * iLog,char*date,char*hms);
