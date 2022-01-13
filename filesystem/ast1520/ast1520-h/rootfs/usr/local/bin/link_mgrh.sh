@@ -20,7 +20,7 @@ av_signal="/data/configs/kds-7/av_signal/av_signal.json"
 audio_setting="/data/configs/kds-7/audio/audio_setting.json"
 rx_tcp_port='8888'
 analog_out_volum='87'
-
+execute_once_flag='on'
 stop_all_service()
 {
 	## A7 TBD
@@ -317,6 +317,20 @@ handle_e_sys_init_ok()
 		fi
 
 		set_igmp_leave_force
+	fi
+
+	#qzx 2022.1.11:When the power is on, turn on the black screen switch when the video is ready
+	if [ "$UGP_FLAG" = 'success' -a "$execute_once_flag" = 'on' ];then
+		case "$MODEL_NUMBER" in
+			KDS-EN7)
+				ipc @m_lm_set s set_video_control:17:1:0
+				execute_once_flag='off'
+			;;
+			KDS-SW3-EN7)
+			;;
+			*)
+			;;
+		esac
 	fi
 }
 

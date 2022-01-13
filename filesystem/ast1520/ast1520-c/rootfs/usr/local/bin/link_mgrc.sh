@@ -25,7 +25,7 @@ GUI_PICTURE_NAME='default.jpg'
 GUI_SHOW_TEXT_INIT=""
 GUI_SHOW_TEXT_RUNTIME=""
 GUI_PICTURE_DAEMON=""
-
+execute_once_flag='on'
 # OSD globals ##################################################################
 # OSD_STR_UUID: a token for tracking OSD_STR session.
 OSD_STR_UUID=''
@@ -287,6 +287,9 @@ handle_e_encoder_ip_got()
 		case "$LM_V_ENCODER_IP" in
 			Unknown)
 				inform_gui_echo "Trying to find the transmitter..."
+				if [ $execute_once_flag = 'on' ];then
+					execute_once_flag='off'
+				fi
 			;;
 			*)
 				inform_gui_echo "Transmitter found. Connecting..."
@@ -3592,6 +3595,12 @@ handle_e_update_idle_screen()
 
 handle_set_up_alc5640()
 {
+	#qzx 2022.1.11:If triggered first when powered on handle_set_up_alc5640,it will cause noise;So Add a flag bit to trigger it later
+	if [ $execute_once_flag = 'on' ];then
+		sleep 1
+		execute_once_flag='off'
+	fi
+
 	if [ $P3KCFG_AV_MUTE = 'off' ];then
 		echo 1 > /sys/class/leds/lineout_mute/brightness
 	else
