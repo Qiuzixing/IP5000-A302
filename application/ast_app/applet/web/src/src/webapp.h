@@ -114,6 +114,7 @@ public:
     static void        P3kWebsocketHandle(struct mg_connection *conn, char *data, size_t len);
     static void *      P3kCommunicationThread(void *arg);
     static void        CloseP3kSocket(void);
+    static bool        P3kConnect();
 
     // APIs
     static int         ActionReqHandler(struct mg_connection *conn, void *cbdata);

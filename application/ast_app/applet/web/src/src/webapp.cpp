@@ -853,6 +853,12 @@ int CWeb::JsonDataHandle(struct mg_connection *conn, void *cbdata)
         }
         else
         {
+            CMutexLocker locker(&s_p3kmutex);
+            if(s_p3kSocket < 0)
+            {
+                BC_INFO_LOG("p3k socket error");
+                return 1;
+            }
             int maxfd;
         	fd_set Writefds;
         	maxfd = s_p3kSocket + 1;
@@ -869,7 +875,6 @@ int CWeb::JsonDataHandle(struct mg_connection *conn, void *cbdata)
             {
                 if(FD_ISSET(s_p3kSocket,&Writefds))
                 {
-                    s_p3kmutex.Lock();
                     int WriteSize = write(s_p3kSocket, strP3kConfCmd.c_str(), strP3kConfCmd.length());
                     if(WriteSize < 0)
                     {
@@ -878,7 +883,6 @@ int CWeb::JsonDataHandle(struct mg_connection *conn, void *cbdata)
 
                     // 延时
                     usleep(1000);
-                    s_p3kmutex.Unlock();
                 }
             }
         }
@@ -1521,6 +1525,7 @@ void CWeb::P3kStatusInit()
 
 void CWeb::P3kWebsocketHandle(struct mg_connection *conn, char *data, size_t len)
 {
+    CMutexLocker locker(&s_p3kmutex);
     BC_INFO_LOG("websocket get data is <%s>", data);
     if(s_p3kSocket < 0)
     {
@@ -1545,8 +1550,7 @@ void CWeb::P3kWebsocketHandle(struct mg_connection *conn, char *data, size_t len
 	{
 		if(FD_ISSET(s_p3kSocket,&Writefds))
 		{
-
-            CMutexLocker locker(&s_p3kmutex);
+            //CMutexLocker locker(&s_p3kmutex);
             int WriteSize = write(s_p3kSocket, data, len - 1);
 			if(WriteSize < 0)
 			{
@@ -1557,12 +1561,10 @@ void CWeb::P3kWebsocketHandle(struct mg_connection *conn, char *data, size_t len
 
 }
 
-void *CWeb::P3kCommunicationThread(void *arg)
+bool CWeb::P3kConnect()
 {
+    CMutexLocker locker(&s_p3kmutex);
     int nret;
-	int maxfd = -1;
-	fd_set Readfds;
-	struct timeval timeout = {3, 0};
 	struct sockaddr_in tServerAddr;
     struct sockaddr_in tClientAddr;
 
@@ -1577,12 +1579,12 @@ void *CWeb::P3kCommunicationThread(void *arg)
     tClientAddr.sin_port = htons(6002);
     tClientAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
-	// 创建套接字
     s_p3kSocket = socket(AF_INET, SOCK_STREAM, 0);
     if(s_p3kSocket < 0)
     {
         BC_ERROR_LOG("socket create error");
-        return NULL;
+        close(s_p3kSocket);
+        return false;
     }
 
     int op = 1;
@@ -1590,7 +1592,8 @@ void *CWeb::P3kCommunicationThread(void *arg)
     if(nret < 0)
     {
         BC_ERROR_LOG("socket ReuseAddr error");
-        return NULL;
+        close(s_p3kSocket);
+        return false;
     }
 
     int nBufSize = 0;
@@ -1598,7 +1601,8 @@ void *CWeb::P3kCommunicationThread(void *arg)
     if(nret < 0)
     {
         BC_ERROR_LOG("socket NO Delay error");
-        return NULL;
+        close(s_p3kSocket);
+        return false;
     }
 
     // bind
@@ -1606,15 +1610,36 @@ void *CWeb::P3kCommunicationThread(void *arg)
     if(nret < 0)
     {
         BC_ERROR_LOG("socket bind error");
-        return NULL;
+        close(s_p3kSocket);
+        return false;
     }
 
 	// 连接服务器
     nret = connect(s_p3kSocket, (struct sockaddr *)&tServerAddr, sizeof(tServerAddr));
     if(nret < 0)
     {
-        BC_ERROR_LOG("connect error");
-        return NULL;
+        //BC_ERROR_LOG("connect error");
+        close(s_p3kSocket);
+        s_p3kSocket = -1;
+        return false;
+    }
+    else
+    {
+        BC_INFO_LOG("reconnect OK!");
+        return true;
+    }
+}
+
+void *CWeb::P3kCommunicationThread(void *arg)
+{
+    int nret;
+	int maxfd = -1;
+	fd_set Readfds;
+
+	// 创建套接字
+	while(!P3kConnect())
+    {
+        sleep(1);
     }
 
 	// 初始化p3k通信
@@ -1648,62 +1673,84 @@ void *CWeb::P3kCommunicationThread(void *arg)
 		}
 	}
 
-    FD_ZERO(&Readfds);
-	FD_SET(s_p3kSocket, &Readfds);
-	while(1)
-	{
-		char aBuff[MG_READ_BUFSIZE] = {0};
-		maxfd = s_p3kSocket + 1;
+    while(1)
+    {
+        int count = 0;
+        FD_ZERO(&Readfds);
+    	FD_SET(s_p3kSocket, &Readfds);
+    	while(1)
+    	{
+    		char aBuff[MG_READ_BUFSIZE] = {0};
+    		maxfd = s_p3kSocket + 1;
 
-		nret = select(maxfd, &Readfds, NULL, NULL, NULL);
-		if(nret < 0)
-		{
-			BC_INFO_LOG("p3k read error");
-			close(s_p3kSocket);
-			return NULL;
-		}
+    		nret = select(maxfd, &Readfds, NULL, NULL, NULL);
+    		if(nret < 0)
+    		{
+    		    CMutexLocker locker(&s_p3kmutex);
+    			BC_INFO_LOG("p3k read error");
+    			close(s_p3kSocket);
+                s_p3kSocket = -1;
+                break;
+    		}
 
-	    if(FD_ISSET(s_p3kSocket,&Readfds))
-        {
-            int ret = read(s_p3kSocket, aBuff, MG_READ_BUFSIZE);
-            string strP3kReq = aBuff;
-			if(ret < 0)
-			{
-				BC_INFO_LOG("p3k read data failed");
-				continue;
-			}
-            else if(ret == 0)
+    	    if(FD_ISSET(s_p3kSocket,&Readfds))
             {
-                BC_INFO_LOG("p3k is close");
-                close(s_p3kSocket);
-                return NULL;
-            }
-            else
-            {
-
-                int i = 0;
-                CStringSpliter split(strP3kReq);
-                split.Split("\r\n");
-
-                for(i; i < split.Size(); i++)
+                int ret = read(s_p3kSocket, aBuff, MG_READ_BUFSIZE);
+                string strP3kReq = aBuff;
+    			if(ret < 0)
+    			{
+    				BC_INFO_LOG("p3k read data failed");
+    				continue;
+    			}
+                else if(ret == 0)
                 {
-                    string strTmp = "";
-                    if(split[i].find("~01@KDS-CFG-MODIFY") != string::npos)
-                    {
-                        continue;
-                    }
+                    CMutexLocker locker(&s_p3kmutex);
+                    BC_INFO_LOG("p3k is close");
+                    close(s_p3kSocket);
+                    s_p3kSocket = -1;
+                    break;
+                }
+                else
+                {
+                    int i = 0;
+                    CStringSpliter split(strP3kReq);
+                    split.Split("\r\n");
 
-                    if(split[i].empty())
+                    for(i; i < split.Size(); i++)
                     {
-                        continue;
+                        string strTmp = "";
+                        if(split[i].find("~01@KDS-CFG-MODIFY") != string::npos)
+                        {
+                            continue;
+                        }
+
+                        if(split[i].empty())
+                        {
+                            continue;
+                        }
+                        strTmp = split[i];
+                        strTmp += "\n";
+                        Send_Data_To_ALLWebsocket(strTmp.c_str(), strTmp.length());
                     }
-                    strTmp = split[i];
-                    strTmp += "\n";
-                    Send_Data_To_ALLWebsocket(strTmp.c_str(), strTmp.length());
                 }
             }
+    	}
+
+        while(!P3kConnect())
+        {
+            CMutexLocker locker(&s_p3kmutex);
+            close(s_p3kSocket);
+            s_p3kSocket = -1;
+
+            sleep(1);
+            count++;
+            if(count > 2)
+            {
+                BC_ERROR_LOG("reconnect failed!");
+                return NULL;
+            }
         }
-	}
+    }
 }
 
 
