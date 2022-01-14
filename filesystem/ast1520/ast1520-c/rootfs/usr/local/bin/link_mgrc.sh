@@ -3131,6 +3131,10 @@ init_p3k_net_vlan()
 
 	local _control_vlan_tag='0'
 
+	if [ $P3KCFG_CONTROL_DAISY_CHAIN = 'on' ];then
+		return
+	fi
+	
 	case "$P3KCFG_CONTROL_PORT" in
 		eth0)
 			case "$P3KCFG_CONTROL_VLAN" in
@@ -4099,13 +4103,18 @@ init_param_from_p3k_cfg()
 		if echo "$P3KCFG_CONTROL_VLAN" | grep -q "null" ; then
 			P3KCFG_CONTROL_VLAN='1'
 		fi
+
+		P3KCFG_CONTROL_DAISY_CHAIN=`jq -r '.network_setting.daisy_chain' $network_setting`
+		if echo "$P3KCFG_CONTROL_DAISY_CHAIN" | grep -q "null" ; then
+			P3KCFG_CONTROL_DAISY_CHAIN='off'
+		fi
 	else
 		P3KCFG_CONTROL_MODE='dhcp'
 		P3KCFG_CONTROL_IP='0.0.0.0'
 		P3KCFG_CONTROL_MASK='255.255.0.0'
 		P3KCFG_CONTROL_PORT='eth0'
 		P3KCFG_CONTROL_VLAN='1'
-
+		P3KCFG_CONTROL_DAISY_CHAIN='off'
 		P3KCFG_TTL='64'
 	fi
 	echo "P3KCFG_TTL=$P3KCFG_TTL"
@@ -4114,6 +4123,7 @@ init_param_from_p3k_cfg()
 	echo "P3KCFG_CONTROL_MASK=$P3KCFG_CONTROL_MASK"
 	echo "P3KCFG_CONTROL_PORT=$P3KCFG_CONTROL_PORT"
 	echo "P3KCFG_CONTROL_VLAN=$P3KCFG_CONTROL_VLAN"
+	echo "P3KCFG_CONTROL_DAISY_CHAIN=$P3KCFG_CONTROL_DAISY_CHAIN"
 
 	if [ -f "$time_setting" ];then
 		P3KCFG_NTP_SRV_MODE=`jq -r '.time_setting.ntp_server.mode' $time_setting`
