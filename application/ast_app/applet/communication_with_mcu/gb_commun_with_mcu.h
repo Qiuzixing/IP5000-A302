@@ -143,6 +143,19 @@ typedef struct
     uint8_t type;
 } ipc_cmd_struct;
 
+typedef enum
+{
+    USB_B = 0,
+    USB_C ,
+    USB_Unknown ,
+}usb_types;
+
+typedef struct
+{
+    usb_types current_chose_usb_type;
+} audo_switch_usb_struct;
+
+static void do_handle_get_gpio_val(uint16_t cmd,char *cmd_param);
 void do_handle_set_gpio_val(uint16_t cmd,char *cmd_param);
 void do_handle_set_audio_insert_extract(uint16_t cmd,char *cmd_param);
 void do_handle_set_hdcp_cap(uint16_t cmd,char *cmd_param);

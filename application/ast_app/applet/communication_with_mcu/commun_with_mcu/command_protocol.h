@@ -51,8 +51,8 @@ extern "C" {
 #define ProtocolOpenSize  10  
 #define DEFAULT_DATA_LEN  0x04  //It cannot be modified
 #define CMD_STRUCT_CRC_LEN  0x07 //It cannot be modified
-#define CMD_RECV_BUF_SIZE  5
-#define CMD_SEND_BUF_SIZE  20
+#define CMD_RECV_BUF_SIZE  15
+#define CMD_SEND_BUF_SIZE  30
 #define CMD_RECORD_PROCESSING  max(5,CMD_RECV_BUF_SIZE)  //It cannot be modified
 
 /*

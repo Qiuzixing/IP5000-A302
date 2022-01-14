@@ -3330,14 +3330,15 @@ if [ $UGP_FLAG = 'success' ];then
 		KDS-SW3-EN7)
 			ipc @m_lm_set s powerup_cec_report:1
 			#set lineio_sel pin to default to line_out;0:line_out;1:line_in
-			ipc @m_lm_set s set_gpio_config:3:70:1:65:1:66:1
+			ipc @m_lm_set s set_gpio_config:4:70:1:65:1:66:1:78:0
 			ipc @m_lm_set s set_gpio_val:3:70:0:65:0:66:0
 			ipc @m_lm_set s set_gpio_config:9:15:1:35:1:8:1:36:1:37:1:32:1:33:1:11:1:12:1
 			ipc @m_lm_set s set_gpio_val:9:15:1:35:1:8:1:36:1:37:1:32:1:33:1:11:1:12:1
 			#set cec_switch2(67) pin to default to it6802_cec;0:hdmiout-hdmi_in;1:it6802-hdmi_in
-			#cec_switch0(68) and cec_swicth1(69):0/0 - hdmi1;1/0 - hdmi2;0/1 - typec 
-			ipc @m_lm_set s set_gpio_config:3:67:1:68:1:69:1
-			ipc @m_lm_set s set_gpio_val:3:67:1:68:0:69:0
+			#cec_switch0(68) and cec_swicth1(69):0/0 - hdmi1;1/0 - hdmi2;0/1 - typec
+			#HUB_VBUSM(1) and USB_5V_EN(73):The levels of these two pins can be consistent at present
+			ipc @m_lm_set s set_gpio_config:5:67:1:68:1:69:1:1:1:73:1
+			ipc @m_lm_set s set_gpio_val:5:67:1:68:0:69:0:1:0:73:0
 		;;
 		WP-SW2-EN7)
 			#enable led_display	set_lcd_control--cmd;0--led_type 1--lcd_type;1--enable  0--disenable;

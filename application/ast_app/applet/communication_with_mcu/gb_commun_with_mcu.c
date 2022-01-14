@@ -69,6 +69,7 @@ uint8_t auto_av_report_flag = CLOSE_REPROT;
 uint8_t current_play_port = HDMIRX1;
 uint8_t cec_report_flag = CLOSE_REPROT;
 uint8_t mute_flag = UNMUTE;
+audo_switch_usb_struct audo_switch_usb = {USB_Unknown,0,0};
 
 const ipc_cmd_struct ipc_cmd_list[] =
     {
@@ -403,6 +404,47 @@ static void auto_switch_cec(unsigned char input_source)
     }
 }
 
+static void toggle_usb_switch(usb_types usb_type)
+{
+    uint16_t gpio_cmd = CMD_GPIO_SET_VAL;
+    char select_usb_type_c[] = "3:66:0:1:0:73:0";
+    char select_usb_type_b[] = "3:66:1:1:0:73:0";
+    switch(usb_type)
+    {
+        case USB_B:
+            do_handle_set_gpio_val(gpio_cmd,select_usb_type_b);
+            break;
+        case USB_C:
+            do_handle_set_gpio_val(gpio_cmd,select_usb_type_c);
+            break;
+        default:
+            break;
+    }
+}
+
+static void auto_switch_usb(unsigned char input_source)
+{
+    uint16_t gpio_cmd = CMD_GPIO_GET_VAL;
+    char query_usb_b_value[] = "78";
+    if(input_source == HDMIRX3)
+    {
+        if(audo_switch_usb.current_chose_usb_type != USB_C)
+        {
+            toggle_usb_switch(USB_C);
+            audo_switch_usb.current_chose_usb_type = USB_C;
+        } 
+    }
+    else
+    {
+        if(audo_switch_usb.current_chose_usb_type != USB_B)
+        {
+            toggle_usb_switch(USB_B);
+            audo_switch_usb.current_chose_usb_type = USB_B;
+            do_handle_get_gpio_val(gpio_cmd,query_usb_b_value);
+        }
+    }
+}
+
 static void do_handle_input_source(uint16_t cmd,char *cmd_param)
 {
     struct CmdDataInputSorce vdo_source;
@@ -411,27 +453,17 @@ static void do_handle_input_source(uint16_t cmd,char *cmd_param)
     char *tx_port_num = strtok(cmd_param,":");
     char *rx_port_num = strtok(NULL,":");
     if(tx_port_num != NULL && rx_port_num != NULL)
-    {
+    { 
         vdo_source.txPort = atoi(tx_port_num);
         vdo_source.rxPort = atoi(rx_port_num);
         current_play_port = vdo_source.rxPort;
         printf("vdo_source.txPort:%d\nvdo_source.rxPort:%d\n",vdo_source.txPort,vdo_source.rxPort);
         APP_Comm_Send(cmd, (U8*)&vdo_source, sizeof(vdo_source));
-        uint16_t gpio_cmd = CMD_GPIO_SET_VAL;
-        char select_usb_type_c[] = "1:66:0";
-        char select_usb_type_b[] = "1:66:1";
         switch(board_type_flag)
         {
             case IPE5000P:
                 //Automatic switching of usb-b or usb-c
-                if(vdo_source.rxPort == HDMIRX3)
-                {
-                    do_handle_set_gpio_val(gpio_cmd,select_usb_type_c);
-                }
-                else
-                {
-                    do_handle_set_gpio_val(gpio_cmd,select_usb_type_b);
-                }
+                auto_switch_usb(vdo_source.rxPort);
                 auto_switch_cec(vdo_source.rxPort);
                 break;
             case IPE5000W:
@@ -557,17 +589,7 @@ static void do_handle_set_gpio_config(uint16_t cmd,char *cmd_param)
 
 static void do_handle_get_gpio_val(uint16_t cmd,char *cmd_param)
 {
-    char *tmp_p = strtok(cmd_param,":");
-    uint8_t uctemp = 0;
-    if(tmp_p != NULL)
-    {
-        uctemp = atoi(tmp_p);
-    }
-    else
-    {
-        printf("warn:Illegal parameter, discard directly\n");
-        return;
-    }
+    uint8_t uctemp = 1;
     struct CmdDataGpioList *gpio_list= NULL;
     int i = 0;
     gpio_list = (struct CmdDataGpioList *)calloc(uctemp + 2, sizeof(uint8_t));
@@ -578,20 +600,18 @@ static void do_handle_get_gpio_val(uint16_t cmd,char *cmd_param)
     }
     gpio_list->numOfGpio = uctemp;
  
-    for(i=0;i<uctemp;i++)
+    char *tmp_p = strtok(cmd_param,":");
+    if(tmp_p != NULL)
     {
-        tmp_p = strtok(NULL,":");
-        if(tmp_p != NULL)
-        {
-            gpio_list->gpioPin[i] = atoi(tmp_p);
-        }
-        else
-        {
-            printf("warn:Illegal parameter, discard directly\n");
-            free(gpio_list);
-            return;
-        }
+        gpio_list->gpioPin[0] = atoi(tmp_p);
     }
+    else
+    {
+        printf("warn:Illegal parameter, discard directly\n");
+        free(gpio_list);
+        return;
+    }
+    
     APP_Comm_Send(cmd, (U8*)gpio_list, uctemp + 2);
     free(gpio_list);
 }

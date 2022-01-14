@@ -139,6 +139,7 @@ enum IPX5000_A30_CMD {
     EVENT_GPIO_VAL,
     CMD_GPIO_GET_VAL,
     CMD_GPIO_SET_VAL,
+    EVENT_HUB_VBUS_DET_STATUS,
 
     //CEC command
     EVENT_CEC_RECEIVE_MEASSAGE = STM32_CMD_START_RANGE + 0x60,
@@ -621,6 +622,11 @@ struct CmdDataCecMessage {
 
 struct CmdCecEnable {
     bool_t enable;
+    uint8_t rsvd[3];
+};
+
+struct CmdHubVbusDet {
+    uint8_t status;
     uint8_t rsvd[3];
 };
 

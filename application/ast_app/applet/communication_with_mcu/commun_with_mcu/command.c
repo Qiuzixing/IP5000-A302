@@ -33,6 +33,7 @@ extern uint8_t board_type_flag;
 extern uint8_t last_hdmi_in_index;
 extern uint8_t auto_av_report_flag;
 extern uint8_t cec_report_flag;
+extern audo_switch_usb_struct audo_switch_usb;
 #define A_MAX_PAYLOAD 1024
 #define NOTIFY_APP_MSG_FORMAT	"e e_cec_cmd_report::"
 #define CEC_CMD_MAX_NUM		100
@@ -447,6 +448,20 @@ static void ipe5000w_led_light_up(struct CmdDataVideoStatus *vdo_status)
     }
 }
 
+static void disable_usb_5v(void)
+{
+    uint16_t gpio_cmd = CMD_GPIO_SET_VAL;
+    char pull_down_usb_enable[] = "2:1:0:73:0";
+    do_handle_set_gpio_val(gpio_cmd,pull_down_usb_enable);
+}
+
+static void enable_usb_5v(void)
+{
+    uint16_t gpio_cmd = CMD_GPIO_SET_VAL;
+    char pull_up_usb_enable[] = "2:1:1:73:1";
+    do_handle_set_gpio_val(gpio_cmd,pull_up_usb_enable);
+}
+
 int APP_Comm_Recv(CmdProtocolParam * param)
 {
 
@@ -469,6 +484,7 @@ int APP_Comm_Recv(CmdProtocolParam * param)
     struct CmdDataGpioList *gpio_list= NULL;
     struct CmdDataUartPassthrough *uart_pass = NULL;
     struct CmdDataKey key_value;
+    struct CmdHubVbusDet HubVbusDet = {0};
     //cec cmd
     struct CmdDataCecMessage cec_msg;
     char msg[A_MAX_PAYLOAD] = {0};
@@ -480,6 +496,8 @@ int APP_Comm_Recv(CmdProtocolParam * param)
     ipc_relay_msg ipc_msg;
     memset(&ipc_msg, 0, sizeof(ipc_msg));
     uint8_t dante_data_buf[DANTE_UART_BUFFER] = {0};
+    uint8_t gpio_buf[64] = {0};
+    uint8_t gpio_buf_len = 0;
     U16 uart_data_len = 0;
     static uint8_t analog_out_mute_flag = UNMUTE;
     switch(param->CMD)
@@ -530,6 +548,19 @@ int APP_Comm_Recv(CmdProtocolParam * param)
                 sendEvent(sock_fd,send_socket_msg.type,send_socket_msg.source);
             }
             
+            //usb-b or usb-c auto_switch
+            if(current_play_port == HDMIRX3 && vdo_link.port == HDMIRX3)
+            {
+                if(vdo_link.isConnect == 1 && vdo_link.isHpd == 1)
+                {
+                    enable_usb_5v();
+                } 
+
+                if(vdo_link.isConnect == 0 && vdo_link.isHpd == 0)
+                {
+                    disable_usb_5v();
+                }
+            }
             break;
         case EVENT_HDMI_VIDEO_STATUS:
             memset(&vdo_status, 0, sizeof(vdo_status));
@@ -703,6 +734,45 @@ int APP_Comm_Recv(CmdProtocolParam * param)
                 printf("Cec cmd failed send !\n");
             }
 #endif
+            break;
+        case EVENT_HUB_VBUS_DET_STATUS:
+            memcpy(&HubVbusDet, &param->Data, sizeof(struct CmdHubVbusDet));
+            if(HubVbusDet.status == 1)
+            {
+                if(audo_switch_usb.current_chose_usb_type == USB_B)
+                {
+                    enable_usb_5v();
+                }
+            }
+            else
+            {
+                if(audo_switch_usb.current_chose_usb_type == USB_B)
+                {
+                    disable_usb_5v();
+                }
+            }
+            break;
+        case EVENT_GPIO_VAL:
+            if(param->DataLen <= 4)
+                memcpy(gpio_buf,&param->Data,param->DataLen);
+            else
+                memcpy(gpio_buf,(const char*)param->Data,param->DataLen);
+            gpio_buf_len = (gpio_buf[1]<<8 | gpio_buf[0]);
+            for(i=2;i<=gpio_buf_len*2;i+=2)
+            {
+                printf("gpio pin[%d] val[%d]\n", gpio_buf[i], gpio_buf[i+1]);
+                if(gpio_buf[i] == 78)
+                {
+                    if(gpio_buf[i+1] == 1)
+                    {
+                        enable_usb_5v();
+                    }
+                    else
+                    {
+                        disable_usb_5v();
+                    }
+                }
+            }               
             break;
         default:
             printf("warning:unknown mcu cmd:param->CMD = 0x%x\n",param->CMD);
