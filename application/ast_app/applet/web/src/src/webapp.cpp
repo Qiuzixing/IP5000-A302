@@ -16,22 +16,22 @@
 #define MJPEG_TMP_JPG_FILE      "/www/tmp.jpg"
 
 
-#define UP_CHANNEL_URL          "/upload/channel"
-#define UP_EDID_URL             "/upload/edid"
-#define UP_SLEEPIMAGE_URL       "/upload/sleepimage"
-#define UP_OVERLAY_URL          "/upload/overlayimage"
-#define UP_SECURE_URL           "/upload/secure"
-#define UP_TESTPATTERN_URL      "/upload/testpattern"
-#define UP_UPGRADESOFTWARE      "/upload/upgradesoftware"
+#define UP_CHANNEL_URL          "/upload/channel$"
+#define UP_EDID_URL             "/upload/edid$"
+#define UP_SLEEPIMAGE_URL       "/upload/sleepimage$"
+#define UP_OVERLAY_URL          "/upload/overlayimage$"
+#define UP_SECURE_URL           "/upload/secure$"
+#define UP_TESTPATTERN_URL      "/upload/testpattern$"
+#define UP_UPGRADESOFTWARE      "/upload/upgradesoftware$"
 //#define UP_SECURITY           "/upload_security"
 
-#define DOWN_LOGFILE_URL        "/log"
-#define DOWN_CHANNEL_URL        "/channel/channel_map"
-#define DOWN_SECURE_URL         "/secure"
-#define DOWN_TESTPATTERN_URL    "/vw/video_wall_test_pattern"
+#define DOWN_LOGFILE_URL        "/log$"
+#define DOWN_CHANNEL_URL        "/channel/channel_map$"
+#define DOWN_SECURE_URL         "/secure$"
+#define DOWN_TESTPATTERN_URL    "/vw/video_wall_test_pattern$"
 
 // security
-#define SECURE_HTTPS_URL        "/security/https"
+#define SECURE_HTTPS_URL        "/security/https$"
 #define SECURE_HTTPS_JSON_FILE  "/data/configs/kds-7/secure/https_setting.json"
 #define STR_HTTPS_SET           "https_setting"
 #define KEY_HTTPS_CERT          "certificate"
@@ -44,7 +44,7 @@
 #define JSON_HTTPS_PASSWD       "private_key_password"
 #define SECURE_HTTPS_PATH       "/secure/certificate_file_name"
 
-#define SECURE_802X_URL         "/security/802_1x"
+#define SECURE_802X_URL         "/security/802_1x$"
 #define SECURE_802X_JSON_FILE   "/data/configs/kds-7/secure/ieee802_1x_setting.json"
 #define STR_802X_SET            "ieee802_1x_setting"
 #define STR_802X_EAP_TLS        "eap_tls_setting"
@@ -64,7 +64,7 @@
 
 
 // json文件传输
-#define JSON_URL                "/device/json"
+#define JSON_URL                "/device/json$"
 #define JSON_PATH_PARAM         "path"
 
 // 原5000功能
@@ -77,9 +77,9 @@
 #define PASSWD_STR              "passwd"
 #define USRNAME_STR             "username"
 
-#define EXPORT_URL              "/settings/export"
-#define IMPORT_URL              "/settings/import"
-#define LOG_URL                 "/log/log"
+#define EXPORT_URL              "/settings/export$"
+#define IMPORT_URL              "/settings/import$"
+#define LOG_URL                 "/log/log$"
 
 CMutex CWeb::s_p3kmutex;
 CCond  CWeb::s_p3kcond;
@@ -179,7 +179,7 @@ void CWeb::HttpRun()
 	{
         {UP_CHANNEL_URL, UploadChannelMapHandle, NULL},
         {DOWN_CHANNEL_URL, DownChannelMapHandle, NULL},
-        {"/preview", ShowSleepImageHandle, NULL}, // 暂时
+        {"/preview$", ShowSleepImageHandle, NULL}, // 暂时
         {UP_SLEEPIMAGE_URL, UpdateSleepImageHandle, NULL},
         {UP_EDID_URL, UpdateEdidHandle, NULL},
         {DOWN_LOGFILE_URL, DownloadLogFileHandle, NULL},
@@ -190,12 +190,12 @@ void CWeb::HttpRun()
         {DOWN_TESTPATTERN_URL, DownVideoWallHandle, NULL},
         {UP_UPGRADESOFTWARE, UploadUpgradeHandle, NULL},
         {JSON_URL, JsonDataHandle, NULL},
-        {"/action", ActionReqHandler, NULL},
-        {"/stream", StreamReqHandler, NULL},
-        {"/upload_logo", UploadLogoReqHandler, NULL},
-        {"/upload_bg", UploadBgReqHandler, NULL},
-        {"/capture.bmp", CapturebmpReqHandler, NULL},
-        {"/capture.jpg", CapturejpgReqHandler, NULL},
+        {"/action$", ActionReqHandler, NULL},
+        {"/stream$", StreamReqHandler, NULL},
+        {"/upload_logo$", UploadLogoReqHandler, NULL},
+        {"/upload_bg$", UploadBgReqHandler, NULL},
+        {"/capture.bmp$", CapturebmpReqHandler, NULL},
+        {"/capture.jpg$", CapturejpgReqHandler, NULL},
         {SECURE_HTTPS_URL, SecureHttpsSetHanndle, NULL},
         {SECURE_802X_URL, Secure802XSetHanndle, NULL},
         {IMPORT_URL, ImportHanndle, NULL},
