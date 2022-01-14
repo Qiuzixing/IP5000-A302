@@ -2985,12 +2985,12 @@ static int P3K_GetPortList(char*reqparam,char*respParam,char*userdata)
 	DBG_InfoMsg("P3K_GetPortList\n");
 	int ret = 0;
 
-	char portlist[10][MAX_PORT_LEN] = {0};
+	char portlist[16][MAX_PORT_LEN] = {0};
 	int i = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
 
-	ret = EX_GetPortList(portlist,10);
-	if(ret > 10)
+	ret = EX_GetPortList(portlist,16);
+	if(ret > 16)
 	{
 		DBG_WarnMsg("P3K_GetPortList num=%d over 1o\n",ret);
 		ret =10;

@@ -3985,8 +3985,13 @@ int EX_SetUartConf(UartMessageInfo_S*conf)
 			sprintf(cmd,"e_p3k_soip_param::%d-%do%d",conf->rate,conf->bitWidth,(int)conf->stopBitsMode);
 		else if(conf->parity == PARITY_EVEN)
 			sprintf(cmd,"e_p3k_soip_param::%d-%de%d",conf->rate,conf->bitWidth,(int)conf->stopBitsMode);
-		else
+		else if(conf->parity == PARITY_NONE)
 			sprintf(cmd,"e_p3k_soip_param::%d-%dn%d",conf->rate,conf->bitWidth,(int)conf->stopBitsMode);
+		else
+		{
+			DBG_WarnMsg(" !!! Error para\n");
+			return EX_PARAM_ERR;
+		}
 
 		DBG_InfoMsg("ast_send_event %s\n",cmd);
 		ast_send_event(0xFFFFFFFF,cmd);
@@ -4911,11 +4916,13 @@ int EX_GetSignalList(char info[][MAX_SIGNALE_LEN],int num)
 	char buf[64] = "";
 
 #ifdef CONFIG_P3K_HOST
+	int hdmi_in_idx = 0,hdmi_out_idx = 0;
+	//video
 	mysystem("cat /sys/devices/platform/videoip/timing_info", buf, 64);
 
 	if(strstr(buf,"Not Available") != 0)
 	{
-		DBG_WarnMsg("Not Available\n");
+		DBG_WarnMsg("Video Not Available\n");
 	}
 	else
 	{
@@ -4925,19 +4932,29 @@ int EX_GetSignalList(char info[][MAX_SIGNALE_LEN],int num)
 			//Get Cuurent hdmi in
 			mysystem("/usr/local/bin/sconfig --show input", buf, 64);
 			if(strstr(buf,"HDMI3") != 0)
+			{
 				strcpy(info[0],"in.usb_c.3.video.1");
+				hdmi_in_idx = 3;
+			}
 			else if(strstr(buf,"HDMI2") != 0)
 			{
 				if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
 					strcpy(info[0],"in.hdmi.2.video.1");
 				else
 					strcpy(info[0],"in.usb_c.2.video.1");
+				hdmi_in_idx = 2;
 			}
 			else
+			{
 				strcpy(info[0],"in.hdmi.1.video.1");
+				hdmi_in_idx = 1;
+			}
 		}
 		else
+		{
 			strcpy(info[0],"in.hdmi.1.video.1");
+			hdmi_in_idx = 1;
+		}
 
 		strcpy(info[1],"out.stream.1.video.1");
 
@@ -4956,12 +4973,151 @@ int EX_GetSignalList(char info[][MAX_SIGNALE_LEN],int num)
 				if(strstr(buf,"y") != 0)
 				{
 					strcpy(info[2],"out.hdmi.1.video.1");
+					hdmi_out_idx = 1;
 					tmpnum++;
 				}
 			}
 		}
 	}
+
+	//audio
+	mysystem("cat /sys/devices/platform/1500_i2s/input_audio_info", buf, 64);
+
+	if(strstr(buf,"State: Off") != 0)
+	{
+		DBG_WarnMsg("Audio Not Available\n");
+	}
+	else
+	{
+		mysystem("/usr/local/bin/sconfig --show audio-input", buf, 64);
+		if(strstr(buf,"hdmi") != 0)
+		{
+			if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+			{
+				if(hdmi_in_idx == 1)
+					strcpy(info[tmpnum],"in.hdmi.1.audio.1");
+				else if(hdmi_in_idx == 2)
+					strcpy(info[tmpnum],"in.hdmi.2.audio.1");
+				else if(hdmi_in_idx == 3)
+					strcpy(info[tmpnum],"in.usb_c.3.audio.1");
+				else
+				{
+					DBG_WarnMsg("No Audio\n");
+					return tmpnum;
+				}
+
+			}
+			else if(strcmp(g_version_info.model,IPE_W_MODULE) == 0)
+			{
+				if(hdmi_in_idx == 1)
+					strcpy(info[tmpnum],"in.hdmi.1.audio.1");
+				else if(hdmi_in_idx == 2)
+					strcpy(info[tmpnum],"in.usb_c.2.audio.1");
+				else
+				{
+					DBG_WarnMsg("No Audio\n");
+					return tmpnum;
+				}
+			}
+			else
+				strcpy(info[tmpnum],"in.hdmi.1.audio.1");
+
+			tmpnum++;
+		}
+		else if(strstr(buf,"analog") != 0)
+		{
+			if(g_audio_info.direction == DIRECTION_IN)
+			{
+				strcpy(info[tmpnum],"in.analog_audio.1.audio.1");
+				tmpnum++;
+			}
+			else
+			{
+				DBG_WarnMsg("Audio analog Not input\n");
+				return tmpnum;
+			}
+		}
+		else if(strstr(buf,"dante") != 0)
+		{
+			if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+			{
+				strcpy(info[tmpnum],"in.dante.1.audio.1");
+				tmpnum++;
+			}
+			else
+			{
+				DBG_WarnMsg("This is not switcher!!!\n");
+				return tmpnum;
+			}
+		}
+		else
+		{
+			DBG_WarnMsg("No Audio\n");
+			return tmpnum;
+		}
+
+		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+		{
+			for(int i = 0; i < 4; i++)
+			{
+				if(g_audio_info.dst_port[i] == PORT_HDMI)
+				{
+					if(hdmi_out_idx == 1)
+						strcpy(info[tmpnum++],"out.hdmi.1.audio.1");
+				}
+				else if(g_audio_info.dst_port[i] == PORT_ANALOG_AUDIO)
+				{
+					if(g_audio_info.direction == DIRECTION_OUT)
+					{
+						strcpy(info[tmpnum++],"out.analog_audio.1.audio.1");
+					}
+				}
+				else if(g_audio_info.dst_port[i] == PORT_DANTE)
+				{
+					strcpy(info[tmpnum++],"out.dante.1.audio.1");
+				}
+				else if(g_audio_info.dst_port[i] == PORT_STREAM)
+				{
+					strcpy(info[tmpnum++],"out.stream.1.audio.1");
+				}
+				else
+				{
+					continue;
+				}
+			}
+		}
+		else if(strcmp(g_version_info.model,IPE_W_MODULE) == 0)
+		{
+			strcpy(info[tmpnum++],"out.stream.1.audio.1");
+
+			if(hdmi_out_idx == 1)
+				strcpy(info[tmpnum++],"out.hdmi.1.audio.1");
+		}
+		else
+		{
+			strcpy(info[tmpnum++],"out.stream.1.audio.1");
+
+			if(hdmi_out_idx == 1)
+				strcpy(info[tmpnum++],"out.hdmi.1.audio.1");
+
+			if(g_audio_info.direction == DIRECTION_OUT)
+				strcpy(info[tmpnum++],"out.analog_audio.1.audio.1");
+		}
+
+	}
 #else
+	int Audio = 0;
+	mysystem("cat /sys/devices/platform/1500_i2s/output_audio_info", buf, 64);
+
+	if(strstr(buf,"State: Off") != 0)
+	{
+		DBG_WarnMsg("Audio Not Available\n");
+	}
+	else
+	{
+		Audio = 1;
+	}
+
 	int port = g_autoswitch_info.source;
 
 	if((strcmp(g_version_info.model,IPD_MODULE) == 0)&&(port == 1))//Local HDMI
@@ -4976,8 +5132,12 @@ int EX_GetSignalList(char info[][MAX_SIGNALE_LEN],int num)
 		{
 			if(strstr(buf,"y") != 0)
 			{
-				strcpy(info[0],"in.hdmi.1.video.1");
-				tmpnum++;
+				strcpy(info[tmpnum++],"in.hdmi.1.video.1");
+
+				if(Audio == 1)
+				{
+					strcpy(info[tmpnum++],"in.hdmi.1.audio.1");
+				}
 			}
 		}
 	}
@@ -4991,12 +5151,16 @@ int EX_GetSignalList(char info[][MAX_SIGNALE_LEN],int num)
 		}
 		else
 		{
-			strcpy(info[0],"in.stream.1.video.1");
-			tmpnum++;
+			strcpy(info[tmpnum++],"in.stream.1.video.1");
+
+			if(Audio == 1)
+			{
+				strcpy(info[tmpnum++],"in.stream.1.audio.1");
+			}
 		}
 	}
 
-	if(tmpnum == 1)
+	if(tmpnum >= 1)
 	{
 		if(strcmp(g_version_info.model,IPD_MODULE) == 0)
 		{
@@ -5010,9 +5174,13 @@ int EX_GetSignalList(char info[][MAX_SIGNALE_LEN],int num)
 			{
 				if(strstr(buf,"y") != 0)
 				{
-					strcpy(info[1],"out.hdmi.1.video.1");
-					tmpnum++;
+					strcpy(info[tmpnum++],"out.hdmi.1.video.1");
+					if(Audio == 1)
+					{
+						strcpy(info[tmpnum++],"out.hdmi.1.audio.1");
+					}
 				}
+
 			}
 		}
 		else
@@ -5021,11 +5189,15 @@ int EX_GetSignalList(char info[][MAX_SIGNALE_LEN],int num)
 
 			if(strstr(buf,"1") != 0)
 			{
-				strcpy(info[1],"out.hdmi.1.video.1");
-				tmpnum++;
+				strcpy(info[tmpnum++],"out.hdmi.1.video.1");
+				if(Audio == 1)
+				{
+					strcpy(info[tmpnum++],"out.hdmi.1.audio.1");
+				}
 			}
 		}
 	}
+
 #endif
 
 	return tmpnum;

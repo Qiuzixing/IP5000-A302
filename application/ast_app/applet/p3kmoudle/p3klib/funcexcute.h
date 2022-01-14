@@ -278,7 +278,7 @@ typedef struct   _EdidInfo_S
 typedef struct   _EdidName_S
 {
 	int index;
-	char name[32];
+	char name[64];
 }EdidName_S;
 
 typedef struct   _ChSelect_S
