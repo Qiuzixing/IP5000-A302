@@ -156,52 +156,6 @@ int GetBoardInfo(BoardInfoType_E type, char* info, unsigned int size)
 
 		if(reader.parse(pBuf, root))
 		{
-/*			if(type == BOARD_MODEL)
-			{
-				if(!root["model"].empty())
-				{
-					string buf = root["model"].asString();
-					if(buf.length() > size)
-					{
-						DBG_ErrMsg("ERROR! model is too long\n");
-					}
-					else
-					{
-						strcpy(info,buf.c_str());
-					}
-				}
-			}
-			else if(type == BOARD_SN)
-			{
-				if(!root["serial number"].empty())
-				{
-					string buf = root["serial number"].asString();
-					if(buf.length() > size)
-					{
-						DBG_ErrMsg("ERROR! serial number is too long\n");
-					}
-					else
-					{
-						strcpy(info,buf.c_str());
-					}
-				}
-			}
-			else if(type == BOARD_MAC)
-			{
-				if(!root["mac address"].empty())
-				{
-					string buf = root["mac address"].asString();
-					if(buf.length() > size)
-					{
-						DBG_ErrMsg("ERROR! smac address is too long\n");
-					}
-					else
-					{
-						strcpy(info,buf.c_str());
-					}
-				}
-			}
-			else*/
 			if(type == BOARD_HW_VERSION)
 			{
 				if(!root["board version"].empty())

@@ -4203,9 +4203,13 @@ static int P3K_GetPassword(char*reqparam,char*respParam,char*userdata)
 	count = P3K_PhraserParam(reqparam,strlen(reqparam),str);
 	memcpy(aLogin_level,str[0],strlen(str[0]));
 	iPassWord = EX_GetPassword(aLogin_level,ologin_Pass);
-	if(iPassWord)
+	if(iPassWord == EX_NO_ERR)
 	{
 		sprintf(tmpparam,"%s,%s",aLogin_level,ologin_Pass);
+	}
+	else
+	{
+		sprintf(tmpparam,"ERR 003");
 	}
 	memcpy(respParam,tmpparam,strlen(tmpparam));
 	return 0;
