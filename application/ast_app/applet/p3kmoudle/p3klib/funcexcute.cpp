@@ -4224,7 +4224,7 @@ int EX_GetMacAddr(int netid,char*macAddr)
 		{
 			sscanf(g_device_info.mac_addr,"%x:%x:%x:%x:%x:%x",&nMac[0],&nMac[1],&nMac[2],&nMac[3],&nMac[4],&nMac[5]);
 
-			sprintf(macAddr,"%02x-%02x-%02x-%02x-%02x-%02x",nMac[0],nMac[1],nMac[2],nMac[3],nMac[4],nMac[5]);
+			sprintf(macAddr,"%02X-%02X-%02X-%02X-%02X-%02X",nMac[0],nMac[1],nMac[2],nMac[3],nMac[4],nMac[5]);
 		}
 	}
 	return EX_NO_ERR;
@@ -4311,7 +4311,29 @@ int EX_GetDNSName(int id,char*name)
 }
 int EX_ResetDNSName(char *name)
 {
-	strcpy(name,"kramer_0102");
+	int nMac[6];
+	//MODEL-MAC
+	memset(name,0,MAX_DEV_NAME_LEN);
+
+	sscanf(g_device_info.mac_addr,"%x:%x:%x:%x:%x:%x",&nMac[0],&nMac[1],&nMac[2],&nMac[3],&nMac[4],&nMac[5]);
+
+	sprintf(name,"%s-%02X%02X%02X%02X%02X%02X",g_version_info.model,nMac[0],nMac[1],nMac[2],nMac[3],nMac[4],nMac[5]);
+
+	if(strlen(name)>0)
+	{
+		char sCmd[64] = "";
+		sprintf(sCmd,"e_chg_hostname::%s",name);
+		DBG_InfoMsg("ast_send_event %s\n",sCmd);
+		ast_send_event(0xFFFFFFFF,sCmd);
+	}
+	else
+	{
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
+	}
+
+	Cfg_Set_Dev_HostName(0,name);
+
 	return EX_NO_ERR;
 }
 int EX_SetDHCPMode(int netid,int mode)
@@ -5164,10 +5186,116 @@ int EX_GetConnectionList(char info[][MAX_SIGNALE_LEN],int num)
 
 int EX_GetPortList(char info[][MAX_PORT_LEN],int num)
 {
-	int tmpnum = 3;
-	strcpy(info[0],"in.hdmi.1");
-	strcpy(info[1],"out.hdmi.1");
-	strcpy(info[2],"out.hdmi.2");
+	int tmpnum = 0;
+	if(strcmp(g_version_info.model,IPE_MODULE) == 0)
+	{
+		//hdmi & usb-c
+		strcpy(info[0],"in.hdmi.1");
+		strcpy(info[1],"out.hdmi.1");
+		strcpy(info[2],"out.stream.1");
+		//analog
+		if(g_audio_info.direction == DIRECTION_OUT)
+			strcpy(info[3],"out.analog_audio.1");
+		else
+			strcpy(info[3],"in.analog_audio.1");
+		//RS-232
+		strcpy(info[4],"both.rs232.1");
+		//IR
+		if(g_gateway_info.ir_direction == DIRECTION_OUT)
+			strcpy(info[5],"out.ir.1");
+		else
+			strcpy(info[5],"in.ir.1");
+
+		//usb-b
+		strcpy(info[6],"both.usb_b.1");
+		tmpnum = 7;
+	}
+	else if(strcmp(g_version_info.model,IPE_W_MODULE) == 0)
+	{
+		strcpy(info[0],"in.hdmi.1");
+		strcpy(info[1],"in.usb_c.2");
+		strcpy(info[2],"out.stream.1");
+		strcpy(info[3],"in.analog_audio.1");
+		//RS-232
+		strcpy(info[4],"both.rs232.1");
+		//IR
+		if(g_gateway_info.ir_direction == DIRECTION_OUT)
+			strcpy(info[5],"out.ir.1");
+		else
+			strcpy(info[5],"in.ir.1");
+
+		tmpnum = 6;
+	}
+	else if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
+	{
+		strcpy(info[0],"in.hdmi.1");
+		strcpy(info[1],"in.hdmi.2");
+		strcpy(info[2],"in.usb_c.3");
+		strcpy(info[3],"out.hdmi.1");
+		strcpy(info[4],"out.stream.1");
+		//dante
+		strcpy(info[5],"both.dante.1");
+		//analog
+		if(g_audio_info.direction == DIRECTION_OUT)
+			strcpy(info[6],"out.analog_audio.1");
+		else
+			strcpy(info[6],"in.analog_audio.1");
+		//RS-232
+		strcpy(info[7],"both.rs232.1");
+		//IR
+		if(g_gateway_info.ir_direction == DIRECTION_OUT)
+			strcpy(info[8],"out.ir.1");
+		else
+			strcpy(info[8],"in.ir.1");
+
+		//usb-b
+		strcpy(info[9],"both.usb_a.1");
+		strcpy(info[10],"both.usb_b.1");
+		tmpnum = 11;
+	}
+	else if(strcmp(g_version_info.model,IPD_MODULE) == 0)
+	{
+		strcpy(info[0],"in.hdmi.1");
+		strcpy(info[1],"in.stream.1");
+		strcpy(info[2],"out.hdmi.1");
+
+		//analog
+		strcpy(info[3],"out.analog_audio.1");
+
+		//RS-232
+		strcpy(info[4],"both.rs232.1");
+
+		//IR
+		if(g_gateway_info.ir_direction == DIRECTION_OUT)
+			strcpy(info[5],"out.ir.1");
+		else
+			strcpy(info[5],"in.ir.1");
+
+		//usb-a
+		strcpy(info[6],"both.usb_a.1");
+
+		tmpnum = 7;
+	}
+	else if(strcmp(g_version_info.model,IPD_W_MODULE) == 0)
+	{
+		strcpy(info[0],"in.stream.1");
+		strcpy(info[1],"out.hdmi.1");
+
+		//analog
+		strcpy(info[2],"out.analog_audio.1");
+
+		//RS-232
+		strcpy(info[3],"both.rs232.1");
+
+		//IR
+		if(g_gateway_info.ir_direction == DIRECTION_OUT)
+			strcpy(info[4],"out.ir.1");
+		else
+			strcpy(info[4],"in.ir.1");
+
+		tmpnum = 5;
+	}
+
 	return tmpnum;
 }
 int EX_GetActiveCliNUm(void)
