@@ -71,6 +71,7 @@ int tcp_client_init(char *ip, int port)
 	if (err == -1)
 	{
 		printf("tcp connect fail\n");
+		close(sock_fd);
 		return -1;
 	}
 	else

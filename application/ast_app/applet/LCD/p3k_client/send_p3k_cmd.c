@@ -527,7 +527,7 @@ int GET_EDID_LIST(char EDID_buf[][LITTLE_SIZE])
         if (substr1 != NULL)
         {
             substr1++;
-            substr2 = strstr(substr1, "]");
+            substr2 = strstr(substr1, ".bin");
             if (substr2 != NULL)
             {
                 substr2--;
@@ -614,24 +614,28 @@ int GET_EDID(char *edid_type)
     if (err == -1)
         return -1;
 
-    strncpy(edid_type, recv_buf, 15);
-    /*
+    //strncpy(edid_type, recv_buf, 15);
+
     if (strcasestr(recv_buf, "PASSTHRU"))
     {
         strcpy(edid_type, "PASSTHRU");
-        break;
+
     }
     else if (strcasestr(recv_buf, "DEFAULT"))
     {
-        strcpy(edid_type, "DEFAULT");
-        break;
+        strcpy(edid_type, "0");
     }
     else if (strcasestr(recv_buf, "CUSTOM"))
     {
-        strcpy(edid_type, recv_buf);
-        break;
+    	str = strstr(recv_buf, "CUSTOM,");
+		if (str != NULL)
+		{
+			str += strlen("CUSTOM,");
+			strcpy(edid_type, str);
+		}
     }
-    */
+    
+    
     return 0;
   
 }

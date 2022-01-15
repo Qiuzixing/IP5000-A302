@@ -24,6 +24,7 @@
 pthread_mutex_t g_lock_E;
 time_t last_change_time_E = 0;
 
+#define FAULT -1
 //方向
 enum 
 {
@@ -106,7 +107,8 @@ const char* HDMI_STATUS_LIST_E[] = {
     "HDMI STATUS", (const char*)RESOL_BUF_E, (const char*)HDCP_STATUS_BUF_E,
 };
 
-char EDID_BUF_E[20][20] = {{0},{0},{0},{0},{0},{0},{0},{0},{0},{0},};
+char EDID_BUF_E[20][20] = {{0},{0},{0},{0},{0},{0},{0},{0},{0},{0},
+						   {0},{0},{0},{0},{0},{0},{0},{0},{0},{0},};
 
 const char *EDID_LIST_E[] = {"EDID SETTING", (const char *)EDID_BUF_E[0],(const char *)EDID_BUF_E[1],(const char *)EDID_BUF_E[2],(const char *)EDID_BUF_E[3],(const char *)EDID_BUF_E[4],
                                              (const char *)EDID_BUF_E[5],(const char *)EDID_BUF_E[6],(const char *)EDID_BUF_E[7],(const char *)EDID_BUF_E[8],(const char *)EDID_BUF_E[9],};
@@ -540,8 +542,6 @@ int IPE5000_MAIN_MENU_SHOW(void)
     printf("this is IPE5000\n");
     init_p3k_client("127.0.0.1", 6001);
 
-    
-        
     u8 count = sizeof(MAIN_MENU_LIST_E)/(sizeof(char*));
     int p = 4; 
     int y = 8;
@@ -572,6 +572,12 @@ int IPE5000_MAIN_MENU_SHOW(void)
 
         switch (key)
         {
+        	case FAULT:
+        	{
+        		clear_whole_screen();
+        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+				exit(-1);
+			}
             case UP_KEY:
             case DOWN_KEY:
             {
@@ -660,6 +666,12 @@ static int DEV_STATUS_E()
 
         switch (key)
         {
+        	case FAULT:
+        	{
+        		clear_whole_screen();
+        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+				exit(-1);
+			}
             case UP_KEY:
             case DOWN_KEY:
             {
@@ -757,6 +769,12 @@ static void LAN_STATUS_E(int interface_id)
         
         switch (key)
         {
+        	case FAULT:
+        	{
+        		clear_whole_screen();
+        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+				exit(-1);
+			}
             case LEFT_KEY: 
             {  
                 return;
@@ -797,6 +815,12 @@ static int HDMI_STATUS_E()
 
         switch (key)
         {
+        	case FAULT:
+        	{
+        		clear_whole_screen();
+        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+				exit(-1);
+			}
             case LEFT_KEY:
             {
                 return 0;
@@ -823,6 +847,12 @@ static int CH_DEFINE_E()
 
         switch (key)
         {
+        	case FAULT:
+        	{
+        		clear_whole_screen();
+        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+				exit(-1);
+			}
             case LEFT_KEY:
             {
                 return 0;
@@ -853,6 +883,12 @@ static int TEMPERATURE_E()
 
         switch (key)
         {
+        	case FAULT:
+        	{
+        		clear_whole_screen();
+        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+				exit(-1);
+			}
             case LEFT_KEY:
             {
                 return 0;
@@ -894,6 +930,12 @@ static int DEV_INFO_E()
         key = recv_key_info_E();
         switch (key)
         {
+        	case FAULT:
+        	{
+        		clear_whole_screen();
+        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+				exit(-1);
+			}
             case LEFT_KEY:  //返回上一级目录
             {
                 return 0;
@@ -931,6 +973,12 @@ static int DEV_SETTINGS_E()
 
         switch (key)
         {
+        	case FAULT:
+        	{
+        		clear_whole_screen();
+        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+				exit(-1);
+			}
             case UP_KEY:
             case DOWN_KEY:
             {
@@ -1033,13 +1081,22 @@ static int EDID_SETTING_E()
     show_menu_info_E(y, 1, EDID_SHOWWING_E, EDID_LIST_E, count>4? 3 : count-1);
     show_square_breakets(x);
 
+	//CUSTOM,1
     int i = 0;
+	
     for (i = 1; i < 4; i++)
     {   
-        if (strstr(EDID_SHOWWING_E[i], buf) != NULL)
-        {
-            show_a_star(2*i);
-        }       
+		if (strcasecmp(buf, "passthru") == 0)
+		{
+
+		}
+		else
+		{
+	        if ( EDID_SHOWWING_E[i][0] == buf[0])
+	        {
+	            show_a_star(2*i);
+	        }
+		}
     }
 
     int key = 0; 
@@ -1048,13 +1105,19 @@ static int EDID_SETTING_E()
         key = recv_key_info_E();
         switch (key)
         {
+        	case FAULT:
+        	{
+        		clear_whole_screen();
+        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+				exit(-1);
+			}
             case DOWN_KEY:
             case UP_KEY:
             {
                 param = down_up_respond_E(count, param, EDID_SHOWWING_E, EDID_LIST_E, key);
                 for (i = 1; i < 4; i++)
                 {   
-                    if (strstr(EDID_SHOWWING_E[i], buf) != NULL)
+                    if (EDID_SHOWWING_E[i][0] == buf[0])
                     {
                         show_a_star(2*i);
                     }       
@@ -1119,6 +1182,12 @@ static int HDCP_SETTING_E()
         key = recv_key_info_E();
         switch (key)
         {
+        	case FAULT:
+        	{
+        		clear_whole_screen();
+        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+				exit(-1);
+			}
             case DOWN_KEY:
             {
             	star_x += 2;
@@ -1184,6 +1253,12 @@ static int CH_SELECT_E()
         key = recv_key_info_E();
         switch (key)
         {
+        	case FAULT:
+        	{
+        		clear_whole_screen();
+        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+				exit(-1);
+			}
             case UP_KEY:
             {
                 if (channel_id[i] < '9')

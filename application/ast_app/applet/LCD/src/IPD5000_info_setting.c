@@ -27,6 +27,9 @@
 pthread_mutex_t g_lock_D;
 
 time_t last_change_time_D = 0;
+
+#define FAULT -1
+
 //方向
 enum 
 {
@@ -69,7 +72,7 @@ const char* DEV_INFO_LIST_D[] = {
 };
 
 const char* DEV_SETTINGS_LIST_D[] = {
-    "DEV SETTINGS", "INPUT SETTING", "HDCP SETTING", "RESOL SETTING", "CH SELECT",
+    "DEV SETTINGS", "INPUT SETTING",  "RESOL SETTING", "CH SELECT",
 };
 // END LEVEL 2
 
@@ -87,7 +90,7 @@ const char* INPUT_VIDEO_SOURCE_TYPE_D[] = {
 
 const char *HDCP_LIST_D[] = {"HDCP SETTING", "ON", "OFF"};
 
-const char* RESOL_SCALE_LIST_D[] = {"RESOL SETTING", "PER EDID", "720p60", "1080p60", "1080p50", "2160p25", "2160p30"};
+const char* RESOL_SCALE_LIST_D[] = {"RESOL SETTING", "PASS THRU", "720p60", "1080p60", "1080p50", "2160p25", "2160p30"};
 const char* SCALE_MODE_D[] = {"0,0", "1,4" , "1,16", "1,31", "1,73", "1,74"};
 
 int CH_TATOL_NUM_D = 0;
@@ -391,6 +394,12 @@ int IPD5000_MAIN_MENU_SHOW(void)
 
         switch (key)
         {
+        	case FAULT:
+        	{
+        		clear_whole_screen();
+        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+				exit(-1);
+			}
             case UP_KEY:
             case DOWN_KEY:
             {
@@ -480,6 +489,12 @@ static int DEV_STATUS_D()
 
         switch (key)
         {
+        	case FAULT:
+        	{
+        		clear_whole_screen();
+        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+				exit(-1);
+			}
             case UP_KEY:
             case DOWN_KEY:
             {
@@ -576,6 +591,12 @@ static void LAN_STATUS_D(int interface_id)
         
         switch (key)
         {
+        	case FAULT:
+        	{
+        		clear_whole_screen();
+        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+				exit(-1);
+			}
             case LEFT_KEY: 
 			{ 
                 return;
@@ -616,6 +637,12 @@ static int HDMI_STATUS_D()
 
         switch (key)
         {
+        	case FAULT:
+        	{
+        		clear_whole_screen();
+        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+				exit(-1);
+			}
             case LEFT_KEY:
             {
                 return 0;
@@ -651,6 +678,12 @@ static int CHANNEL_SHOW_D()
 
         switch (key)
         {
+        	case FAULT:
+        	{
+        		clear_whole_screen();
+        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+				exit(-1);
+			}
             case LEFT_KEY:
             {
                 return 0;
@@ -681,6 +714,12 @@ static int TEMPERATURE_D()
 
         switch (key)
         {
+        	case FAULT:
+        	{
+        		clear_whole_screen();
+        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+				exit(-1);
+			}
             case LEFT_KEY:
             {
                 return 0;
@@ -723,15 +762,12 @@ static int DEV_INFO_D()
         key = recv_key_info_D();
         switch (key)
         {
-            /*
-            case DOWN_KEY:
-            case UP_KEY:
-            {
-                param = down_up_respond_D(count, param, DEV_INFO_SHOWWING_D, DEV_INFO_LIST_D, key);
-                break;
-            }
-            */
-            
+            case FAULT:
+        	{
+        		clear_whole_screen();
+        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+				exit(-1);
+			}
             case LEFT_KEY:  //返回上一级目录
             {
                 return 0;
@@ -769,6 +805,12 @@ static int DEV_SETTINGS_D()
 
         switch (key)
         {
+        	case FAULT:
+        	{
+        		clear_whole_screen();
+        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+				exit(-1);
+			}
             case UP_KEY:
             case DOWN_KEY:
             {
@@ -786,19 +828,13 @@ static int DEV_SETTINGS_D()
                         break;
                     }
                     
-                    if (DEV_SETTINGS_SHOWWING_D[param.x/2] == DEV_SETTINGS_LIST_D[2]) // HDCP SETTING
-                    {
-                        HDCP_SETTING_D();
-                        break;
-                    }
-                    
-                    if (DEV_SETTINGS_SHOWWING_D[param.x/2] == DEV_SETTINGS_LIST_D[3]) // RESOL SETTING
+                    if (DEV_SETTINGS_SHOWWING_D[param.x/2] == DEV_SETTINGS_LIST_D[2]) // RESOL SETTING
                     {
                         RESOL_SETTING_D();
                         break;
                     }
     
-                    if (DEV_SETTINGS_SHOWWING_D[param.x/2] == DEV_SETTINGS_LIST_D[4]) // CH SELECT
+                    if (DEV_SETTINGS_SHOWWING_D[param.x/2] == DEV_SETTINGS_LIST_D[3]) // CH SELECT
                     {
                         CH_SELECT_D();
                         break;
@@ -841,17 +877,17 @@ static int INPUT_SETTING_D()
 {
     int err = -1;
     int type_i = -1;
-    char type[100] = {0};
+    char Type[100] = {0};
 
-    err = GET_DECODE_VIDEO_INPUT(type);
+    err = GET_DECODE_VIDEO_INPUT(Type);
     if (err == -1)
         return -1;
 	
-    if (strcasestr(type, "stream") != NULL)
+    if (strcasestr(Type, "stream") != NULL)
     {
         type_i = 1;
     }
-    else if (strcasestr(type, "hdmi") != NULL)
+    else if (strcasestr(Type, "hdmi") != NULL)
     {
         type_i = 0;
     }
@@ -890,6 +926,12 @@ static int INPUT_SETTING_D()
 
         switch (key)
         {
+        	case FAULT:
+        	{
+        		clear_whole_screen();
+        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+				exit(-1);
+			}
             case DOWN_KEY:
             {
                 if (x == 2)
@@ -930,13 +972,7 @@ static int INPUT_SETTING_D()
             {
                 return 0;
             }
-#if 0
-            case LEFT_KEY:
-            {   
-                printf("return \n");
-                return 0;
-            }
-#endif
+
         }
 
     }
@@ -944,6 +980,7 @@ static int INPUT_SETTING_D()
     
 }
 
+#if 0
 static int HDCP_SETTING_D()
 {
     int p = 4; 
@@ -953,7 +990,6 @@ static int HDCP_SETTING_D()
     int star_x = 2;
     char mode[20] = {0};
     GET_HDCP_MODE(mode);
-	//printf("mode[0] = %c\n", mode[0]);
     if (mode[0] == '1')
     {
         star_x = 2;
@@ -978,6 +1014,12 @@ static int HDCP_SETTING_D()
         key = recv_key_info_D();
         switch (key)
         {
+        	case FAULT:
+        	{
+        		clear_whole_screen();
+        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+				exit(-1);
+			}
             case DOWN_KEY:
             {
             	star_x += 2;
@@ -1001,15 +1043,15 @@ static int HDCP_SETTING_D()
             
             case RIGHT_KEY:
             case ENTER_KEY:
-            {               
+            {
                 if (star_x == 2)
                 {
                     show_a_star(star_x);
                     SET_HDCP_MODE("ON");
                 }
                 
-                if (star_x == 4)             
-                {                   
+                if (star_x == 4)
+                {
                     show_a_star(star_x);
                     SET_HDCP_MODE("OFF");
                 }
@@ -1024,6 +1066,7 @@ static int HDCP_SETTING_D()
     }
     return 0;
 }
+#endif
 
 static find_active_resol(char *mode)
 {
@@ -1068,7 +1111,7 @@ static int RESOL_SETTING_D()
     int star_x = 2;
     GET_SCALE_MODE(mode);
 
-    printf("mode: %s\n", mode);
+    //printf("mode: %s\n", mode);
     
     clear_whole_screen();
     show_strings(0, y, RESOL_SCALE_LIST_D[0], strlen(RESOL_SCALE_LIST_D[0]), 1); 
@@ -1084,6 +1127,12 @@ static int RESOL_SETTING_D()
         key = recv_key_info_D();
         switch (key)
         {
+        	case FAULT:
+        	{
+        		clear_whole_screen();
+        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+				exit(-1);
+			}
             case UP_KEY:
             case DOWN_KEY:
             {
@@ -1214,6 +1263,12 @@ static int CH_SELECT_D()
         key = recv_key_info_D();
         switch (key)
         {
+        	case FAULT:
+        	{
+        		clear_whole_screen();
+        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+				exit(-1);
+			}
             case DOWN_KEY:
             {
                 if (x < 6)
