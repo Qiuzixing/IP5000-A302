@@ -6,9 +6,11 @@
 #include "mutex.h"
 #include <string>
 
+
 using namespace std;
 
 #define MAX_CMD_STR         512
+#define MAX_EDIE_SZIE       256
 
 #define UPLOAD_FILE_PATH        "/tmp"
 #define WEB_CONFIG_FILE         "/share/https/gbwebserver.json"
@@ -54,6 +56,7 @@ public:
 
     // 文件传输
     static bool UpdateEdidFile(const char *i_pFilePath);
+    static bool CheckEdidFile(const char *edieFile);
 
     // json数据处理函数
     static bool SetJsonFile(const char *i_pJsonData, const char *i_pFile);

@@ -558,16 +558,45 @@ int CWeb::UpdateEdidHandle(struct mg_connection *conn, void *cbdata)
     send_http_error_rsp(conn);
 #endif
 
+    bool bRes = false;
     struct T_FromInfo tFrom;
-    if(!SaveUploadFile(conn, DEFAULT_FILE_PATH "/edid", NULL, &tFrom))
+    Json::Value root;
+    root["result"] = "File corrupted";
+
+    Json::FastWriter fastwiter;
+    string strConfInfo = "";
+    strConfInfo = fastwiter.write(root);
+
+    if(SaveUploadFile(conn, "/tmp", NULL, &tFrom))
     {
-        BC_INFO_LOG("UpdateEdidHandle upload file error");
-        send_http_error_rsp(conn);
+        string strTmpFile = tFrom.filepath;
+        strTmpFile += "/";
+        strTmpFile += tFrom.filename;
+        BC_INFO_LOG("edid file is [%s]", strTmpFile.c_str());
+        if(COperation::CheckEdidFile(strTmpFile.c_str()))
+        {
+            bRes = true;
+        }
+        else
+        {
+            bRes = false;
+        }
     }
-    else
+
+
+    if(bRes)
     {
         BC_INFO_LOG("UpdateEdidHandle upload file OK");
         send_http_ok_rsp(conn);
+    }
+    else
+    {
+        mg_send_status(conn, BAD_REQUEST_CODE);
+        mg_printf(conn, "%s",
+								"Cache-Control: no-cache\r\n"
+								"Connection: close\r\n"
+								"Content-Type: application/json;charset=utf-8\r\n\r\n");
+        mg_printf(conn, "%s", strConfInfo.c_str());
     }
 
     return 1;

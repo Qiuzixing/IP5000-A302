@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <sys/statfs.h>
 #include <sys/file.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <crypt.h>
 
@@ -255,6 +256,90 @@ bool COperation::UpdateEdidFile(const char *i_pFilePath)
 
     return true;
 }
+
+bool COperation::CheckEdidFile(const char *edieFile)
+{
+    bool bRes = false;
+    do
+    {
+        struct stat st;
+        stat(edieFile, &st);
+        int nEdieSize = st.st_size;
+
+        if(nEdieSize == 128 || nEdieSize == 256)
+        {
+            FILE* fp = NULL;
+            UInt8 edidbuf[MAX_EDIE_SZIE] = {0};
+
+            fp = fopen(edieFile, "r");
+            if(fp == NULL)
+            {
+                break;
+            }
+
+            size_t len = fread(edidbuf, 1, nEdieSize, fp);
+            if(len < 0)
+            {
+                break;
+            }
+
+            if(edidbuf[0] == 0x00
+                && edidbuf[1] == 0xff
+                && edidbuf[2] == 0xff
+                && edidbuf[3] == 0xff
+                && edidbuf[4] == 0xff
+                && edidbuf[5] == 0xff
+                && edidbuf[6] == 0xff
+                && edidbuf[7] == 0x00)
+            {
+                int n = nEdieSize / 128;
+                int i = 0;
+                UInt8 u8Sum  = 0;
+                UInt8 u8Result = -1;
+
+                for(i; i < n; i++)
+                {
+                    int j = 0;
+                    int nbegin = i * 128;
+                    for(j; j < 128; j++)
+                    {
+                        u8Sum += edidbuf[j + nbegin];
+                    }
+                }
+
+                if(u8Sum == 0)
+                {
+                    char cmd[MAX_CMD_STR] = {0};
+                    sprintf(cmd, "cp -f %s %s%s", edieFile, DEFAULT_FILE_PATH, "/edid");
+                    if(My_System(cmd) < 0)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        bRes = true;
+                    }
+                }
+                else
+                {
+                    BC_INFO_LOG("CheckEdidFile checksum is [%x]", u8Sum);
+                }
+            }
+            else
+            {
+                BC_INFO_LOG("CheckEdidFile headr failed!");
+            }
+        }
+        else
+        {
+            BC_INFO_LOG("CheckEdidFile size failed!");
+        }
+    }while(0);
+
+    ::remove(edieFile);
+    return bRes;
+}
+
 
 bool COperation::SetJsonFile(const char *i_pJsonData, const char *i_pFile)
 {
