@@ -3769,7 +3769,7 @@ int Cfg_InitParam_KVM_FromJson(void)
 
 				if(strlen(param) > 0)
 				{
-					sprintf(cmd1,"astparam s kmoip_roaming_layout %s",param);
+					sprintf(cmd1,"astparam s kmoip_roaming_layout %s;e e_kmoip_roaming_chg",param);
 					system(cmd1);
 
 				}
@@ -7177,7 +7177,7 @@ int Cfg_Set_Dec_Usb_KVM()
 
 				if(strlen(param) > 0)
 				{
-					sprintf(cmd,"astparam s kmoip_roaming_layout %s;astparam save",param);
+					sprintf(cmd,"astparam s kmoip_roaming_layout %s;astparam save;e e_kmoip_roaming_chg",param);
 					system(cmd);
 				}
 
@@ -7375,7 +7375,7 @@ int get_local_ip(const char *eth_inf, char *ip)
 	int sockfd;
 	struct ifconf ifconf;
 	char buf[512];
-	struct ifreq *ifreq;	  //³õÊ¼»¯ifconf
+	struct ifreq *ifreq;	  //ï¿½ï¿½Ê¼ï¿½ï¿½ifconf
 
 //	printf("get_local_ip: %s\n", eth_inf);
 
@@ -7388,9 +7388,9 @@ int get_local_ip(const char *eth_inf, char *ip)
 		return -1;
 	}
 
-	ioctl(sockfd, SIOCGIFCONF, &ifconf);    //»ñÈ¡ËùÓÐ½Ó¿ÚÐÅÏ¢
+	ioctl(sockfd, SIOCGIFCONF, &ifconf);    //ï¿½ï¿½È¡ï¿½ï¿½ï¿½Ð½Ó¿ï¿½ï¿½ï¿½Ï¢
 
-	//½ÓÏÂÀ´Ò»¸öÒ»¸öµÄ»ñÈ¡IPµØÖ·
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ä»ï¿½È¡IPï¿½ï¿½Ö·
 	ifreq = (struct ifreq*)buf;
 	for(i=(ifconf.ifc_len/sizeof(struct ifreq)); i>0; i--)
 	{

@@ -305,7 +305,8 @@ handle_ue_param_set()
 	# $1: key to set
 	# $2: value to set
 	local _key=$1
-	local _value=$2
+	shift
+	local _value=$(echo $@ | sed 's/ /:/g')
 
 	eval "$_key=\"$_value\""
 	echo "$_key=$_value"
