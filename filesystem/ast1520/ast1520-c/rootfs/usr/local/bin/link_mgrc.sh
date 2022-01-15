@@ -84,7 +84,7 @@ chmod a+x /usr/local/bin/v_auto_turn_off_timer.sh
 
 start_v_auto_turn_off_timer() {
 	case $P3KCFG_SWITCH_IN in
-		stream)
+		stream|STREAM)
 			echo " ### starting auto turn off timer"
 			v_auto_turn_off_timer.sh "$1" &
 			;;
@@ -107,7 +107,7 @@ chmod a+x /usr/local/bin/v_auto_turn_on_timer.sh
 
 start_v_auto_turn_on_timer() {
 	case $P3KCFG_SWITCH_IN in
-		stream)
+		stream|STREAM)
 			echo " ### starting auto turn on timer"
 			v_auto_turn_on_timer.sh "$1" &
 			;;
@@ -130,7 +130,7 @@ chmod a+x /usr/local/bin/v_auto_sleep_timer.sh
 
 start_v_auto_sleep_timer() {
 	case $P3KCFG_SWITCH_IN in
-		stream)
+		stream|STREAM)
 			echo " ### starting auto sleep timer"
 			v_auto_sleep_timer.sh "$1" &
 			;;
@@ -270,6 +270,7 @@ handle_e_v_auto_turn_on_time_up() {
 		disable)
 			;;
 		*)
+			ipc @m_lm_set s set_gpio_val:1:79:1
 			echo 0 >/sys/devices/platform/display/screen_off
 			;;
 	esac
@@ -277,6 +278,7 @@ handle_e_v_auto_turn_on_time_up() {
 
 handle_e_v_auto_sleep_time_up() {
 	echo 1 >/sys/devices/platform/display/screen_off
+	ipc @m_lm_set s set_gpio_val:1:79:0
 }
 
 handle_e_encoder_ip_got()
@@ -4066,10 +4068,10 @@ init_param_from_p3k_cfg()
 	if [ -f "$auto_switch_setting" ];then
 		P3KCFG_SWITCH_IN=`jq -r '.auto_switch_setting.source_select' $auto_switch_setting`
 		if echo "$P3KCFG_SWITCH_IN" | grep -q "null" ; then
-			P3KCFG_SWITCH_IN='stream'
+			P3KCFG_SWITCH_IN='STREAM'
 		fi
 	else
-		P3KCFG_SWITCH_IN='stream'
+		P3KCFG_SWITCH_IN='STREAM'
 	fi
 	echo "P3KCFG_SWITCH_IN=$P3KCFG_SWITCH_IN"
 
@@ -4318,6 +4320,8 @@ if [ $UGP_FLAG = 'success' ];then
 			#set cec_sel pin(68) to default to sii9316;1:sii9136-hdmi_out;0:hdmi_in-hdmi_out
 			ipc @m_lm_set s set_gpio_config:3:65:1:70:1:68:1
 			ipc @m_lm_set s set_gpio_val:3:70:0:65:0:68:1
+			ipc @m_lm_set s set_gpio_config:1:79:1
+			ipc @m_lm_set s set_gpio_val:1:79:1
 		;;
 		*)
 		;;
