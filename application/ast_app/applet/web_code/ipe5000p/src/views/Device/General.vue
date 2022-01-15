@@ -318,9 +318,11 @@ export default {
     },
     restart () {
       this.$socket.sendMsg('#RESET')
+      sessionStorage.removeItem('login')
     },
     reset () {
       this.$socket.sendMsg('#FACTORY')
+      sessionStorage.removeItem('login')
     },
     setHostName () {
       if (this.isValidName(this.hostname)) {

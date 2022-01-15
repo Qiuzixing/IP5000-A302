@@ -14,28 +14,35 @@
           <span class="setting-title">New Password</span>
           <input type="password"
                  v-model="newPwd"
+                 maxLength="16"
                  class="setting-text">
           <button class="btn btn-plain-primary"
                   style="margin-left: 25px;"
-                  @click="setPassword">CHANGE</button>
+                  @click="setPassword">CHANGE
+          </button>
         </div>
+        <p class="error-msg" v-if="pwdError" style="margin: 0">Alphanumeric and characters within length of 4 to 16 characters,
+          spaces not allowed.</p>
         <div class="setting">
           <span class="setting-title">Confirm Password</span>
           <input type="password"
+                 maxLength="16"
                  v-model="confirmPwd"
                  class="setting-text">
         </div>
+        <p class="error-msg" style="margin: 0" v-if="diffPwdError">New password and confirm password do not match.</p>
       </div>
       <div class="setting-model">
         <div class="setting">
-          <span class="setting-model-title">Inactivity auto-logout time</span>
+          <span class="setting-model-title">Inactivity auto-logout time (min)</span>
           <el-input-number v-model="logoutTime"
                            controls-position="right"
                            :max="30"
                            :min="0"></el-input-number>
           <button class="btn btn-plain-primary"
                   style="margin-left: 25px;"
-                  @click="setLogout">APPLY</button>
+                  @click="setLogout">APPLY
+          </button>
         </div>
       </div>
     </div>
@@ -70,7 +77,9 @@ export default {
       verifyShowPwdDialog: false,
       pwd: '',
       newPwd: '',
-      confirmPwd: ''
+      confirmPwd: '',
+      pwdError: false,
+      diffPwdError: false
     }
   },
   beforeCreate () {
@@ -111,7 +120,10 @@ export default {
       this.$socket.sendMsg('#LOGOUT-TIMEOUT ' + this.logoutTime)
     },
     setPassword () {
-      if (this.confirmPwd.length === 0 || this.confirmPwd !== this.newPwd) return
+      this.pwdError = !this.isPwd(this.newPwd)
+      if (this.pwdError) return
+      this.diffPwdError = !(this.newPwd === this.confirmPwd)
+      if (this.diffPwdError) return
       this.$socket.sendMsg(`#PASS admin,${this.newPwd}`)
     },
     setSecurity (ctrl) {
@@ -123,6 +135,9 @@ export default {
         this.confirmPwd = ''
         this.pwd = ''
       }
+    },
+    isPwd (name) {
+      return /^[A-Za-z0-9][A-Za-z0-9\-_]{3}[A-Za-z0-9\-_]{0,12}$/.test(name)
     }
   }
 }

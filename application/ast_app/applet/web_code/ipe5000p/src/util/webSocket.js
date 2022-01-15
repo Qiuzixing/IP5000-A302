@@ -70,6 +70,7 @@ const socket = {
     console.log('Info: WebSocket connection opened.')
   },
   closeWs () {
+    sessionStorage.removeItem('login')
     console.log('Info: WebSocket connection closed.')
     alert('Lost Connection!')
   }

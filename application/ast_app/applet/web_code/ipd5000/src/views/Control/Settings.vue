@@ -14,7 +14,7 @@
       <div >
         <div class="setting" v-if="$global.deviceType">
           <span class="setting-title">Gateway HDMI Port</span>
-          <el-select v-model="cecGateWayPort" :disabled="cecGateWay === '0'">
+          <el-select v-model="cecGateWayPort" :disabled="cecGateWay === '0'" @click="setCECPort">
             <el-option
               v-for="item in [{value: '1', label: 'HDMI Input'}, {value: '2', label: 'HDMI Output'}]"
               :key="item.value"
@@ -127,15 +127,15 @@
     <div class="setting-model"
          v-if="this.$global.deviceType">
       <h3 class="setting-model-title">IR Settings</h3>
-      <div class="setting">
-        <span class="setting-title">Gateway</span>
-        <v-switch v-model="irGW"
-                  @input="setIRGateway"
-                  open-text="Enable"
-                  close-text="Disable"
-                  active-value="1"
-                  inactive-value="0"></v-switch>
-      </div>
+<!--      <div class="setting">-->
+<!--        <span class="setting-title">Gateway</span>-->
+<!--        <v-switch v-model="irGW"-->
+<!--                  @input="setIRGateway"-->
+<!--                  open-text="Enable"-->
+<!--                  close-text="Disable"-->
+<!--                  active-value="1"-->
+<!--                  inactive-value="0"></v-switch>-->
+<!--      </div>-->
       <div class="radio-setting">
         <span class="setting-title">IR Direction IN/OUT</span>
         <div>
@@ -263,7 +263,7 @@ export default {
     this.$socket.sendMsg('#UART? 1')
     this.$socket.sendMsg('#PORT-DIRECTION? both.ir.1.ir')
     this.$socket.sendMsg('#COM-ROUTE? *')
-    this.$socket.sendMsg('#KDS-IR-GW? ')
+    // this.$socket.sendMsg('#KDS-IR-GW? ')
   },
   methods: {
     handleMsg (msg) {
@@ -340,7 +340,11 @@ export default {
       if (port === '0') {
         this.$socket.sendMsg('#CEC-GW-PORT-ACTIVE 0')
       } else {
-        this.$socket.sendMsg('#CEC-GW-PORT-ACTIVE ' + this.cecGateWayPort)
+        if (this.$global.deviceType === 0) {
+          this.$socket.sendMsg('#CEC-GW-PORT-ACTIVE 2')
+        } else {
+          this.$socket.sendMsg('#CEC-GW-PORT-ACTIVE ' + this.cecGateWayPort)
+        }
       }
     },
     saveBaudRate () {

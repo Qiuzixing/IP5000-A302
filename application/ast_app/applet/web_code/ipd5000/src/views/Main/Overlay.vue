@@ -173,7 +173,8 @@ export default {
         objects: [
           {
             type: 'image',
-            position: 'top_left'
+            position: 'top_left',
+            path: ''
           }
         ]
       },
@@ -280,13 +281,13 @@ export default {
       this.imgName = event.target.files[0]?.name || ''
       if (this.imgName) {
         const file = event.target.files[0]
-        if (file.size > 1024 * 256) {
-          this.imgErrorMsg = 'The file size is less than 256KB '
+        if (file.size > 1024 * 1024) {
+          this.imgErrorMsg = 'Maximum file size should be less than 1MB'
           this.imgError = true
           return
         }
         if (file.type !== 'image/png') {
-          this.imgErrorMsg = 'The image format must be PNG (640 x 360)'
+          this.imgErrorMsg = 'The image format must be PNG (resolution less than 640 x 360)'
           this.imgError = true
           return
         }
@@ -340,6 +341,7 @@ export default {
         )
         .then(msg => {
           this.imageInfo = msg.data
+          this.imgName = msg.data.objects[0].path.split('/').pop() || ''
         })
     },
     save () {
@@ -361,7 +363,7 @@ export default {
       })
     },
     saveImg () {
-      if (!this.imgError && this.imgName) {
+      if (!this.imgError && this.$refs.upload.files[0]) {
         const file = this.$refs.upload.files[0]
         const xhr = new XMLHttpRequest()
         const formData = new FormData()
@@ -369,7 +371,6 @@ export default {
         xhr.open('POST', '/upload/overlayimage')
         xhr.onload = () => {
           if (xhr.status === 200) {
-            this.imgName = ''
             this.$refs.upload.value = ''
             this.uploadComplete = true
             setTimeout(() => {

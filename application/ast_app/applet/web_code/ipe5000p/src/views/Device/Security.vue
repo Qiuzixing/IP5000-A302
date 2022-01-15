@@ -60,7 +60,7 @@
     <div class="setting-model">
       <h3 class="setting-model-title">802.1x</h3>
       <div class="setting">
-        <span class="setting-title">IEE 802.1x Authentication</span>
+        <span class="setting-title">IEEE 802.1x Authentication</span>
         <v-switch v-model="server8021x"
                   active-value="on"
                   inactive-value="off"></v-switch>
@@ -69,7 +69,7 @@
         <radio-component v-model="security801"
                          :disabled="server8021x === 'off'"
                          label="eap_mschap"
-                         @change="server8021error=false">EAP-MSCHAP V2
+                         @change="server8021error=false">PEAP-MSCHAP V2
         </radio-component>
         <div v-if="security801 === 'eap_mschap'"
              style="margin-left: 30px">

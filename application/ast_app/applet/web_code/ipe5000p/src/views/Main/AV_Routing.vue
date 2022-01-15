@@ -220,7 +220,20 @@ export default {
       this.inputSelect.val = msg.split(',')[1].split('.')[2]
     },
     setInputSelect (val) {
-      this.$socket.sendMsg(`#X-ROUTE out.hdmi.1.video.1,in.hdmi.${val}.video.1`)
+      if (this.$global.deviceType === 1) {
+        if (val === 3) {
+          this.$socket.sendMsg(`#X-ROUTE out.hdmi.1.video.1,in.usb_c.${val}.video.1`)
+        } else {
+          this.$socket.sendMsg(`#X-ROUTE out.hdmi.1.video.1,in.hdmi.${val}.video.1`)
+        }
+      }
+      if (this.$global.deviceType === 2) {
+        if (val === 2) {
+          this.$socket.sendMsg(`#X-ROUTE out.hdmi.1.video.1,in.usb_c.${val}.video.1`)
+        } else {
+          this.$socket.sendMsg(`#X-ROUTE out.hdmi.1.video.1,in.hdmi.${val}.video.1`)
+        }
+      }
     },
     handleChannel (msg) {
       this.channel = msg.split(' ')[1]
@@ -246,7 +259,10 @@ export default {
       this.$socket.sendMsg(`#X-AUD-LVL out.analog_audio.1.audio.1,${this.volume}`)
     },
     handleAction (msg) {
-      this.action = msg.split(' ')[1]
+      const val = msg.split(' ')[1]
+      if (val === '0' || val === '1') {
+        this.action = val
+      }
     },
     setAction (msg) {
       this.$socket.sendMsg(`#KDS-ACTION ${msg}`)

@@ -223,7 +223,10 @@ export default {
       this.muteVal = msg.split(',').pop()
     },
     handleAction (msg) {
-      this.action = msg.split(' ')[1]
+      const val = msg.split(' ')[1]
+      if (val === '0' || val === '1') {
+        this.action = val
+      }
     },
     setAction (msg) {
       this.$socket.sendMsg(`#KDS-ACTION ${msg}`)

@@ -27,33 +27,41 @@
           <li :class="{'active': isSelectListIndex === item[0]}"
               v-for="item in edidList"
               @click="isSelectListIndex = item[0]"
-              :key="item[0]">{{item[1]}}</li>
+              :key="item[0]">{{ item[1] }}
+          </li>
         </ul>
         <ul class="edid-list disabled"
             v-else>
           <li :class="{'active': isSelectListIndex === item[0]}"
               v-for="item in edidList"
-              :key="item[0]">{{item[1]}}</li>
+              :key="item[0]">{{ item[1] }}
+          </li>
         </ul>
         <div style="margin-left: 24px;">
           <el-upload action="/upload/edid"
+                     ref="upload"
+                     :on-error="upgradeFail"
                      :on-success="upgradeFile"
                      :before-upload="checkEDID"
                      :show-file-list="false"
                      :auto-upload="true">
             <button class="btn btn-plain-primary"
-                    :disabled="edidLock==='1' || edidList.length > 7">UPLOAD</button>
+                    :disabled="edidLock==='1' || edidList.length > 7">UPLOAD
+            </button>
 
           </el-upload>
           <br>
           <button class="btn btn-plain-primary"
                   :disabled="edidLock==='1' || isSelectListIndex == '0'"
                   style="margin-bottom: 24px;"
-                  @click="deleteEDID">REMOVE</button><br>
+                  @click="deleteEDID">REMOVE
+          </button>
+          <br>
           <button class="btn btn-plain-primary"
                   :disabled="edidLock==='1'"
                   style="width: 97px;"
-                  @click="setEDID">APPLY</button>
+                  @click="setEDID">APPLY
+          </button>
           <input type="file"
                  style="display:none;width:0;height:0;">
         </div>
@@ -70,7 +78,8 @@
         <button class="btn btn-plain-primary"
                 :disabled="edidLock=='1'"
                 style="margin-left: 24px"
-                @click="readEDID">READ</button>
+                @click="readEDID">READ
+        </button>
       </div>
     </div>
 
@@ -85,9 +94,18 @@ export default {
       edid: {
         val: 'passthru',
         param: [
-          { value: 'passthru', label: 'Passthrough' },
-          { value: 'custom', label: 'Custom' },
-          { value: 'default', label: 'Default EDID' }
+          {
+            value: 'passthru',
+            label: 'Passthrough'
+          },
+          {
+            value: 'custom',
+            label: 'Custom'
+          },
+          {
+            value: 'default',
+            label: 'Default EDID'
+          }
         ]
       },
       mac: '',
@@ -201,7 +219,6 @@ export default {
     handleEDIDList (msg) {
       const startIndex = msg.indexOf('[')
       const result = msg.substr(startIndex).split(',')
-      console.log(result.toString())
       this.edidList = JSON.parse('[' + result.toString() + ']')
     },
     upgradeFile (e, file) {
@@ -209,13 +226,68 @@ export default {
         this.$socket.sendMsg(`#EDID-ADD ${this.edidList.length},${file.name}`)
       }
     },
-    checkEDID (file) {
-      if (file.size === 256 && file.name.endsWith('.bin')) {
-        return this.edidList.every(item =>
-          item[1] !== file.name
-        )
+    upgradeFail () {
+      alert('File corrupted')
+    },
+    async checkEDID (file) {
+      if ((file.size === 256 || file.size === 128) && file.name.toLowerCase().endsWith('.bin')) {
+        // return this.edidList.every(item =>
+        //   item[1] !== file.name
+        // )
+        const hexArray = await this.checkEDIDBlock(file)
+        if (hexArray[0] === 0x00 &&
+          hexArray[1] === 0xff &&
+          hexArray[2] === 0xff &&
+          hexArray[3] === 0xff &&
+          hexArray[4] === 0xff &&
+          hexArray[5] === 0xff &&
+          hexArray[6] === 0xff &&
+          hexArray[7] === 0x00) {
+          const blockl = hexArray.slice(0, 128)
+          const block2 = hexArray.slice(128)
+          const block1Checksum = blockl.reduce((a, b) => a + b).toString(2)
+          let block2Checksum = '00000000'
+          if (block2.length === 128) {
+            block2Checksum = block2.reduce((a, b) => a + b).toString(2)
+          }
+          if (block1Checksum.endsWith('00000000') && block2Checksum.endsWith('00000000')) {
+            return true
+          }
+          alert('File corrupted')
+          return new Promise()
+        } else {
+          alert('File corrupted')
+          return new Promise()
+        }
+
+      } else {
+        alert('The EDID file format must be BIN with 128 or 256 bytes')
+        return false
       }
-      return false
+    },
+    checkEDIDBlock (file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = e => {
+          // 读取文件内容
+          const fileString = e.target.result
+          const hexArray = this.ArrayBuffer2hex(fileString)
+          resolve(hexArray)
+        }
+        reader.onerror = e => {
+          return false
+        }
+        reader.readAsArrayBuffer(file)
+      })
+    },
+    ArrayBuffer2hex (buffer) {
+      const hexArr = Array.prototype.map.call(
+        new Uint8Array(buffer),
+        function (bit) {
+          return bit
+        }
+      )
+      return hexArr
     }
   }
 }
@@ -224,6 +296,7 @@ export default {
 .vs__dropdown-toggle {
   width: 180px;
 }
+
 .edid-list {
   &.disabled {
     li {
@@ -231,26 +304,31 @@ export default {
       opacity: 0.5;
     }
   }
+
   margin: 0;
   list-style: none;
   padding: 0;
   border: 1px solid #4d4d4f;
   width: 250px;
   border-radius: 5px;
+
   li {
     &:first-child {
       border-top-left-radius: 5px;
       border-top-right-radius: 5px;
     }
+
     &:last-child {
       border-bottom-left-radius: 5px;
       border-bottom-right-radius: 5px;
     }
+
     &.active {
       background: #f3f3f3;
       color: #404040;
       font-family: "open sans semiblold";
     }
+
     cursor: pointer;
     padding: 5px;
   }
