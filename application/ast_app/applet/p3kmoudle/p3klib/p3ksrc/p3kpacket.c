@@ -39,7 +39,7 @@ int P3K_HandleSharkResp(char*data)
 	}
 	char tmpdata[32] ;
 	memset(tmpdata,0,32);
-	sprintf(tmpdata,"%s%s",P3K_RESPMSG_PREFIX,P3K_RESPMSG_SUFFIX);
+	sprintf(tmpdata,"%s OK%s",P3K_RESPMSG_PREFIX,P3K_RESPMSG_SUFFIX);
 
 	memcpy(data,tmpdata,strlen(tmpdata));
 	return 0;
