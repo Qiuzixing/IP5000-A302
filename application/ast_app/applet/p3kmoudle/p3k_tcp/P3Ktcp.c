@@ -468,6 +468,12 @@ int Tcp_NetRecvMsg(NetCliInfo_T *cli)
 			info = hd;
 
 	}
+	if(strcasecmp(cli->recvmsg,"#SECUR?\r") == 0)
+	{
+		printf("#SECUR?\r");
+		bSeur = 0;
+	}
+
 	if(!memcmp(cli->recvmsg,"#\r",strlen(cli->recvmsg)) && Cheak_TcpStartLink(sTimeOut,cli->recvSocket) == 0&&(bSeur == 1))// && flagS == 0)
 	{
 		//printf("###  %d\n",cli->recvSocket);

@@ -5904,6 +5904,7 @@ const char* strHelpCmd[] = {
 	"RESET",
 	"ROLLBACK",
 	"SECUR",
+	"SECUR?",
 	"SIGNALS-LIST?",
 	"SN?",
 	"STANDBY-VERSION?",
