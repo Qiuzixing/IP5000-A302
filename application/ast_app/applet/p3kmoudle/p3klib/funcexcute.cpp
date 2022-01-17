@@ -5800,5 +5800,156 @@ int EX_TESTMODE()
     return EX_NO_ERR;
 }
 
+const char* strHelpCmd[] = {
+	"#",
+	"BEACON-EN",
+	"BEACON-INFO?",
+	"BUILD-DATE?",
+	"CEC-GW-PORT-ACTIVE",
+	"CEC-NTFY",
+	"CEC-SND",
+	"COM-ROUTE?",
+	"COM-ROUTE-ADD",
+	"COM-ROUTE-REMOVE",
+#ifdef CONFIG_P3K_CLIENT
+	"CS-CONVERT",
+	"CS-CONVERT?",
+#else
+	"EDID-ACTIVE",
+	"EDID-ACTIVE?",
+	"EDID-LIST?",
+	"EDID-MODE",
+	"EDID-MODE?",
+	"EDID-NET-SRC?",
+	"EDID-NET-SRC",
+	"EDID-RM",
+#endif
+	"ETH-PORT",
+	"ETH-PORT?",
+	"FACTORY",
+	"FCT-MAC",
+	"FCT-MODEL",
+	"FCT-SN",
+#ifdef 	CONFIG_P3K_HOST
+	"HDCP-MOD",
+	"HDCP-MOD?",
+#endif
+	"HDCP-STAT?",
+	"HELP"
+	"HW-TEMP?",
+	"HW-VERSION?",
+	"IDV",
+	"IR-SND",
+	"KDS-ACTION",
+	"KDS-ACTION?",
+	"KDS-AUD",
+	"KDS-AUD?",
+#ifdef CONFIG_P3K_CLIENT
+	"KDS-CHANNEL-SELECT",
+	"KDS-CHANNEL-SELECT?",
+	"KDS-DAISY-CHAIN",
+	"KDS-DAISY-CHAIN?",
+#else
+	"KDS-DEFINE-CHANNEL",
+	"KDS-DEFINE-CHANNEL?",
+	"KDS-DEFINE-CHANNEL-NAME",
+	"KDS-DEFINE-CHANNEL-NAME?",
+#endif
+	"KDS-GW-ETH",
+	"KDS-GW-ETH?",
+	"KDS-IR-GW",
+	"KDS-IR-GW?",
+	"KDS-METHOD",
+	"KDS-METHOD?",
+	"KDS-MULTICAST",
+#ifdef CONFIG_P3K_CLIENT
+	"KDS-OSD-DISPLAY",
+	"KDS-OSD-DISPLAY?",
+#endif
+	"KDS-RATIO?",
+	"KDS-RESOL?",
+#ifdef CONFIG_P3K_CLIENT
+	"KDS-SCALE",
+	"KDS-SCALE?",
+#endif
+	"KDS-VLAN-TAG",
+	"KDS-VLAN-TAG?",
+	"LDFW",
+#ifdef 	CONFIG_P3K_HOST
+	"LOCK-EDID",
+	"LOCK-EDID?",
+#endif
+	"LOCK-FP",
+	"LOCK-FP?",
+	"LOG-ACTION",
+	"LOGIN",
+	"LOGIN?",
+	"LOGOUT",
+	"MODEL?",
+	"NAME",
+	"NAME?",
+	"NAME-RST",
+	"NET-CONFIG",
+	"NET-CONFIG?",
+	"NET-DHCP",
+	"NET-DHCP?",
+	"NET-MAC?",
+	"NET-STAT?",
+	"NET-IP?",
+	"PASS",
+	"PASS?",
+	"PORT-DIRECTION",
+	"PORT-DIRECTION?",
+	"PORT-LIST?",
+	"RESET",
+	"ROLLBACK",
+	"SECUR",
+	"SIGNALS-LIST?",
+	"SN?",
+	"STANDBY-VERSION?",
+	"TIME",
+	"TIME?",
+	"TIME-LOC",
+	"TIME-LOC?",
+	"TIME-SRV",
+	"TIME-SRV?",
+	"UART",
+	"UART?",
+	"UPG-TIME?",
+	"UPGRADE",
+	"VERSION?",
+#ifdef CONFIG_P3K_CLIENT
+	"VIDEO-WALL-SETUP",
+	"VIDEO-WALL-SETUP?",
+	"VIEW-MOD",
+	"VIEW-MOD?",
+	"WND-STRETCH",
+	"WND-STRETCH?",
+#endif
+	"X-AUD-DESC?",
+	"X-AUD-LVL",
+	"X-AUD-LVL?",
+#ifdef CONFIG_P3K_HOST
+	"X-AV-SW-MODE",
+	"X-AV-SW-MODE?",
+	"X-PRIORITY",
+	"X-PRIORITY?",
+#endif
+	"X-ROUTE",
+	"X-ROUTE?",
+ };
+
+ int EX_HelpCmd(char* sHelpString)
+ {
+ 	sprintf(sHelpString,"%s",strHelpCmd[0]);
+
+   	for(unsigned int i = 1; i < sizeof(strHelpCmd)/sizeof(strHelpCmd[0]); ++i)
+	{
+	    sprintf(sHelpString,"%s, %s",sHelpString,strHelpCmd[i]);
+	}
+
+	DBG_InfoMsg("info:%s \n",sHelpString);
+ 	return EX_NO_ERR;
+ }
 
 

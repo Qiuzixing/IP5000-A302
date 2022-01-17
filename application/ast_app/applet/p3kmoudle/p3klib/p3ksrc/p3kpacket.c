@@ -47,13 +47,13 @@ int P3K_HandleSharkResp(char*data)
 
 int P3K_SimpleRespCmdBurstification(P3K_SimpleCmdInfo_S *cmd,char *dstdata)
 {
-	char tmpdata[384] ={0};
+	char tmpdata[4096] ={0};
 	int tmplen = 0;
 	if(dstdata == NULL || cmd == NULL)
 	{
 		return -1;
 	}
-	memset(tmpdata,0,384);
+	memset(tmpdata,0,4096);
 	char * tmp = &cmd->command[strlen(cmd->command)-1];
 	char * endl = "?";
 	if(!memcmp(tmp,endl,strlen(endl)))

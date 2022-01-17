@@ -4562,7 +4562,7 @@ static int P3K_NTFY_PROC(char*reqparam,char*respParam,char*userdata)
 
 static int P3K_TESTMODE(char*reqparam,char*respParam,char*userdata)
 {
-	DBG_InfoMsg("P3K_TESTMODE\n");
+	DBG_InfoMsg("P3K_TESTMODE \n");
 	int s32Ret = 0;
 	int port = 0;
 	int status = 0;
@@ -4576,6 +4576,16 @@ static int P3K_TESTMODE(char*reqparam,char*respParam,char*userdata)
 		DBG_ErrMsg("EX_TESTMODE err\n");
 	}
 	memcpy(respParam,tmpparam,strlen(tmpparam));
+	return 0;
+}
+
+static int P3K_HELP(char*reqparam,char*respParam,char*userdata)
+{
+	DBG_InfoMsg("P3K_HELP\n");
+	int s32Ret = 0;
+
+	s32Ret = EX_HelpCmd(respParam);
+
 	return 0;
 }
 
@@ -4760,6 +4770,7 @@ int P3K_SilmpleReqCmdProcess(P3K_SimpleCmdInfo_S *cmdreq,P3K_SimpleCmdInfo_S *cm
 									{"BEACON-CONF?",P3K_GetBeaconConf},
 									{"P3K-NOTIFY",P3K_NTFY_PROC},
 									{"TEST-MODE",P3K_TESTMODE},
+									{"HELP",P3K_HELP},
 									{NULL,NULL}
 	};
 

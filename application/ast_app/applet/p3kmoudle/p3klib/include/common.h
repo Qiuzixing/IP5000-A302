@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 #define MAX_COMMANDNAME_LEN  32
-#define MAX_PARAM_LEN      256
+#define MAX_PARAM_LEN      4*1024//256
 #define MAX_USR_STR_LEN   4*1024
 typedef struct _P3K_SimpleCmdInfo_S
 {

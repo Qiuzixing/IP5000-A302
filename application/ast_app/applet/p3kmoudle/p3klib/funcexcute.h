@@ -662,6 +662,8 @@ int EX_GetBeaconConf(char *muticastIP,int *port);
 int EX_GetBeacon(int *iPort_Id,int *iStatus,int *iTime);
 int EX_NTFYPhraser(Notify_S *s_NTFYInfo,char *tmpparam);
 int EX_TESTMODE();
+int EX_HelpCmd(char* sHelpString);
+
 
 void GetUpgradeStatus(char *info, unsigned int size);
 
