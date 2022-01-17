@@ -700,6 +700,7 @@ handle_e_ip_got()
 	;;
 	dhcp)
 		#MY_NETMASK and $MY_GATEWAYIP will be assigned in /usr/share/udhcpc/default.script
+		init_p3k_net_vlan
 		;;
 	static)
 		astparam s sec_priority_net_status $IP_VALID
@@ -707,6 +708,7 @@ handle_e_ip_got()
 		control_net_and_board_led_status
 		MY_NETMASK="$NETMASK"
 		MY_GATEWAYIP="$GATEWAYIP"
+		init_p3k_net_vlan
 	;;
 	*)
 	;;
@@ -3229,7 +3231,7 @@ init_info_file
 #init_p3k_cfg_file
 init_param_from_p3k_cfg
 init_json_cfg_path
-init_p3k_net_vlan
+
 # $AST_PLATFORM = ast1500hv4 or ptv1500hv2 or pce1500hv3
 echo ""
 echo "#### platform info:$AST_PLATFORM ####"

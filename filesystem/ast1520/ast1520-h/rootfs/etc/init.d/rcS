@@ -72,6 +72,8 @@ echo 1 > /proc/sys/net/ipv4/tcp_low_latency
 # default local port range overlap with AST service ports, change to 60000~65535
 echo 60000 65535 > /proc/sys/net/ipv4/ip_local_port_range
 
+echo 1 > /proc/sys/net/ipv4/conf/all/arp_ignore
+
 # /proc/sys/kernel/printk_ratelimit (the number of seconds to wait before re-enabling messages) default:5
 # /proc/sys/kernel/printk_ratelimit_burst (the number of messages accepted before rate-limiting) default:10
 echo 1 > /proc/sys/kernel/printk_ratelimit
