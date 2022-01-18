@@ -751,12 +751,16 @@ handle_e_ip_got()
 		case $MODEL_NUMBER in
 			KDS-SW3-EN7)
 					if [ $P3KCFG_FP_LOCK_ON = 'off' ];then
-						lcd_display IPE5000P &
+						lcd_display IPE5000P unlock&
+					else
+						lcd_display IPE5000P lock&
 					fi
 				;;
 			KDS-EN7)
 					if [ $P3KCFG_FP_LOCK_ON = 'off' ];then
-						lcd_display IPE5000 &
+						lcd_display IPE5000 unlock&
+					else
+						lcd_display IPE5000 lock&
 					fi
 				;;
 			*)
@@ -2052,6 +2056,9 @@ handle_e_p3k_net_dante_name()
 
 handle_e_p3k_fp_lock()
 {
+	pkill -9 lcd_display
+	sleep 2
+
 	case "$event" in
 		e_p3k_fp_lock_off)
 			P3KCFG_FP_LOCK_ON='off'
@@ -2059,12 +2066,12 @@ handle_e_p3k_fp_lock()
 				KDS-SW3-EN7)
 					echo 0 > /sys/class/leds/lcd_power/brightness
 					usleep 500000
-					lcd_display IPE5000P &
+					lcd_display IPE5000P unlock&
 				;;
 				KDS-EN7)
 					echo 0 > /sys/class/leds/lcd_power/brightness
 					usleep 500000
-					lcd_display IPE5000 &
+					lcd_display IPE5000 unlock&
 				;;
 				WP-SW2-EN7)
 					ipc @m_lm_set s set_lcd_control:0:1
@@ -2082,8 +2089,8 @@ handle_e_p3k_fp_lock()
 					ipc @m_lm_set s set_lcd_control:0:0
 				;;
 				KDS-EN7 | KDS-SW3-EN7)
-					echo 1 > /sys/class/leds/lcd_power/brightness
-					pkill -9 lcd_display
+					//echo 1 > /sys/class/leds/lcd_power/brightness
+					lcd_display IPE5000 lock&
 				;;
 				*)
 					echo "error param"
