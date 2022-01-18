@@ -280,8 +280,10 @@ bool COperation::CheckEdidFile(const char *edieFile)
             size_t len = fread(edidbuf, 1, nEdieSize, fp);
             if(len < 0)
             {
+                fclose(fp);
                 break;
             }
+            fclose(fp);
 
             if(edidbuf[0] == 0x00
                 && edidbuf[1] == 0xff

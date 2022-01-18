@@ -1694,7 +1694,7 @@ void *CWeb::P3kCommunicationThread(void *arg)
     else
 	{
 	    BC_INFO_LOG("aRecv is <%s>", aRecv);
-		if(strncmp(aRecv, "~01@\r", strlen("~01@\r")) != 0)
+		if(strncmp(aRecv, "~01@ OK\r", strlen("~01@ OK\r")) != 0)
 		{
 			BC_INFO_LOG("p3k init is check failed");
 	    	close(s_p3kSocket);
