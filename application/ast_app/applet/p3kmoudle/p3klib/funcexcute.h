@@ -356,14 +356,14 @@ typedef struct _CECMessageInfo_S
 
 typedef struct _IRMessageInfo_S
 {
+	int ir_index;
 	int irId;
-	int serialNumb;
+	char cmdName[16];
 	int repeat;
 	int totalPacket;
 	int packId;
-	char cmdName[IR_MAX_CMD_NAME_LEN+1];
-	char cmdComent[IR_MAX_CMD_COMENT_LEN+1];
-
+	int commandNum;
+	char cmdComent[1024][4];
 }IRMessageInfo_S;
 
 typedef enum _UartParityType_E

@@ -22,14 +22,14 @@
 
 typedef struct _P3KLDFWStatus_S
 {
-	int num;  //×¢²á»ñµÃhandleId
+	int num;  //Ã—Â¢Â²Ã¡Â»Ã±ÂµÃƒhandleId
 	int handleId[10];
 }P3KLDFWStatus_S;
 
 typedef struct _P3KReqistMsg_S
 {
-	int handleId;  //×¢²á»ñµÃhandleId
-	P3K_MsgSend sendMsg;    //·¢ËÍÏûÏ¢
+	int handleId;  //Ã—Â¢Â²Ã¡Â»Ã±ÂµÃƒhandleId
+	P3K_MsgSend sendMsg;    //Â·Â¢Ã‹ÃÃÃ»ÃÂ¢
 }P3KReqistMsg_S;
 typedef struct _P3KRegistHandleMng_S
 {
@@ -273,7 +273,7 @@ static HandleList_S* P3K_GetMngHandleHead()
 
 	return &(gs_handleMng.listHandleHead);
 }
-static int P3K_MakeUsrID()//×¢²áID
+static int P3K_MakeUsrID()//Ã—Â¢Â²Ã¡ID
 {
 	P3KReqistMsg_S *resultHandle=NULL;
 
@@ -289,7 +289,7 @@ static int P3K_MakeUsrID()//×¢²áID
 	}
 	return tempUsrID;
 }
-static P3KReqistMsg_S* P3K_GetReqistMsgByID(int id)//Í¨¹ıID»ñÈ¡Handle
+static P3KReqistMsg_S* P3K_GetReqistMsgByID(int id)//ÃÂ¨Â¹Ã½IDÂ»Ã±ÃˆÂ¡Handle
 {
 	P3KReqistMsg_S *handle = NULL;
 	void *result = NULL;
@@ -346,7 +346,7 @@ static int  P3K_PhraserIDParam(char *param,int len,	char str[][MAX_PARAM_LEN] )
 
 }
 
-//Æô¶¯udp¼àÌı50000¶Ë¿Ú
+//Ã†Ã´Â¶Â¯udpÂ¼Ã ÃŒÃ½50000Â¶Ã‹Â¿Ãš
 void * P3K_UdpServer()
 {
     int old_Udp_port;
@@ -357,9 +357,9 @@ RESET_Udp:
 	struct sockaddr_in myaddr;
 	myaddr.sin_family=AF_INET;
 	myaddr.sin_port = htons(g_network_info.udp_port);
-	myaddr.sin_addr.s_addr = 0;//Í¨ÅäµØÖ·  ½«ËùÓĞµÄµØÖ·°ó¶¨
+	myaddr.sin_addr.s_addr = 0;//ÃÂ¨Ã…Ã¤ÂµÃ˜Ã–Â·  Â½Â«Ã‹Ã¹Ã“ÃÂµÃ„ÂµÃ˜Ã–Â·Â°Ã³Â¶Â¨
 	int opt = 1;  
-    // sockfdÎªĞèÒª¶Ë¿Ú¸´ÓÃµÄÌ×½Ó×Ö  
+    // sockfdÃÂªÃÃ¨Ã’ÂªÂ¶Ã‹Â¿ÃšÂ¸Â´Ã“ÃƒÂµÃ„ÃŒÃ—Â½Ã“Ã—Ã–  
     setsockopt(g_Udp_Socket,SOL_SOCKET,SO_REUSEADDR, (const void *)&opt, sizeof(opt));
 	if(bind(g_Udp_Socket,(struct sockaddr*)&myaddr,sizeof(myaddr))<0)
 		DBG_ErrMsg("Udp bind err");
@@ -389,6 +389,8 @@ RESET_Udp:
             if(!memcmp(recvBuf,"#NET-IP?",strlen("#NET-IP?")) || !memcmp(recvBuf,"#ETH-PORT?",strlen("#ETH-PORT?")) || !memcmp(recvBuf,"#NET-CONFIG?",strlen("#NET-CONFIG?")))
             {
                 memset(&respCmdInfo,0,sizeof(P3K_SimpleCmdInfo_S));
+				memset(&Sendp3k,0,sizeof(P3K_SimpleCmdInfo_S));
+				memset(aSendp3k,0,sizeof(aSendp3k));
 		        memset(userDefine,0,MAX_USR_STR_LEN);
                 if(strlen(recvBuf) == strlen("#NET-IP?"))
                 {
@@ -469,9 +471,9 @@ void * P3K_UdpInsideServer()
 	struct sockaddr_in myaddr;
 	myaddr.sin_family=AF_INET;
 	myaddr.sin_port = htons(60001);
-	myaddr.sin_addr.s_addr = inet_addr("127.0.0.1");//Í¨ÅäµØÖ·  ½«ËùÓĞµÄµØÖ·°ó¶¨
+	myaddr.sin_addr.s_addr = inet_addr("127.0.0.1");//ÃÂ¨Ã…Ã¤ÂµÃ˜Ã–Â·  Â½Â«Ã‹Ã¹Ã“ÃÂµÃ„ÂµÃ˜Ã–Â·Â°Ã³Â¶Â¨
 	int opt = 1;  
-    // sockfdÎªĞèÒª¶Ë¿Ú¸´ÓÃµÄÌ×½Ó×Ö  
+    // sockfdÃÂªÃÃ¨Ã’ÂªÂ¶Ã‹Â¿ÃšÂ¸Â´Ã“ÃƒÂµÃ„ÃŒÃ—Â½Ã“Ã—Ã–  
     setsockopt(g_Udp_Inside_Socket,SOL_SOCKET,SO_REUSEADDR, (const void *)&opt, sizeof(opt));
 	if(bind(g_Udp_Inside_Socket,(struct sockaddr*)&myaddr,sizeof(myaddr))<0)
 		DBG_ErrMsg("Udp bind err");
@@ -506,9 +508,9 @@ void * P3K_UdpInsideServer()
 				continue;
 			}
             memset(dstdata,0,sizeof(dstdata));
-			//×é°ü
+			//Ã—Ã©Â°Ã¼
 			tmplen = P3K_SimpleRespCmdBurstification(&respCmdInfo, dstdata);
-			//·¢ËÍÊı¾İ
+			//Â·Â¢Ã‹ÃÃŠÃ½Â¾Ã
 			if(memcmp(userDefine,"err",strlen("err")))
             {
                 Sendtoclient(dstdata,tmplen,1000);
@@ -542,7 +544,7 @@ static void * P3K_DataExcuteProc(void*arg)
 	char userDefine[MAX_USR_STR_LEN+1] = {0};
     char  aSetOrGet[4] = "";
     char  aEndFlag[4] = "?";
-	//º¯Êı´¦ÀíÖ´ĞĞÏß³Ì
+	//ÂºÂ¯ÃŠÃ½Â´Â¦Ã€Ã­Ã–Â´ÃÃÃÃŸÂ³ÃŒ
 	prctl(PR_SET_NAME, (unsigned long)"P3K_DataExcuteProc", 0,0,0);
       Cfg_Init();
  	int i_Udps32Ret = 0;
@@ -580,8 +582,8 @@ static void * P3K_DataExcuteProc(void*arg)
 				continue;
 		}
 		memset(&respCmdInfo,0,sizeof(P3K_SimpleCmdInfo_S));
-		//½âÎö´¦ÀíÊı¾İ
-		//ÌØÊâÃüÁî·Ö¿ªÖ´ĞĞ¿É·ÅÔÚÕâÀï?
+		//Â½Ã¢ÃÃ¶Â´Â¦Ã€Ã­ÃŠÃ½Â¾Ã
+		//ÃŒÃ˜ÃŠÃ¢ÃƒÃ¼ÃÃ®Â·Ã–Â¿ÂªÃ–Â´ÃÃÂ¿Ã‰Â·Ã…Ã”ÃšÃ•Ã¢Ã€Ã¯?
 
 		memset(userDefine,0,MAX_USR_STR_LEN);
 			s32Ret = P3K_SilmpleReqCmdProcess(&pmsg.cmdinfo,&respCmdInfo,userDefine);
@@ -592,20 +594,21 @@ static void * P3K_DataExcuteProc(void*arg)
             memset(aSetOrGet,0,sizeof(aSetOrGet));
             ParseMsgSetOrGet(&respCmdInfo,aSetOrGet);
 			memset(dstdata,0,sizeof(dstdata));
-			//×é°ü
+			//Ã—Ã©Â°Ã¼
 			tmplen = P3K_SimpleRespCmdBurstification(&respCmdInfo, dstdata);
-			//·¢ËÍÊı¾İ
+			//Â·Â¢Ã‹ÃÃŠÃ½Â¾Ã
             //printf("Get\n");
             registMsg = P3K_GetReqistMsgByID(pmsg.handleId);
     		if(registMsg)
     		{
     		    registMsg->sendMsg(pmsg.handleId,dstdata,tmplen,0);
-    			if(strlen(userDefine) > 0)
+				printf(">>>>>>>>>[%s]\n",dstdata);
+    			if(strlen(userDefine) > 0 && 0 != memcmp("error",userDefine,strlen("error")))
     			{
     				registMsg->sendMsg(pmsg.handleId,userDefine,strlen(userDefine),0);
     			}
     		}
-            if(!memcmp(aSetOrGet,aEndFlag,strlen(aEndFlag)) || (!strcasecmp(respCmdInfo.command,"LOGIN")))
+            if(!memcmp(aSetOrGet,aEndFlag,strlen(aEndFlag)) || (!strcasecmp(respCmdInfo.command,"LOGIN")) || (!strcasecmp(userDefine,"error")))
             {
                  
             } 
@@ -636,12 +639,12 @@ int P3K_DataExcuteThread()
 
 long fun(char *s)
 {
-	int i,t;             //t¼ÇÂ¼ÁÙÊ±¼ÓµÄÊı
+	int i,t;             //tÂ¼Ã‡Ã‚Â¼ÃÃ™ÃŠÂ±Â¼Ã“ÂµÃ„ÃŠÃ½
 	long sum =0;
 	for(i=0;s[i];i++)
 		{
 		if(s[i]>='0'&&s[i]<='9'){
-			t=s[i]-'0';     }  //µ±×Ö·ûÊÇ0~9Ê±±£³ÖÔ­Êı²»±ä
+			t=s[i]-'0';     }  //ÂµÂ±Ã—Ã–Â·Ã»ÃŠÃ‡0~9ÃŠÂ±Â±Â£Â³Ã–Ã”Â­ÃŠÃ½Â²Â»Â±Ã¤
 		if(s[i]>='a'&&s[i]<='z'){
 				t=s[i]-'a'+10;}
 		if(s[i]>='A'&&s[i]<='Z'){
@@ -724,7 +727,7 @@ static int P3K_RecvMessage(int handleId,char*data,int len )
 		cmdCount = P3K_SimpleReqPacketUnpack(data,len,cmd);
 		if(cmdCount<= 0)
 		{
-			//ÌØÊâÃüÁî¸½¼ÓÊı¾İ
+			//ÃŒÃ˜ÃŠÃ¢ÃƒÃ¼ÃÃ®Â¸Â½Â¼Ã“ÃŠÃ½Â¾Ã
 
 		}
 		else
@@ -733,7 +736,7 @@ static int P3K_RecvMessage(int handleId,char*data,int len )
 		}
 		for(i = 0 ;i < cmdCount;i++)
 		{
-			//ÌØÊâÃüÁî·Ö¿ªÖ´ĞĞ
+			//ÃŒÃ˜ÃŠÃ¢ÃƒÃ¼ÃÃ®Â·Ã–Â¿ÂªÃ–Â´ÃÃ
 			if(P3K_CheckedSpeciCmd(cmd[i].command))
 			{
 				//gs_LDFWStatus.handleId[gs_LDFWStatus.num] = handleId;
@@ -764,7 +767,7 @@ static int P3K_RecvMessage(int handleId,char*data,int len )
 				//P3K_LDWFSetUpgradeHandle(handleId);
 				continue;
 			}
-			//ÎÕÊÖÏûÏ¢
+			//ÃÃ•ÃŠÃ–ÃÃ»ÃÂ¢
 			if(strlen(cmd[i].command)==0)
 			{
 				char handleshark[16] ={0};
@@ -778,8 +781,7 @@ static int P3K_RecvMessage(int handleId,char*data,int len )
 				}
 				continue;
 			}
-			//Í¨ÓÃÃüÁî·ÅÈë»º´æ
-			printf("<<<<<<recv%s\n",data);
+			//Í¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ë»ºï¿½ï¿½
 			memset(&queueMmber,0,sizeof(queueMmber));
 			queueMmber.handleId =handleId;
 			memcpy(&queueMmber.cmdinfo,&cmd[i],sizeof(P3K_SimpleCmdInfo_S));
@@ -797,14 +799,14 @@ int P3K_ApiInit()
 	}
 	P3K_ApiMngListInit();
 	P3K_HandleListInit();
-	//ÏûÏ¢¶ÓÁĞ³õÊ¼»¯
+	//ÃÃ»ÃÂ¢Â¶Ã“ÃÃÂ³ÃµÃŠÂ¼Â»Â¯
 	s32Ret = P3K_MsgQueueInit();
 	if(s32Ret)
 	{
 		DBG_ErrMsg("P3K_MsgQueueInit init err\n");
 		return -1;
 	}
-	//ÏûÏ¢´¦ÀíÏß³Ì
+	//ÃÃ»ÃÂ¢Â´Â¦Ã€Ã­ÃÃŸÂ³ÃŒ
 
 	s32Ret = P3K_DataExcuteThread();
 	if(s32Ret != 0)
@@ -824,7 +826,7 @@ int P3K_APIUnInit()
 }
 
 
-//×¢²á
+//Ã—Â¢Â²Ã¡
 int P3K_ApiRegistHandle(P3KApiHandle_S*handle)
 {
 	if(handle == NULL)
@@ -859,7 +861,7 @@ int P3K_ApiRegistHandle(P3KApiHandle_S*handle)
 	}
 	return 0;
 }
-//×¢Ïú
+//Ã—Â¢ÃÃº
 int P3K_ApiUnRegistHandle(P3KApiHandle_S*handle)
 {
 	if(handle == NULL)

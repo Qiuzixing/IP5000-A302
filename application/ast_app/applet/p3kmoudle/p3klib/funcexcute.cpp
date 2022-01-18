@@ -3674,7 +3674,7 @@ int EX_GetCECGateWayMode(void)
 int EX_SendIRmessage(IRMessageInfo_S*info)
 {
 	DBG_InfoMsg("EX_SendIRmessage cmdname =%s cmdcomment =%s\n",info->cmdName,info->cmdComent);
-
+	/*
 	if((g_gateway_info.ir_mode == OFF)||(g_gateway_info.ir_direction == DIRECTION_IN))
 	{
 		DBG_ErrMsg("SendIR Err! g_gateway_info.ir_mode = %d, g_gateway_info.ir_direction = %d\n",g_gateway_info.ir_mode,g_gateway_info.ir_direction);
@@ -3695,7 +3695,7 @@ int EX_SendIRmessage(IRMessageInfo_S*info)
 		sprintf(sCmd,"%s %c%c%c%c",sCmd,info->cmdComent[4*i],info->cmdComent[4*i+1],info->cmdComent[4*i+2],info->cmdComent[4*i+3]);
 
 	system(sCmd);
-
+	*/
 	DBG_InfoMsg("system %s\n",sCmd);
 
 	return EX_NO_ERR;

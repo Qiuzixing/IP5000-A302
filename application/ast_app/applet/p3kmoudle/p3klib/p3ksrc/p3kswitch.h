@@ -21,6 +21,7 @@ int P3K_SilmpleReqCmdProcess(P3K_SimpleCmdInfo_S *cmdreq,P3K_SimpleCmdInfo_S *cm
 int P3K_CheckedSpeciCmd(char*cmd);
 int P3K_OtherChanges(char * info);
 int P3K_SilmpleReqCmdExcuter();
+static int P3K_PhraserWithSeparator(char separator,char * param, int len, char str[][256]);
 #ifdef __cplusplus
 }
 #endif
