@@ -18,7 +18,7 @@
 
 int AudioSwitch::currentAudioPort = 0;
 int AudioSwitch::currentMode = AUDIO_MODE_AUTO_FILO                                                                                                               ;
-int AudioSwitch::manualPort = 0;
+int AudioSwitch::manualPort = -1;
 int AudioSwitch::audioSwitchTime = 0;
 bool AudioSwitch::isAnalogInput = false;
 QString AudioSwitch::output;
@@ -379,7 +379,8 @@ bool AudioSwitch::parseConfigFile()
         if (-1 == manualPort) {
             qDebug() << "default manual port.";
             manualPort = priorityList.at(0);
-        }
+            switchToSource(manualPort);
+		}
         qDebug () << "default source select:" << manualPort;
     }
 
@@ -400,9 +401,61 @@ bool AudioSwitch::setCurrentMode(const QString &args)
     }
     int mode = modeList.indexOf(str);
     if (-1 != mode) {
+        if ((AUDIO_MODE_AUTO_FILO == mode)
+            && (currentMode != mode)) {
+            if ((AUDIO_MODE_MANUAL == currentMode) 
+                && plugInList.contains(manualPort)) {
+                runList = plugInList;
+                runList.removeAll(manualPort);
+                runList.prepend(manualPort);
+                qDebug() << "auto mode filo runList:" << runList;
+            } else {
+                runList = plugInList;
+                qDebug() << "auto mode filo rebalance audio runList:" << runList;
+                if (runList.size() > 0) {
+                    int takeFirstItem = runList.at(0);
+                    switchToSource(takeFirstItem);
+                }
+            }
+        } 
+
+        if ((AUDIO_MODE_AUTO_PRIORITY == mode) 
+            && (currentMode != mode)) {
+                qDebug() << "auto priority mode.";
+                qDebug() << "runList:" << runList;
+                qDebug() << "plugInList:" << plugInList;
+                QList<quint32> currentList;
+                for (int n = 0; n < priorityList.size(); ++n) {
+                    quint32 item = priorityList.at(n);
+                    if (plugInList.contains(item)) {
+                        currentList.append(item);
+                    }
+                }
+                runList = currentList;
+                qDebug() << "current runList:" << runList;
+
+                if (runList.size() > 0) {
+                    int takeFirstItem = runList.at(0);
+                    switchToSource(takeFirstItem);
+                }
+        }
+        
+
+        if ((AUDIO_MODE_MANUAL == mode) 
+            && (currentMode != mode)) {
+            if (-1 != manualPort) {
+                qDebug() << "default manual port.";
+                manualPort = priorityList.at(0);
+            }
+            switchToSource(manualPort);
+        }
+
         if (currentMode != mode) {
             currentMode = mode;
         }
+
+        qDebug() << "currentPort:" << currentAudioPort;
+        qDebug() << "currentMode:" << currentMode;
     }
 
     return ret;
@@ -467,6 +520,7 @@ bool AudioSwitch::setCurrentInput(const QString &args)
 
     int source = audioList.indexOf(args);
     switchToSource(source);
+    manualPort = source;
 
     return ret;
 }
@@ -563,13 +617,13 @@ bool AudioSwitch::parseMessage(const QString &s, QString &type, QString &cmd, QS
     strlist = str.trimmed().split(" ");
 
     qDebug() << "strlist:" << strlist;
-    qDebug() << "size:" << strlist.size();
+    //qDebug() << "size:" << strlist.size();
 
     if (strlist.size() < MESSAGE_SIZE) {
         ret = false;
     } else {
         type = strlist.at(0).toLower();
-        qDebug() << "type:" << type;
+        //qDebug() << "type:" << type;
         strlist.removeFirst();
         if (isValidType(type)) {
             QString cmdstr = strlist.at(0).toLower();
@@ -612,11 +666,11 @@ bool AudioSwitch::parseMessage(const QString &s, QString &type, QString &cmd, QS
                 }
             }
 
-            qDebug() << "code:" << hex << code;
+            //qDebug() << "code:" << hex << code;
 
             strlist.removeFirst();
             args = strlist.join(" ");
-            qDebug() << "args:" << args;
+            //qDebug() << "args:" << args;
         } else {
            ret = false;
         }
