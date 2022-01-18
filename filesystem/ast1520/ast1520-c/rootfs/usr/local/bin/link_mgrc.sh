@@ -1594,9 +1594,9 @@ handle_e_ip_got()
 		case $MODEL_NUMBER in
 			KDS-DEC7)
 				if [ $P3KCFG_FP_LOCK_ON = 'off' ];then
-					lcd_display IPD5000 unlock&
+					lcd_display IPD5000 unlock &
 				else
-					lcd_display IPD5000 lock&
+					lcd_display IPD5000 lock &
 				fi
 			;;
 			*)
@@ -3351,7 +3351,7 @@ handle_e_p3k_fp_lock()
 			usleep 500000
 			case $MODEL_NUMBER in
 				KDS-DEC7)
-					lcd_display IPD5000 unlock&
+					lcd_display IPD5000 unlock &
 				;;
 				*)
 					echo "error param"
@@ -3361,7 +3361,7 @@ handle_e_p3k_fp_lock()
 		e_p3k_fp_lock_on)
 			P3KCFG_FP_LOCK_ON='on'
 			//echo 1 > /sys/class/leds/lcd_power/brightness
-			lcd_display IPD5000 lock&
+			lcd_display IPD5000 lock &
 		;;
 		*)
 			echo "error param" 
