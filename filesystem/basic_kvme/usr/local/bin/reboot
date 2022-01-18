@@ -10,5 +10,11 @@ sleep 1
 sync
 sync
 sync
+#kill the following processes so that the data partition can be successfully unmounted
+pkill -9 lcd_display
+pkill -9 p3ktcp
+pkill -9 web
+pkill -9 GUI
+
 umount /data
 /bin/busybox reboot
