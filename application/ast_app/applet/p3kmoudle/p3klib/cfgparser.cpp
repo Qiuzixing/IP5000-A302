@@ -7209,8 +7209,8 @@ int Cfg_Set_Dec_Usb_KVM()
 
 					if((interval <= 10)&&(interval >= 0))
 					{
-						sprintf(cmd,"astparam s kmoip_token_interval %d;astparam save",interval*1000);
-						system(cmd);
+						sprintf(cmd,"e e_kmoip_token_interval::%d",interval*1000);
+						ast_send_event(0xFFFFFFFF, cmd);
 					}
 
 					DBG_InfoMsg("%s\n",cmd);

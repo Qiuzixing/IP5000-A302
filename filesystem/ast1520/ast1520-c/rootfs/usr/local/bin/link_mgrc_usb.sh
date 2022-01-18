@@ -619,6 +619,15 @@ handle_ue_test()
 	return
 }
 
+handle_ue_kmoip_token()
+{
+	if [ "$#" != '1' ]; then
+		return
+	fi
+	KMOIP_TOKEN_INTERVAL = $1
+	echo "$KMOIP_TOKEN_INTERVAL" > $KMOIP_SYS_PATH/token_interval
+}
+
 set_kmoip_export_conf()
 {
 	local CONFIG_FILE="/etc/usbip/usbip_export.conf"

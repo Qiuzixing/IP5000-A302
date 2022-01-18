@@ -3667,6 +3667,21 @@ handle_e_kmoip_roaming_chg()
 	ipc @u_lm_set s ue_start:$CH_SELECT_U
 }
 
+handle_e_kmoip_token_interval()
+{
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+	shift 2
+	if [ "$#" != '1' ]; then
+		return
+	fi
+	KMOIP_TOKEN_INTERVAL="$1"
+	if [ "$NO_KMOIP" = 'n' ]; then
+		iipc @u_lm_set s ue_kmoip_token:$KMOIP_TOKEN_INTERVAL
+	fi
+	astparam s kmoip_token_interval $KMOIP_TOKEN_INTERVAL
+	astparam save
+}
+
 # Worst case 0.05s message loop without handling any event.
 state_machine()
 {
