@@ -779,6 +779,8 @@ int main (int argc, char const *argv[])
 
 	UpdateLocalIP(g_InitIP);
 
+	NotifyIPtoSOIP2(g_InitIP);
+
 	if(argc == 3)
 	{
 		if(!memcmp(argv[2],"-l",strlen("-l")))
