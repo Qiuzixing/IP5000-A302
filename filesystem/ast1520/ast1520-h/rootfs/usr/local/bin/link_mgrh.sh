@@ -2578,6 +2578,21 @@ handle_e_audio_detect_time()
 	audio_detect -t $1 &
 }
 
+handle_e_v_frame_rate_control()
+{
+	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
+	shift 2
+	if [ "$#" != '1' ]; then
+		return
+	fi
+	V_FRAME_RATE=$1
+	if [ "$NO_VIDEO" = 'n' ]; then
+		ipc @v_lm_set s ve_start:$V_FRAME_RATE
+	fi
+	astparam s v_frame_rate $V_FRAME_RATE
+	astparam save
+}
+
 state_machine()
 {
 	# Bruce160308. Try to ignore all TERM signals.
@@ -2678,6 +2693,9 @@ state_machine()
 			;;
 			e_audio_detect_time*)
 				handle_e_audio_detect_time "$event"
+			;;
+			e_v_frame_rate_control*)
+				handle_e_v_frame_rate_control "$event"
 			;;
 			e_?*)
 				tickle_watchdog

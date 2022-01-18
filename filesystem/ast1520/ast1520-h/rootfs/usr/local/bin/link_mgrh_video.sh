@@ -522,6 +522,15 @@ handle_ve_param_dump()
 	ipc @v_lm_reply s "$_dump"
 }
 
+handle_ve_frame_rate_control()
+{
+	if [ "$#" != '1' ]; then
+		return
+	fi
+	V_FRAME_RATE = $1
+	echo "$V_FRAME_RATE" > $VIDEO_SYS_PATH/frame_rate_control
+}
+
 # Copied from include.sh
 start_videoip_h()
 {
