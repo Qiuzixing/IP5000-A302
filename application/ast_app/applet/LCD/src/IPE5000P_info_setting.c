@@ -11,6 +11,8 @@
 #include "IPE5000P_info_setting.h"
 #include "msg_queue.h"
 #include "send_p3k_cmd.h"
+#include  "recv_button_status.h"
+
 #define _GNU_SOURCE
 
 #define SIZE_P 255
@@ -20,21 +22,7 @@
 #define LAN2_ID_P   1
 #define CHANNEL_MAP "/data/configs/kds-7/channel/channel_map.json"
 
-pthread_mutex_t g_lock_P;
-
 time_t last_change_time_P = 0;
-
-#define FAULT -1
-
-//方向
-enum 
-{
-    ENTER_KEY = 1,
-    UP_KEY,
-    DOWN_KEY,
-    LEFT_KEY,
-    RIGHT_KEY,
-};
 
 
 typedef struct
@@ -48,21 +36,6 @@ typedef struct
 
 char *blank_P = " ";
 
-#if 0
-//从中用来获取显示数据的
-const char *video_out[] = {
-    "VIDEO OUT RES", "NO SIGNAL", "3840x2160P30", "3840x2160P25",
-    "1920x1080P60", "1920X1080P50", "1280x720P60",  
-};
-
-const char *device_status[5] = {
-    "DEVICE_STATUS", "POWER ON", "STANDY BY", "FW DOWNLOAD", "IP FALLBACK"
-}; 
-
-// save actual value    
-char video_select_buf[MIN_SIZE_P][SIZE_P];
-char firmware_buf[MIN_SIZE_P][SIZE_P];
-#endif
 
 // LEVEL 1
 const char* MAIN_MENU_LIST_P[] = {
@@ -110,47 +83,6 @@ const char *HDCP_LIST_P[] = {"HDCP SETTING", "ON", "OFF"};
 
 
 // END LEVEL 3
-
-
-#if 0
-const char* MAIN_MENU_strings_P[] = {
-    "MAIN MENU", "VIDEO SELECT", "IP SETTING", "HDCP SETTING",
-    "VIDEO OUT RES", "FIRMWARE INFO", "DEVICE STATUS",
-};
-
-const char* IP_SET_strings_P[] = {
-    "IP SETTING", "LAN1 SETTING", "LAN2 SETTING",
-};
-    
-
-
-const char* LAN_OPTION_strings_P[] = {
-    "LAN INFO", "LAN ADDR", "LAN MASK", "LAN GATEWAY",
-};
-
-const char* HDCP_strings_P[] = {
-    "HDCP SETTING", "HDCP ON", "HDCP OFF",
-};
-
-
-const char* FIRMWARE_strings_P[MIN_SIZE_P+1]        = {"FIRMWARE INFO",};
-const char* DEVICE_STATUS_strings_P[MIN_SIZE_P+1]   = {"DEVICE STATUS",};
-const char* VIDEO_OUT_string_P[2]       = {"VIDEO OUT RES", " "};
-
-//用来存储网络配置信息: 网口1：ip, mask gateway.网口2: ip, mask gateway 共6个
-char net_info_P[6][16] = {{0}, {0}, {0}, {0}, {0}, {0}};
-
-//记录正在屏幕显示的字符串，一个屏幕最多显示4行.
-const char *MAIN_MENU_SHOWWING_P[4]     =   {NULL, NULL, NULL, NULL}; 
-const char *IP_SET_SHOWWING_P[4]        =   {NULL, NULL, NULL, NULL};
-
-const char *LAN1_OPTION_SHOWWING_P[4]   =   {NULL, NULL, NULL, NULL};
-const char *VIDEO_OUT_SHOWWING_P[4]     =   {NULL, NULL, NULL, NULL};
-const char *FIRMWARE_SHOWWING_P[4]      =   {NULL, NULL, NULL, NULL};
-const char *DEVICE_STATUS_SHOWWING_P[4] =   {NULL, NULL, NULL, NULL};
-#endif
-
-
 const char* SAVE_VIDEO_SELECT_P[MIN_SIZE_P+1]    = {"CHANNEL SEL",}; 
 const char *VIDEO_IN_SHOWWING_P[4]               =    {NULL, NULL, NULL, NULL};
 
@@ -475,138 +407,71 @@ info_param down_up_respond_P(int count, info_param param, const char* showwing_s
     return param;
 }
 
-static int recv_init_P()
+int IPE5000P_SHOW_INIT(char *status)
 {
-    int err = 0;
-    pthread_mutex_init(&g_lock_P, NULL);
-
-	err = msg_queue_create();
-    if (err == -1)
-    {
-        printf("msg_queue_create fail - [%s:%d]\n", __func__, __LINE__);
-        return -1;
-    }
-	
-    err = msg_queue_destroy();
-    if (err != 0)
-    {
-        printf("msg_queue_destroy fail - [%s:%d]\n", __func__, __LINE__);
-        return -1;
-    }
-    
-    err = msg_queue_create();
-    if (err == -1)
-    {
-        printf("msg_queue_create fail - [%s:%d]\n", __func__, __LINE__);
-        return -1;
-    }
-
-    chmod("/var/run/send_key_pressed_info", S_IXUSR|S_IXGRP|S_IXOTH); 
-
-    return 0;
-}
-
-
-
-static int recv_key_info_P()
-{
-    int err = 0;
-    struct msg_buf msg;
-
-    pthread_mutex_lock(&g_lock_P);
-    err = msg_recv_state(&msg);
-    if (err == -1)
-    {
-        printf("msg_recv_state fail");
-        return -1;
-    }
-    pthread_mutex_unlock(&g_lock_P);
-    
-    return msg.mtext[0];
-}
-
-#if 0
-int get_front_panel_lock()
-{
-	int lock = 0;
-	char* str  = NULL;
-
-	FILE* fd = fopen(MISC_SETTING_FILE, "r");
-	if (fd ==NULL)
-	{
-		perror("open config file error:");
-		return -1;
-	}
-
-	while (!feof(fd))
-	{
-		char buf[1024] = {0};
-		if (fgets(buf, 1024, fd) > 0)
-		{
-			if (str = strstr(buf, "lock_front_panel"))
-			{
-				int i = 0;
-				for (i = 0; i < strlen(str); i++)
-				{
-					if (str[i] >= '0' && str[i] <= '9')
-					{
-						lock = 	str[i] - '0';
-						break;
-					}
-				}
-				
-				break;
-			}
-
-		}
-	}
-	
-	fclose(fd);
-	return lock;
-}
-
-
-int LOCK_SHOW()
-{
-	clear_whole_screen();
-
-	int key = 0;
-	while (1)
-	{
-		key = recv_key_info_P();
-
-		switch (key)
-        {
-        	case FAULT:
-        	{
-        		clear_whole_screen();
-        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
-				exit(-1);
-			}
-
-			case UP_KEY:
-			{
-				
-			}
-			
-		}
-	}
-
-}
-
-int UNLOCK_SHOW()
-{
-	
-	
-}
-#endif
-
-// The first level
-int IPE5000P_MAIN_MENU_SHOW(void)
-{
-    printf("this is IPE5000P\n");
+	printf("this is IPE5000P\n");
     init_p3k_client("127.0.0.1", 6001);
 	
+	if (strcmp(status, "unlock") == 0)
+	{
+		IPE5000P_UNLOCK_MENU();
+	}
+	else if(strcmp(status, "lock") == 0)
+	{
+		IPE5000P_LOCK_MENU();
+	}
+
+	deinit_p3k_client();
+	return 0;
+}
+
+static int IPE5000P_UNLOCK_MENU()
+{
+
+	if (recv_button_init() != 0)
+    {
+        printf("recv_button_init() fail - [%s:%d]\n", __func__, __LINE__);
+        return -1;
+    }
+
+	CH_NUM_SELECT_P();
+	
+	return 0;
+}
+
+static int IPE5000P_LOCK_MENU()
+{
+	char current_id[20] = {0};
+	char last_id[20] = {0};
+	
+	GET_CHANNEL_DEFINE(current_id);
+	strcpy(last_id, current_id);
+	
+	clear_whole_screen();
+	show_strings(2, 16, current_id, strlen(current_id), 1);
+	show_strings(4, 16, "LOCK", strlen("LOCK"), 1);
+	
+	while(1)
+	{
+		GET_CHANNEL_DEFINE(current_id);
+		
+		if (strcmp(last_id, current_id) != 0)
+		{	
+			strcpy(last_id, current_id);
+			show_strings(2, 16, current_id, strlen(current_id), 1);
+		}
+		
+		sleep(5);
+	}
+
+	return 0;
+}
+
+
+
+// The first level
+static int IPE5000P_MAIN_MENU_SHOW(void)
+{
     u8 count = sizeof(MAIN_MENU_LIST_P)/(sizeof(char*));
     int p = 4; 
     int y = 8;
@@ -618,12 +483,6 @@ int IPE5000P_MAIN_MENU_SHOW(void)
     param.y = y;
     param.p = p;
     param.last_page = last_page;
-
-    if (recv_init_P() != 0)
-    {
-        printf("recv_init_P() fail - [%s:%d]\n", __func__, __LINE__);
-        return -1;
-    }
     
     clear_whole_screen();
     show_strings(0, y, MAIN_MENU_LIST_P[0], strlen(MAIN_MENU_LIST_P[0]), 1);
@@ -633,7 +492,7 @@ int IPE5000P_MAIN_MENU_SHOW(void)
     int key = 0;
     while (1)
     { 
-        key = recv_key_info_P();
+        key = recv_button_status();
 
         switch (key)
         {
@@ -656,19 +515,28 @@ int IPE5000P_MAIN_MENU_SHOW(void)
                 do {
                     if ( MAIN_MENU_SHOWWING_P[param.x/2] == MAIN_MENU_LIST_P[1]) // DEV STATUS
                     {
-                        DEV_STATUS_P();
+                        if (SHOW_TIMEOUT == DEV_STATUS_P())
+                        {
+							return SHOW_TIMEOUT;
+						}
                         break;
                     }
                     
                     if (MAIN_MENU_SHOWWING_P[param.x/2] == MAIN_MENU_LIST_P[2]) // DEV INFO
                     {
-                        DEV_INFO_P();
+                        if (SHOW_TIMEOUT == DEV_INFO_P())
+						{
+							return SHOW_TIMEOUT;
+						}
                         break;
                     }
                     
                     if (MAIN_MENU_SHOWWING_P[param.x/2] == MAIN_MENU_LIST_P[3]) // DEV SETTINGS
                     {
-                        DEV_SETTINGS_P();
+                        if (SHOW_TIMEOUT == DEV_SETTINGS_P())
+						{
+							return SHOW_TIMEOUT;
+						}
                         break;
                     }
     
@@ -699,6 +567,11 @@ int IPE5000P_MAIN_MENU_SHOW(void)
             {   
                 break;
             }
+			case TIMEOUT:
+			{
+				return SHOW_TIMEOUT;
+			}
+			
         }
     }
 }
@@ -727,7 +600,7 @@ static int DEV_STATUS_P()
     int key = 0;
     while (1)
     { 
-        key = recv_key_info_P();
+        key = recv_button_status();
 
         switch (key)
         {
@@ -750,30 +623,45 @@ static int DEV_STATUS_P()
                 do {
                     if (DEV_STATUS_SHOWWING_P[param.x/2] == DEV_STATUS_LIST_P[1]) // LAN1 STATUS 
                     {
-                        LAN_STATUS_P(LAN1_ID_P);
+                        if (SHOW_TIMEOUT == LAN_STATUS_P(LAN1_ID_P))
+						{
+							return SHOW_TIMEOUT;
+						}
                         break;
                     }
                     
                     if (DEV_STATUS_SHOWWING_P[param.x/2] == DEV_STATUS_LIST_P[2]) // LAN1 STATUS 
                     {
-                        LAN_STATUS_P(LAN2_ID_P);
+                        if (SHOW_TIMEOUT == LAN_STATUS_P(LAN2_ID_P))
+						{
+							return SHOW_TIMEOUT;
+						}
                         break;
                     }
                     
                     if (DEV_STATUS_SHOWWING_P[param.x/2] == DEV_STATUS_LIST_P[3]) // HDMI STATUS
                     {
-                        HDMI_STATUS_P();
+                        if (SHOW_TIMEOUT == HDMI_STATUS_P())
+						{
+							return SHOW_TIMEOUT;
+						}
                         break;
                     }
     
                     if (DEV_STATUS_SHOWWING_P[param.x/2] == DEV_STATUS_LIST_P[4]) // CHANNEL SEL
                     {
-                        CH_DEFINE_P();
+                        if (SHOW_TIMEOUT == CH_DEFINE_P())
+						{
+							return SHOW_TIMEOUT;
+						}
                         break;
                     }
                     if (DEV_STATUS_SHOWWING_P[param.x/2] == DEV_STATUS_LIST_P[5]) // TEMPERATURE
                     {
-                        TEMPERATURE_P();
+                        if (SHOW_TIMEOUT == TEMPERATURE_P())
+						{
+							return SHOW_TIMEOUT;
+						}
                         break;
                     }
                     
@@ -805,13 +693,17 @@ static int DEV_STATUS_P()
             {   
                 return 0;
             }
+			case TIMEOUT:
+			{
+				return SHOW_TIMEOUT;
+			}
         }
     }
     
 }
 
 // 1.1 DEV STATUS -> LAN SHOW
-static void LAN_STATUS_P(int interface_id)
+static int LAN_STATUS_P(int interface_id)
 {
     char addr[15] = {0}, mask[15] = {0}, gateway[15] = {0};
     GET_IP(interface_id, addr, mask, gateway);
@@ -829,7 +721,7 @@ static void LAN_STATUS_P(int interface_id)
     int key = 0;
     while (1)
     {
-        key = recv_key_info_P();
+        key = recv_button_status();
         
         switch (key)
         {
@@ -841,8 +733,12 @@ static void LAN_STATUS_P(int interface_id)
 			}
             case LEFT_KEY: 
             {  
-                return;
+                return 0;
             }
+			case TIMEOUT:
+			{
+				return SHOW_TIMEOUT;
+			}
         }
     }
 }
@@ -875,7 +771,7 @@ static int HDMI_STATUS_P()
     int key = 0;
     while (1)
     { 
-        key = recv_key_info_P();
+        key = recv_button_status();
 
         switch (key)
         {
@@ -889,6 +785,10 @@ static int HDMI_STATUS_P()
             {
                 return 0;
             }
+			case TIMEOUT:
+			{
+				return SHOW_TIMEOUT;
+			}
         }
     }
         
@@ -908,7 +808,7 @@ static int CH_DEFINE_P()
     int key = 0;
     while (1)
     { 
-        key = recv_key_info_P();
+        key = recv_button_status();
         
         switch (key)
         {
@@ -922,6 +822,10 @@ static int CH_DEFINE_P()
             {
                 return 0;
             }
+			case TIMEOUT:
+			{
+				return SHOW_TIMEOUT;
+			}
         }
     }
 
@@ -944,7 +848,7 @@ static int TEMPERATURE_P()
     int key = 0;
     while (1)
     { 
-        key = recv_key_info_P();
+        key = recv_button_status();
 
         switch (key)
         {
@@ -958,6 +862,10 @@ static int TEMPERATURE_P()
             {
                 return 0;
             }
+			case TIMEOUT:
+			{
+				return SHOW_TIMEOUT;
+			}
         }
     }
     
@@ -992,7 +900,7 @@ static int DEV_INFO_P()
     int key = 0;
     while (1)
     {
-        key = recv_key_info_P();
+        key = recv_button_status();
         switch (key)
         {
         	case FAULT:
@@ -1005,6 +913,10 @@ static int DEV_INFO_P()
             {
                 return 0;
             }
+			case TIMEOUT:
+			{
+				return SHOW_TIMEOUT;
+			}
         }
     }
 }
@@ -1034,7 +946,7 @@ static int DEV_SETTINGS_P()
     int key = 0;
     while (1)
     { 
-        key = recv_key_info_P();
+        key = recv_button_status();
 
         switch (key)
         {
@@ -1057,25 +969,37 @@ static int DEV_SETTINGS_P()
                 do {
                     if (DEV_SETTINGS_SHOWWING_P[param.x/2] == DEV_SETTINGS_LIST_P[1]) // INPUT SETTING 
                     {
-                        INPUT_SETTING_P();
+                        if (SHOW_TIMEOUT == INPUT_SETTING_P())
+                        {
+							return SHOW_TIMEOUT;
+						}
                         break;
                     }
                     
                     if (DEV_SETTINGS_SHOWWING_P[param.x/2] == DEV_SETTINGS_LIST_P[2]) // EDID SETTING 
                     {
-                        EDID_SETTING_P();
+                        if (SHOW_TIMEOUT == EDID_SETTING_P())
+						{
+							return SHOW_TIMEOUT;
+						}
                         break;
                     }
                     
                     if (DEV_SETTINGS_SHOWWING_P[param.x/2] == DEV_SETTINGS_LIST_P[3]) // HDCP SETTING
                     {
-                        HDCP_SETTING_P();
+                        if (SHOW_TIMEOUT == HDCP_SETTING_P())
+						{
+							return SHOW_TIMEOUT;
+						}
                         break;
                     }
     
                     if (DEV_SETTINGS_SHOWWING_P[param.x/2] == DEV_SETTINGS_LIST_P[4]) // CH DEFINE
                     {
-                        CH_SELECT_P();
+                        if (SHOW_TIMEOUT == CH_SELECT_P())
+						{
+							return SHOW_TIMEOUT;
+						}
                         break;
                     }
                     
@@ -1107,6 +1031,10 @@ static int DEV_SETTINGS_P()
             {   
                 return 0;
             }
+			case TIMEOUT:
+			{
+				return SHOW_TIMEOUT;
+			}
         }
     }
 
@@ -1159,7 +1087,7 @@ static int INPUT_SETTING_P()
     int key = 0;
     while (1)
     { 
-        key = recv_key_info_P();
+        key = recv_button_status();
 
         switch (key)
         {
@@ -1189,6 +1117,10 @@ static int INPUT_SETTING_P()
             {   
                 return 0;
             }
+			case TIMEOUT:
+			{
+				return SHOW_TIMEOUT;
+			}
         }
 
     }
@@ -1239,7 +1171,7 @@ static int EDID_SETTING_P()
     int key = 0; 
     while (1)
     {
-        key = recv_key_info_P();
+        key = recv_button_status();
         switch (key)
         {
         	case FAULT:
@@ -1274,6 +1206,11 @@ static int EDID_SETTING_P()
             {
                 return 0;
             }
+			
+			case TIMEOUT:
+			{
+				return SHOW_TIMEOUT;
+			}
         }
     }
     
@@ -1316,7 +1253,7 @@ static int HDCP_SETTING_P()
     int key = 0;
     while (1)
     {
-        key = recv_key_info_P();
+        key = recv_button_status();
         switch (key)
         {
         	case FAULT:
@@ -1367,6 +1304,11 @@ static int HDCP_SETTING_P()
             {
                 return 0;
             }
+
+			case TIMEOUT:
+			{
+				return SHOW_TIMEOUT;
+			}
         }
     }   
 }
@@ -1387,7 +1329,7 @@ static int CH_SELECT_P()
     int key = 0;
     while (1)
     {
-        key = recv_key_info_P();
+        key = recv_button_status();
         switch (key)
         {
         	case FAULT:
@@ -1496,6 +1438,165 @@ static int CH_SELECT_P()
                 SET_CHANNEL_DEFINE(channel_id);
                 return 0;
             }
+			case TIMEOUT:
+			{
+				return SHOW_TIMEOUT;
+			}
+        }
+    }
+    return 0;
+}
+
+static int CH_NUM_SELECT_P()
+{   
+    int x = 2; 
+    int y = 16;
+
+	char last_id[20] = {0};
+	char channel_id[20] = {0};
+    GET_CHANNEL_DEFINE(channel_id);
+	strcpy(last_id, channel_id);
+	
+    clear_whole_screen();
+    show_strings(2, 16, channel_id, strlen(channel_id) ,1);
+    show_a_char(2,  16, channel_id[0], 1, 1);
+
+    int i = 0;
+    int key = 0;
+    while (1)
+    {
+        key = recv_button_status();
+        switch (key)
+        {
+        	case FAULT:
+        	{
+        		clear_whole_screen();
+        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+				exit(-1);
+			}
+            case UP_KEY:
+            {
+                if (channel_id[i] < '9')
+                {
+                    channel_id[i]++;
+                }
+                else
+                {
+                    if (i == 2)
+                    {
+                        if (channel_id[0] == '0' && channel_id[1] == '0')
+                        channel_id[i] = '1';
+                    }
+                    else
+                    {
+                        channel_id[i] = '0';
+                    }
+                }
+                show_a_char(2, 16+i*8, channel_id[i], 1, 1);
+                break;
+            }
+            case DOWN_KEY:
+            {   
+                if (i == 2)
+                {
+                    if (channel_id[0] == '0' && channel_id[1] == '0')
+                    {
+                        if (channel_id[i] > '1')
+                        {
+                            channel_id[i]--;
+                        }
+                        else
+                        {
+                            channel_id[i] = '9';
+                        }
+                    }
+                    else
+                    {
+                        if (channel_id[i] > '0')
+                        {
+                            channel_id[i]--;
+                        }
+                        else
+                        {
+                            channel_id[i] = '9';
+                        }
+                    }
+                    
+                }
+                else
+                {
+                    if (channel_id[i] > '0')
+                    {
+                        channel_id[i]--;                
+                    }
+                    else
+                    {
+                        channel_id[i] = '9';
+                    }
+                }
+                show_a_char(2, 16+i*8, channel_id[i], 1, 1);
+                break;
+            }
+            case RIGHT_KEY:
+            {
+                show_a_char(2, 16+i*8, channel_id[i], 0, 1);
+                if (i < 2)
+                {
+                    i++;
+                }
+                else
+                {
+                    i = 0;
+                }
+                show_a_char(2, 16+i*8, channel_id[i], 1, 1);
+                break;
+            }
+            case LEFT_KEY:
+            {
+                #if 1
+                show_a_char(2, 16+i*8, channel_id[i], 0, 1);
+                if (i > 0)
+                {
+                    i--;    
+                }
+                else
+                {
+                    i = 2;
+                }
+                show_a_char(2, 16+i*8, channel_id[i], 1, 1);
+                break;
+                #endif
+                
+            }
+            case ENTER_KEY:
+            {
+            	//SET_CHANNEL_DEFINE(channel_id);
+            	strcpy(last_id, channel_id);
+				
+                if (SHOW_TIMEOUT == IPE5000P_MAIN_MENU_SHOW())
+                {
+					GET_CHANNEL_DEFINE(channel_id);
+					strcpy(last_id, channel_id);
+					
+					clear_whole_screen();
+				    show_strings(2, 16, channel_id, strlen(channel_id) ,1);
+				   	show_a_char(2,  16, channel_id[0], 1, 1);
+					
+				}
+				
+            }
+
+			case TIMEOUT:
+			{
+				GET_CHANNEL_DEFINE(channel_id);
+				if (strcmp(last_id, channel_id) != 0)
+				{
+					strcpy(last_id, channel_id);
+				
+			    	show_strings(2, 16, channel_id, strlen(channel_id) ,1);
+			   		show_a_char(2,  16, channel_id[0], 1, 1);
+				}
+			}
 
         }
     }
@@ -1549,7 +1650,7 @@ void CHANNEL_SELECT_SHOW_P(void)
     int key = 0;
     while (1)
     {
-        key = recv_key_info_P();
+        key = recv_button_status();
         switch (key)
         {
             case DOWN_KEY:
@@ -1603,7 +1704,7 @@ int DHCP_SETTING_P()
     
     while (1)
     {
-        key = recv_key_info_P();
+        key = recv_button_status();
         
         if (key == LEFT_KEY)
         {
@@ -1650,7 +1751,7 @@ int IPD5000_MAIN_MENU_SHOW(void)
     int key = 0;
     while (1)
     { 
-        key = recv_key_info_P();
+        key = recv_button_status();
 
         switch (key)
         {
@@ -1754,7 +1855,7 @@ void IP_SETTING_MENU_SHOW_P(void)
     int key = 0;
     while (1)
     {
-        key = recv_key_info_P();
+        key = recv_button_status();
         switch (key)
         {
             case DOWN_KEY:
@@ -1831,7 +1932,7 @@ void LAN_MODE_MENU_SHOW_P(int lan_id) //DHCP OR STATIC
     int key = 0;
     while (1)
     {       
-        key = recv_key_info_P();
+        key = recv_button_status();
         switch (key)
         {
             case DOWN_KEY:
@@ -1912,7 +2013,7 @@ static void LAN_OPTION_SHOW_P(int lan_id, int enable) //ip mask gateway
     int key = 0;
     while (1)
     {
-        key = recv_key_info_P();
+        key = recv_button_status();
         switch (key)
         {
             case DOWN_KEY:
@@ -1987,7 +2088,7 @@ static void DHCP_LAN_INFO_SHOW_P(int lan_id, int offset, char *string, u8 lenth)
     
     while (1)
     {
-        key = recv_key_info_P();        
+        key = recv_button_status();        
         if (key == LEFT_KEY)
         {
             break;
@@ -2009,7 +2110,7 @@ static void LAN_INFO_SET_P(int lan_id, u8 offset, char *string, u8 lenth)
     
     while (1)
     {   
-        key = recv_key_info_P();
+        key = recv_button_status();
 
         switch (key)
         {
@@ -2178,7 +2279,7 @@ void VIDEO_IN_SELECT_SHOW_P(void)
     int key = 0;
     while (1)
     {
-        key = recv_key_info_P();
+        key = recv_button_status();
         switch (key)
         {
             case DOWN_KEY:
@@ -2233,7 +2334,7 @@ void VIDEO_OUT_RES_SHOW_P()
     int key = 0;
     while (1)
     {
-        key = recv_key_info_P();
+        key = recv_button_status();
         switch (key)
         {
             case LEFT_KEY:
@@ -2269,7 +2370,7 @@ void HDCP_SHOW_P() //仅展示
     
     while (1)
     {
-        key = recv_key_info_P();
+        key = recv_button_status();
         
         if (key == LEFT_KEY)
         {
@@ -2303,7 +2404,7 @@ void FIRMWARE_INFO_SHOW_P() //仅展示
     int key = 0;
     while (1)
     {
-        key = recv_key_info_P();
+        key = recv_button_status();
         switch (key)
         {
             case DOWN_KEY:
@@ -2349,7 +2450,7 @@ void DEVICE_STATUS_SHOW_P() //仅展示
     int key = 0;
     while (1)
     {
-        key = recv_key_info_P();
+        key = recv_button_status();
         switch (key)
         {
             case DOWN_KEY:

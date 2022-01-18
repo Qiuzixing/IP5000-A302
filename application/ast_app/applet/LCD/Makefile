@@ -11,13 +11,13 @@ CC=$(CROSS_COMPILE)gcc
 LCD=lcd_display
 SEND=send_key_info
 
-OBJS1 += ./common/driver_i2c.o ./common/msg_queue.o  ./common/oled.o ./p3k_client/tcp_client.o ./p3k_client/send_p3k_cmd.o
+OBJS1 += ./common/driver_i2c.o ./common/msg_queue.o  ./common/oled.o ./common/recv_button_status.o ./common/udp_socket.o  ./p3k_client/tcp_client.o ./p3k_client/send_p3k_cmd.o
 OBJS1 +=  main.o  ./src/IPE5000_info_setting.o  ./src/IPD5000_info_setting.o ./src/IPE5000P_info_setting.o
 
-OBJS2 +=  send_key_info.o ./common/msg_queue.o
+OBJS2 +=  send_key_info.o ./common/msg_queue.o ./common/udp_socket.o
 
 CFLAGS= -I./p3k_client -I./src -I./common 
-LDFLAGS = 
+LDFLAGS = -lpthread
 
 default:clean build_lcd build_send 
 	mkdir -p $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/

@@ -182,6 +182,11 @@ int init_p3k_client(char *ip, int port)
     return err;
 }
 
+int deinit_p3k_client()
+{
+	tcp_client_deinit();
+}
+
 #if 0
 int Decode_Get_Chenel_List(char *list[1000])
 {

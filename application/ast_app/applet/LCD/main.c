@@ -26,7 +26,7 @@ enum
 
 int main(int argc, char *argv[])
 {
-    if (argc != 2)
+    if (argc != 3)
     {
         printf("plasea input correct parameter\n");
         return -1;
@@ -36,35 +36,34 @@ int main(int argc, char *argv[])
     OLED_Init();
     OLED_DisplayTurn(1); //0正常显示，屏幕翻转显示 
 
-    do 
+    if (strcmp(argv[1], "IPD5000") == 0)
     {
-        if (strcmp(argv[1], "IPD5000") == 0)
+        if (IPD5000_SHOW_INIT(argv[2]) == -1)
         {
-            if (IPD5000_MAIN_MENU_SHOW() == -1)
-            {
-                printf("IPD5000 SHOW fail\n");
-            }
-            break;
+            printf("IPD5000 SHOW fail\n");
+			return -1;
         }
         
-        if (strcmp(argv[1], "IPE5000") == 0)
+    }
+    
+    else if (strcmp(argv[1], "IPE5000") == 0)
+    {
+        if (IPE5000_SHOW_INIT(argv[2]) == -1)
         {
-            if (IPE5000_MAIN_MENU_SHOW() == -1)
-            {
-                printf("IPE5000 SHOW fail\n");
-            }
-            break;
+            printf("IPE5000 SHOW fail\n");
+			return -1;
         }
-            
-        if (strcmp(argv[1], "IPE5000P") == 0)
+        
+    }
+        
+    else if (strcmp(argv[1], "IPE5000P") == 0)
+    {
+        if (IPE5000P_SHOW_INIT(argv[2]) == -1)
         {
-            if (IPE5000P_MAIN_MENU_SHOW() == -1)
-            {
-                printf("IPE5000P SHOW fail\n");
-            }
-            break;
+            printf("IPE5000P SHOW fail\n");
+			return -1;
         }
-    }while (0);
+    }
     
     return 0;
 }

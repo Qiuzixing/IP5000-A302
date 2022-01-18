@@ -19,6 +19,7 @@ typedef struct
 
 
 int init_p3k_client(char *ip, int port);
+int deinit_p3k_client();
 int get_specified_string_from_file(const char *file, char *channel_list[1000]);
 int Decode_Get_Chenel_List(T_CH_MAP list[1000]);
 
