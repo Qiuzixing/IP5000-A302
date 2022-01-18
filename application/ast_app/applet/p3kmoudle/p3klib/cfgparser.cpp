@@ -3754,12 +3754,15 @@ int Cfg_InitParam_KVM_FromJson(void)
 
 							printf("JsonKVMArray[%d]:[mac: %s][x: %d][y: %d]\n",i,mac.c_str(),x,y);
 
-							if(mac.size()==12)
+							if(mac.size()==17)
 							{
+								char mac1[2] = {0},mac2[2] = {0},mac3[2] = {0},mac4[2] = {0}, mac5[2] = {0},mac6[2] = {0};
+								sscanf(mac.c_str(),"%2s-%2s-%2s-%2s-%2s-%2s",mac1,mac2,mac3,mac4,mac5,mac6);
+
 								if(strlen(param) == 0)
-									sprintf(param,"%s,%d,%d",mac.c_str(),x,y);
+									sprintf(param,"%s%s%s%s%s%s,%d,%d",mac1,mac2,mac3,mac4,mac5,mac6,x,y);
 								else
-									sprintf(param,"%s:%s,%d,%d",param,mac.c_str(),x,y);
+									sprintf(param,"%s:%s%s%s%s%s%s,%d,%d",param,mac1,mac2,mac3,mac4,mac5,mac6,x,y);
 							}
 						}
 					}
@@ -3769,7 +3772,7 @@ int Cfg_InitParam_KVM_FromJson(void)
 
 				if(strlen(param) > 0)
 				{
-					sprintf(cmd1,"astparam s kmoip_roaming_layout %s;e e_kmoip_roaming_chg",param);
+					sprintf(cmd1,"astparam s kmoip_roaming_layout %s",param);
 					system(cmd1);
 
 				}
@@ -3864,7 +3867,7 @@ int Cfg_Create_KVMSetting(void)
 		for(i=0;i<16;i++)
 		{
 			int x,y;
-			char mac[16] = "";
+			char mac[32] = "";
 			char buf2[384] = "";
 
 			int count = sscanf(buf1,"%[0123456789abcdefABCDEF],%d,%d:%s",mac,&x,&y,buf2);
@@ -3906,7 +3909,13 @@ int Cfg_Create_KVMSetting(void)
 
 				Json::Value JsonKVM;
 
-				JsonKVM[JSON_USB_KVM_MAC] = mac;
+				char mac1[2] = {0},mac2[2] = {0},mac3[2] = {0},mac4[2] = {0}, mac5[2] = {0},mac6[2] = {0};
+				sscanf(mac,"%2s%2s%2s%2s%2s%2s",mac1,mac2,mac3,mac4,mac5,mac6);
+
+				char json_mac[32] = {0};
+				sprintf(json_mac,"%s-%s-%s-%s-%s-%s",mac1,mac2,mac3,mac4,mac5,mac6);
+
+				JsonKVM[JSON_USB_KVM_MAC] = json_mac;
 				JsonKVM[JSON_USB_KVM_H]   = x;
 				JsonKVM[JSON_USB_KVM_V]   = y;
 
@@ -7162,12 +7171,15 @@ int Cfg_Set_Dec_Usb_KVM()
 
 							printf("JsonKVMArray[%d]:[mac: %s][x: %d][y: %d]\n",i,mac.c_str(),x,y);
 
-							if(mac.size()==12)
+							if(mac.size()==17)
 							{
+								char mac1[2] = {0},mac2[2] = {0},mac3[2] = {0},mac4[2] = {0}, mac5[2] = {0},mac6[2] = {0};
+								sscanf(mac.c_str(),"%2s-%2s-%2s-%2s-%2s-%2s",mac1,mac2,mac3,mac4,mac5,mac6);
+
 								if(strlen(param) == 0)
-									sprintf(param,"%s,%d,%d",mac.c_str(),x,y);
+									sprintf(param,"%s%s%s%s%s%s,%d,%d",mac1,mac2,mac3,mac4,mac5,mac6,x,y);
 								else
-									sprintf(param,"%s:%s,%d,%d",param,mac.c_str(),x,y);
+									sprintf(param,"%s:%s%s%s%s%s%s,%d,%d",param,mac1,mac2,mac3,mac4,mac5,mac6,x,y);
 							}
 						}
 					}
@@ -7177,7 +7189,7 @@ int Cfg_Set_Dec_Usb_KVM()
 
 				if(strlen(param) > 0)
 				{
-					sprintf(cmd,"astparam s kmoip_roaming_layout %s;astparam save;e e_kmoip_roaming_chg",param);
+					sprintf(cmd,"astparam s kmoip_roaming_layout %s;astparam save",param);
 					system(cmd);
 				}
 
