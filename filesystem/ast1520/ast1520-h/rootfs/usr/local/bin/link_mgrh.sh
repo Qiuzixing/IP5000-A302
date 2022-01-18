@@ -373,6 +373,10 @@ handle_e_sys_ip_chg()
 	node_responser --mac $MY_MAC &
 	heartbeat &
 
+	if [ "$P3KCFG_NTP_SRV_MODE" = 'on' ]; then
+		handle_e_p3k_ntp_on e_p3k_ntp_enable_on::$P3KCFG_NTP_SRV_ADDR::$P3KCFG_NTP_SYNC_HOUR
+	fi
+
 	ulmparam s RELOAD_KMOIP 1
 	ast_send_event -1 e_reconnect
 
