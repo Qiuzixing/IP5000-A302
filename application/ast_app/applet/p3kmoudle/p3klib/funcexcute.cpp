@@ -2630,8 +2630,8 @@ int EX_SetAutoSwitchPriority(AudioInfo_S * info,AudioInfo_S * gain,int count)
 				}
 				else
 				{
-					DBG_WarnMsg("g_audio_info.direction != DIRECTION_IN\n");
-					return EX_PARAM_ERR;
+					DBG_WarnMsg("g_audio_info.direction != DIRECTION_IN Compatible with WEB\n");
+//					return EX_PARAM_ERR;
 				}
 			}
 			else if(gain[i].portFormat == PORT_DANTE)
