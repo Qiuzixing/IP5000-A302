@@ -16,6 +16,11 @@
 static struct platform_device *pdev;
 static struct cec_drv_data *drv_data;
 static u32 drv_option = 0;
+
+#if defined(CEC_TEST_MODE)
+static u32 cec_test_flag = 0;
+#endif
+
 #if defined(CEC_REPORT_TO_APP)
 enum
 {
@@ -926,7 +931,16 @@ void net_rx_frame_thread(void)
 
 		if (frame_validate_net_rx(&net_header, drv_data->frame, bytes_received) == 0)
 			cec_send(drv_data->frame, bytes_received);
+#if defined(CEC_TEST_MODE)
+		else
+		{
+			if(cec_test_flag == 1)
+			{
+				cec_send(drv_data->frame, bytes_received);
+			}
+		}
 	}
+#endif
 	P_TRACE("<%s> Leave\n", __func__);
 }
 
@@ -1979,6 +1993,45 @@ exit:
 }
 static DEVICE_ATTR(cec_report, (S_IWUSR | S_IRUGO), show_cec_report, store_cec_report);
 #endif
+
+#if defined(CEC_TEST_MODE)
+static ssize_t show_cec_test(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	int num = 0;
+	if(cec_test_flag == 1)
+	{
+		printk("open cec test_mode\n");
+	}
+	else
+	{
+		printk("close cec test_mode\n");
+	}
+
+	return num;
+}
+
+static ssize_t store_cec_test(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	u32 cfg, c;
+
+	c = sscanf(buf, "%d", &cfg);
+	if (c == 0)
+		goto exit;
+
+	if(cfg == 1)
+	{
+		cec_test_flag = 1;
+	}
+	else
+	{
+		cec_test_flag = 0;
+	}
+
+exit:
+	return count;
+}
+static DEVICE_ATTR(cec_test, (S_IWUSR | S_IRUGO), show_cec_test, store_cec_test);
+#endif
 static struct attribute *dev_attrs[] = {
 	&dev_attr_topology.attr,
 	&dev_attr_topology_raw.attr,
@@ -1994,6 +2047,9 @@ static struct attribute *dev_attrs[] = {
 	&dev_attr_stop.attr,
 #if defined(CEC_REPORT_TO_APP)
 	&dev_attr_cec_report.attr,
+#endif
+#if defined(CEC_TEST_MODE)
+	&dev_attr_cec_test.attr,
 #endif
 #if defined(AST_DEBUG)
 	&dev_attr_debug_level.attr,

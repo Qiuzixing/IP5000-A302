@@ -4,6 +4,7 @@
 
 #define AST_DEBUG /* FIXME: undefine for release version */
 #define CEC_REPORT_TO_APP
+#define CEC_TEST_MODE
 
 #ifdef AST_DEBUG
 int cec_debug_level(void);
