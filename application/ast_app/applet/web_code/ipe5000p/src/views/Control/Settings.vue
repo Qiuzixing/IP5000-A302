@@ -27,6 +27,7 @@
           <span class="setting-title">Command </span>
           <div style="position:relative;">
             <input type="text"
+                   maxLength="32"
                    :disabled="cecGateWay === '0'"
                    class="setting-text"
                    v-model="cecCmd">
@@ -249,15 +250,12 @@ export default {
       irDirection: 'in',
       rs232GW: false,
       irGW: '0',
-      hexError: false
-    }
-  },
-  beforeCreate () {
-    this.$socket.ws.onmessage = msg => {
-      this.handleMsg(msg.data.trim())
+      hexError: false,
+      saveFlag: false
     }
   },
   created () {
+    this.$socket.setCallback(this.handleMsg)
     this.$socket.sendMsg('#CEC-GW-PORT-ACTIVE? ')
     this.$socket.sendMsg('#UART? 1')
     this.$socket.sendMsg('#PORT-DIRECTION? both.ir.1.ir')
@@ -268,7 +266,6 @@ export default {
   },
   methods: {
     handleMsg (msg) {
-      console.log(msg)
       if (msg.search(/@CEC-GW-PORT-ACTIVE /i) !== -1) {
         this.handleCECPort(msg)
         return
@@ -331,6 +328,10 @@ export default {
       this.dataBits = data[2]
       this.parity = data[3]
       this.stopBits = data[4]
+      if (this.saveFlag) {
+        this.saveFlag = false
+        this.$msg.successAlert()
+      }
     },
     handleIRDirection (msg) {
       if (msg.search(/ir/i) !== -1) {
@@ -352,6 +353,7 @@ export default {
       if (this.rs232GW) {
         this.$socket.sendMsg(`#COM-ROUTE-ADD 1,1,${this.rs232Port},1,1`)
       }
+      this.saveFlag = true
       this.$socket.sendMsg(`#UART 1,${this.baudRate},${this.dataBits},${this.parity},${this.stopBits}`)
     },
     handleRs232Gateway (msg) {

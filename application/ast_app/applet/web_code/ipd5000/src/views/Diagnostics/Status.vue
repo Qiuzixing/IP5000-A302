@@ -15,16 +15,16 @@
       <div class="setting">
         <span class="setting-title">Heat level</span>
         <div class="device-icon device-active"
-             v-if="temperature < 60"></div>
-        <div class="device-icon device-active"
-             v-if="temperature >= 60 && temperature <= 70"></div>
-        <div class="device-icon device-active"
-             v-if="temperature > 70"></div>
-        <span style="margin-left: 12px;">{{temperature}}&#8451; </span>
+             v-if="temperature <= 45"></div>
+        <div class="device-icon device-warn"
+             v-if="temperature > 45 && temperature <= 60"></div>
+        <div class="device-icon device-error"
+             v-if="temperature > 60"></div>
+        <span style="margin-left: 12px;">{{temperature}} &#8451;</span>
         <span style="padding: 0 5px">|</span>
-        <span v-if="temperature < 60">Normal</span>
-        <span v-if="temperature >= 60 && temperature <= 70">High</span>
-        <span v-if="temperature > 70">Overheat</span>
+        <span v-if="temperature <= 45">Normal</span>
+        <span v-if="temperature > 45 && temperature <= 60">High</span>
+        <span v-if="temperature > 60">Overheat</span>
       </div>
       <div class="setting-model">
         <h3 class="setting-model-title">Input status</h3>
@@ -70,14 +70,10 @@ export default {
       lan: false
     }
   },
-  beforeCreate () {
-    this.$socket.ws.onmessage = msg => {
-      this.handleMsg(msg.data.trim())
-    }
-  },
   created () {
+    this.$socket.setCallback(this.handleMsg)
     this.$socket.sendMsg('#DEV-STATUS? ')
-    this.$socket.sendMsg('#HW-TEMP? 0')
+    this.$socket.sendMsg('#HW-TEMP? 0,0')
     this.$socket.sendMsg('#SIGNALS-LIST? ')
   },
   methods: {

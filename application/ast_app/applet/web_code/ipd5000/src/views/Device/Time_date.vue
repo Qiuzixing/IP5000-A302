@@ -201,22 +201,18 @@ export default {
       ntpMode: '0',
       ntpServer: '',
       ntpDailySync: '0',
+      saveFlag: false,
       ntpParam: Array.from({ length: 24 }).map((_, i) => { return { value: i + '', label: i + '' } })
     }
   },
-  beforeCreate () {
-    this.$socket.ws.onmessage = msg => {
-      this.handleMsg(msg.data.trim())
-    }
-  },
   created () {
+    this.$socket.setCallback(this.handleMsg)
     this.$socket.sendMsg('#TIME? ')
     this.$socket.sendMsg('#TIME-LOC? ')
     this.$socket.sendMsg('#TIME-SRV? ')
   },
   methods: {
     handleMsg (msg) {
-      console.log(msg)
       if (msg.search(/@TIME /i) !== -1) {
         this.handleTime(msg)
         return
@@ -245,6 +241,10 @@ export default {
       this.ntpMode = data[0]
       this.ntpServer = data[1]
       this.ntpDailySync = data[2]
+      if (this.saveFlag) {
+        this.saveFlag = false
+        this.$msg.successAlert()
+      }
     },
     setDateTime () {
       const weekday = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
@@ -258,9 +258,10 @@ export default {
       this.$socket.sendMsg(`#TIME-LOC ${this.timeVal},${this.daylight}`)
     },
     setNTP () {
-      this.$socket.sendMsg(`#TIME-SRV ${this.ntpMode},${this.ntpServer},${this.ntpDailySync}`)
+      this.$socket.sendMsg(`#TIME-SRV ${this.ntpMode},${this.ntpServer || '0.0.0.0'},${this.ntpDailySync}`)
     },
     save: debounce(function () {
+      this.saveFlag = true
       this.setDaylight()
       this.setNTP()
       if (this.ntpMode === '0') {

@@ -150,6 +150,7 @@
 <script>
 import vCollapse from '@/components/v-collapse'
 import vCheckbox from '@/components/checkbox.vue'
+import { debounce } from 'lodash'
 
 export default {
   name: 'autoSwitch',
@@ -344,11 +345,14 @@ export default {
           this.imgName = msg.data.objects[0].path.split('/').pop() || ''
         })
     },
-    save () {
+    save: debounce(function () {
       this.saveTextInfo()
       this.saveImgInfo()
       this.saveImg()
-    },
+    }, 2000, {
+      leading: true,
+      trailing: true
+    }),
     saveTextInfo () {
       this.textInfo.objects[0].color = this.color.replace('#', '0x')
       this.$http.post('/device/json', {
@@ -360,6 +364,8 @@ export default {
       this.$http.post('/device/json', {
         path: '/overlay/overlay2_setting.json',
         info: this.imageInfo
+      }).then(() => {
+        this.$msg.successAlert()
       })
     },
     saveImg () {

@@ -1,6 +1,7 @@
 <template>
   <div class="main-setting">
     <div class="setting-model">
+      <h3 class="setting-model-title">OSD Menu</h3>
       <div class="setting" v-if="this.$global.deviceType">
         <span class="setting-title">Menu Timeout (sec)</span>
         <el-input-number v-model="osdConfig.timeout_sec"
@@ -111,6 +112,7 @@
           </el-option>
         </el-select>
       </div>
+      <h3 class="setting-model-title"  v-if="this.$global.deviceType">Device Information</h3>
       <div class="setting" v-if="this.$global.deviceType">
         <span class="setting-title">Display Device Information</span>
         <v-switch v-model="osdInfo"
@@ -124,6 +126,13 @@
                 type="button"
                 style="margin-left: 24px">DISPLAY NOW
         </button>
+      </div>
+      <div class="setting" v-if="this.$global.deviceType">
+        <span class="setting-title">Device Information Timeout(min)</span>
+        <el-input-number v-model="osdConfig.timeout_sec" style="margin-right: 15px;"
+                         controls-position="right"
+                         :max="60"
+                         :min="0"></el-input-number>(0 for never)
       </div>
     </div>
     <footer>
@@ -205,6 +214,7 @@
 
 <script>
 import { saveAs } from 'file-saver'
+import { debounce } from 'lodash'
 
 export default {
   name: 'osd',
@@ -312,19 +322,14 @@ export default {
       return []
     }
   },
-  beforeCreate () {
-    this.$socket.ws.onmessage = msg => {
-      this.handleMsg(msg.data.trim())
-    }
-  },
   created () {
+    this.$socket.setCallback(this.handleMsg)
     this.$socket.sendMsg('#KDS-OSD-DISPLAY? ')
     this.getOsdJson()
     this.getAvChannelMap()
   },
   methods: {
     handleMsg (msg) {
-      console.log(msg)
       if (msg.search(/@KDS-OSD-DISPLAY /i) !== -1) {
         this.handleOsdInfo(msg)
       }
@@ -473,7 +478,7 @@ export default {
     handleOsdInfo (msg) {
       this.osdInfo = msg.split(' ')[1] !== '0' ? '1' : '0'
     },
-    save () {
+    save: debounce(function () {
       this.osdJson.channel_menu = this.osdConfig
       if (this.osdJson?.device_info) {
         this.osdJson.device_info.enabled = this.osdInfo === '1' ? 'on' : 'off'
@@ -487,8 +492,13 @@ export default {
         info: {
           channels_list: this.channelList
         }
+      }).then(() => {
+        this.$msg.successAlert()
       })
-    }
+    }, 2000, {
+      leading: true,
+      trailing: true
+    })
   }
 }
 </script>
@@ -509,7 +519,7 @@ export default {
 }
 
 .setting-title {
-  width: 220px;
+  width: 260px;
 }
 
 .edid-list {

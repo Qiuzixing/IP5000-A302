@@ -1,4 +1,4 @@
-const version = 'V1.1.6'
+const version = 'V1.1.9'
 const path = require('path')
 function resolve (dir) {
   return path.join(__dirname, dir)
@@ -10,6 +10,7 @@ module.exports = {
   lintOnSave: false,
   productionSourceMap: false, // 生产环境的 source map,
   filenameHashing: false,
+  // transpileDependencies: ['element-ui'],
   configureWebpack: {
     output: {
       // 输出重构  打包编译后的 文件名称  【模块名称.版本号】
@@ -124,6 +125,8 @@ if (process.env.NODE_ENV !== 'production') {
         ws.send('~nn@CEC-GW-PORT-ACTIVE 1')
       } else if (message.startsWith('#LOGIN ')) {
         ws.send('~nn@login ,ok')
+      } else if (message.startsWith('#SECUR? ')) {
+        ws.send('@SECUR 1')
       } else {
         ws.send(message.replace(/#/i, '@'))
       }

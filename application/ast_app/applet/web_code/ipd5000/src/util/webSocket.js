@@ -22,6 +22,10 @@ const socket = {
       // }
     }
   },
+  callback: null,
+  setCallback: function (callback) {
+    this.callback = callback
+  },
   initWebsocket () {
     if ('WebSocket' in window) {
       this.ws = new WebSocket(this.host)
@@ -31,14 +35,10 @@ const socket = {
       this.ws.onclose = () => {
         this.closeWs()
       }
-      return true
-    } else if ('MozWebSocket' in window) {
-      this.ws = new MozWebSocket(this.host)
-      this.ws.onopen = this.open()
-      this.isCreateWs = true
-      this.supportWs = true
-      this.ws.onclose = () => {
-        this.closeWs()
+      this.ws.onmessage = msg => {
+        if (this.callback) {
+          this.callback(msg.data.trim())
+        }
       }
       return true
     } else {

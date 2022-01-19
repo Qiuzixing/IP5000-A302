@@ -46,13 +46,9 @@ export default {
       error: false
     }
   },
-  beforeCreate () {
-    sessionStorage.removeItem('login')
-    this.$socket.ws.onmessage = msg => {
-      this.handleMsg(msg.data.trim())
-    }
-  },
   created () {
+    sessionStorage.removeItem('login')
+    this.$socket.setCallback(this.handleMsg)
     this.getModel()
   },
   methods: {

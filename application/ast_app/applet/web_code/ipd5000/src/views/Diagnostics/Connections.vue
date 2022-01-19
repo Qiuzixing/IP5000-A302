@@ -29,12 +29,8 @@ export default {
       list: []
     }
   },
-  beforeCreate () {
-    this.$socket.ws.onmessage = msg => {
-      this.handleMsg(msg.data.trim())
-    }
-  },
   created () {
+    this.$socket.setCallback(this.handleMsg)
     this.$socket.sendMsg('#NET-STAT? ')
     this.$socket.sendMsg('#HW‑TEMP? 0')
     this.$socket.sendMsg('#PORT-DIRECTION? both.ir.1.ir')

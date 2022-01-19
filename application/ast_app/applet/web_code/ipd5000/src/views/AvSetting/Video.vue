@@ -91,7 +91,7 @@
 
 <script>
 import vCheckbox from '@/components/checkbox.vue'
-
+import { debounce } from 'lodash'
 export default {
   name: 'audioPage',
   components: {
@@ -160,17 +160,14 @@ export default {
         wake_up_delay_on_signal_detection_sec: 10
       },
       imgError: false,
-      uploadComplete: false
+      uploadComplete: false,
+      saveFlag: false
       // avSignal: {
       // }
     }
   },
-  beforeCreate () {
-    this.$socket.ws.onmessage = msg => {
-      this.handleMsg(msg.data.trim())
-    }
-  },
   created () {
+    this.$socket.setCallback(this.handleMsg)
     this.$socket.sendMsg('#KDS-SCALE? ')
     this.$socket.sendMsg('#CS-CONVERT? 1')
     // this.getAVSignal()
@@ -194,6 +191,10 @@ export default {
     },
     handleForceRGB (msg) {
       this.forceRGB = msg.split(',')[1]
+      if (this.saveFlag) {
+        this.saveFlag = false
+        this.$msg.successAlert()
+      }
     },
     getAVSignal () {
       this.$http
@@ -236,12 +237,16 @@ export default {
         }
       })
     },
-    save () {
+    save: debounce(function () {
+      this.saveFlag = true
       this.$socket.sendMsg(`#KDS-SCALE ${this.maxResolution.val === '0' ? 0 : 1},${this.maxResolution.val}`)
       this.setDisplayDelay()
       // this.setAVSingle()
       this.$socket.sendMsg(`#CS-CONVERT 1,${this.forceRGB}`)
-    },
+    }, 2000, {
+      leading: true,
+      trailing: true
+    }),
     browseImg (event) {
       this.imgName = event.target.files[0]?.name || ''
       if (this.imgName) {

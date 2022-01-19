@@ -3,11 +3,17 @@ import VueRouter from 'vue-router'
 import Layout from '../views/Layout/index.vue'
 import Login from '../views/Login'
 import Loading from '../views/Refresh'
+import CheckSecurity from '../views/CheckSecurity'
 Vue.use(VueRouter)
 
 const routes = [
   {
     path: '/',
+    name: 'init',
+    component: CheckSecurity
+  },
+  {
+    path: '/login',
     name: 'login',
     component: Login
   },
@@ -166,7 +172,7 @@ const router = new VueRouter({
   routes
 })
 router.beforeEach((to, from, next) => {
-  if (to.name && to.name === 'login') {
+  if (to.name && (to.name === 'init' || to.name === 'login')) {
     next()
   } else if (to.name && to.name === 'loading' && sessionStorage.getItem('login')) {
     next()

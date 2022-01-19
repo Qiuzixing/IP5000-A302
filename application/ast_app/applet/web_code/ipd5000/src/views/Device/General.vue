@@ -6,7 +6,7 @@
         <span class="setting-title">Host Name</span>
         <input class="setting-text"
                type="text"
-               maxlength="63"
+               maxlength="24"
                v-model="hostname">
         <button type="button"
                 class="btn btn-plain-primary"
@@ -170,7 +170,7 @@
       </div>
     </el-dialog>
     <iframe v-if="isExportConfig"
-            :src="'/settings/export?method='+ exportAndImport.val"
+            :src="'/settings/export?method='+ exportConfigVal"
             frameborder="0"
             width="0"
             height="0"></iframe>
@@ -188,6 +188,7 @@ export default {
     return {
       show: false,
       upgrade: false,
+      exportConfigVal: '',
       exportAndImport: {
         val: '3',
         param: [
@@ -237,12 +238,8 @@ export default {
       uploadComplete: false
     }
   },
-  beforeCreate () {
-    this.$socket.ws.onmessage = msg => {
-      this.handleMsg(msg.data.trim())
-    }
-  },
   created () {
+    this.$socket.setCallback(this.handleMsg)
     this.$socket.sendMsg('#NAME? 0')
     this.$socket.sendMsg('#MODEL? ')
     this.$socket.sendMsg('#HW-VERSION? ')
@@ -255,7 +252,6 @@ export default {
   },
   methods: {
     handleMsg (msg) {
-      console.log(msg)
       if (msg.search(/@NAME /i) !== -1) {
         this.handleHostname(msg)
         return
@@ -411,7 +407,7 @@ export default {
     },
     exportConfig () {
       this.isExportConfig = false
-      this.methods = this.exportAndImport.val
+      this.exportConfigVal = this.exportAndImport.val
       setTimeout(() => {
         this.isExportConfig = true
       }, 500)
@@ -428,6 +424,7 @@ export default {
         xhr.open('POST', '/settings/import?method=' + this.exportAndImport.val)
         xhr.onload = oevent => {
           if (xhr.status === 200) {
+            this.$refs.uploadConfig.value = ''
             this.uploadComplete = true
             setTimeout(() => {
               this.uploadComplete = false

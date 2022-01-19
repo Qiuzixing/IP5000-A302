@@ -72,6 +72,7 @@
 
 <script>
 import radioComponent from '@/components/radio.vue'
+import { debounce } from 'lodash'
 export default {
   name: 'videoWall',
   components: {
@@ -79,6 +80,7 @@ export default {
   },
   data () {
     return {
+      saveFlag: false,
       layoutShow: false,
       stretchType: '0',
       roaming: '0',
@@ -96,12 +98,8 @@ export default {
       ]
     }
   },
-  beforeCreate () {
-    this.$socket.ws.onmessage = msg => {
-      this.handleMsg(msg.data.trim())
-    }
-  },
   created () {
+    this.$socket.setCallback(this.handleMsg)
     this.$socket.sendMsg('#VIEW-MOD? ')
     this.$socket.sendMsg('#VIDEO-WALL-SETUP? ')
     // this.$socket.sendMsg('#WND-BEZEL? ')
@@ -138,6 +136,10 @@ export default {
     },
     handleStretch (data) {
       this.stretchType = data.split(' ')[1].split(',')[1]
+      if (this.saveFlag) {
+        this.saveFlag = false
+        this.$msg.successAlert()
+      }
     },
     handleBEZEL (data) {
       this.bezel = +data.split(',')[2]
@@ -150,12 +152,16 @@ export default {
         this.selectedId = 1
       }
     },
-    save () {
+    save: debounce(function () {
+      this.saveFlag = true
       this.$socket.sendMsg(`#VIEW-MOD 15,${this.col},${this.row}`)
       this.$socket.sendMsg(`#VIDEO-WALL-SETUP ${this.selectedId},${this.videoRotation}`)
       this.$socket.sendMsg(`#WND-STRETCH ${this.selectedId},${this.stretchType}`)
       // this.$socket.sendMsg(`#WND-BEZEL 0,${this.selectedId},${this.bezel},${this.bezel},${this.bezel},${this.bezel}`)
-    }
+    }, 2000, {
+      leading: true,
+      trailing: true
+    })
   }
 }
 </script>

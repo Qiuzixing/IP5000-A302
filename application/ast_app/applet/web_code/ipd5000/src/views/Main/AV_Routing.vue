@@ -145,12 +145,8 @@ export default {
       audioRate: ''
     }
   },
-  beforeCreate () {
-    this.$socket.ws.onmessage = msg => {
-      this.handleMsg(msg.data.trim())
-    }
-  },
   created () {
+    this.$socket.setCallback(this.handleMsg)
     if (this.$global.deviceType) {
       this.$socket.sendMsg('#X-ROUTE? out.hdmi.1.video.1')
     } else {
@@ -161,7 +157,7 @@ export default {
     this.$socket.sendMsg('#X-MUTE? out.analog.1.audio.1')
     this.$socket.sendMsg('#HDCP-STAT? 1,1')
     this.$socket.sendMsg('#KDS-RESOL? 1,1,1')
-    this.$socket.sendMsg('#KDS-RATIO? 1,1,1')
+    this.$socket.sendMsg('#KDS-RATIO? ')
     this.$socket.sendMsg('#X-AUD-DESC? out.hdmi.1')
     this.getAvChannelMap()
   },

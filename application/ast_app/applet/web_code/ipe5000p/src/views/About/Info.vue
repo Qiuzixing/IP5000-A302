@@ -44,12 +44,8 @@ export default {
       version: ''
     }
   },
-  beforeCreate () {
-    this.$socket.ws.onmessage = msg => {
-      this.handleMsg(msg.data.trim())
-    }
-  },
   created () {
+    this.$socket.setCallback(this.handleMsg)
     this.$socket.sendMsg('#MODEL? ')
     this.$socket.sendMsg('#HW-VERSION? ')
     this.$socket.sendMsg('#VERSION? ')

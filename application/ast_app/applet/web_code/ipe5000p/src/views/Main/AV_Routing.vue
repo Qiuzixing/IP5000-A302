@@ -38,20 +38,20 @@
       </div>
       <div class="setting">
         <span class="setting-title">Channel Name</span>
-        <span>{{channelName}}</span>
-<!--        <div style="position: relative;">-->
-<!--          <input type="text"-->
-<!--                 class="setting-text"-->
-<!--                 maxlength="24"-->
-<!--                 v-model="channelName">-->
-<!--          <span class="range-alert"-->
-<!--                v-if="!isChannelName(channelName)"-->
-<!--                style="top:34px;white-space: nowrap;">Alphanumeric and characters within length of 1 to 24 characters, spaces not allowed</span>-->
-<!--        </div>-->
-<!--        <button type="button"-->
-<!--                class="btn btn-plain-primary"-->
-<!--                style="margin-left: 24px;"-->
-<!--                @click="setChannelName">APPLY</button>-->
+<!--        <span>{{channelName}}</span>-->
+        <div style="position: relative;">
+          <input type="text"
+                 class="setting-text"
+                 maxlength="24"
+                 v-model="channelName">
+          <span class="range-alert"
+                v-if="!isChannelName(channelName)"
+                style="top:34px;white-space: nowrap;">Alphanumeric and characters within length of 1 to 24 characters, spaces not allowed</span>
+        </div>
+        <button type="button"
+                class="btn btn-plain-primary"
+                style="margin-left: 24px;"
+                @click="setChannelName">APPLY</button>
       </div>
       <div class="setting" v-if="this.$global.deviceType !== 2">
         <span class="setting-title">Volume</span>
@@ -148,29 +148,24 @@ export default {
       volumeDisabled: true
     }
   },
-  beforeCreate () {
-    this.$socket.ws.onmessage = msg => {
-      this.handleMsg(msg.data.trim())
-    }
-  },
   created () {
+    this.$socket.setCallback(this.handleMsg)
     if (this.$global.deviceType) {
       this.$socket.sendMsg('#X-ROUTE? out.hdmi.1.video.1')
     }
     this.$socket.sendMsg('#PORT-DIRECTION? both.analog.1.audio')
     this.$socket.sendMsg('#KDS-DEFINE-CHANNEL? ')
-    this.$socket.sendMsg('#KDS-DEFINE-CHANNEL-NAME? ')
+    this.$socket.sendMsg('#NAME? 0')
     this.$socket.sendMsg('#X-AUD-LVL? out.analog_audio.1.audio.1')
     this.$socket.sendMsg('#KDS-ACTION? ')
     this.$socket.sendMsg('#X-MUTE? out.stream.1.audio.1')
     this.$socket.sendMsg('#HDCP-STAT? 1,1')
     this.$socket.sendMsg('#KDS-RESOL? 1,1,1')
-    this.$socket.sendMsg('#KDS-RATIO? 1,1,1')
+    this.$socket.sendMsg('#KDS-RATIO? ')
     this.$socket.sendMsg('#X-AUD-DESC? out.hdmi.1')
   },
   methods: {
     handleMsg (msg) {
-      console.log(msg)
       if (msg.search(/@X-ROUTE /i) !== -1) {
         this.handleInputSelect(msg)
         return
@@ -179,7 +174,7 @@ export default {
         this.handleChannel(msg)
         return
       }
-      if (msg.search(/@KDS-DEFINE-CHANNEL-NAME /i) !== -1) {
+      if (msg.search(/@NAME /i) !== -1) {
         this.handleChannelName(msg)
         return
       }
@@ -239,11 +234,11 @@ export default {
       this.channel = msg.split(' ')[1]
     },
     handleChannelName (msg) {
-      this.channelName = msg.split(' ')[1]
+      this.channelName = msg.split(',').slice(1).join(',')
     },
     setChannelName () {
       if (!this.isChannelName(this.channelName)) return
-      this.$socket.sendMsg(`#KDS-DEFINE-CHANNEL-NAME ${this.channelName}`)
+      this.$socket.sendMsg(`#NAME 0,${this.hostname}`)
     },
     handleAudioMute (msg) {
       this.muteVal = msg.split(',').pop()

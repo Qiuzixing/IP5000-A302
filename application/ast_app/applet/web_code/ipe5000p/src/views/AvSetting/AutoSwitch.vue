@@ -108,12 +108,8 @@ export default {
       }
     }
   },
-  beforeCreate () {
-    this.$socket.ws.onmessage = msg => {
-      this.handleMsg(msg.data.trim())
-    }
-  },
   created () {
+    this.$socket.setCallback(this.handleMsg)
     this.$socket.sendMsg('#X-AV-SW-MODE? out.hdmi.1.video.1')
     this.$socket.sendMsg('#X-PRIORITY? out.stream.1.video')
     this.getAutoSwitchDelay()
@@ -121,7 +117,6 @@ export default {
   mounted () { },
   methods: {
     handleMsg (msg) {
-      console.log(msg)
       if (msg.search(/@X-AV-SW-MODE /i) !== -1) {
         this.handleSwitchMode(msg)
         return
@@ -156,6 +151,8 @@ export default {
         info: {
           auto_switch_delays: this.delay
         }
+      }).then(() => {
+        this.$msg.successAlert()
       })
     },
     handleSwitchPriority (msg) {

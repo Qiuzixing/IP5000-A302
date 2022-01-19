@@ -21,7 +21,8 @@
                   @click="setPassword">CHANGE
           </button>
         </div>
-        <p class="error-msg" v-if="pwdError" style="margin: 0">Alphanumeric and characters within length of 4 to 16 characters,
+        <p class="error-msg" v-if="pwdError" style="margin: 0">Alphanumeric and characters within length of 4 to 16
+          characters,
           spaces not allowed.</p>
         <div class="setting">
           <span class="setting-title">Confirm Password</span>
@@ -62,6 +63,29 @@
                 @click="verifyShowPwdDialog = false,showPwdStatus = '0'">CANCEL</button>
       </span>
     </el-dialog>
+    <el-dialog title="Security Status"
+               :visible.sync="disabledSecurityDialog"
+               width="550px"
+               :show-close="false"
+               :close-on-click-modal="false">
+      <p class="dialog-second-title">Would you like to disable security?</p>
+      <p>This action will disable the authentication.</p>
+      <p>Do you want to proceed?</p>
+      <p><span style="font-family: 'open sans semiblold';margin-right: 15px;">Current password</span>
+        <input type="password"
+               maxLength="16"
+               v-model="securityPwd"
+               class="setting-text"></p>
+      <p style="margin: 5px 0;color: #D50000;"
+         v-if="securityPwdError">Incorrect password</p>
+      <span slot="footer"
+            class="dialog-footer">
+        <button class="btn btn-primary"
+                @click="verifyPwd">PROCEED</button>
+        <button class="btn btn-primary"
+                @click="disabledSecurityDialog = false,showPwdStatus = '1'">CANCEL</button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -79,27 +103,29 @@ export default {
       newPwd: '',
       confirmPwd: '',
       pwdError: false,
-      diffPwdError: false
-    }
-  },
-  beforeCreate () {
-    this.$socket.ws.onmessage = msg => {
-      this.handleMsg(msg.data.trim())
+      diffPwdError: false,
+      disabledSecurityDialog: false,
+      securityPwd: '',
+      securityPwdError: false
     }
   },
   created () {
+    this.$socket.setCallback(this.handleMsg)
     this.$socket.sendMsg('#SECUR? ')
     this.$socket.sendMsg('#LOGOUT-TIMEOUT? ')
   },
   methods: {
     handleMsg (msg) {
-      console.log(msg)
       if (msg.search(/@LOGOUT-TIMEOUT /i) !== -1) {
         this.handleLogout(msg)
         return
       }
       if (msg.search(/@PASS /i) !== -1) {
         this.handlePwd(msg)
+        return
+      }
+      if (msg.search(/@LOGIN /i) !== -1) {
+        this.handleLogin(msg)
         return
       }
       if (msg.search(/@SECUR /i) !== -1) {
@@ -109,8 +135,11 @@ export default {
     switchPwdStatus (val) {
       if (val === '1') {
         this.verifyShowPwdDialog = true
-      } else {
-        this.setSecurity('0')
+      } else if (val === '0') {
+        this.securityPwd = ''
+        this.securityPwdError = false
+        this.disabledSecurityDialog = true
+        // this.setSecurity('0')
       }
     },
     handleLogout (msg) {
@@ -138,6 +167,25 @@ export default {
     },
     isPwd (name) {
       return /^[A-Za-z0-9][A-Za-z0-9\-_]{3}[A-Za-z0-9\-_]{0,12}$/.test(name)
+    },
+    verifyPwd () {
+      if (!this.isPwd(this.securityPwd)) {
+        this.securityPwdError = true
+        return
+      }
+      this.setSecurityFlag = true
+      this.$socket.sendMsg(`#LOGIN admin,${this.securityPwd}`)
+    },
+    handleLogin (msg) {
+      if (this.setSecurityFlag) {
+        this.setSecurityFlag = false
+        if (msg.split(',').pop().trim().toLowerCase() === 'ok') {
+          this.setSecurity('0')
+          this.disabledSecurityDialog = false
+        } else {
+          this.securityPwdError = true
+        }
+      }
     }
   }
 }

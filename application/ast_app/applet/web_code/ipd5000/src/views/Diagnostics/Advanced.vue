@@ -85,12 +85,8 @@ export default {
       logMsg: ''
     }
   },
-  beforeCreate () {
-    this.$socket.ws.onmessage = msg => {
-      this.handleMsg(msg.data.trim())
-    }
-  },
   created () {
+    this.$socket.setCallback(this.handleMsg)
     this.$socket.sendMsg('#LOG-ACTION? ')
     this.$socket.sendMsg('#GTW-MSG-NUM? 1,' + this.getDay())
     this.$socket.sendMsg('#GTW-MSG-NUM? 2')

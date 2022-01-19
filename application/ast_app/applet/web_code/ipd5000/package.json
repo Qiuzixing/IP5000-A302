@@ -11,17 +11,12 @@
   "dependencies": {
     "axios": "^0.21.1",
     "core-js": "^3.6.5",
-    "element-ui": "^2.15.3",
+    "element-ui": "2.15.2",
     "file-saver": "^2.0.5",
+    "lodash": "^4.17.21",
     "normalize.css": "^8.0.1",
-    "v-calendar": "^2.3.0",
-    "vodal": "^2.4.0",
     "vue": "^2.6.11",
-    "vue-color": "^2.8.1",
-    "vue-ctk-date-time-picker": "^2.5.0",
-    "vue-router": "^3.2.0",
-    "vue-slider-component": "^3.2.11",
-    "vuedraggable": "^2.24.3"
+    "vue-router": "^3.2.0"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",
@@ -42,7 +37,6 @@
     "mockjs": "^1.1.0",
     "svg-sprite-loader": "^6.0.5",
     "svgo": "1.2.0",
-    "vue-select": "^3.11.2",
     "vue-template-compiler": "^2.6.11"
   }
 }

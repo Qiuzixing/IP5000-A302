@@ -106,6 +106,7 @@
 
 <script>
 import radioComponent from '@/components/radio.vue'
+import { debounce } from 'lodash'
 // import checkboxComponent from '@/components/checkbox.vue'
 export default {
   name: 'usb',
@@ -133,12 +134,8 @@ export default {
       sameMacError: false
     }
   },
-  beforeCreate () {
-    this.$socket.ws.onmessage = msg => {
-      this.handleMsg(msg.data.trim())
-    }
-  },
   created () {
+    this.$socket.setCallback(this.handleMsg)
     this.$socket.sendMsg('#NET-MAC? 0')
     this.$socket.sendMsg('#KDS-METHOD? ')
   },
@@ -153,7 +150,7 @@ export default {
       }
     },
     handleMACAddr (msg) {
-      this.mac = msg.split(' ')[1].split(',').pop().replace(/:|-/ig, '')
+      this.mac = msg.split(' ')[1].split(',').pop().trim()
       this.getKVMJson()
     },
     handleIpCastMode (msg) {
@@ -162,7 +159,7 @@ export default {
     checkMAC (data) {
       for (let i = 0; i < data.length; i++) {
         for (let j = 0; j < data[i].length; j++) {
-          if (data[i][j].mac && !data[i][j].mac.match(/^[a-f0-9]{12}$/i)) {
+          if (data[i][j].mac && !data[i][j].mac.match(/^([a-f0-9]{2}-){5}[a-f0-9]{2}$/i)) {
             return data[i].length * i + j + 1
           }
         }
@@ -180,7 +177,7 @@ export default {
       }
       return count
     },
-    save () {
+    save: debounce(function () {
       if (this.roaming === '1' && this.col * this.row > 16) return
       this.macError = this.checkMAC(this.kvmMap)
       if (this.macError !== -1) return
@@ -199,8 +196,13 @@ export default {
         info: {
           usb_kvm_config: this.kvm
         }
+      }).then(() => {
+        this.$msg.successAlert()
       })
-    },
+    }, 2000, {
+      leading: true,
+      trailing: true
+    }),
     getKVMJson () {
       this.$http
         .get(

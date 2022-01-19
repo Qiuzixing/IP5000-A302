@@ -113,12 +113,8 @@ export default {
       uploadComplete: false
     }
   },
-  beforeCreate () {
-    this.$socket.ws.onmessage = msg => {
-      this.handleMsg(msg.data.trim())
-    }
-  },
   created () {
+    this.$socket.setCallback(this.handleMsg)
     this.$socket.sendMsg('#HDCP-MOD? 1')
     if (this.$global.deviceType) {
       this.$socket.sendMsg('#HDCP-MOD? 2')
@@ -131,7 +127,6 @@ export default {
   },
   methods: {
     handleMsg (msg) {
-      console.log(msg)
       if (msg.search(/@HDCP-MOD /i) !== -1) {
         this.handleHDCP(msg)
         return
@@ -174,6 +169,8 @@ export default {
         info: {
           av_signal: this.avSignal
         }
+      }).then(() => {
+        this.$msg.successAlert()
       })
     },
     getDisplayDelay () {

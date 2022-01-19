@@ -117,12 +117,8 @@ export default {
       edidMode: false
     }
   },
-  beforeCreate () {
-    this.$socket.ws.onmessage = msg => {
-      this.handleMsg(msg.data.trim())
-    }
-  },
   created () {
+    this.$socket.setCallback(this.handleMsg)
     this.$socket.sendMsg('#LOCK-EDID? 1')
     this.$socket.sendMsg('#EDID-MODE? 1')
     this.$socket.sendMsg('#EDID-NET-SRC? 1')
@@ -131,7 +127,6 @@ export default {
   },
   methods: {
     handleMsg (msg) {
-      console.log(msg)
       if (msg.search(/@LOCK-EDID /i) !== -1) {
         this.handleEDIDLock(msg)
         return
@@ -328,7 +323,9 @@ export default {
       color: #404040;
       font-family: "open sans semiblold";
     }
-
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     cursor: pointer;
     padding: 5px;
   }

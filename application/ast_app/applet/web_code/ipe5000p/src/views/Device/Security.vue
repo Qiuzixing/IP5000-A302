@@ -313,12 +313,12 @@ export default {
             return
           }
           if (!this.tls_ca_certificate) {
-            this.server8021Alert = 'Please select CA certifivate file'
+            this.server8021Alert = 'Please select CA certificate file'
             this.server8021error = true
             return
           }
           if (!this.tls_client_certificate) {
-            this.server8021Alert = 'Please select client certifivate file'
+            this.server8021Alert = 'Please select client certificate file'
             this.server8021error = true
             return
           }

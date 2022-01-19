@@ -36,7 +36,7 @@
                      v-model="ipInfo0[0]">
               <span class="range-alert"
                     v-if="ipInfo0Error"
-                    style="top:36px;white-space: nowrap;">The IP address is invalid</span>
+                    style="top:36px;white-space: nowrap;">Please enter a valid address</span>
             </div>
           </th>
           <th>
@@ -90,7 +90,7 @@
                      v-model="ipInfo1[0]">
               <span class="range-alert"
                     v-if="ipInfo1Error && !(this.configPort0 === '0' && !this.p3k802Q)"
-                    style="top:36px;white-space: nowrap;">The IP address is invalid</span>
+                    style="top:36px;white-space: nowrap;">Please enter a valid address</span>
             </div>
           </th>
           <th>
@@ -183,12 +183,26 @@
               @click="save">SAVE
       </button>
     </footer>
+    <el-dialog title="RESTART"
+               :visible.sync="dialogVisibleReset"
+               width="500px">
+      <p class="dialog-second-title">Restart for new settings to take effect. </p>
+      <p class="dialog-second-title">Do you want to restart now?</p>
+      <span slot="footer"
+            class="dialog-footer">
+        <button class="btn btn-primary"
+                @click="dialogVisibleReset = false, restart()">RESTART</button>
+        <button class="btn btn-primary"
+                @click="dialogVisibleReset = false">LATER</button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import radioComponent from '@/components/radio.vue'
 import { debounce } from 'lodash'
+import checkLanSettings from '../../util/util'
 
 export default {
   name: 'autoSwitch',
@@ -218,15 +232,12 @@ export default {
       p3k802Q: false,
       dante802Q: false,
       ipInfo0Error: false,
-      ipInfo1Error: false
-    }
-  },
-  beforeCreate () {
-    this.$socket.ws.onmessage = msg => {
-      this.handleMsg(msg.data.trim())
+      ipInfo1Error: false,
+      setIpFlag: false
     }
   },
   created () {
+    this.$socket.setCallback(this.handleMsg)
     this.$socket.sendMsg('#NET-DHCP? 0')
     this.$socket.sendMsg('#NET-DHCP? 1')
     this.$socket.sendMsg('#NET-CONFIG? 0')
@@ -244,7 +255,6 @@ export default {
   },
   methods: {
     handleMsg (msg) {
-      console.log(msg)
       if (msg.search(/@NET-DHCP /i) !== -1) {
         this.handleIPMode(msg)
         return
@@ -277,6 +287,10 @@ export default {
       const data = msg.split(' ')[1].split(',')
       const isDHCP = data[1] === '1' ? data[1] : '0'
       this['ipMode' + data[0]] = isDHCP
+      if (this.setIpFlag) {
+        this.setIpFlag = false
+        this.dialogVisibleReset = true
+      }
     },
     handleIP (msg) {
       const data = msg.split(' ')[1]
@@ -351,6 +365,7 @@ export default {
       this.$socket.sendMsg('#ETH-PORT UDP,' + this.udp)
     },
     setIp () {
+      this.setIpFlag = true
       if (this.ipMode0 !== '1') {
         this.$socket.sendMsg('#NET-DHCP 0,0')
         this.$socket.sendMsg('#NET-CONFIG 0,' + this.ipInfo0.join(','))
@@ -385,61 +400,12 @@ export default {
       return true
     },
     isValidIP (ipAddr, netmask, gateway) {
-      if (ipAddr.startsWith('255') || ipAddr.startsWith('127')) {
-        return false
-      }
-      if (isIp4addr(ipAddr) && isIp4addr(netmask) && isIp4addr(gateway)) {
-        // 判断ip参数是否有效
-        const ipCheck = ipAddr.split('.')
-        const nmCheck = netmask.split('.')
-        const gwCheck = gateway.split('.')
-
-        const ipArr = []
-        const maskArr = []
-        const gatewayArr = []
-
-        ipArr[0] = 0xff & parseInt(ipCheck[0])
-        ipArr[1] = 0xff & parseInt(ipCheck[1])
-        ipArr[2] = 0xff & parseInt(ipCheck[2])
-        ipArr[3] = 0xff & parseInt(ipCheck[3])
-
-        gatewayArr[0] = 0xff & parseInt(gwCheck[0])
-        gatewayArr[1] = 0xff & parseInt(gwCheck[1])
-        gatewayArr[2] = 0xff & parseInt(gwCheck[2])
-        gatewayArr[3] = 0xff & parseInt(gwCheck[3])
-
-        maskArr[0] = 0xff & parseInt(nmCheck[0])
-        maskArr[1] = 0xff & parseInt(nmCheck[1])
-        maskArr[2] = 0xff & parseInt(nmCheck[2])
-        maskArr[3] = 0xff & parseInt(nmCheck[3])
-
-        // 主机号第一个自己不能全为0 或者 1
-        if (ipArr[3] & ~maskArr[3] === 0 || ipArr[3] & ~maskArr[3] === 255) {
-          return false
-        }
-
-        if (!((((ipArr[0]) & (maskArr[0])) === ((gatewayArr[0]) & (maskArr[0]))) &&
-          (((ipArr[1]) & (maskArr[1])) === ((gatewayArr[1]) & (maskArr[1]))) &&
-          (((ipArr[2]) & (maskArr[2])) === ((gatewayArr[2]) & (maskArr[2]))) &&
-          (((ipArr[3]) & (maskArr[3])) === ((gatewayArr[3]) & (maskArr[3]))))) {
-          // 设置的ip和网关不合法
-          if (gateway === '0.0.0.0') {
-            return true
-          }
-          // console.error('Default gateway is not at the same network(subnet), which is defined on basis of IP address and subnet mask.')
-          return false
-        }
-        return true
-      } else {
-        // ip地址设置错误
-        // console.error('Please input correctly!')
-        return false
-      }
-
-      function isIp4addr (ip) {
-        const reg = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
-        return reg.test(ip)
-      }
+      return checkLanSettings(ipAddr, netmask, gateway)
+    },
+    restart () {
+      this.$socket.sendMsg('#RESET')
+      this.dialogVisibleReset = false
+      sessionStorage.removeItem('login')
     }
   }
 }

@@ -9,7 +9,9 @@ import './assets/css/global.less'
 import './theme-chalk/color-picker.css'
 import Axios from 'axios'
 import './theme-chalk/input-number.css'
+import './theme-chalk/message.css'
 import InputNumber from './components/input-number'
+import AlertMsg from './util/alertMsg'
 import {
   Dialog,
   Upload,
@@ -44,6 +46,7 @@ Vue.use(vSwitch)
 Vue.prototype.$loading = Loading.service
 Vue.prototype.$socket = webSocket
 Vue.prototype.$http = Axios
+Vue.prototype.$msg = AlertMsg
 Vue.prototype.$global = {
   isLogin: false,
   deviceModel: '',

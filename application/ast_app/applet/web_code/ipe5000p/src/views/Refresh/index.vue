@@ -11,12 +11,8 @@ export default {
       count: 0
     }
   },
-  beforeCreate () {
-    this.$socket.ws.onmessage = msg => {
-      this.handleMsg(msg.data.trim())
-    }
-  },
   created () {
+    this.$socket.setCallback(this.handleMsg)
     this.getModel()
   },
   methods: {
@@ -38,7 +34,7 @@ export default {
         this.$socket.sendMsg('#MODEL? ')
       } else if (this.count < 20) {
         this.count++
-        setTimeout(this.getModel, 100)
+        setTimeout(this.getModel, 300)
       }
     },
     modelType (model) {

@@ -195,12 +195,8 @@ export default {
       danteName: ''
     }
   },
-  beforeCreate () {
-    this.$socket.ws.onmessage = msg => {
-      this.handleMsg(msg.data.trim())
-    }
-  },
   created () {
+    this.$socket.setCallback(this.handleMsg)
     this.$socket.sendMsg('#PORT-DIRECTION? both.analog.1.audio')
     this.$socket.sendMsg('#X-AV-SW-MODE? out.hdmi.1.audio.1')
     this.$socket.sendMsg('#X-PRIORITY? out.hdmi.1.audio')
@@ -388,6 +384,8 @@ export default {
         info: {
           av_signal: this.avSignal
         }
+      }).then(() =>{
+        this.$msg.successAlert()
       })
     },
     handleDanteName (msg) {
