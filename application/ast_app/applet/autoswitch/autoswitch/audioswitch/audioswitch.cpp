@@ -443,9 +443,10 @@ bool AudioSwitch::setCurrentMode(const QString &args)
 
         if ((AUDIO_MODE_MANUAL == mode) 
             && (currentMode != mode)) {
-            if (-1 != manualPort) {
+            if (-1 == manualPort) {
                 qDebug() << "default manual port.";
                 manualPort = priorityList.at(0);
+				qDebug() << "manualPort:" << manualPort;
             }
             switchToSource(manualPort);
         }
