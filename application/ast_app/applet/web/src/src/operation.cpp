@@ -54,27 +54,21 @@ int CFileMutex::Init()
 
 void CFileMutex::Lock()
 {
-    int nret = -1;
-    while(!m_bisLock)
+    while(flock(fileno(m_fp), LOCK_EX) < 0)
     {
-        nret = flock(fileno(m_fp), LOCK_EX);
-        if(nret == 0)
-        {
-            m_bisLock = true;
-        }
+        usleep(1000 * 100);
     }
+
+    m_bisLock = true;
 }
 
 void CFileMutex::UnLock()
 {
     int nret = -1;
-    while(m_bisLock)
+    nret = flock(fileno(m_fp), LOCK_UN);
+    if(nret == 0)
     {
-        nret = flock(fileno(m_fp), LOCK_UN);
-        if(nret == 0)
-        {
-            m_bisLock = false;
-        }
+        m_bisLock = false;
     }
 
     fclose(m_fp);
