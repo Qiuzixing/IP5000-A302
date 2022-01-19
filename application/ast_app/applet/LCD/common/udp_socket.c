@@ -122,7 +122,7 @@ int recv_event(int fd, char *recv_buf)
 	}
 	else if (err == 0)
 	{
-		printf("timeout\n");
+		printf("recv timeout\n");
 		return -2;
 	}
 	else

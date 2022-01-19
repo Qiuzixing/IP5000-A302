@@ -370,15 +370,16 @@ static int IPD5000_LOCK_MENU()
 {
 	int last_id = -1;
 	int current_id = -1;
+	char show_buf[20] = {0};
 	char channel_id[20] = {0};
-	
 	last_id = current_id = GET_CHANNEL_ID();
 	
 	channel_id_convert_to_string(current_id, channel_id);
+	sprintf(show_buf, "CH %s", current_id);
 	
 	clear_whole_screen();
-	show_strings(2, 16, channel_id, strlen(channel_id), 1);
-	show_strings(4, 16, "LOCK", strlen("LOCK"), 1);
+	show_strings(2, 40, show_buf, strlen(show_buf), 1);
+	show_strings(4, 40, "LOCKED", strlen("LOCKED"), 1);
 	
 	while(1)
 	{
@@ -388,8 +389,8 @@ static int IPD5000_LOCK_MENU()
 		{
 			last_id = current_id;
 			channel_id_convert_to_string(current_id, channel_id);
-			//clear_a_line(2);
-			show_strings(2, 16, channel_id, strlen(channel_id), 1);
+
+			show_strings(2, 64, channel_id, strlen(channel_id), 1);
 		}
 		
 		sleep(5);
@@ -498,7 +499,7 @@ static int IPD5000_MAIN_MENU_SHOW(void)
             }
             case LEFT_KEY:
             {   
-                break;
+                return 0;
             }
 			case TIMEOUT:
 			{
@@ -1374,22 +1375,22 @@ static int CH_NUM_SELECT_D()
     int y = 16;
 
 	int last_id = -1, current_id = -1;
+	char show_buf[20] = {0};
 	char channel_id[20] = {0};
     current_id = GET_CHANNEL_ID();
 	last_id = current_id;
 	channel_id_convert_to_string(current_id, channel_id);
 	
     clear_whole_screen();
-    show_strings(2, 16, channel_id, strlen(channel_id) ,1);
-    show_a_char(2,  16, channel_id[0], 1, 1);
+	sprintf(show_buf, "CH %s", channel_id);
+    show_strings(2, 40, show_buf, strlen(show_buf) ,1);
+    show_a_char(2,  64, channel_id[0], 1, 1);
 
     int i = 0;
     int key = 0;
     while (1)
     {
-    	//printf("recv button begin\n");
         key = recv_button_status();
-		//printf("recv button after\n");
 		
         switch (key)
         {
@@ -1417,7 +1418,8 @@ static int CH_NUM_SELECT_D()
                         channel_id[i] = '0';
                     }
                 }
-                show_a_char(2, 16+i*8, channel_id[i], 1, 1);
+                show_a_char(2, 64+i*8, channel_id[i], 1, 1);
+				SET_CHANNEL_ID(channel_id);
                 break;
             }
             case DOWN_KEY:
@@ -1446,7 +1448,7 @@ static int CH_NUM_SELECT_D()
                             channel_id[i] = '9';
                         }
                     }
-                    
+       
                 }
                 else
                 {
@@ -1459,12 +1461,14 @@ static int CH_NUM_SELECT_D()
                         channel_id[i] = '9';
                     }
                 }
-                show_a_char(2, 16+i*8, channel_id[i], 1, 1);
+
+                show_a_char(2, 64+i*8, channel_id[i], 1, 1);
+				SET_CHANNEL_ID(channel_id);
                 break;
             }
             case RIGHT_KEY:
             {
-                show_a_char(2, 16+i*8, channel_id[i], 0, 1);
+                show_a_char(2, 64+i*8, channel_id[i], 0, 1);
                 if (i < 2)
                 {
                     i++;
@@ -1473,12 +1477,14 @@ static int CH_NUM_SELECT_D()
                 {
                     i = 0;
                 }
-                show_a_char(2, 16+i*8, channel_id[i], 1, 1);
+
+                show_a_char(2, 64+i*8, channel_id[i], 1, 1);
+				
                 break;
             }
             case LEFT_KEY:
             {
-                show_a_char(2, 16+i*8, channel_id[i], 0, 1);
+                show_a_char(2, 64+i*8, channel_id[i], 0, 1);
                 if (i > 0)
                 {
                     i--;    
@@ -1487,41 +1493,42 @@ static int CH_NUM_SELECT_D()
                 {
                     i = 2;
                 }
-                show_a_char(2, 16+i*8, channel_id[i], 1, 1);
+
+                show_a_char(2, 64+i*8, channel_id[i], 1, 1);
+				
                 break;
             }
             case ENTER_KEY:
             {
             	last_id = current_id;
-				//SET_CHANNEL_ID(channel_id);
-                if (SHOW_TIMEOUT == IPD5000_MAIN_MENU_SHOW())
-                {
-                	current_id = GET_CHANNEL_ID();
-					last_id = current_id;
-					channel_id_convert_to_string(current_id, channel_id);
-
-					clear_whole_screen();
-			    	show_strings(2, 16, channel_id, strlen(channel_id) ,1);
-			    	show_a_char(2,  16, channel_id[0], 1, 1);			
-
-					
-					
-				}
+				IPD5000_MAIN_MENU_SHOW();
+				
+            	current_id = GET_CHANNEL_ID();
+				last_id = current_id;
+				channel_id_convert_to_string(current_id, channel_id);
+				sprintf(show_buf, "CH %s", channel_id);
+				
+				clear_whole_screen();
+		    	show_strings(2, 40, show_buf, strlen(show_buf) ,1);
+		    	show_a_char(2,  64, channel_id[0], 1, 1);
+				i = 0;
+				
 				break;
             }
 			case TIMEOUT:
 			{
-				current_id = GET_CHANNEL_ID();				
-
+				current_id = GET_CHANNEL_ID();
+				
 				if (current_id != last_id)
 				{
 					last_id = current_id;
 					
-					printf("current_id:[%d],  last_id: [%d]\n", current_id, last_id);
 					channel_id_convert_to_string(current_id, channel_id);
-					
-					show_strings(2, 16, channel_id, strlen(channel_id) ,1);
-    				show_a_char(2,  16, channel_id[0], 1, 1);
+
+					sprintf(show_buf, "CH %s", channel_id);
+					clear_a_line(2);
+					show_strings(2, 40, show_buf, strlen(show_buf) ,1);
+    				show_a_char(2,  64+i*8, channel_id[i], 1, 1);
 				}
 				break;
 			}

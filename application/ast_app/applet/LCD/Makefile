@@ -17,7 +17,7 @@ OBJS1 +=  main.o  ./src/IPE5000_info_setting.o  ./src/IPD5000_info_setting.o ./s
 OBJS2 +=  send_key_info.o ./common/msg_queue.o ./common/udp_socket.o
 
 CFLAGS= -I./p3k_client -I./src -I./common 
-LDFLAGS = -lpthread
+LDFLAGS =
 
 default:clean build_lcd build_send 
 	mkdir -p $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/

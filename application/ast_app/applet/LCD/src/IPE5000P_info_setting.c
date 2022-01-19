@@ -441,15 +441,17 @@ static int IPE5000P_UNLOCK_MENU()
 
 static int IPE5000P_LOCK_MENU()
 {
+	char show_buf[20] = {0};
 	char current_id[20] = {0};
 	char last_id[20] = {0};
 	
 	GET_CHANNEL_DEFINE(current_id);
 	strcpy(last_id, current_id);
+	sprintf(show_buf, "CH %s", current_id);
 	
 	clear_whole_screen();
-	show_strings(2, 16, current_id, strlen(current_id), 1);
-	show_strings(4, 16, "LOCK", strlen("LOCK"), 1);
+	show_strings(2, 40, show_buf, strlen(show_buf), 1);
+	show_strings(4, 40, "LOCKED", strlen("LOCKED"), 1);
 	
 	while(1)
 	{
@@ -458,7 +460,7 @@ static int IPE5000P_LOCK_MENU()
 		if (strcmp(last_id, current_id) != 0)
 		{	
 			strcpy(last_id, current_id);
-			show_strings(2, 16, current_id, strlen(current_id), 1);
+			show_strings(2, 64, current_id, strlen(current_id), 1);
 		}
 		
 		sleep(5);
@@ -565,7 +567,7 @@ static int IPE5000P_MAIN_MENU_SHOW(void)
             }
             case LEFT_KEY:
             {   
-                break;
+                return 0;
             }
 			case TIMEOUT:
 			{
@@ -1317,13 +1319,15 @@ static int CH_SELECT_P()
 {   
     int x = 2; 
     int y = 16;
+	char show_buf[20] = {0};
     char channel_id[20] = {0};
     GET_CHANNEL_DEFINE(channel_id);
 
+	sprintf(show_buf, "CH %s", channel_id);
     clear_whole_screen();
     show_strings(0, 16, "CH DEFINE", strlen("CH DEFINE") ,1);
-    show_strings(2, 16, channel_id, strlen(channel_id) ,1);
-    show_a_char(2,  16, channel_id[0], 1, 1);
+    show_strings(2, 16, show_buf, strlen(show_buf) ,1);
+    show_a_char(2,  40, channel_id[0], 1, 1);
 
     int i = 0;
     int key = 0;
@@ -1356,7 +1360,7 @@ static int CH_SELECT_P()
                         channel_id[i] = '0';
                     }
                 }
-                show_a_char(2, 16+i*8, channel_id[i], 1, 1);
+                show_a_char(2, 40+i*8, channel_id[i], 1, 1);
                 break;
             }
             case DOWN_KEY:
@@ -1398,12 +1402,12 @@ static int CH_SELECT_P()
                         channel_id[i] = '9';
                     }
                 }
-                show_a_char(2, 16+i*8, channel_id[i], 1, 1);
+                show_a_char(2, 40+i*8, channel_id[i], 1, 1);
                 break;
             }
             case RIGHT_KEY:
             {
-                show_a_char(2, 16+i*8, channel_id[i], 0, 1);
+                show_a_char(2, 40+i*8, channel_id[i], 0, 1);
                 if (i < 2)
                 {
                     i++;
@@ -1412,7 +1416,7 @@ static int CH_SELECT_P()
                 {
                     i = 0;
                 }
-                show_a_char(2, 16+i*8, channel_id[i], 1, 1);
+                show_a_char(2, 40+i*8, channel_id[i], 1, 1);
                 break;
             }
             case LEFT_KEY:
@@ -1452,14 +1456,16 @@ static int CH_NUM_SELECT_P()
     int x = 2; 
     int y = 16;
 
+	char show_buf[20] = {0};
 	char last_id[20] = {0};
 	char channel_id[20] = {0};
     GET_CHANNEL_DEFINE(channel_id);
 	strcpy(last_id, channel_id);
-	
+
+	sprintf(show_buf, "CH %s", channel_id);	
     clear_whole_screen();
-    show_strings(2, 16, channel_id, strlen(channel_id) ,1);
-    show_a_char(2,  16, channel_id[0], 1, 1);
+    show_strings(2, 40, show_buf, strlen(show_buf) ,1);
+    show_a_char(2,  64, channel_id[0], 1, 1);
 
     int i = 0;
     int key = 0;
@@ -1492,7 +1498,9 @@ static int CH_NUM_SELECT_P()
                         channel_id[i] = '0';
                     }
                 }
-                show_a_char(2, 16+i*8, channel_id[i], 1, 1);
+				
+                show_a_char(2, 64+i*8, channel_id[i], 1, 1);
+				SET_CHANNEL_DEFINE(channel_id);
                 break;
             }
             case DOWN_KEY:
@@ -1534,12 +1542,14 @@ static int CH_NUM_SELECT_P()
                         channel_id[i] = '9';
                     }
                 }
-                show_a_char(2, 16+i*8, channel_id[i], 1, 1);
+
+                show_a_char(2, 64+i*8, channel_id[i], 1, 1);
+				SET_CHANNEL_DEFINE(channel_id);
                 break;
             }
             case RIGHT_KEY:
             {
-                show_a_char(2, 16+i*8, channel_id[i], 0, 1);
+                show_a_char(2, 64+i*8, channel_id[i], 0, 1);
                 if (i < 2)
                 {
                     i++;
@@ -1548,13 +1558,14 @@ static int CH_NUM_SELECT_P()
                 {
                     i = 0;
                 }
-                show_a_char(2, 16+i*8, channel_id[i], 1, 1);
+
+                show_a_char(2, 64+i*8, channel_id[i], 1, 1);
+				
                 break;
             }
             case LEFT_KEY:
             {
-                #if 1
-                show_a_char(2, 16+i*8, channel_id[i], 0, 1);
+                show_a_char(2, 64+i*8, channel_id[i], 0, 1);
                 if (i > 0)
                 {
                     i--;    
@@ -1563,27 +1574,27 @@ static int CH_NUM_SELECT_P()
                 {
                     i = 2;
                 }
-                show_a_char(2, 16+i*8, channel_id[i], 1, 1);
+
+                show_a_char(2, 64+i*8, channel_id[i], 1, 1);
+				
                 break;
-                #endif
                 
             }
             case ENTER_KEY:
             {
-            	//SET_CHANNEL_DEFINE(channel_id);
             	strcpy(last_id, channel_id);
+				IPE5000P_MAIN_MENU_SHOW();
 				
-                if (SHOW_TIMEOUT == IPE5000P_MAIN_MENU_SHOW())
-                {
-					GET_CHANNEL_DEFINE(channel_id);
-					strcpy(last_id, channel_id);
-					
-					clear_whole_screen();
-				    show_strings(2, 16, channel_id, strlen(channel_id) ,1);
-				   	show_a_char(2,  16, channel_id[0], 1, 1);
-					
-				}
+				GET_CHANNEL_DEFINE(channel_id);
+				strcpy(last_id, channel_id);
+				sprintf(show_buf, "CH %s", channel_id);
 				
+				clear_whole_screen();
+			    show_strings(2, 40, show_buf, strlen(show_buf) ,1);
+			   	show_a_char(2,  64, channel_id[0], 1, 1);
+				i = 0;
+				
+				break;
             }
 
 			case TIMEOUT:
@@ -1592,10 +1603,14 @@ static int CH_NUM_SELECT_P()
 				if (strcmp(last_id, channel_id) != 0)
 				{
 					strcpy(last_id, channel_id);
-				
-			    	show_strings(2, 16, channel_id, strlen(channel_id) ,1);
-			   		show_a_char(2,  16, channel_id[0], 1, 1);
+					
+					sprintf(show_buf, "CH %s", channel_id);
+					clear_a_line(2);
+			    	show_strings(2, 40, show_buf, strlen(show_buf) ,1);
+			   		show_a_char(2,  64+i*8, channel_id[i], 1, 1);
 				}
+
+				break;
 			}
 
         }
