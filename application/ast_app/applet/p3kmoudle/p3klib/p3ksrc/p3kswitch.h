@@ -1,7 +1,8 @@
 #ifndef __P3KSWITCH_H__
 #define __P3KSWITCH_H__
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 #include "common.h"
 
@@ -17,11 +18,11 @@ userdata:用户附加数据
 返回值
 成功返回0，失败返回-1
 ****************************/
-int P3K_SilmpleReqCmdProcess(P3K_SimpleCmdInfo_S *cmdreq,P3K_SimpleCmdInfo_S *cmdresp,char*userdata);
-int P3K_CheckedSpeciCmd(char*cmd);
-int P3K_OtherChanges(char * info);
-int P3K_SilmpleReqCmdExcuter();
-static int P3K_PhraserWithSeparator(char separator,char * param, int len, char str[][256]);
+    int P3K_SilmpleReqCmdProcess(P3K_SimpleCmdInfo_S *cmdreq, P3K_SimpleCmdInfo_S *cmdresp, char *userdata);
+    int P3K_CheckedSpeciCmd(char *cmd);
+    int P3K_OtherChanges(char *info);
+    int P3K_SilmpleReqCmdExcuter();
+    int P3K_PhraserWithSeparator(char separator, char *param, int len, char str[][256]);
 #ifdef __cplusplus
 }
 #endif
