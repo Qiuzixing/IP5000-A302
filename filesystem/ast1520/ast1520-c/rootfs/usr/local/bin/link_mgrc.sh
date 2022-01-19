@@ -3680,7 +3680,7 @@ handle_e_kmoip_token_interval()
 	fi
 	KMOIP_TOKEN_INTERVAL="$1"
 	if [ "$NO_KMOIP" = 'n' ]; then
-		iipc @u_lm_set s ue_kmoip_token:$KMOIP_TOKEN_INTERVAL
+		ipc @u_lm_set s ue_kmoip_token:$KMOIP_TOKEN_INTERVAL
 	fi
 	astparam s kmoip_token_interval $KMOIP_TOKEN_INTERVAL
 	astparam save
@@ -3803,6 +3803,9 @@ state_machine()
 			;;
 			e_v_auto_on_off::?*)
 				handle_e_v_auto_on_off
+				;;
+			e_kmoip_token_interval::?*)
+				handle_e_kmoip_token_interval "$event"
 				;;
 			e_?*)
 				tickle_watchdog

@@ -624,7 +624,7 @@ handle_ue_kmoip_token()
 	if [ "$#" != '1' ]; then
 		return
 	fi
-	KMOIP_TOKEN_INTERVAL = $1
+	KMOIP_TOKEN_INTERVAL=$1
 	echo "$KMOIP_TOKEN_INTERVAL" > $KMOIP_SYS_PATH/token_interval
 }
 
