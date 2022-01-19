@@ -7189,7 +7189,7 @@ int Cfg_Set_Dec_Usb_KVM()
 
 				if(strlen(param) > 0)
 				{
-					sprintf(cmd,"astparam s kmoip_roaming_layout %s;astparam save",param);
+					sprintf(cmd,"astparam s kmoip_roaming_layout %s;astparam save;e e_kmoip_roaming_chg",param);
 					system(cmd);
 				}
 
