@@ -115,8 +115,10 @@ static int checkisIp(char *IP)
 	int ip2 = atoi(str[1]);
 	int ip3 = atoi(str[2]);
 	int ip4 = atoi(str[3]);
-	if (0 < ip1 && ip1 <= 255 && 0 <= ip2 && ip2 <= 255 && 0 <= ip3 && ip3 <= 255 && 0 <= ip4 && ip4 <= 255)
+	if (0 < ip1 && ip1 <= 255 && 0 <= ip2 && ip2 <= 255 && 0 <= ip3 && ip3 <= 255 && 0 < ip4 && ip4 < 255)
 	{
+		if ((ip1 == 127) || (ip1 > 223))
+			return -1;
 	}
 	else
 	{
@@ -136,6 +138,28 @@ int IsSubnetMask(char *subnet)
 	b = ~b + 1;
 	if ((b & (b - 1)) == 0)
 		return 1;
+	return 0;
+}
+
+int checkgateway(char *ip,char *mask,char *gateway)
+{
+	int i = 0;
+	unsigned int ipstr[4] = {0};
+	unsigned int maskstr[4] = {0};
+	unsigned int gatewaystr[4] = {0};
+	sscanf(ip, "%u.%u.%u.%u", &ipstr[0], &ipstr[1], &ipstr[2], &ipstr[3]);
+	sscanf(mask, "%u.%u.%u.%u", &maskstr[0], &maskstr[1], &maskstr[2], &maskstr[3]);
+	sscanf(gateway, "%u.%u.%u.%u", &gatewaystr[0], &gatewaystr[1], &gatewaystr[2], &gatewaystr[3]);
+
+	for(i = 0; i < 3; i++)
+	{
+		if((ipstr[i] & maskstr[i]) == (gatewaystr[i] & maskstr[i]))
+		{
+
+		}
+		else
+			return -1;
+	}
 	return 0;
 }
 
@@ -3476,6 +3500,7 @@ static int P3K_SetNetConf(char *reqparam, char *respParam, char *userdata)
 		ret = checkisIp(str[1]);
 		if (ret == -1)
 		{
+			DBG_ErrMsg("Invalid IP address\n");
 			ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);
 			strcpy(userdata, "error");
 			return -1;
@@ -3483,11 +3508,27 @@ static int P3K_SetNetConf(char *reqparam, char *respParam, char *userdata)
 		memcpy(netInfo.ipAddr, str[1], strlen(str[1]));
 		if (0 == IsSubnetMask(str[2]))
 		{
+			DBG_ErrMsg("Invalid mask address\n");
 			ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);
 			strcpy(userdata, "error");
 			return -1;
 		}
 		memcpy(netInfo.mask, str[2], strlen(str[2]));
+		if(0 == strcasecmp(str[1],str[3]))
+		{
+			DBG_ErrMsg("IP address can not be same as gateway address\n");
+			ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);
+			strcpy(userdata, "error");
+			return -1;
+		}
+		int gatewayret = checkgateway(str[1], str[2], str[3]);
+		if(gatewayret == -1)
+		{
+			DBG_ErrMsg("Gateway address is not in same subnet\n");
+			ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);
+			strcpy(userdata, "error");
+			return -1;
+		}
 		memcpy(netInfo.gateway, str[3], strlen(str[3]));
 		if (count > 4)
 		{
@@ -3504,12 +3545,35 @@ static int P3K_SetNetConf(char *reqparam, char *respParam, char *userdata)
 		ret = checkisIp(str[0]);
 		if (ret == -1)
 		{
+			DBG_ErrMsg("Invalid IP address\n");
 			ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);
 			strcpy(userdata, "error");
 			return -1;
 		}
 		memcpy(netInfo.ipAddr, str[0], strlen(str[0]));
+		if (0 == IsSubnetMask(str[1]))
+		{
+			DBG_ErrMsg("Invalid mask address\n");
+			ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);
+			strcpy(userdata, "error");
+			return -1;
+		}
 		memcpy(netInfo.mask, str[1], strlen(str[1]));
+		if(0 == strcasecmp(str[0],str[2]))
+		{
+			DBG_ErrMsg("IP address can not be same as gateway address\n");
+			ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);
+			strcpy(userdata, "error");
+			return -1;
+		}
+		int gatewayret = checkgateway(str[0], str[1], str[2]);
+		if(gatewayret == -1)
+		{
+			DBG_ErrMsg("Gateway address is not in same subnet\n");
+			ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);
+			strcpy(userdata, "error");
+			return -1;
+		}
 		memcpy(netInfo.gateway, str[2], strlen(str[2]));
 		if (count > 3)
 		{
