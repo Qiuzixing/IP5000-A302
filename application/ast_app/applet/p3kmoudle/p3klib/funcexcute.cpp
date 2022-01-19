@@ -5265,6 +5265,7 @@ int EX_GetConnectionList(char info[][MAX_SIGNALE_LEN],int num)
 {
     FILE *fp;
 	int i = 0;
+	int infolen = 0;
 	char tcptmp[1024] = {0};
 	char strNum[8] = {0};
 	char strlocalIP[16] = {0};
@@ -5290,6 +5291,8 @@ int EX_GetConnectionList(char info[][MAX_SIGNALE_LEN],int num)
 		fun(tcptmp);
 		char strsrc[64] = "";
 		//trim_string_eol(info);
+		if(infolen > 4096)
+			return i;
 		sscanf(tcptmp,"%[0-9]:%8s:%4s%8s:%4s%2s%s",strNum,strlocalIP,strlocalPORT,strIP,strPORT,strFLAG,strOther);
 		if(0 == strcasecmp(strFLAG,"01"))
 		{
@@ -5302,6 +5305,7 @@ int EX_GetConnectionList(char info[][MAX_SIGNALE_LEN],int num)
 				char strinfo[64] = "";
 				IPHextoDec(strIP,strDecIP);
 				sprintf(strinfo,"[(TCP:%d,%s:%d),ESTABLISHED]",iLocalport,strDecIP,hexToDec(strPORT));
+				infolen = infolen + strlen(strinfo);
 				memcpy(info[i],strinfo,strlen(strinfo));
 				i++;
 				//printf("{{%s}}\n",strinfo);

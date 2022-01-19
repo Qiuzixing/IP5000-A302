@@ -969,7 +969,7 @@ static int P3K_PhraserIRParam(char *param, int len, char str[][256], char irstr[
 			}
 			else
 			{
-				memcpy(irstr[i - 6], tmpdata1, tmpLen);
+				memcpy(irstr[i -6], tmpdata1, tmpLen);
 				i++;
 			}
 			if (len >= tmpdata - param + 1)
@@ -987,7 +987,7 @@ static int P3K_PhraserIRParam(char *param, int len, char str[][256], char irstr[
 		return -2;
 	if (strlen(tmpdata1) == 0)
 		return -1;
-	memcpy(irstr[i], tmpdata1, strlen(tmpdata1));
+	memcpy(irstr[i - 6], tmpdata1, strlen(tmpdata1));
 	i++;
 	return i;
 }
@@ -1067,7 +1067,7 @@ static int P3K_GetPortSInfo(char *param, PortInfo_S *info, int num, int paramnum
 		{
 			return -3;
 		}
-		int isnums = isnum(str[0]);
+		int isnums = isnum(str[4]);
 		if (isnums == -1)
 		{
 			return -3;
@@ -1154,12 +1154,6 @@ static int P3K_SetAudLevel(char *reqparam, char *respParam, char *userdata)
 	}
 
 	gain = atoi(str[1]);
-	if ((gain < -60) || (gain > 30))
-	{
-		ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);
-		strcpy(userdata, "error");
-		return -1;
-	}
 
 	ret = P3K_GetPortInfo(str[0], &tmpInfo, 5);
 	if (ret)
@@ -2562,7 +2556,7 @@ static int P3K_SendIRMsg(char *reqparam, char *respParam, char *userdata)
 	int ret = 0;
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	int count = 0;
-	char str[][MAX_PARAM_LEN] = {0};
+	char str[7][MAX_PARAM_LEN] = {0};
 	memset(&irMsg, 0, sizeof(IRMessageInfo_S));
 	count = P3K_PhraserIRParam(reqparam, strlen(reqparam), str, irMsg.cmdComent);
 	if ((isnum(str[0]) == -1) || (isnum(str[1]) == -1) || (isnum(str[3]) == -1) || (isnum(str[4]) == -1) || (isnum(str[5]) == -1))
@@ -4999,6 +4993,12 @@ static int P3K_SetEDIDMode(char *reqparam, char *respParam, char *userdata)
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	EdidInfo_S tmpInfo = {0};
 	count = P3K_PhraserParam(reqparam, strlen(reqparam), str);
+	if (count < 2)
+	{
+		ERR_MSG(ERR_PROTOCOL_SYNTAX, reqparam, respParam);
+		strcpy(userdata, "error");
+		return -1;
+	}
 	if (isnum(str[0]) == -1 || isnum(str[2]) == -1)
 	{
 		ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);
@@ -6954,7 +6954,6 @@ int P3K_SilmpleReqCmdProcess(P3K_SimpleCmdInfo_S *cmdreq, P3K_SimpleCmdInfo_S *c
 		{"EDID-ACTIVE?", P3K_GetActiveEDID, 1},
 		{"EDID-NET-SRC", P3K_SetEDIDNetSrc, 2},
 		{"EDID-NET-SRC?", P3K_GetEDIDNetSrc, 1},
-		{"GTW-MSG-NUM?", P3K_GetRecvMsgNum, 2},
 		{"GTW-MSG-NUM-SEND?", P3K_GetSendMsgNum, 2},
 		{"KDS-RATIO?", P3K_GetVidOutRatio, 0},
 		{"KDS-DEFINE-CHANNEL-NAME", P3K_SetChannelName, 1},
@@ -6977,6 +6976,8 @@ int P3K_SilmpleReqCmdProcess(P3K_SimpleCmdInfo_S *cmdreq, P3K_SimpleCmdInfo_S *c
 		{"KDS-DAISY-CHAIN?", P3K_GetDaisyChain, 0},
 		{"KDS-METHOD", P3K_SetMethod, 1},
 		{"KDS-METHOD?", P3K_GetMethod, 0},
+		{"KDS-SCALE",P3K_SetVideoOutScaler,2},
+		{"KDS-SCALE?",P3K_GetVideoOutScaler,0},
 		{"LOGOUT-TIMEOUT", P3K_SetTimeOut, 1},
 		{"LOGOUT-TIMEOUT?", P3K_GetTimeOut, 0},
 		{"KDS-MULTICAST", P3K_SetMulticastStatus, 2},
@@ -6997,7 +6998,7 @@ int P3K_SilmpleReqCmdProcess(P3K_SimpleCmdInfo_S *cmdreq, P3K_SimpleCmdInfo_S *c
 		{"EDID-RM", P3K_RmEDID, 1},
 		{"WND-STRETCH", P3K_SetVideoWallStretch, 2},
 		{"WND-STRETCH?", P3K_GetVideoWallStretch, 1},
-		{"KDS-CFG-MODIFY", P3K_SetCfgModify, 0},
+		{"KDS-CFG-MODIFY", P3K_SetCfgModify, -2},
 		{"UDPNET-CONFIG?", P3K_Discovery, -2},
 		{"BEACON-CONF", P3K_ConfBeaconInfo, 2},
 		{"BEACON-CONF?", P3K_GetBeaconConf, 0},
@@ -7107,11 +7108,11 @@ int P3K_CheckedSpeciCmd(char *cmd)
 									{"LOG-RESET?",P3K_GetLogResetEvent,0},
 									{"STANDBY",P3K_SetStandByMode,1},
 									{"KVM-USB-CTRL",P3K_SetUSBMode,1},
-									{"KDS-SCALE",P3K_SetVideoOutScaler,2},
-									{"KDS-SCALE?",P3K_GetVideoOutScaler,0},
+
 									{"ETH-TUNNEL?",P3K_GetEthTunnel,0},
 									{"KDS-BR?",P3K_GetVideoBitRate,0},
 									{"KDS-FR?",P3K_GetVideoFrameRate,0},
 									{"LOG-ACTION",P3K_SetLogAction,2},
 									{"LOG-ACTION?",P3K_GetLogAction,0},
+									{"GTW-MSG-NUM?", P3K_GetRecvMsgNum, 2},
 */
