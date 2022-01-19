@@ -71,12 +71,20 @@ extern int g_Transparency;
 #include <string>
 #include <sys/file.h>
 #include <unistd.h>
+
+#include <sys/select.h>
+#include <sys/time.h>
+#include <sys/types.h>
+
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 #include <QDebug>
+#include <QThread>
 
 using namespace std;
-
-int FileUnLock(const char *i_pFile);
-int FileLock(const char *i_pFile);
 
 class CFileMutex
 {
@@ -94,5 +102,21 @@ class CFileMutex
         FILE *m_fp;
 
 };
+
+//class SelectThread : public QThread
+//{
+//    Q_OBJECT
+//public:
+//    SelectThread(QObject* parent = nullptr);
+
+//signals:
+//    void sigSelectThread(const QString msg);
+
+//public slots:
+//    void myThreadSlot(const int);
+
+//protected:
+//    void run() override;
+//};
 
 #endif // GLOBAL_H

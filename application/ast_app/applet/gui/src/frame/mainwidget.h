@@ -42,6 +42,8 @@ public:
 
     void setDeviceInfoDispaly(bool status);
 
+    void handleFifoMsg();
+
     void switchOSDMeun();
 
     bool p3kconnected();
@@ -55,6 +57,7 @@ public slots:
     void updateOsdMenu();
 
     void reInit();
+    void slotDelayReinit();
 
     void slotShowOverlay();
     void slotHideOverlay();
@@ -87,6 +90,9 @@ public slots:
     void slotHideDeviceInfo(bool isStartOverlay = true);
     void showDeviceInfo();
 
+    void slotShowImageOverlay();
+    void slotShowTextOverlay();
+
 protected:
     virtual void keyPressEvent(QKeyEvent *e);
     virtual void focusOutEvent(QFocusEvent *e);
@@ -111,6 +117,7 @@ private:
 
     OSDLabel *m_imageOverlay;
     OSDLabel *m_textOverlay;
+    OSDLabel *m_background;
 
     QLabel *infoL;
     QLabel *m_deviceInfo;

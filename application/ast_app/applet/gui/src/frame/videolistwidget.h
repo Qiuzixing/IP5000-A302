@@ -121,6 +121,7 @@ private:
 
     int m_pageChannels; //  页面频道数
     int m_currentPage;
+    int m_totalPage;
     int m_maxChannels;
     int m_channelID;
     bool m_displayStatus;

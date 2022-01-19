@@ -68,6 +68,7 @@ void OSDMeun::focusOutEvent(QFocusEvent *e)
 void OSDMeun::mousePressEvent(QMouseEvent *event)
 {
     qDebug() << "OSDMeun::mousePressEvent::updateTimer";
+
     updateTimer();
     return  QWidget::mousePressEvent(event);
 }
@@ -90,6 +91,12 @@ void OSDMeun::keyPressEvent(QKeyEvent *e)
         // 按向下方向键时，移动光标选中下一个完成列表中的项
         int row = currentIndex.row() + 1;
         if (row >= count) {
+
+            if(m_currentPage == m_totalPage)
+            {
+                m_currentPage = 0;
+            }
+
             // 超过当前页下翻，并选中第一项
             m_needSelected = true;
             m_Page_down->click();
@@ -105,6 +112,13 @@ void OSDMeun::keyPressEvent(QKeyEvent *e)
         // 按向下方向键时，移动光标选中上一个完成列表中的项
         int row = currentIndex.row() - 1;
         if (row < 0) {
+
+            if(m_currentPage == 1)
+            {
+                m_currentPage = m_totalPage + 1;
+            }
+
+            // 超过当前页上翻，并选中第最后项
             m_needSelected = true;
             m_Page_up->click();
         }
@@ -496,7 +510,6 @@ void OSDMeun::parseMeunJson(QString jsonpath)
 
     CFileMutex lock(MENUINFO_PATH);
     lock.Init();
-
     lock.Lock();
 
     int filesize = 2048;
@@ -515,9 +528,6 @@ void OSDMeun::parseMeunJson(QString jsonpath)
     in.read(input,filesize);
     std::cout << "in_str:" << input << std::endl;
 
-    in.close();
-    lock.UnLock();
-
     std::string input_str = input;
     if(reader.parse(input_str,root))
     {
@@ -530,6 +540,7 @@ void OSDMeun::parseMeunJson(QString jsonpath)
 
         string enabled = root["device_info"]["enabled"].asString();
         int device_timeout = root["device_info"]["timeout"].asInt();
+
         m_deviceTimeout = device_timeout * 60 * 1000;
         if(m_deviceTimeout < 60000)
             m_deviceTimeout = 60 * 1000;
@@ -576,6 +587,11 @@ void OSDMeun::parseMeunJson(QString jsonpath)
         cout << "maxchannelnum:" << maxchannelnum << endl;
 
         m_overTime = timeout * 1000;        // 转为秒数
+        if(m_overTime <= 0)
+        {
+            // 获取参数错误默认显示30s
+            m_overTime = 30 * 1000;
+        }
 
         m_FontSize = fontsize;
         if(channelnum == 0)
@@ -602,6 +618,9 @@ void OSDMeun::parseMeunJson(QString jsonpath)
     {
         std::cout << "reader error:" << reader.getFormatedErrorMessages() << std::endl;
     }
+
+    in.close();
+    lock.UnLock();
 }
 
 QFont OSDMeun::loadFontSize()
@@ -758,6 +777,7 @@ void OSDMeun::loadChannel(QStringList channelList)
     int totalChannel = channelList.count();
 
     int totalpages = (totalChannel % m_pageChannels)?(totalChannel/m_pageChannels + 1):totalChannel/m_pageChannels;
+    m_totalPage = totalpages;
 
     qDebug() << "load_1" << totalpages;
 
