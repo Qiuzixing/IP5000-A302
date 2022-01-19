@@ -2606,7 +2606,7 @@ init_share_param_from_flash()
 					HOSTNAME_PREFIX=''
 				;;
 				*)
-					HOSTNAME_PREFIX=""
+					HOSTNAME_PREFIX='KDS6'
 				;;
 			esac
 		fi
