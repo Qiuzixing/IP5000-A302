@@ -7011,7 +7011,7 @@ int Cfg_Set_Enc_AVSignal_Info()
 					if((frame <= 100)&&(frame >= 0))
 					{
 						int param = frame * 60 / 100;
-						sprintf(cmd,"e e_v_frame_rate_control::%d",param);
+						sprintf(cmd,"e_v_frame_rate_control::%d",param);
 						ast_send_event(0xFFFFFFFF,cmd);
 					}
 					else

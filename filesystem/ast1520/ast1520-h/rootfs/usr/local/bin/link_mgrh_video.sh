@@ -527,7 +527,7 @@ handle_ve_frame_rate_control()
 	if [ "$#" != '1' ]; then
 		return
 	fi
-	V_FRAME_RATE = $1
+	V_FRAME_RATE=$1
 	echo "$V_FRAME_RATE" > $VIDEO_SYS_PATH/frame_rate_control
 }
 

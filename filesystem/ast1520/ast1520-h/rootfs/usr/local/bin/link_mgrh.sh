@@ -2694,7 +2694,7 @@ state_machine()
 			e_audio_detect_time*)
 				handle_e_audio_detect_time "$event"
 			;;
-			e_v_frame_rate_control*)
+			e_v_frame_rate_control::?*)
 				handle_e_v_frame_rate_control "$event"
 			;;
 			e_?*)
