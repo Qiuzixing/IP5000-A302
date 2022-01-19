@@ -348,8 +348,6 @@ void * LoginTimtOut(void * fd)
 			DBG_ErrMsg("timeout\n");
 			//Tcp_NetClose(*(int *)fd);
 			//close(*(int *)fd);
-			char * data = "con_list";
-            SendToConList(data);
 			rec->next = tmp->next;
 			free(tmp);
 			break;
@@ -370,8 +368,8 @@ void UnInitTcpSocket(TimeOut_S * head)
         if(tmp->InOrOut == 0)
 		{
 			DeleteById_LinkList(g_connectionlist_info,tmp->soket);
-            char * data = "con_list";
-            SendToConList(data);
+            //char * data = "con_list";
+            //SendToConList(data);
             close(tmp->soket);
 			rec->next = tmp->next;
 			free(tmp);

@@ -4432,7 +4432,7 @@ int EX_SetNetPort(char* portType,int portNumber)
     	myaddr.sin_family=AF_INET;
     	myaddr.sin_port = htons(49000);
     	//inet_pton(AF_INET,"10.36.145.183",&myaddr.sin_addr.s_addr); //鏈嶅姟鍣ㄧ殑ip
-    	myaddr.sin_addr.s_addr = 0;//閫氶厤鍦板潃  灏嗘墍鏈夌殑鍦板潃閫氶€氱粦�?
+    	myaddr.sin_addr.s_addr = 0;
     	if(bind(sock_fd,(struct sockaddr*)&myaddr,sizeof(myaddr))<0)
     		perror("bind");
 
@@ -4442,7 +4442,7 @@ int EX_SetNetPort(char* portType,int portNumber)
 
     	struct sockaddr_in addr;// ipv4濂楁帴瀛楀湴鍧€缁撴瀯浣?
     	addr.sin_family =AF_INET;
-    	addr.sin_port = htons(old_port);  //服务器端�?
+    	addr.sin_port = htons(old_port);
     	inet_pton(AF_INET,ip_buf,&addr.sin_addr.s_addr); //服务器的ip
     	struct sockaddr_in server_addr;
     	socklen_t len = sizeof(server_addr);
@@ -5291,9 +5291,11 @@ int EX_GetConnectionList(char info[][MAX_SIGNALE_LEN],int num)
 		char strsrc[64] = "";
 		//trim_string_eol(info);
 		sscanf(tcptmp,"%[0-9]:%8s:%4s%8s:%4s%2s%s",strNum,strlocalIP,strlocalPORT,strIP,strPORT,strFLAG,strOther);
-		if(atoi(strFLAG) == 1)
+		if(0 == strcasecmp(strFLAG,"01"))
 		{
 			int iLocalport = hexToDec(strlocalPORT);
+			if(i >= 100)
+				break; 
 			if(iLocalport == 80 || iLocalport == 443 || iLocalport == g_network_info.tcp_port || iLocalport == g_gateway_info.rs232_port)
 			{
 				char strDecIP[16] = "";
@@ -5652,9 +5654,9 @@ int EX_Discovery(char *aflag,char*ip,int iPort)
     {
         sprintf(Send_buf,"~01@NET-IP %s\r\n",ip_buf);
     }
-	struct sockaddr_in addr;// ipv4套接字地址结构�?
+	struct sockaddr_in addr;
 	addr.sin_family =AF_INET;
-	addr.sin_port = htons(iPort);// iPort //服务器端�?
+	addr.sin_port = htons(iPort);// iPort
 	inet_pton(AF_INET,ip,&addr.sin_addr.s_addr); //服务器的ip
 	struct sockaddr_in server_addr;
 	socklen_t len = sizeof(server_addr);
@@ -5771,7 +5773,7 @@ int EX_NTFYPhraser(Notify_S *s_NTFYInfo,char *tmpparam)
     }
     if(s_NTFYInfo->NCmd == NTFY_CON_LIST)
     {
-        char connectionlist[10][MAX_SIGNALE_LEN] = {0};
+        char connectionlist[100][MAX_SIGNALE_LEN] = {0};
     	int i = 0;
     	int ret = EX_GetConnectionList(&connectionlist[0],10);
     	if(ret > 10)

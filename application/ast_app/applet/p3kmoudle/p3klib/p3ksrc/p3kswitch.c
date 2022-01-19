@@ -30,6 +30,24 @@ int P3K_OtherChanges(char *info)
 	return ret;
 }
 
+char *rtrim(char *str)
+{
+    if ((str == NULL) || (*str == '\0'))
+    {
+		DBG_ErrMsg("param empty\n");
+        return str;
+    }
+
+    int len = strlen(str);
+    char *p = str + len - 1;
+    while ((p >= str)  && ((isspace(*p)) || ((*p) == '\r') || ((*p) == '\n')))
+    {
+        *p = '\0';
+        --p;
+    }
+    return str;
+}
+
 static int ERR_MSG(ERROR_TYPE_E i_Err, char *i_reqparam, char *o_respParam)
 {
 	char tmpdata[256] = {0};
@@ -869,12 +887,12 @@ static int P3K_PhraserParam(char *param, int len, char str[][256])
 	int tmpLen = 0;
 	// int s32Ret = 0;
 	int i = 0;
-	char *tmpdata = param;
-	char *tmpdata1 = param;
 	if (param == NULL || len <= 0 || len > 4096)
 	{
 		return -1;
 	}
+	char *tmpdata = rtrim(param);
+	char *tmpdata1 = rtrim(param);
 	while (tmpdata != NULL)
 	{
 		tmpdata = strchr(tmpdata, PARAM_SEPARATOR);
@@ -1882,14 +1900,7 @@ static int P3K_GetVideoWallRotaion(char *reqparam, char *respParam, char *userda
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	int count = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] = {0};
-	count = P3K_PhraserParam(reqparam, strlen(reqparam), str);
-	if (isnum(str[0]) == -1)
-	{
-		ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);
-		strcpy(userdata, "error");
-		return -1;
-	}
-	wallId = atoi(str[0]);
+
 	s32Ret = EX_GetVideoWallSetupInfo(&wallId, &info);
 	if (s32Ret < 0)
 	{
@@ -2573,7 +2584,6 @@ static int P3K_SendIRMsg(char *reqparam, char *respParam, char *userdata)
 	irMsg.totalPacket = atoi(str[4]);
 	irMsg.packId = atoi(str[5]);
 	irMsg.commandNum = count - 6;
-	printf("[%d]\n", irMsg.commandNum);
 	ret = EX_SendIRmessage(&irMsg);
 	if (ret < 0)
 	{
@@ -2716,7 +2726,6 @@ static int P3K_SetXROUTEMatch(char *reqparam, char *respParam, char *userdata)
 			return -1;
 		}
 	}
-	// printf(",,,.,.,%s\n",str[count-1]);
 	s32Ret = EX_SetRouteMatch(&outInfo, &inInfo, count - 1);
 	if (s32Ret < 0)
 	{
@@ -3217,7 +3226,6 @@ static int P3K_SetDNSName(char *reqparam, char *respParam, char *userdata)
 		return -1;
 	}
 	id = atoi(str[0]);
-	printf("[%s<<<<<\n", str[1]);
 	if (strlen(str[1]) > 15 || strlen(str[1]) < 0 || str[1][0] == '-' || str[1][strlen(str[1]) - 1] == '-')
 	{
 		ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);
@@ -4310,9 +4318,8 @@ static int P3K_SetTime(char *reqparam, char *respParam, char *userdata)
 	char tmpparam[MAX_PARAM_LEN] = {0};
 	int count = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] = {0};
-	//	printf("%s len=%d\n",reqparam,strlen(reqparam));
+
 	count = P3K_PhraserParam(reqparam, strlen(reqparam), str);
-	//	printf("%s------%s\n",str[0],str[1]);
 
 	if (strcasecmp(str[0], "SUN") == 0 || strcasecmp(str[0], "MON") == 0 || strcasecmp(str[0], "TUE") == 0 || strcasecmp(str[0], "WED") == 0 || strcasecmp(str[0], "THU") == 0 || strcasecmp(str[0], "FRI") == 0 || strcasecmp(str[0], "SAT") == 0)
 	{
@@ -4340,10 +4347,6 @@ static int P3K_SetTime(char *reqparam, char *respParam, char *userdata)
 		return -1;
 	}
 	sprintf(ptime, "%s", str[2]);
-	// memcpy(weekDay,str[0],strlen(str[0]));
-
-	// memcpy(date,str[1],strlen(str[1]));
-	// memcpy(time,str[2],strlen(str[2]));
 
 	s32Ret = EX_SetTimeAndDate(pweekDay, pdate, ptime);
 	if (s32Ret < 0)
@@ -4353,7 +4356,6 @@ static int P3K_SetTime(char *reqparam, char *respParam, char *userdata)
 		DBG_ErrMsg("EX_SetTimeAndDate err\n");
 		return -1;
 	}
-	// printf("%s\n",reqparam);
 	sprintf(tmpparam, "%s,%s,%s", pweekDay, pdate, ptime);
 	memcpy(respParam, tmpparam, strlen(tmpparam));
 
@@ -4528,7 +4530,6 @@ static int P3K_GetSignalList(char *reqparam, char *respParam, char *userdata)
 	}
 	for (i = 0; i < ret; i++)
 	{
-		printf(" ret = %d ,sig=%s\n", ret, siglist[i]);
 		strncat(tmpparam, siglist[i], MAX_SIGNALE_LEN);
 		if (i < (ret - 1))
 		{
@@ -4966,7 +4967,6 @@ static int P3K_GetAutoSwitchPriority(char *reqparam, char *respParam, char *user
 		sprintf(aStr2, "%s.%s.%d.%s,", dir, port, tmp[num].portIndex, signal);
 		strncat(tmpparam, aStr2, strlen(aStr2));
 
-		printf("num:%d aStr2:%s tmpparam:%s \n", num, aStr2, tmpparam);
 		memset(aStr2, 0, sizeof(aStr2));
 		// memset(tmp,0,sizeof(tmp));
 	}
@@ -4982,7 +4982,6 @@ static int P3K_GetAutoSwitchPriority(char *reqparam, char *respParam, char *user
 		P3K_SignaleTypeToStr(tmp[num].signal, signal);
 		sprintf(aStr2, "%s.%s.%d.%s]", dir, port, tmp[num].portIndex, signal);
 		strncat(tmpparam, aStr2, strlen(aStr2));
-		printf("num:%d aStr2:%s tmpparam:%s \n", num, aStr2, tmpparam);
 		memset(aStr2, 0, sizeof(aStr2));
 	}
 	memcpy(respParam, tmpparam, strlen(tmpparam));
@@ -5616,7 +5615,6 @@ static int P3K_GetConnectionList(char *reqparam, char *respParam, char *userdata
 	}
 	for (i = 0; i < ret; i++)
 	{
-		printf(" ret = %d ,sig=%s\n", ret, connectionlist[i]);
 		strncat(tmpparam, connectionlist[i], MAX_SIGNALE_LEN);
 		if (i < (ret - 1))
 		{
@@ -6582,7 +6580,6 @@ static int P3K_Discovery(char *reqparam, char *respParam, char *userdata)
 		return -1;
 	}
 	iport = atoi(str[2]);
-	printf("{[%s:%s:%d]}\n", aflag, iIP, iport);
 	u32ret = EX_Discovery(aflag, iIP, iport);
 	if (u32ret < 0)
 	{
@@ -6876,7 +6873,7 @@ int P3K_SilmpleReqCmdProcess(P3K_SimpleCmdInfo_S *cmdreq, P3K_SimpleCmdInfo_S *c
 		{"WND-BEZEL", P3K_SetWndBezel, 6},
 		{"WND-BEZEL?", P3K_GetWndBezel, 0},
 		{"VIDEO-WALL-SETUP", P3K_SetVideoWallRotaion, 2},
-		{"VIDEO-WALL-SETUP?", P3K_GetVideoWallRotaion, 1},
+		{"VIDEO-WALL-SETUP?", P3K_GetVideoWallRotaion, 0},
 		{"KDS-START-OVERLAY", P3K_StartOverlay, 2},
 		{"KDS-STOP-OVERLAY", P3K_StopOverlay, 0},
 		{"KDS-DEFINE-CHANNEL", P3K_SetChannelId, 1},
