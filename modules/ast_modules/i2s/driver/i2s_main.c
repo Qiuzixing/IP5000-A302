@@ -1331,7 +1331,7 @@ static ssize_t _show_audio_info(char *buf, Audio_Info *a_info)
 		(a_info->io_in_use == IO_IN_USE_HDMI) ? ("HDMI") : ("Auto"));
 
 	num += snprintf(buf + num, PAGE_SIZE - num, "Type: %s (0x%X)\n",
-		((a_info->Audio_Type & (AST_AUDIO_HBR | AST_AUDIO_NLPCM)) == (AST_AUDIO_HBR | AST_AUDIO_NLPCM)) ? "HBR Audio [7.1 Ch]" :
+		((a_info->Audio_Type & (AST_AUDIO_HBR)) == (AST_AUDIO_HBR)) ? "HBR Audio [7.1 Ch]" :
 		(a_info->Audio_Type & AST_AUDIO_NLPCM) ? "Non-LPCM [5.1 Ch]" :
 		(a_info->Audio_Type & AST_AUDIO_DSD) ? "DSD[Not Supported]" : "LPCM",
 		a_info->Audio_Type);
