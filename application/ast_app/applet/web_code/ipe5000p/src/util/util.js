@@ -83,7 +83,6 @@ function getRightMostOneBitPos (num) {
 }
 
 function isValidIpAddress (address) {
-
   const ipParts = address.split('/')
   if (ipParts.length > 2) return false
   if (ipParts.length === 2) {

@@ -209,18 +209,18 @@ export default {
           label: '5'
         }
       ],
-      parity: 'none',
+      parity: '0',
       parityParam: [
         {
-          value: 'none',
+          value: '0',
           label: 'None'
         },
         {
-          value: 'odd',
+          value: '1',
           label: 'Odd'
         },
         {
-          value: 'even',
+          value: '2',
           label: 'Even'
         }
       ],
@@ -353,7 +353,7 @@ export default {
         this.$socket.sendMsg(`#COM-ROUTE-ADD 1,1,${this.rs232Port},1,1`)
       }
       this.saveFlag = true
-      this.$socket.sendMsg(`#UART 1,${this.baudRate},${this.dataBits},${this.parity},${this.stopBits}`)
+      this.$socket.sendMsg(`#UART 1,${this.baudRate},${this.dataBits},${this.parity},${this.stopBits},0,0`)
     },
     handleRs232Gateway (msg) {
       const data = msg.split(' ')
