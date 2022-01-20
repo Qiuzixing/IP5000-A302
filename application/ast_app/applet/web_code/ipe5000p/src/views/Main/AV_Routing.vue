@@ -36,22 +36,22 @@
                 style="margin-left: 24px;"
                 @click="setChannel">APPLY</button>
       </div>
-      <div class="setting">
+      <div class="setting" style="position: relative;">
         <span class="setting-title">Channel Name</span>
 <!--        <span>{{channelName}}</span>-->
-        <div style="position: relative;">
+        <div>
           <input type="text"
                  class="setting-text"
                  maxlength="24"
                  v-model="channelName">
-          <span class="range-alert"
-                v-if="!isChannelName(channelName)"
-                style="top:34px;white-space: nowrap;">Alphanumeric and characters within length of 1 to 24 characters, spaces not allowed</span>
         </div>
         <button type="button"
                 class="btn btn-plain-primary"
                 style="margin-left: 24px;"
                 @click="setChannelName">APPLY</button>
+        <span class="range-alert"
+              v-if="channelNameError"
+              style="top:34px;white-space: nowrap;">Alphanumeric and characters within length of 1 to 24 characters, spaces not allowed</span>
       </div>
       <div class="setting" v-if="this.$global.deviceType !== 2">
         <span class="setting-title">Volume</span>
@@ -145,7 +145,8 @@ export default {
       audioFormat: '',
       audioRate: '',
       channelList: [],
-      volumeDisabled: true
+      volumeDisabled: true,
+      channelNameError: false
     }
   },
   created () {
@@ -237,7 +238,8 @@ export default {
       this.channelName = msg.split(',').slice(1).join(',')
     },
     setChannelName () {
-      if (!this.isChannelName(this.channelName)) return
+      this.channelNameError = !this.isChannelName(this.channelName)
+      if (this.channelNameError) return
       this.$socket.sendMsg(`#NAME 0,${this.channelName}`)
     },
     handleAudioMute (msg) {

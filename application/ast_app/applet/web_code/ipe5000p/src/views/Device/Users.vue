@@ -10,7 +10,7 @@
                     inactive-value="0"
                     @change="switchPwdStatus"></v-switch>
         </div>
-        <div class="setting">
+        <div class="setting" style="position: relative;">
           <span class="setting-title">New Password</span>
           <input type="password"
                  v-model="newPwd"
@@ -20,17 +20,16 @@
                   style="margin-left: 25px;"
                   @click="setPassword">CHANGE
           </button>
+          <span v-if="pwdError" class="range-alert" style="top: 36px; white-space: nowrap;">Alphanumeric and characters within length of 4 to 16 characters, spaces not allowed</span>
         </div>
-        <p class="error-msg" v-if="pwdError" style="margin: 0">Alphanumeric and characters within length of 4 to 16 characters,
-          spaces not allowed.</p>
-        <div class="setting">
+        <div class="setting" style="position: relative;">
           <span class="setting-title">Confirm Password</span>
           <input type="password"
                  maxLength="16"
                  v-model="confirmPwd"
                  class="setting-text">
+          <span v-if="diffPwdError" class="range-alert" style="top: 36px; white-space: nowrap;">New password and confirm password do not match</span>
         </div>
-        <p class="error-msg" style="margin: 0" v-if="diffPwdError">New password and confirm password do not match.</p>
       </div>
       <div class="setting-model">
         <div class="setting">
@@ -105,7 +104,8 @@ export default {
       diffPwdError: false,
       disabledSecurityDialog: false,
       securityPwd: '',
-      securityPwdError: false
+      securityPwdError: false,
+      setSecurityFlag: false
     }
   },
   created () {
@@ -123,6 +123,10 @@ export default {
         this.handlePwd(msg)
         return
       }
+      if (msg.search(/@LOGIN /i) !== -1) {
+        this.handleLogin(msg)
+        return
+      }
       if (msg.search(/@SECUR /i) !== -1) {
         this.showPwdStatus = msg.trim().split(' ')[1]
       }
@@ -130,8 +134,11 @@ export default {
     switchPwdStatus (val) {
       if (val === '1') {
         this.verifyShowPwdDialog = true
-      } else {
-        this.setSecurity('0')
+      } else if (val === '0') {
+        this.securityPwd = ''
+        this.securityPwdError = false
+        this.disabledSecurityDialog = true
+        // this.setSecurity('0')
       }
     },
     handleLogout (msg) {

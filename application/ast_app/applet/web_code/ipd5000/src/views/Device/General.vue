@@ -14,7 +14,7 @@
                 @click="setHostName">APPLY
         </button>
         <span class="range-alert"
-              v-if="!isValidName(hostname)"
+              v-if="hostNameError"
               style="top:36px;white-space: nowrap;">Alphanumeric and characters within length of 1 to 24 characters, spaces not allowed</span>
       </div>
       <div class="setting">
@@ -186,6 +186,7 @@ export default {
   // },
   data () {
     return {
+      hostNameError: false,
       show: false,
       upgrade: false,
       exportConfigVal: '',
@@ -342,7 +343,8 @@ export default {
       sessionStorage.removeItem('login')
     },
     setHostName () {
-      if (this.isValidName(this.hostname)) {
+      this.hostNameError = !this.isValidName(this.hostname)
+      if (!this.hostNameError) {
         this.$socket.sendMsg(`#NAME 0,${this.hostname}`)
       }
     },

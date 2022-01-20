@@ -82,7 +82,7 @@
                    :disabled="server8021x === 'off'"
                    v-model="mschap_username">
             <span class="range-alert"
-                  v-if="mschap_username && !isValidName(mschap_username)"
+                  v-if="mschapUsernameError"
                   style="top:36px;white-space: nowrap;">Alphanumeric and characters within length of 1 to 24 characters, spaces not allowed</span>
           </div>
           <div class="setting">
@@ -111,7 +111,7 @@
                    :disabled="server8021x === 'off'"
                    v-model="tls_username">
             <span class="range-alert"
-                  v-if="tls_username && !isValidName(tls_username)"
+                  v-if="tls_usernameError"
                   style="top:36px;white-space: nowrap;">Alphanumeric and characters within length of 1 to 24 characters, spaces not allowed</span>
           </div>
           <div class="setting">
@@ -213,7 +213,9 @@ export default {
       tls_private_key: '',
       tls_private_password: '',
       server8021error: false,
-      server8021Alert: ''
+      server8021Alert: '',
+      mschapUsernameError: false,
+      tls_usernameError: false
     }
   },
   created () {
@@ -272,7 +274,6 @@ export default {
         if (xhr.status === 200) {
           this.httpsFileName = ''
           this.httpPrivatePwd = ''
-          console.log('upload success')
         }
       }
       xhr.send(formData)
@@ -303,7 +304,10 @@ export default {
             this.server8021error = true
             return
           }
-          if (!this.isValidName(this.mschap_username) || !this.isValidName(this.mschap_password)) return
+          this.server8021error = false
+          this.mschapUsernameError = !this.isValidName(this.mschap_username)
+          // mschap_username && !isValidName(mschap_username)
+          if (this.mschapUsernameError) return
           formData.append('mschap_username', this.mschap_username)
           formData.append('mschap_password', this.mschap_password)
         } else {
@@ -332,7 +336,9 @@ export default {
             this.server8021error = true
             return
           }
-          if (!this.isValidName(this.tls_username) || !this.isValidName(this.tls_private_password)) return
+          this.server8021error = false
+          this.tls_usernameError = !this.isValidName(this.tls_username)
+          if (this.tls_usernameError) return
           formData.append('tls_username', this.tls_username)
           formData.append('tls_ca_certificate', this.$refs.tls_ca_certificate.files[0])
           formData.append('tls_client_certificate', this.$refs.tls_client_certificate.files[0])
@@ -340,14 +346,17 @@ export default {
           formData.append('tls_private_password', this.tls_private_password)
         }
       }
-      this.server8021error = false
       const xhr = new XMLHttpRequest()
       xhr.open('POST', '/security/802_1x')
       xhr.onload = oevent => {
         if (xhr.status === 200) {
-          this.httpsFileName = ''
-          this.httpPrivatePwd = ''
-          console.log('upload success')
+          this.mschap_username = ''
+          this.mschap_password = ''
+          this.tls_username = ''
+          this.tls_ca_certificate = ''
+          this.tls_client_certificate = ''
+          this.tls_private_key = ''
+          this.tls_private_password = ''
         }
       }
       xhr.send(formData)
