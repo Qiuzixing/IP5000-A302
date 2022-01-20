@@ -5785,7 +5785,12 @@ static int P3K_GetHWTemp(char *reqparam, char *respParam, char *userdata)
 		DBG_ErrMsg("EX_GetHWTemp err\n");
 		return -1;
 	}
-	sprintf(tmpparam, "%d,%d", region_id, ret);
+
+	if(iMode == 0)
+		sprintf(tmpparam, "%d,%dC", region_id, ret);
+	else
+		sprintf(tmpparam, "%d,%dF", region_id, ret);
+
 	memcpy(respParam, tmpparam, strlen(tmpparam));
 	return 0;
 }

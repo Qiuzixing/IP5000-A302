@@ -479,7 +479,7 @@ int IsPortValid(  PortDirectionType_E direction, PortSignalType_E portFormat,int
 					if((strcmp(g_version_info.model,IPE_MODULE) == 0)
 						 ||(strcmp(g_version_info.model,IPE_P_MODULE) == 0))
 					{
-						if(g_audio_info.direction == DIRECTION_OUT)
+//						if(g_audio_info.direction == DIRECTION_OUT)
 							return EX_NO_ERR;
 					}
 					else if((strcmp(g_version_info.model,IPD_MODULE) == 0)
@@ -2151,6 +2151,12 @@ int EX_GetHWTemp(int  id,int iMode)
 		return EX_PARAM_ERR;
 	}
 
+	if(id != 0)
+	{
+		DBG_ErrMsg("parameter error\n");
+		return EX_PARAM_ERR;
+	}
+
 	return iTemp;
 }
 
@@ -2218,7 +2224,7 @@ int EX_GetAudGainLevel(PortInfo_S*info,int *gain)
 	if(g_audio_info.direction == DIRECTION_IN)
 	{
 		DBG_WarnMsg(" !!! Error Mode \n");
-		return EX_MODE_ERR;
+//		return EX_MODE_ERR;
 	}
 #endif
 	if(IsPortValid(info->direction, info->portFormat, info->portIndex, info->signal, info->index) == EX_PARAM_ERR)
@@ -2873,6 +2879,18 @@ int EX_SetEDIDLockStatus(int index,int lock)
 {
 	DBG_InfoMsg("EX_SetEDIDLockStatus index =%d lock=%d\n",index,lock);
 #ifdef CONFIG_P3K_HOST
+	if(index != 1)
+	{
+		DBG_WarnMsg(" !!!parameter Error\n");
+		return EX_PARAM_ERR;
+	}
+
+	if((lock != 0)&&(lock != 1))
+	{
+		DBG_WarnMsg(" !!!parameter Error\n");
+		return EX_PARAM_ERR;
+	}
+
 	Cfg_Set_EDID_Lock((State_E)lock);
 #else
 	DBG_WarnMsg(" !!! This is Decoder\n");
@@ -3696,7 +3714,7 @@ int EX_SendIRmessage(IRMessageInfo_S*info)
 
 	system(sCmd);
 	*/
-	DBG_InfoMsg("system %s\n",sCmd);
+	//DBG_InfoMsg("system %s\n",sCmd);
 
 	return EX_NO_ERR;
 }
@@ -3978,8 +3996,6 @@ int EX_SetUartConf(UartMessageInfo_S*conf)
 {
 	if(conf->comNumber == 1)
 	{
-		Cfg_Set_GW_Uart_Param(*conf);
-
 		char cmd[128] = "";
 		if(conf->parity == PARITY_ODD)
 			sprintf(cmd,"e_p3k_soip_param::%d-%do%d",conf->rate,conf->bitWidth,(int)conf->stopBitsMode);
@@ -3992,6 +4008,26 @@ int EX_SetUartConf(UartMessageInfo_S*conf)
 			DBG_WarnMsg(" !!! Error para\n");
 			return EX_PARAM_ERR;
 		}
+
+		if((conf->rate < 9600)||(conf->rate > 115200))
+		{
+			DBG_WarnMsg(" !!! Error para\n");
+			return EX_PARAM_ERR;
+		}
+
+		if((conf->bitWidth < 5)||(conf->bitWidth > 8))
+		{
+			DBG_WarnMsg(" !!! Error para\n");
+			return EX_PARAM_ERR;
+		}
+
+		if((conf->stopBitsMode < 1)||(conf->stopBitsMode > 2))
+		{
+			DBG_WarnMsg(" !!! Error para\n");
+			return EX_PARAM_ERR;
+		}
+
+		Cfg_Set_GW_Uart_Param(*conf);
 
 		DBG_InfoMsg("ast_send_event %s\n",cmd);
 		ast_send_event(0xFFFFFFFF,cmd);
@@ -4041,7 +4077,7 @@ int EX_AddComRoute(ComRouteInfo_S*info,int comId)
 		if(info->portNumber == g_network_info.tcp_port)
 		{
 			DBG_WarnMsg(" !!! Error para\n");
-			return EX_PARAM_ERR;
+			return EX_NO_ERR;
 		}
 
 		Cfg_Set_GW_COM_Add(info->portNumber);
@@ -5845,7 +5881,7 @@ const char* strHelpCmd[] = {
 	"HW-TEMP?",
 	"HW-VERSION?",
 	"IDV",
-	"IR-SND",
+//	"IR-SND",
 	"KDS-ACTION",
 	"KDS-ACTION?",
 	"KDS-AUD",
