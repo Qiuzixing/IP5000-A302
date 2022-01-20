@@ -7207,7 +7207,7 @@ int Cfg_Set_Dec_Usb_KVM()
 					char cmd[256] = "";
 					int interval =  root[JSON_USB_KVM_TIMEOUT].asInt();
 
-					if((interval <= 10)&&(interval >= 0))
+					if((interval <= 600)&&(interval >= 0))
 					{
 						sprintf(cmd,"e_kmoip_token_interval::%d",interval*1000);
 						ast_send_event(0xFFFFFFFF, cmd);
