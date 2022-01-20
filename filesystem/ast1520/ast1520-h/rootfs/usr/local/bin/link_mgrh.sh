@@ -2587,7 +2587,7 @@ handle_e_v_frame_rate_control()
 	fi
 	V_FRAME_RATE=$1
 	if [ "$NO_VIDEO" = 'n' ]; then
-		ipc @v_lm_set s ve_start:$V_FRAME_RATE
+		ipc @v_lm_set s ve_frame_rate_control:$V_FRAME_RATE
 	fi
 	astparam s v_frame_rate $V_FRAME_RATE
 	astparam save
@@ -2834,7 +2834,7 @@ init_param_from_flash()
 		V_FRAME_RATE=`astparam r v_frame_rate`
 		if echo "$V_FRAME_RATE" | grep -q "not defined" ; then
 			#V_FRAME_RATE='0' means off. Range: 0~60
-			V_FRAME_RATE='0'
+			V_FRAME_RATE='60'
 		fi
 	fi
 

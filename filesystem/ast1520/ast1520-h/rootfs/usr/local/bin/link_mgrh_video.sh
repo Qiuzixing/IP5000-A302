@@ -528,6 +528,9 @@ handle_ve_frame_rate_control()
 		return
 	fi
 	V_FRAME_RATE=$1
+	if [ $V_FRAME_RATE -lt 1 ]; then
+		V_FRAME_RATE=1
+	fi
 	echo "$V_FRAME_RATE" > $VIDEO_SYS_PATH/frame_rate_control
 }
 
