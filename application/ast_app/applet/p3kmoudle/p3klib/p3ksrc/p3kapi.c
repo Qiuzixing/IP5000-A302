@@ -525,6 +525,81 @@ void * P3K_UdpInsideServer()
 }
 
 
+int is_int(char *str)
+{
+    int len = strlen(str);
+    int i = 0;
+
+    for (i = 0; i < len; i++)
+    {
+        if (!(isdigit(str[i])))
+            return 0;
+    }
+    return 1;
+}
+
+static int P3K_GetLOGTail(P3KMsgQueueMember_S *cmdreq)
+{
+	FILE *fp;
+	int i = 0;
+	int tmplen = 0;
+	int loglen = 0;
+	char logdata[1024] = "";
+	char dstdata[512] = {0};
+	char sysstr[128] = "";
+	P3KReqistMsg_S *registMsg = NULL;
+	P3K_SimpleCmdInfo_S respCmdInfo;
+
+	memset(&respCmdInfo, 0, sizeof(P3K_SimpleCmdInfo_S));
+	int isret = is_int(cmdreq->cmdinfo.param);
+	if (isret == 0)
+	{
+		DBG_ErrMsg("ERROR! param is not num\n");
+		memset(dstdata, 0, sizeof(dstdata));
+		strcpy(respCmdInfo.command, cmdreq->cmdinfo.command);
+		strcpy(respCmdInfo.param, "ERR 003");
+		tmplen = P3K_SimpleRespCmdBurstification(&respCmdInfo, dstdata);
+		registMsg = P3K_GetReqistMsgByID(cmdreq->handleId);
+		if (registMsg)
+		{
+			registMsg->sendMsg(cmdreq->handleId, dstdata, tmplen, 0);
+		}
+		return 0;
+	}
+	loglen = atoi(cmdreq->cmdinfo.param);
+	sprintf(sysstr, "tail -n %d /var/log/messages", loglen);
+	if ((fp = popen(sysstr, "r")) == NULL)
+	{
+		DBG_ErrMsg("ERROR! can't open /var/log/messages\n");
+		memset(dstdata, 0, sizeof(dstdata));
+		strcpy(respCmdInfo.command, cmdreq->cmdinfo.command);
+		strcpy(respCmdInfo.param, "ERR 012");
+		tmplen = P3K_SimpleRespCmdBurstification(&respCmdInfo, dstdata);
+		registMsg = P3K_GetReqistMsgByID(cmdreq->handleId);
+		if (registMsg)
+		{
+			registMsg->sendMsg(cmdreq->handleId, dstdata, tmplen, 0);
+		}
+		fclose(fp);
+		fp = NULL;
+		return 0;
+	}
+	while (fgets(logdata, 1023, fp) != NULL)
+	{
+		memset(dstdata, 0, sizeof(dstdata));
+		strcpy(respCmdInfo.command, cmdreq->cmdinfo.command);
+		strcpy(respCmdInfo.param, logdata);
+		tmplen = P3K_SimpleRespCmdBurstification(&respCmdInfo, dstdata);
+		registMsg = P3K_GetReqistMsgByID(cmdreq->handleId);
+		if (registMsg)
+		{
+			registMsg->sendMsg(cmdreq->handleId, dstdata, tmplen, 0);
+		}
+	}
+	fclose(fp);
+	fp = NULL;
+	return 0;
+}
 
 void ParseMsgSetOrGet(P3K_SimpleCmdInfo_S *cmd,char *dstdata)
 {
@@ -586,6 +661,16 @@ static void * P3K_DataExcuteProc(void*arg)
 		//ÌØÊâÃüÁî·Ö¿ªÖ´ÐÐ¿É·ÅÔÚÕâÀï?
 
 		memset(userDefine,0,MAX_USR_STR_LEN);
+		if (!strcasecmp(&pmsg.cmdinfo.command, "LOG-TAIL?"))
+		{
+			s32Ret = P3K_GetLOGTail(&pmsg);
+			if(s32Ret != 0)
+			{
+				continue;
+			}
+		}
+		else
+		{
 			s32Ret = P3K_SilmpleReqCmdProcess(&pmsg.cmdinfo,&respCmdInfo,userDefine);
 			if(s32Ret != 0)
 			{
@@ -610,12 +695,12 @@ static void * P3K_DataExcuteProc(void*arg)
     		}
             if(!memcmp(aSetOrGet,aEndFlag,strlen(aEndFlag)) || (!strcasecmp(respCmdInfo.command,"LOGIN")) || (!strcasecmp(userDefine,"error")))
             {
-                 
-            } 
+            }
             else{
                 Sendtoclient(dstdata,tmplen,registMsg->handleId);
             }
   		}
+	}
 	return  NULL;
 }
 
