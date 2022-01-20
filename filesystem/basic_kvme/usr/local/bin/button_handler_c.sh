@@ -28,19 +28,19 @@
 
 ###########################################
 # Default behavior. Can be overwritten by astparam
-BTN1_SHORT="e_btn_toggle_link"
-BTN1_LONG="e_btn_request_usb"
-BTN1_SHORT_ON_BOOT="e_btn_to_mfg_mode"
-BTN1_LONG_ON_BOOT="e_btn_to_mfg_mode_n_default"
+BTN1_SHORT="e_btn_ignore"
+BTN1_LONG="e_btn_ignore"
+BTN1_SHORT_ON_BOOT="e_btn_ignore"
+BTN1_LONG_ON_BOOT="e_btn_ignore"
 BTN1_SHORT_ON_ETH_OFF="e_btn_ignore"
 BTN1_LONG_ON_ETH_OFF="e_btn_ignore"
 
-BTN2_SHORT="e_btn_toggle_video_profile"
-BTN2_LONG="e_btn_toggle_video_anti_dither"
-BTN2_SHORT_ON_BOOT="e_btn_enable_edid_update"
+BTN2_SHORT="e_btn_ignore"
+BTN2_LONG="e_btn_ignore"
+BTN2_SHORT_ON_BOOT="e_btn_ignore"
 BTN2_LONG_ON_BOOT="e_btn_ignore"
 BTN2_SHORT_ON_ETH_OFF="e_btn_ignore"
-BTN2_LONG_ON_ETH_OFF="e_btn_toggle_eth_jumbo"
+BTN2_LONG_ON_ETH_OFF="e_btn_ignore"
 
 BTN_INIT="e_btn_ignore"
 BTN1_DELAY="200"
