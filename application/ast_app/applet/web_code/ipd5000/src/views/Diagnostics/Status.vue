@@ -94,7 +94,10 @@ export default {
       this.deviceStatus = msg.split(' ')[1]
     },
     handleTemp (msg) {
-      this.temperature = parseInt(msg.split(' ')[1].split(',')[1])
+      const data = msg.split(' ')[1].split(',')
+      if (data[0] === '0') {
+        this.temperature = parseInt(data[1])
+      }
     },
     handleSignal (msg) {
       this.hdmiin1 = msg.search(/in.hdmi.1/i) !== -1

@@ -211,7 +211,7 @@ export default {
   },
   data () {
     return {
-
+      dialogVisibleReset: false,
       port1: '1',
       port2: '1',
       ipMode0: '0',

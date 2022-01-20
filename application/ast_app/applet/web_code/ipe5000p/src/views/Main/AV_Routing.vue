@@ -238,7 +238,7 @@ export default {
     },
     setChannelName () {
       if (!this.isChannelName(this.channelName)) return
-      this.$socket.sendMsg(`#NAME 0,${this.hostname}`)
+      this.$socket.sendMsg(`#NAME 0,${this.channelName}`)
     },
     handleAudioMute (msg) {
       this.muteVal = msg.split(',').pop()

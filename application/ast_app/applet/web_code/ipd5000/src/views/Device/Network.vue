@@ -276,6 +276,10 @@ export default {
         this.handleETHPort(msg)
         return
       }
+      if (msg.search(/@KDS-VLAN-TAG /i) !== -1) {
+        this.handleDanteTag(msg)
+        return
+      }
       if (msg.search(/@KDS-DAISY-CHAIN /i) !== -1) {
         this.daisyChain = msg.split(' ').pop()
       }
@@ -314,8 +318,24 @@ export default {
     },
     handleMulticast (msg) {
       const data = msg.split(' ')[1].split(',')
-      this.multicastAddress = parseInt(data[0])
+      // this.multicastAddress = parseInt(data[0])
       this.ttl = parseInt(data[1])
+    },
+    handleDanteTag (msg) {
+      const data = msg.split(' ')[1].split(',')
+      if (data[0] === '0') {
+        const tag = parseInt(data[1])
+        this.p3k802Q = tag !== 1
+        if (tag !== 1) {
+          this.danteTag1 = tag
+        }
+      } else if (data[0] === '1') {
+        const tag = parseInt(data[1])
+        this.dante802Q = tag !== 1
+        if (tag !== 1) {
+          this.danteTag2 = tag
+        }
+      }
     },
     save: debounce(function () {
       if (this.validIP()) {
@@ -338,7 +358,7 @@ export default {
     setIpCastingMode () {
       this.$socket.sendMsg('#KDS-METHOD ' + this.castMode)
       if (this.castMode === '2') {
-        this.$socket.sendMsg(`#KDS-MULTICAST ${this.multicastAddress},${this.ttl}`)
+        this.$socket.sendMsg(`#KDS-MULTICAST 225.225.0.10,${this.ttl}`)
       }
     },
     setTcpUDP () {
