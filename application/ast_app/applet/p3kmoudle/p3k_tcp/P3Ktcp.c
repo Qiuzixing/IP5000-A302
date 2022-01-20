@@ -608,7 +608,7 @@ void * TcpCmd_cb(void * fd)
 //		printf("[!!!!!!222222222IP Addr]g_InitIP:%s,ip_buf:%s\n",g_InitIP,ip_buf);
 		if((strcmp(ip_buf,g_InitIP) == 0)&&(handle->serverport == g_network_info.tcp_port))
         {
-            usleep(1000*1000);
+            usleep(10000*1000);
         }
         else
         {
@@ -768,7 +768,7 @@ int main (int argc, char const *argv[])
 	{
 		if(strcmp(g_InitIP,"0.0.0.0") == 0)
 		{
-			usleep(1000*1000);
+			usleep(10000*1000);
 			GetIPInfo(1,g_InitIP,NULL);
 		}
 		else
