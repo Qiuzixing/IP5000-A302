@@ -362,8 +362,7 @@ typedef struct _IRMessageInfo_S
 	int repeat;
 	int totalPacket;
 	int packId;
-	int commandNum;
-	char cmdComent[1024][4];
+	char cmdComent[4096];
 }IRMessageInfo_S;
 
 typedef enum _UartParityType_E

@@ -962,17 +962,18 @@ static int P3K_PhraserParam(char *param, int len, char str[][256])
 	return i;
 }
 
-static int P3K_PhraserIRParam(char *param, int len, char str[][256], char irstr[1024][4])
+static int P3K_PhraserIRParam(char *param, int len, char str[][256], char irstr[4096])
 {
 	int tmpLen = 0;
-	// int s32Ret = 0;
 	int i = 0;
-	char *tmpdata = param;
-	char *tmpdata1 = param;
+	int tailLen = 0;
 	if ((param == NULL) || (len <= 0))
 	{
 		return -1;
 	}
+	char *tmpdata = param;
+	char *tmpdata1 = param;
+	char *datahead = param;
 	while (tmpdata != NULL)
 	{
 		tmpdata = strchr(tmpdata, PARAM_SEPARATOR);
@@ -993,8 +994,10 @@ static int P3K_PhraserIRParam(char *param, int len, char str[][256], char irstr[
 			}
 			else
 			{
-				memcpy(irstr[i -6], tmpdata1, tmpLen);
-				i++;
+				tmpLen = tmpdata1 - datahead;
+				tailLen = strlen(param) - tmpLen;
+				memcpy(irstr,tmpdata1,tailLen);
+				return 0;
 			}
 			if (len >= tmpdata - param + 1)
 			{
@@ -2046,6 +2049,12 @@ static int P3K_SetChannleSelection(char *reqparam, char *respParam, char *userda
 	ChSelect_S sSelect = {0};
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] = {0};
 	count = P3K_PhraserParam(reqparam, strlen(reqparam), str);
+	if (count < 2)
+	{
+		ERR_MSG(ERR_PROTOCOL_SYNTAX, reqparam, respParam);
+		strcpy(userdata, "error");
+		return -1;
+	}
 	for (chn = 0; chn < count - 1; chn++)
 	{
 		sSelect.signal[chn] = P3K_CheckSignalType(str[chn]);
@@ -2601,7 +2610,6 @@ static int P3K_SendIRMsg(char *reqparam, char *respParam, char *userdata)
 	irMsg.repeat = atoi(str[3]);
 	irMsg.totalPacket = atoi(str[4]);
 	irMsg.packId = atoi(str[5]);
-	irMsg.commandNum = count - 6;
 	ret = EX_SendIRmessage(&irMsg);
 	if (ret < 0)
 	{
@@ -6960,7 +6968,6 @@ int P3K_SilmpleReqCmdProcess(P3K_SimpleCmdInfo_S *cmdreq, P3K_SimpleCmdInfo_S *c
 		{"CEC-NTFY", P3K_RecvCECNtfy, 0},
 		{"CEC-GW-PORT-ACTIVE", P3K_SetCECGWMode, 1},
 		{"CEC-GW-PORT-ACTIVE?", P3K_GetCECGWMode, 0},
-		{"IR-SND", P3K_SendIRMsg, -2},
 		{"IR-STOP", P3K_StopIRMsg, -2},
 		{"X-ROUTE", P3K_SetXROUTEMatch, -2},
 		{"X-ROUTE?", P3K_GetXROUTEMatch, 1},
@@ -7073,7 +7080,7 @@ int P3K_SilmpleReqCmdProcess(P3K_SimpleCmdInfo_S *cmdreq, P3K_SimpleCmdInfo_S *c
 		{"BEACON-CONF?", P3K_GetBeaconConf, 0},
 		{"P3K-NOTIFY", P3K_NTFY_PROC, -2},
 		{"TEST-MODE", P3K_TESTMODE, 0},
-		{"HELP", P3K_HELP, 0},
+		{"IR-SND", P3K_SendIRMsg, -2},
 		{NULL, NULL}};
 	printf("<<<<<<recv==%s %s\n", cmdreq->command, cmdreq->param);
 	if (cmdreq == NULL || cmdresp == NULL)
@@ -7177,7 +7184,8 @@ int P3K_CheckedSpeciCmd(char *cmd)
 									{"LOG-RESET?",P3K_GetLogResetEvent,0},
 									{"STANDBY",P3K_SetStandByMode,1},
 									{"KVM-USB-CTRL",P3K_SetUSBMode,1},
-
+		{"HELP", P3K_HELP, 0},
+				{"IR-SND", P3K_SendIRMsg, -2},
 									{"ETH-TUNNEL?",P3K_GetEthTunnel,0},
 									{"KDS-BR?",P3K_GetVideoBitRate,0},
 									{"KDS-FR?",P3K_GetVideoFrameRate,0},
