@@ -66,6 +66,7 @@
 // json文件传输
 #define JSON_URL                "/device/json$"
 #define JSON_PATH_PARAM         "path"
+#define DEV_STATUS_URL          "/device/status.json$"
 
 // 原5000功能
 #define CMD_TYPE_STR            "cmdtype"
@@ -190,6 +191,7 @@ void CWeb::HttpRun()
         {DOWN_TESTPATTERN_URL, DownVideoWallHandle, NULL},
         {UP_UPGRADESOFTWARE, UploadUpgradeHandle, NULL},
         {JSON_URL, JsonDataHandle, NULL},
+        {DEV_STATUS_URL, DeviceStatusHandle, NULL},
         {"/action$", ActionReqHandler, NULL},
         {"/stream$", StreamReqHandler, NULL},
         {"/upload_logo$", UploadLogoReqHandler, NULL},
@@ -920,6 +922,41 @@ int CWeb::JsonDataHandle(struct mg_connection *conn, void *cbdata)
     return 1;
 }
 
+int CWeb::DeviceStatusHandle(struct mg_connection *conn, void *cbdata)
+{
+    FILE *fp = NULL;
+    char szResData[1024] = {0};
+
+    fp = popen("cat /proc/uptime", "r");
+    if(fp != NULL)
+    {
+        fgets(szResData, sizeof(szResData), fp);
+        BC_INFO_LOG("DeviceStatusHandle get data is [%s]", szResData);
+
+        string strResult = "";
+        string strFileData = szResData;
+        int nsite = strFileData.find(" ");
+        string strTmp = strFileData.substr(0, nsite);
+
+        Json::Value json;
+        Json::Value devstatus;
+        Json::FastWriter fastwiter;
+
+        devstatus["uptime"] = strTmp.c_str();
+        json["device_status"] = devstatus;
+
+        strResult = fastwiter.write(json);
+        send_json_data(conn, (char *)strResult.c_str());
+    }
+    else
+    {
+        BC_INFO_LOG("DeviceStatusHandle get data failed!");
+        send_http_error_rsp(conn);
+    }
+
+    fclose(fp);
+    return 1;
+}
 
 int CWeb::ActionReqHandler(struct mg_connection *conn, void *cbdata)
 {

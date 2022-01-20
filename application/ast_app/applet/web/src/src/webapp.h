@@ -108,6 +108,7 @@ public:
 
     // json数据传输
     static int         JsonDataHandle(struct mg_connection *conn, void *cbdata);
+    static int         DeviceStatusHandle(struct mg_connection *conn, void *cbdata);
 
     // P3K
     static void        P3kStatusInit();
