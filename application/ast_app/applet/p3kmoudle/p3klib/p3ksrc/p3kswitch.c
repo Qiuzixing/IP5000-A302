@@ -1014,8 +1014,15 @@ static int P3K_PhraserIRParam(char *param, int len, char str[][256], char irstr[
 		return -2;
 	if (strlen(tmpdata1) == 0)
 		return -1;
-	memcpy(irstr[i - 6], tmpdata1, strlen(tmpdata1));
-	i++;
+	if (i == 5)
+	{
+		memcpy(str[i], tmpdata1, strlen(tmpdata1));
+		i++;
+	}
+	else
+	{
+		memcpy(irstr, tmpdata1, strlen(tmpdata1));
+	}
 	return i;
 }
 
@@ -2592,6 +2599,12 @@ static int P3K_SendIRMsg(char *reqparam, char *respParam, char *userdata)
 	char str[7][MAX_PARAM_LEN] = {0};
 	memset(&irMsg, 0, sizeof(IRMessageInfo_S));
 	count = P3K_PhraserIRParam(reqparam, strlen(reqparam), str, irMsg.cmdComent);
+	if(count < 6)
+	{
+		ERR_MSG(ERR_PROTOCOL_SYNTAX, reqparam, respParam);
+		strcpy(userdata, "error");
+		return 0;
+	}
 	if ((isnum(str[0]) == -1) || (isnum(str[1]) == -1) || (isnum(str[3]) == -1) || (isnum(str[4]) == -1) || (isnum(str[5]) == -1))
 	{
 		ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);

@@ -544,8 +544,10 @@ static int P3K_GetLOGTail(P3KMsgQueueMember_S *cmdreq)
 	int i = 0;
 	int tmplen = 0;
 	int loglen = 0;
+	int lognum = 1;
 	char logdata[1024] = "";
-	char dstdata[512] = {0};
+	char retlog[2048] = "";
+	char dstdata[2048] = {0};
 	char sysstr[128] = "";
 	P3KReqistMsg_S *registMsg = NULL;
 	P3K_SimpleCmdInfo_S respCmdInfo;
@@ -557,7 +559,7 @@ static int P3K_GetLOGTail(P3KMsgQueueMember_S *cmdreq)
 		DBG_ErrMsg("ERROR! param is not num\n");
 		memset(dstdata, 0, sizeof(dstdata));
 		strcpy(respCmdInfo.command, cmdreq->cmdinfo.command);
-		strcpy(respCmdInfo.param, "ERR 003");
+		strcpy(respCmdInfo.param, "ERR 001");
 		tmplen = P3K_SimpleRespCmdBurstification(&respCmdInfo, dstdata);
 		registMsg = P3K_GetReqistMsgByID(cmdreq->handleId);
 		if (registMsg)
@@ -584,17 +586,19 @@ static int P3K_GetLOGTail(P3KMsgQueueMember_S *cmdreq)
 		fp = NULL;
 		return 0;
 	}
-	while (fgets(logdata, 1023, fp) != NULL)
+	while (fgets(logdata, 1024, fp) != NULL)
 	{
 		memset(dstdata, 0, sizeof(dstdata));
 		strcpy(respCmdInfo.command, cmdreq->cmdinfo.command);
-		strcpy(respCmdInfo.param, logdata);
+		sprintf(retlog, "%d Line content #%d %s", loglen, lognum, logdata);
+		strcpy(respCmdInfo.param, retlog);
 		tmplen = P3K_SimpleRespCmdBurstification(&respCmdInfo, dstdata);
 		registMsg = P3K_GetReqistMsgByID(cmdreq->handleId);
 		if (registMsg)
 		{
 			registMsg->sendMsg(cmdreq->handleId, dstdata, tmplen, 0);
 		}
+		lognum++;
 	}
 	fclose(fp);
 	fp = NULL;
