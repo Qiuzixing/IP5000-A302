@@ -190,6 +190,9 @@ function isValidIpAddressNetwork (ipAddr, netmask, gateway) {
       (((ipArr[1]) & (maskArr[1])) === ((gatewayArr[1]) & (maskArr[1]))) &&
       (((ipArr[2]) & (maskArr[2])) === ((gatewayArr[2]) & (maskArr[2]))) &&
       (((ipArr[3]) & (maskArr[3])) === ((gatewayArr[3]) & (maskArr[3]))))) {
+      if (gateway === '0.0.0.0') {
+        return true
+      }
       // 设置的ip和网关不合法
       // console.error('Default gateway is not at the same network(subnet), which is defined on basis of IP address and subnet mask.')
       return false
