@@ -40,6 +40,7 @@ public:
     int getdisplayStatus(){return m_displayStatus;}
     int getdisplayConfig(){return m_displayConfig;}
     int getDeviceInfoTimerout(){return m_deviceTimeout;}
+    bool getDeviceInfoDisplayStatus() {return m_bInfoLongDisplay;}
 
     void startTimer(){osdOverTimer.start(m_overTime);};
     void stopTimer(){osdOverTimer.stop();}
@@ -148,6 +149,8 @@ private:
 
     QTimer  osdOverTimer; // 定时器
     int  m_overTime;     // 超时时间
+
+    bool m_bInfoLongDisplay; // 标记info是否常显 默认false;
 
     QReadWriteLock m_lock;
 };

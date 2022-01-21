@@ -99,8 +99,6 @@ protected:
 
     void paintEvent(QPaintEvent *event);
     void resizeEvent(QResizeEvent *event);
-    void mouseDoubleClickEvent(QMouseEvent *event);
-    void mouseMoveEvent(QMouseEvent *event);
 
 private:
     void initOsdMeun();

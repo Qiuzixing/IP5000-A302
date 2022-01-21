@@ -37,6 +37,7 @@ OSDMeun::OSDMeun(QWidget *parent)
     ,m_displayStatus(false)
     ,m_displayConfig(false)
     ,m_needSelected (false)
+    ,m_bInfoLongDisplay(false)
     ,m_pageChannels(5)
     ,m_deviceTimeout(10)
 {
@@ -542,8 +543,15 @@ void OSDMeun::parseMeunJson(QString jsonpath)
         int device_timeout = root["device_info"]["timeout"].asInt();
 
         m_deviceTimeout = device_timeout * 60 * 1000;
-        if(m_deviceTimeout < 60000)
-            m_deviceTimeout = 60 * 1000;
+        if(m_deviceTimeout <= 0)
+        {
+            // <0获取出错； 0为常显标志
+            m_bInfoLongDisplay = true;
+        }
+        else
+        {
+            m_bInfoLongDisplay = false;
+        }
 
         QString EnabledStr = enabled.c_str();
 

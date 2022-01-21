@@ -270,10 +270,13 @@ void MainWidget::showDeviceInfo()
     // 移动到指定位置
     moveFramebuffer(BOTTOM_RIGHT);
 
-    int timeout = m_osdMeun->getDeviceInfoTimerout();
-    qDebug() << "timeout:" << ypos;
+    if(!m_osdMeun->getDeviceInfoDisplayStatus())
+    {
+        int timeout = m_osdMeun->getDeviceInfoTimerout();
+        qDebug() << "timeout:" << ypos;
 
-    DeviceInfoTimer.start(timeout);
+        DeviceInfoTimer.start(timeout);
+    }
 
     if(m_background != NULL)
     {
@@ -292,7 +295,13 @@ void MainWidget::slotHideDeviceInfo(bool isStartOverlay)
     m_deviceInfo->setVisible(false);
 
     if(isStartOverlay)
-        QTimer::singleShot(400,this,SLOT(showLongDisplay()));
+    {
+        if(!m_osdMeun->getDeviceInfoDisplayStatus())
+        {
+            // 非常显状态下隐藏后询问OVERLAY是否显示
+            QTimer::singleShot(400,this,SLOT(showLongDisplay()));
+        }
+    }
 }
 
 void MainWidget::focusOutEvent(QFocusEvent *e)
@@ -352,22 +361,6 @@ void MainWidget::resizeEvent(QResizeEvent *event)
 {
     qDebug() << "RESEIZE";
 }
-
-void MainWidget::mouseDoubleClickEvent(QMouseEvent *event)
-{
-    QWidget::mouseDoubleClickEvent(event);
-}
-
-void MainWidget::mouseMoveEvent(QMouseEvent *event)
-{
-    if(m_osdMeun != NULL && g_bOSDMeunDisplay)
-    {
-        qDebug() << "MainWidget::mouseMoveEvent::updateTimer";
-        m_osdMeun->updateTimer();
-    }
-    QWidget::mouseMoveEvent(event);
-}
-
 
 void MainWidget::syncConfig(QString path)
 {
@@ -460,11 +453,11 @@ void MainWidget::getResolutionFromTiming()
 
     //qDebug() << "MainWidget::strResult:" << strResult;
 
-    if(strResult.contains("Capture"))
+    if(strResult.contains("Timing Table:"))
     {
         // 解析输出源的分辨率应用到OSD
-         QString startStr = "Capture";
-         QString endStr = "Compress";
+         QString startStr = "Timing Table:";
+         QString endStr = "Pixel Rate:";
 
          int spos = strResult.indexOf(startStr);
          QString tmpStr = strResult.mid(spos);
@@ -478,59 +471,46 @@ void MainWidget::getResolutionFromTiming()
          if(list.isEmpty())
              return;
 
-         QString orderStr;
-         for(int index = 0; index < list.count() ; index++)
+         QString orderStr = list.at(4);
+         if(orderStr.startsWith("["))
          {
-             if(list.at(index).startsWith("["))
+             list.clear();
+             list = orderStr.split("X");
+
+             QString widthStr = list.at(0).mid(1,list.at(0).length()-2);
+             int width = widthStr.toInt();
+//             qDebug() << "widthStr:" << widthStr;
+
+             QString heightStr = list.at(1).mid(1,list.at(1).length()-2);
+             int height = heightStr.toInt();
+//             qDebug() << "heightStr:" << heightStr;
+
+             g_bDeviceSleepMode = false;
+             if(width != g_nScreenWidth)
              {
-                orderStr = list.at(index);
-//                qDebug() << "ordStr:" << orderStr;
-                break;
-             }
-         }
+                 getInfoTimer.stop();
+                 float wScale = static_cast<float> (width) / g_nStdScreenWidth;
+                 float hScale = static_cast<float> (height) / g_nStdScreenHeight;
+                 g_fScaleScreen = qMin(wScale, hScale);
 
-        list.clear();
-        list = orderStr.split("X");
+                 g_nScreenWidth = width;
+                 g_nScreenHeight = height;
 
-        QString widthStr = list.at(0).mid(1,list.at(0).length()-2);
+                 this->setFixedSize(g_nScreenWidth,g_nScreenHeight);
 
-        if(widthStr.isEmpty())
-            return;
+                 qDebug() << "getResolutionFromTiming:hideOsdMeun_1";
+                 hideOsdMeun(false);
+                 slotHideOverlay();
+                 update();
 
-        int width = widthStr.toInt();
-//        qDebug() << "widthStr:" << widthStr;
-
-        QString heightStr = list.at(1).mid(1,list.at(1).length()-2);
-        int height = heightStr.toInt();
-//        qDebug() << "heightStr:" << heightStr;
-
-        g_bDeviceSleepMode = false;
-        if(width != g_nScreenWidth)
-        {
-            getInfoTimer.stop();
-            float wScale = static_cast<float> (width) / g_nStdScreenWidth;
-            float hScale = static_cast<float> (height) / g_nStdScreenHeight;
-            g_fScaleScreen = qMin(wScale, hScale);
-
-            g_nScreenWidth = width;
-            g_nScreenHeight = height;
-
-            this->setFixedSize(g_nScreenWidth,g_nScreenHeight);
-
-            qDebug() << "getResolutionFromTiming:hideOsdMeun_1";
-            hideOsdMeun(false);
-            slotHideOverlay();
-
-            QTimer::singleShot(4000,this,SLOT(slotDelayReinit()));
-
-//            destroyOsdAndOverlay();
-//            reInit();
-//            getInfoTimer.start(2000);
+                 QTimer::singleShot(4000,this,SLOT(slotDelayReinit()));
+            }
         }
     }
     else if(strResult.startsWith("Not"))
     {
         g_bDeviceSleepMode = true;
+
         if(g_nScreenWidth != g_nframebufferWidth)
         {
             getInfoTimer.stop();
@@ -546,12 +526,9 @@ void MainWidget::getResolutionFromTiming()
             qDebug() << "getResolutionFromTiming:hideOsdMeun_2";
             hideOsdMeun(false);
             slotHideOverlay();
+            update();
 
             QTimer::singleShot(4000,this,SLOT(slotDelayReinit()));
-
-//            destroyOsdAndOverlay();
-//            reInit();
-//            getInfoTimer.start(2000);
         }
     }
 }
@@ -753,10 +730,17 @@ void MainWidget::slotHideOverlay()
 {
     qDebug() << "overlay hide";
     if(m_imageOverlay != NULL)
+    {
         m_imageOverlay->setVisible(false);
+        m_imageOverlay->repaint();
+    }
+
 
     if(m_textOverlay != NULL)
+    {
         m_textOverlay->setVisible(false);
+        m_imageOverlay->repaint();
+    }
 }
 
 
@@ -769,6 +753,7 @@ void MainWidget::hideOsdMeun(bool isStartOverlay)
     qDebug() << "Meun Hide";
     m_osdMeun->move(-this->width(),(this->height() - m_osdMeun->height())/2);
     m_osdMeun->setVisible(false);
+    m_osdMeun->repaint();
 
     qDebug() << "main_0_4_1_2";
 
@@ -887,6 +872,16 @@ void MainWidget::updateOsdMenu()
 
 void MainWidget::showLongDisplay()
 {
+    // info是常显，则不去显示overlay 优先级:meun > info > overlay
+    if((m_osdMeun != NULL) &&(m_osdMeun->getdisplayConfig()) &&(m_osdMeun->getDeviceInfoDisplayStatus()))
+    {
+        if(!g_bDeviceSleepMode)
+        {
+            showDeviceInfo();
+        }
+        return;
+    }
+
    if(m_imageOverlay != NULL)
    {
        if(m_imageOverlay->isLongDisplay())

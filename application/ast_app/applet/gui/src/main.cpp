@@ -51,8 +51,8 @@ void getResolutionFromTiming()
     }
 
     // 解析输出源的分辨率应用到OSD
-     QString startStr = "Capture";
-     QString endStr = "Compress";
+     QString startStr = "Timing Table:";
+     QString endStr = "Pixel Rate:";
 
      int spos = strResult.indexOf(startStr);
      QString tmpStr = strResult.mid(spos);
@@ -63,32 +63,25 @@ void getResolutionFromTiming()
      QStringList list = tmpStr.split(" ");
      qDebug() << "list:" << list;
 
-     QString orderStr;
-     for(int index = 0; index < list.count() ; index++)
-     {
-         if(list.at(index).startsWith("["))
-         {
-            orderStr = list.at(index);
-            qDebug() << "ordStr:" << orderStr;
-            break;
-         }
-     }
+    QString orderStr = list.at(4);
+    if(orderStr.startsWith("["))
+    {
+        list.clear();
+        list = orderStr.split("X");
 
-    list.clear();
-    list = orderStr.split("X");
+        QString widthStr = list.at(0).mid(1,list.at(0).length()-2);
+        int width = widthStr.toInt();
+        qDebug() << "widthStr:" << widthStr;
 
-    QString widthStr = list.at(0).mid(1,list.at(0).length()-2);
-    int width = widthStr.toInt();
-    qDebug() << "widthStr:" << widthStr;
+        QString heightStr = list.at(1).mid(1,list.at(1).length()-2);
+        int height = heightStr.toInt();
+        qDebug() << "heightStr:" << heightStr;
 
-    QString heightStr = list.at(1).mid(1,list.at(1).length()-2);
-    int height = heightStr.toInt();
-    qDebug() << "heightStr:" << heightStr;
+        g_nScreenWidth = width;
+        g_nScreenHeight = height;
+        g_bDeviceSleepMode = false;
+    }
 
-
-    g_nScreenWidth = width;
-    g_nScreenHeight = height;
-    g_bDeviceSleepMode = false;
     return;
 }
 
