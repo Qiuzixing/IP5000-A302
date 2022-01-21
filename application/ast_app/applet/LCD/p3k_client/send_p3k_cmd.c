@@ -888,7 +888,8 @@ int GET_TEMPERATURE(char *temp)
     if (res == -1)
         return -1;
 
-	sprintf(temp, "%s %s", recv_buf, "C");
+	strcpy(temp, recv_buf);
+	//sprintf(temp, "%s %s", recv_buf, "C");
     
     return 0;
 }

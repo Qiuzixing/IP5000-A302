@@ -1218,19 +1218,18 @@ static int SHOW_WHICH_GROUP(int current_group, int total_count, int active_offse
 /* 
 CH_LIST_D 成员三三分组
 
-     0 1 2 3 4 5  <----row
-     - - - - - -
-0 |  0 3 6 9 ....
-1 |  1 4 7 10 .....
-2 |  2 5 8 11 .....
-list
+         0 1 2 3 4 5  <----group num
+         - - - - - -
+line0 |  0 3 6 9 ....
+line1 |  1 4 7 10 .....
+line2 |  2 5 8 11 .....
 
 */
 static int CH_SELECT_D()
 {
     int res = -1;
 	int i = 0;
-	
+
     res = file_is_changed_D(CHANNEL_MAP);
     if (res == 1)
     {
@@ -1238,7 +1237,6 @@ static int CH_SELECT_D()
     }
 
     u8 count = CH_TATOL_NUM_D;
-	//u8 count = 10;                     //共有count个channel
 
     int x = 2; 
     int y = 16;
@@ -1246,7 +1244,7 @@ static int CH_SELECT_D()
     //要显示哪三个? 三三进行分组显示, 组号从0开始
     int last_group_num = count % 3;          //最后一组，有几个成员。
 	int total_group = count / 3;           
-    
+
 	int active_id = -1;
     active_id = GET_CHANNEL_ID();
 
@@ -1260,7 +1258,7 @@ static int CH_SELECT_D()
 			break;
 		}
 	}
-	
+
 	
     int current_group = 0;              //active_id在第几组，
     int current_num = 0;                //active_id在组内是第几个， 共1，2，3 三个
@@ -1299,13 +1297,19 @@ static int CH_SELECT_D()
 					{
 						if (x >= last_group_num*2)
 						{
+							current_group = 0;  //跳到第一页
+							x = 2;
+							trace_offset = 0;
+							SHOW_WHICH_GROUP(current_group, count, offset);
+							show_square_breakets(x);
 							break;     //此时x正是指向最后一个，中括号就不能在往下移了
 						}
+						
 					}
 					
                     x+=2;
+					trace_offset++;
                     show_square_breakets(x);
-                    trace_offset++;
                 }
                 else // x = 6  翻页处理
                 {
@@ -1335,27 +1339,67 @@ static int CH_SELECT_D()
                     if (current_group > 0) //向前还有页可翻
                     {
                     	current_group--;
-						SHOW_WHICH_GROUP(current_group, count, offset);
-                        x = 2;
-                        show_square_breakets(x);
 						trace_offset -= 3;
                     }
+					else
+					{
+						current_group = total_group;
+						trace_offset = count - (count%3);
+					}
+					SHOW_WHICH_GROUP(current_group, count, offset);
+                    x = 2;
+                    show_square_breakets(x);
                 }
 				break;
             }
+
+			//Turn up  three pages at a time
+			case DOWN_CONTINUE_PRESS:
+			{
+				current_group += 3;
+				if (current_group > total_group)
+				{
+					current_group = current_group - total_group -1;
+				}
+				SHOW_WHICH_GROUP(current_group, count, offset);
+                x = 2;
+                show_square_breakets(x);
+				trace_offset = current_group*3;
+
+				break;
+			}
+
+			//Turn down  three pages at a time
+			case UP_CONTINUE_PRESS:
+			{
+				current_group -= 3;
+				if(current_group < 0)
+				{
+					current_group = total_group + current_group + 1;	
+				}
+
+				SHOW_WHICH_GROUP(current_group, count, offset);
+				 x = 2;
+                show_square_breakets(x);
+				trace_offset = current_group*3;
+				
+				break;
+			}
+			
             case ENTER_KEY:
             case RIGHT_KEY:
             {
                 show_a_star(x);
                 
                 char buf[2] = {0};
-				//printf("trace_offset:%d, id= %d, name= %s\n", trace_offset, CH_LIST_D[trace_offset].ch_id, CH_LIST_D[trace_offset].ch_name);
 				
                 sprintf(buf, "%d", CH_LIST_D[trace_offset].ch_id);
+				//printf("choose id is [%d], [%s]\n", CH_LIST_D[trace_offset].ch_id, CH_LIST_D[trace_offset].ch_name);
                 SET_CHANNEL_ID(buf);		
 				offset = trace_offset;
 				break;
             }
+		
             case LEFT_KEY:
             {
                 return 0;
