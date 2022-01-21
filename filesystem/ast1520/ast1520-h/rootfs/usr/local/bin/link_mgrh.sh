@@ -2216,6 +2216,7 @@ init_p3k_net_vlan()
 				;;
 				static)
 					handle_e_p3k_net_vlan_dhcp_off e_p3k_net_vlan_dhcp_off::"$_control_vlan_tag":"$P3KCFG_CONTROL_IP":"$P3KCFG_CONTROL_MASK"
+					route add default gw $P3KCFG_CONTROL_GATEWAY
 				;;
 				*)
 					echo "P3KCFG_CONTROL_MODE error param"
@@ -3021,6 +3022,11 @@ init_param_from_p3k_cfg()
 		P3KCFG_CONTROL_IP=`jq -r '.network_setting.control.ip_address' $network_setting`
 		if echo "$P3KCFG_CONTROL_IP" | grep -q "null" ; then
 			P3KCFG_CONTROL_IP='0.0.0.0'
+		fi
+
+		P3KCFG_CONTROL_GATEWAY=`jq -r '.network_setting.control.gateway_address' $network_setting`
+		if echo "$P3KCFG_CONTROL_GATEWAY" | grep -q "null" ; then
+			P3KCFG_CONTROL_GATEWAY='0.0.0.0'
 		fi
 
 		P3KCFG_CONTROL_MASK=`jq -r '.network_setting.control.mask_address' $network_setting`
