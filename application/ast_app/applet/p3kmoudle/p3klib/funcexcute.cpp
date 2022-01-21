@@ -4435,7 +4435,28 @@ int EX_GetNetWorkConf(int netId,NetWorkInfo_S*netInfo)
 	GetIPInfo(netId,ip_buf,mask_buf);
 
 	char gw_buf[32] = "";
-	char* gw_cmd = "route -n | grep eth0 | grep UG | awk '{print $2}'";
+	char gw_cmd[64] = "";
+	char eth[16] = "";
+
+	if(netId == 0)
+		sprintf(eth,"eth0");
+	else if(netId == 1)
+	{
+		if((g_init_control_vlan >=2)&&(g_init_control_vlan <=4093))
+			sprintf(eth,"eth0.%d",g_init_control_vlan);
+		else if(g_init_control_port == 0)
+			sprintf(eth,"eth0");
+		else if(g_init_control_port == 1)
+			sprintf(eth,"eth0.4094");
+	}
+	else
+	{
+		DBG_WarnMsg("EX_GetNetWorkConf netId: %d\n",netId);
+		return EX_PARAM_ERR;
+	}
+
+	sprintf(gw_cmd,"route -n | grep \"%s$\" | grep UG | awk '{print $2}'",eth);
+
 	mysystem(gw_cmd, gw_buf, 32);
 
 	strcpy(netInfo->ipAddr,ip_buf);
