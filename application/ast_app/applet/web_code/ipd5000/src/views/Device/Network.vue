@@ -47,7 +47,7 @@
                      style="width: 140px"
                      v-model="ipInfo0[1]">
               <span class="range-alert"
-                    v-if="ipInfo0Error === 2"
+                    v-if="ipInfo0Error === 1"
                     style="top:36px;white-space: nowrap;">Please enter a valid address</span>
             </div>
           </th>
