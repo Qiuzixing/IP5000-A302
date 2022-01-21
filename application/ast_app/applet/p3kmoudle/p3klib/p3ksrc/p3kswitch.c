@@ -3461,7 +3461,7 @@ static int P3K_GetDHCPMode(char *reqparam, char *respParam, char *userdata)
 	}
 	else
 	{
-		ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);
+		ERR_MSG(ERR_PROTOCOL_SYNTAX, reqparam, respParam);
 		strcpy(userdata, "error");
 		return -1;
 	}
@@ -5345,10 +5345,10 @@ static int P3K_SetEDIDNetSrc(char *reqparam, char *respParam, char *userdata)
 		return -1;
 	}
 	input_id = atoi(str[0]);
-	int macret = is_valid_mac_addr(str[1]);
+	int macret = checkisIp(str[1]);
 	if (macret == -1)
 	{
-		ERR_MSG(ERR_PROTOCOL_SYNTAX, reqparam, respParam);
+		ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);
 		strcpy(userdata, "error");
 		return -1;
 	}
