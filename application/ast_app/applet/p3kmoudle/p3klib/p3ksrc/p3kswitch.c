@@ -2614,7 +2614,7 @@ static int P3K_SendIRMsg(char *reqparam, char *respParam, char *userdata)
 		strcpy(userdata, "error");
 		return -1;
 	}
-	if (strlen(str[2]) > 15)
+	if (strlen(str[2]) > 24)
 	{
 		ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);
 		strcpy(userdata, "error");
@@ -2666,7 +2666,7 @@ static int P3K_StopIRMsg(char *reqparam, char *respParam, char *userdata)
 		return -1;
 	}
 	serialId = atoi(str[1]);
-	if (strlen(str[2]) > 15)
+	if (strlen(str[2]) > 24)
 	{
 		ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);
 		strcpy(userdata, "error");
@@ -3273,7 +3273,7 @@ static int P3K_SetDNSName(char *reqparam, char *respParam, char *userdata)
 		return -1;
 	}
 	id = atoi(str[0]);
-	if (strlen(str[1]) > 15 || strlen(str[1]) < 0 || str[1][0] == '-' || str[1][strlen(str[1]) - 1] == '-')
+	if (strlen(str[1]) > 24 || strlen(str[1]) < 0 || str[1][0] == '-' || str[1][strlen(str[1]) - 1] == '-')
 	{
 		ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);
 		return -1;
@@ -3973,7 +3973,7 @@ static int P3K_SetFCTMODEL(char *reqparam, char *respParam, char *userdata)
 
 	count = P3K_PhraserParam(reqparam, strlen(reqparam), str);
 
-	if (strlen(str[0]) > 19)
+	if (strlen(str[0]) > 24)
 	{
 		ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);
 		strcpy(userdata, "error");
@@ -5216,7 +5216,7 @@ static int P3K_AddEDID(char *reqparam, char *respParam, char *userdata)
 		return -1;
 	}
 	edidname.index = atoi(str[0]);
-	if (strlen(str[1]) > 15 || strlen(str[1]) < 0 || str[1][0] == '-' || str[1][strlen(str[1])] == '-')
+	if (strlen(str[1]) > 24 || strlen(str[1]) < 0 || str[1][0] == '-' || str[1][strlen(str[1])] == '-')
 	{
 		ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);
 		return -1;
@@ -5336,7 +5336,7 @@ static int P3K_GetActiveEDID(char *reqparam, char *respParam, char *userdata)
 // Set MAC on Net device to be EDID source
 static int P3K_SetEDIDNetSrc(char *reqparam, char *respParam, char *userdata)
 {
-	//#EDID-NET-SRC input_id, src_mac<CR>
+	//#EDID-NET-SRC input_id, src_ip<CR>
 	//~nn@EDID-NET-SRC input_id, src_mac<CR><LF>
 	DBG_InfoMsg("P3K_SetEDIDNetSrc\n");
 	int s32Ret = 0;
