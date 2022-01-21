@@ -40,7 +40,7 @@ char *rtrim(char *str)
 
     int len = strlen(str);
     char *p = str + len - 1;
-    while ((p >= str)  && ((isspace(*p)) || ((*p) == '\r') || ((*p) == '\n')))
+    if ((isspace(*p)) || ((*p) == '\r') || ((*p) == '\n'))
     {
         *p = '\0';
         --p;
@@ -996,7 +996,7 @@ static int P3K_PhraserIRParam(char *param, int len, char str[][256], char irstr[
 			{
 				tmpLen = tmpdata1 - datahead;
 				tailLen = strlen(param) - tmpLen;
-				memcpy(irstr,tmpdata1,tailLen);
+				memcpy(irstr, tmpdata1, tailLen);
 				return 0;
 			}
 			if (len >= tmpdata - param + 1)
@@ -2844,7 +2844,13 @@ static int P3K_SetUartConf(char *reqparam, char *respParam, char *userdata)
 	int count = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] = {0};
 	count = P3K_PhraserParam(reqparam, strlen(reqparam), str);
-	if ((isnum(str[0]) == -1) || (isnum(str[1]) == -1) || (isnum(str[2]) == -1))
+	if(count < 6)
+	{
+		ERR_MSG(ERR_PROTOCOL_SYNTAX, reqparam, respParam);
+		strcpy(userdata, "error");
+		return -1;
+	}
+	if ((isnum(str[0]) == -1) || (isnum(str[1]) == -1) || (isnum(str[2]) == -1) || (isnum(str[3]) == -1))
 	{
 		ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);
 		strcpy(userdata, "error");
@@ -2853,25 +2859,24 @@ static int P3K_SetUartConf(char *reqparam, char *respParam, char *userdata)
 	uartConf.comNumber = atoi(str[0]);
 	uartConf.rate = atoi(str[1]);
 	uartConf.bitWidth = atoi(str[2]);
-	uartConf.parity = P3K_CheckUartParity(str[3]);
-	if (uartConf.parity == -10)
+	uartConf.parity = atoi(str[3]);
+	if ((isnum(str[4]) == -1) || (isnum(str[5]) == -1))
 	{
 		ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);
 		strcpy(userdata, "error");
 		return -1;
 	}
-	uartConf.stopBitsMode = (int)(strtod(str[4], NULL));
-	uartConf.serialType = 0;
+	uartConf.stopBitsMode = atoi(str[4]);
+	uartConf.serialType = atoi(str[5]);
 	uartConf.term_485 = 0;
-	if (count > 5)
+	if (count > 6)
 	{
-		if ((isnum(str[5]) == -1) || (isnum(str[6]) == -1))
+		if (isnum(str[6]) == -1)
 		{
 			ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);
 			strcpy(userdata, "error");
 			return -1;
 		}
-		uartConf.serialType = atoi(str[5]);
 		uartConf.term_485 = atoi(str[6]);
 	}
 
@@ -2947,19 +2952,19 @@ static int P3K_GetUartConf(char *reqparam, char *respParam, char *userdata)
 		DBG_ErrMsg("EX_GetUartConf err\n");
 		return -1;
 	}
-	P3K_ParityToStr(uartConf.parity, parity);
-	floatTostr(uartConf.stopBitsMode, floatStr);
+	//P3K_ParityToStr(uartConf.parity, parity);
+	//floatTostr(uartConf.stopBitsMode, floatStr);
 	if (uartConf.serialType == 0)
 	{
-		sprintf(tmpparam + strlen(tmpparam), "%d,%d,%d,%s,%s",
-				uartConf.comNumber, uartConf.rate, uartConf.bitWidth, parity,
-				floatStr);
+		sprintf(tmpparam + strlen(tmpparam), "%d,%d,%d,%d,%d,%d",
+				uartConf.comNumber, uartConf.rate, uartConf.bitWidth, uartConf.parity,
+				uartConf.stopBitsMode, uartConf.serialType);
 	}
 	else
 	{
-		sprintf(tmpparam + strlen(tmpparam), "%d,%d,%d,%s,%s,%d,%d",
-				uartConf.comNumber, uartConf.rate, uartConf.bitWidth, parity,
-				floatStr, uartConf.serialType, uartConf.term_485);
+		sprintf(tmpparam + strlen(tmpparam), "%d,%d,%d,%d,%d,%d,%d",
+				uartConf.comNumber, uartConf.rate, uartConf.bitWidth, uartConf.parity,
+				uartConf.stopBitsMode, uartConf.serialType, uartConf.term_485);
 	}
 	memcpy(respParam, tmpparam, strlen(tmpparam));
 	return 0;

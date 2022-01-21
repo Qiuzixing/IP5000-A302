@@ -379,7 +379,7 @@ typedef struct _UartMessageInfo_S
 	int comNumber;
 	int rate;
 	int bitWidth;
-	UartParityType_E parity;
+	int parity;
 	int serialType;
 	int term_485;
 	int stopBitsMode;
