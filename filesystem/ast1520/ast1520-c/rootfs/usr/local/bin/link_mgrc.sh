@@ -1593,7 +1593,7 @@ handle_e_ip_got()
 		start_telnetd
 		p3ktcp &
 		usleep 10000
-		web &
+		web -M $MODEL_NUMBER&
 
 		case $MODEL_NUMBER in
 			KDS-DEC7)
@@ -3028,10 +3028,12 @@ handle_e_p3k_upgrade()
 {
 	rm /www/tmp.*
 	cd /dev/shm/
-	if ! tar -zxvf ./IP5000-A30_upgrade.tar.gz; then
+	if ! tar -zxvf ./fw.tar.gz; then
+		# rm fw.tar.gz
 		echo "err,0,2" > "/www/fw_status.txt"
 		return
 	fi
+	# rm fw.tar.gz
 	if [ -x flash.sh ]; then
 		if ./flash.sh; then
 			sleep 5 # wait client query result

@@ -4024,7 +4024,7 @@ static int P3K_Upgrade(char *reqparam, char *respParam, char *userdata)
 
 	struct stat buf;
 	memset(&buf, 0, sizeof(buf));
-	if ((0 == stat("/dev/shm/IP5000-A30_upgrade.tar.gz", &buf)) && (buf.st_size > 0))
+	if ((0 == stat("/dev/shm/fw.tar.gz", &buf)) && (buf.st_size > 0))
 	{
 		s32Ret = EX_Upgrade();
 		if (s32Ret < 0)

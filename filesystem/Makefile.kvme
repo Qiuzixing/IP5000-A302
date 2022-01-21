@@ -41,7 +41,31 @@ web_img:
 	tar zcvf $(IMAGE_FOLDER)/fw.tar.gz -C $(IMAGE_FOLDER)/webbin .
 	#######################################################################
 	# Done $(IMAGE_FOLDER)/$(WEBBIN_IMAGE)
-	mv -f $(IMAGE_FOLDER)/fw.tar.gz $(IMAGE_FOLDER)/$(WEBBIN_IMAGE)
+	@for B in $(PRODUCT_NAME) ; do \
+		echo "Build Image of $${B}"; \
+		case "$${B}" in \
+			KDS-EN7) \
+				$(AST_SDK_ROOT)/x86_bin/pkg -i $(IMAGE_FOLDER)/fw.tar.gz -o $(IMAGE_FOLDER)/$(WEBBIN_IMAGE) -b -c 0x0A30 -p 0x0001 -v $(shell cat $(ROOTFS)/etc/version | sed -n 2p); \
+				mv -f $(IMAGE_FOLDER)/$(WEBBIN_IMAGE) $(AST_SDK_ROOT)/images/$${B}-$(shell cat $(ROOTFS)/etc/version | sed -n 2p).bin \
+			;; \
+			KDS-SW3-EN7) \
+				$(AST_SDK_ROOT)/x86_bin/pkg -i $(IMAGE_FOLDER)/fw.tar.gz -o $(IMAGE_FOLDER)/$(WEBBIN_IMAGE) -b -c 0x0A30 -p 0x0002 -v $(shell cat $(ROOTFS)/etc/version | sed -n 2p); \
+				mv -f $(IMAGE_FOLDER)/$(WEBBIN_IMAGE) $(AST_SDK_ROOT)/images/$${B}-$(shell cat $(ROOTFS)/etc/version | sed -n 2p).bin \
+			;; \
+			WP-SW2-EN7) \
+				$(AST_SDK_ROOT)/x86_bin/pkg -i $(IMAGE_FOLDER)/fw.tar.gz -o $(IMAGE_FOLDER)/$(WEBBIN_IMAGE) -b -c 0x0A30 -p 0x0003 -v $(shell cat $(ROOTFS)/etc/version | sed -n 2p); \
+				mv -f $(IMAGE_FOLDER)/$(WEBBIN_IMAGE) $(AST_SDK_ROOT)/images/$${B}-$(shell cat $(ROOTFS)/etc/version | sed -n 2p).bin \
+			;; \
+			KDS-DEC7) \
+				$(AST_SDK_ROOT)/x86_bin/pkg -i $(IMAGE_FOLDER)/fw.tar.gz -o $(IMAGE_FOLDER)/$(WEBBIN_IMAGE) -b -c 0x0A30 -p 0x0004 -v $(shell cat $(ROOTFS)/etc/version | sed -n 2p); \
+				mv -f $(IMAGE_FOLDER)/$(WEBBIN_IMAGE) $(AST_SDK_ROOT)/images/$${B}-$(shell cat $(ROOTFS)/etc/version | sed -n 2p).bin \
+			;; \
+			WP-DEC7) \
+				$(AST_SDK_ROOT)/x86_bin/pkg -i $(IMAGE_FOLDER)/fw.tar.gz -o $(IMAGE_FOLDER)/$(WEBBIN_IMAGE) -b -c 0x0A30 -p 0x0005 -v $(shell cat $(ROOTFS)/etc/version | sed -n 2p); \
+				mv -f $(IMAGE_FOLDER)/$(WEBBIN_IMAGE) $(AST_SDK_ROOT)/images/$${B}-$(shell cat $(ROOTFS)/etc/version | sed -n 2p).bin \
+			;; \
+		esac \
+	done
 
 misc_img:
 	#######################################################################
@@ -235,5 +259,13 @@ image:
 	# Create $(IMAGE_FOLDER)/$(ALL_IMAGE)
 	make -f mkimg.gen
 	@#cp -f $(IMAGE_FOLDER)/$(ALL_IMAGE) /tftpboot || exit 0
+	@for B in $(PRODUCT_NAME) ; do \
+		echo "Build Image of $${B}"; \
+		case "$${B}" in \
+			*) \
+				cp -f $(IMAGE_FOLDER)/$(ALL_IMAGE) $(AST_SDK_ROOT)/images/$${B}-WHOLE-$(shell cat $(ROOTFS)/etc/version | sed -n 2p).bin \
+			;; \
+		esac \
+	done
 
 

@@ -21,6 +21,7 @@ typedef struct ConfInfoFile
 	string xmlfile;
 	string jsonfile;
 	string StartMode;
+    string ModelNumber;
 }ConfInfo;
 
 
@@ -39,6 +40,12 @@ void CIVET_HELP(const char *Proname)
     printf("	-m --mode		set web start mode (you can select : http/https/all)\n");
     printf("default: [%s -j ./gbwebserver.json -m http]\n", Proname);
 }
+
+const char* GetModelNumber(void)
+{
+    return webconfig.ModelNumber.c_str();
+}
+
 int GetConfFile(int argc, char **argv)
 {
 	int getopt_return_val = 0;
@@ -50,9 +57,10 @@ int GetConfFile(int argc, char **argv)
         { "xml", required_argument, NULL, 'x' },
         { "json", required_argument, NULL, 'j' },
         { "mode", required_argument, NULL, 'm' },
+        { "model", required_argument, NULL, 'M' },
         { NULL, 0, NULL, 0 }
     };
-	while((getopt_return_val = getopt_long(argc,argv,"hx:j:m:",longOpts,&option_index)) != -1)
+	while((getopt_return_val = getopt_long(argc,argv,"hx:j:m:M:",longOpts,&option_index)) != -1)
 	{
 		 switch (getopt_return_val)
 		 {
@@ -67,6 +75,9 @@ int GetConfFile(int argc, char **argv)
                 break;
             case 'm':
                 webconfig.StartMode.append(optarg);
+                break;
+            case 'M':
+                webconfig.ModelNumber = optarg;
                 break;
             default:
                 CIVET_HELP(argv[0]);

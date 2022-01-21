@@ -16,7 +16,7 @@
 #include <errno.h>
 #include "mutex.h"
 
-#define OPTION_MAX_NUMBER 126			//´ËºêÎª ÄÚ²¿Ö¸¶¨µÄ option ÁÐ±íµÄ×î´óÖµ£¬É÷¸Ä
+#define OPTION_MAX_NUMBER 126			//ï¿½Ëºï¿½Îª ï¿½Ú²ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ option ï¿½Ð±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 
 static const char *CT_status_code_to_str(int status_code)
@@ -150,7 +150,7 @@ DH * get_dh2236()
 #ifndef TEST_WITHOUT_SSL
 static int init_ssl(void *ssl_context, void *user_data)
 {
-	/* Add application specific SSL initialization Ìí¼ÓÌØ¶¨ÓÚÓ¦ÓÃ³ÌÐòµÄSSL³õÊ¼»¯*/
+	/* Add application specific SSL initialization ï¿½ï¿½ï¿½ï¿½ï¿½Ø¶ï¿½ï¿½ï¿½Ó¦ï¿½Ã³ï¿½ï¿½ï¿½ï¿½SSLï¿½ï¿½Ê¼ï¿½ï¿½*/
 	struct ssl_ctx_st *ctx = (struct ssl_ctx_st *)ssl_context;
 
 #ifdef USE_SSL_DH
@@ -184,7 +184,7 @@ static int log_message(const struct mg_connection *conn, const char *message)
 	return 1;
 }
 
-//ÒòÎªÒì²½»Ø¸´µÄÔ­Òò£¬ÐèÒªÔÚ timeout Ê±£¬¸Ãº¯ÊýÓ¦¸Ã»Ø¸´Ò»¸ö 500 ¸øÇ°¶Ë
+//ï¿½ï¿½Îªï¿½ì²½ï¿½Ø¸ï¿½ï¿½ï¿½Ô­ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ timeout Ê±ï¿½ï¿½ï¿½Ãºï¿½ï¿½ï¿½Ó¦ï¿½Ã»Ø¸ï¿½Ò»ï¿½ï¿½ 500 ï¿½ï¿½Ç°ï¿½ï¿½
 static void user_connection_close(const struct mg_connection *conn)
 {
 	// /websocket not handle
@@ -196,13 +196,13 @@ static void user_connection_close(const struct mg_connection *conn)
 		return;
 	}
 
-	UserConnData * t_tauserda = (UserConnData *)BC_mg_get_user_connection_data((struct mg_connection *)conn);//Èç¹û userdata ÎªNULL£¬ÄÇÃ´±íÊ¾ ¸ÃuserdataÒÑ¾­±»ÓÃ»§Ö÷¶¯´¦Àí¡£do nothing
+	UserConnData * t_tauserda = (UserConnData *)BC_mg_get_user_connection_data((struct mg_connection *)conn);//ï¿½ï¿½ï¿½ userdata ÎªNULLï¿½ï¿½ï¿½ï¿½Ã´ï¿½ï¿½Ê¾ ï¿½ï¿½userdataï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½do nothing
 	if(t_tauserda)
 	{
 		//send rsp to conn
 		if(false == t_tauserda->Rspflag)
 		{
-			send_http_usererror_rsp((struct mg_connection *)conn,408);		//ÇëÇó³¬Ê±
+			send_http_usererror_rsp((struct mg_connection *)conn,408);		//ï¿½ï¿½ï¿½ï¿½Ê±
 			t_tauserda->Rspflag = true;
 		}
 
@@ -232,11 +232,11 @@ static void Get_User_Provide_Port(web_options*i_weboptions,Server_Start_Mode i_m
 	}
 
 
-	if(Server_Start_Mode_Http == i_mode && http_port_exist)//http Ä£Ê½£¬Ö»È¡http¶Ë¿Ú
+	if(Server_Start_Mode_Http == i_mode && http_port_exist)//http Ä£Ê½ï¿½ï¿½Ö»È¡httpï¿½Ë¿ï¿½
 	{
 		o_port = p_http_port_num;
 	}
-	else if(Server_Start_Mode_Https == i_mode && https_port_exist)//https Ä£Ê½£¬Ö»È¡https¶Ë¿Ú
+	else if(Server_Start_Mode_Https == i_mode && https_port_exist)//https Ä£Ê½ï¿½ï¿½Ö»È¡httpsï¿½Ë¿ï¿½
 	{
 #if 1
 		if(http_port_exist)
@@ -246,7 +246,7 @@ static void Get_User_Provide_Port(web_options*i_weboptions,Server_Start_Mode i_m
 #endif
 		o_port = o_port + p_https_port_num + "s";
 	}
-	else if(Server_Start_Mode_all == i_mode)//http and https Ä£Ê½£¬Á½¸ö¶Ë¿Ú¶¼È¡
+	else if(Server_Start_Mode_all == i_mode)//http and https Ä£Ê½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë¿Ú¶ï¿½È¡
 	{
 		if(http_port_exist)
 		{
@@ -261,7 +261,7 @@ static void Get_User_Provide_Port(web_options*i_weboptions,Server_Start_Mode i_m
 			o_port = o_port + p_https_port_num + "s";
 		}
 	}
-	else if(Server_Start_Mode_auto == i_mode)//auto Ä£Ê½£¬¸ù¾ÝÓÃ»§Ìá¹©µÄ¶Ë¿ÚºÅ×Ô¶¯±æ±ð
+	else if(Server_Start_Mode_auto == i_mode)//auto Ä£Ê½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½á¹©ï¿½Ä¶Ë¿Úºï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½
 	{
 		o_port = p_http_port_num;
 		if(http_port_exist)
@@ -289,13 +289,13 @@ static void Print_Option_List(const char ** list,int count)
 }
 struct mg_context *ServerStart(web_options*weboptions,Server_Start_Mode Server_mode,void *user_data)
 {
-	//Èë²Î¼ì²â
+	//ï¿½ï¿½Î¼ï¿½ï¿½
 	if(weboptions == NULL)
 	{
 		BC_ERROR_LOG("Param weboptions is NULL");
 		return NULL;
 	}
-	//option ÖÐÃ»ÓÐ default ÖµµÄÑ¡ÏîÊ¹ÓÃÕß±ØÐë¸³Öµ£¬·ñÔò»áÆô¶¯²»ÁË
+	//option ï¿½ï¿½Ã»ï¿½ï¿½ default Öµï¿½ï¿½Ñ¡ï¿½ï¿½Ê¹ï¿½ï¿½ï¿½ß±ï¿½ï¿½ë¸³Öµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	if(0 == weboptions->web_allconf_documentroot.length())
 	{
 		BC_ERROR_LOG("Param weboptions document_root is NULL");
@@ -309,7 +309,7 @@ struct mg_context *ServerStart(web_options*weboptions,Server_Start_Mode Server_m
 	}
 	string web_port = "";
 	Get_User_Provide_Port(weboptions,Server_mode,web_port);
-	//option Ö¸ÕëÊý×é
+	//option Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	const char *options[OPTION_MAX_NUMBER] = {0};
 	int option_loop = 0;
 #if !defined(NO_FILES)
@@ -463,14 +463,14 @@ static CMutex g_WsCliListMutex;
 
 
 /*
-	websocket´¦Àíº¯ÊýÊ¾Àý£¬ÕâÀïÊÇÊÕµ½websocketµÄÊý¾Ýºó£¬Í¸´«¸øÆäËû½ø³ÌÖ´ÐÐ
+	websocketï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õµï¿½websocketï¿½ï¿½ï¿½ï¿½ï¿½Ýºï¿½Í¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ï¿½
 */
 #ifdef USE_WEBSOCKET
 
 mg_websocket_handler my_websocket_handler = NULL;
 
 /*
-	´Ówebsocket client list ÖÐÇå³ý¸ÃÁ¬½Ó
+	ï¿½ï¿½websocket client list ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 */
 static bool DeleteWSClientInList(const struct mg_connection *conn)
 {
@@ -545,7 +545,7 @@ void Send_Data_To_ALLWebsocket(const char *data,size_t len)
 	list<ws_clients>::iterator ws_clientIterator;
 	for(ws_clientIterator = gb_clientconnlist.begin();ws_clientIterator!=gb_clientconnlist.end();++ws_clientIterator)
 	{
-		/*Á½¸öÑéÖ¤Ä£Ê½ ÔÝÊ±È¡ÆäÒ»*/
+		/*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¤Ä£Ê½ ï¿½ï¿½Ê±È¡ï¿½ï¿½Ò»*/
 		if(ws_clientIterator->local_auth == WEBSVR_AUTH_SUCCESS || ws_clientIterator->ldap_auth == WEBSVR_AUTH_SUCCESS)
 		{
 			mg_websocket_write(ws_clientIterator->conn, MG_WEBSOCKET_OPCODE_TEXT, (const char *)data, len);
@@ -880,6 +880,19 @@ void send_http_usererror_rsp(struct mg_connection *conn,int status)
 							"Connection: close\r\n\r\n");
 }
 
+void send_http_usererror_body_rsp(struct mg_connection *conn,int status, const char* body)
+{
+	mg_printf(conn,"HTTP/1.1 %d %s\r\n"
+					"Server: Apache-Coyote/1.1\r\n"
+					"Content-Length: %d\r\n"
+					"Connection: close\r\n\r\n"
+					"%s\r\n\r\n",
+					status,
+					CT_status_code_to_str(status),
+					body ? strlen(body) : 0,
+					body ? body : "{}"
+				);
+}
 
 
 void send_http_pwd_fail_rsp(struct mg_connection *conn)
@@ -985,7 +998,7 @@ int send_jpg_file(struct mg_connection *conn,const char * picpath)
 
 int sendjpgstream(struct mg_connection *conn,const char * picpath)
 {
-	/*ÍÆËÍÂëÁ÷ÒªÇóµÄ¾ÍÊÇÒ»¸öÊµÊ±ÐÔ£¬ËùÒÔÎªÁË¿ìËÙÍÆËÍ¸øÇ°¶Ë£¬ÎÒÕâÀï°Ñbuf¿ªµÄºÜ´ó*/
+	/*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½Ä¾ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ÊµÊ±ï¿½Ô£ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½Ë¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½Ç°ï¿½Ë£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½bufï¿½ï¿½ï¿½ÄºÜ´ï¿½*/
 	char buf[200 * 1024] = {0};
     struct stat st;
     int n;
@@ -1131,7 +1144,7 @@ static int ns_avprintf(char **buf, size_t size, const char *fmt, va_list ap)
     // eCos and Windows are not standard-compliant and return -1 when
     // the buffer is too small. Keep allocating larger buffers until we
     // succeed or out of memory.
-    //eCosºÍWindows²»·ûºÏ±ê×¼£¬Èç¹û»º³åÇøÌ«Ð¡£¬Ôò·µ»Ø-1¡£ ¼ÌÐø·ÖÅä¸ü´óµÄ»º³åÇø£¬Ö±µ½³É¹¦»òÄÚ´æ²»×ãÎªÖ¹¡£
+    //eCosï¿½ï¿½Windowsï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½×¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì«Ð¡ï¿½ï¿½ï¿½ò·µ»ï¿½-1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö±ï¿½ï¿½ï¿½É¹ï¿½ï¿½ï¿½ï¿½Ú´æ²»ï¿½ï¿½ÎªÖ¹ï¿½ï¿½
     *buf = NULL;
     while (len < 0)
     {
@@ -1146,7 +1159,7 @@ static int ns_avprintf(char **buf, size_t size, const char *fmt, va_list ap)
   else if (len > (int) size)
   {
     // Standard-compliant code path. Allocate a buffer that is large enough.
-    //·ûºÏ±ê×¼µÄ´úÂëÂ·¾¶¡£ ·ÖÅä×ã¹»´óµÄ»º³åÇø¡£
+    //ï¿½ï¿½ï¿½Ï±ï¿½×¼ï¿½Ä´ï¿½ï¿½ï¿½Â·ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ã¹»ï¿½ï¿½Ä»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     if ((*buf = (char *)malloc(len + 1)) == NULL)
     {
       len = -1;
@@ -1377,7 +1390,7 @@ int Get_Line_From_File(const char * i_filename,string& o_storebuf,int i_cnt)
 	}
  	if(i_cnt > i)
  	{
- 		BC_WARN_LOG("file not exist %d line",i_cnt);	//Ã»ÓÐÕâÒ»ÐÐ¶øÍË³öÊôÓÚÕý³£Çé¿ö£¬ËùÒÔ´òÓ¡¾¯¸æ
+ 		BC_WARN_LOG("file not exist %d line",i_cnt);	//Ã»ï¿½ï¿½ï¿½ï¿½Ò»ï¿½Ð¶ï¿½ï¿½Ë³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´ï¿½Ó¡ï¿½ï¿½ï¿½ï¿½
  		if(fclose(fp) == EOF)
 		{
 			perror("close ");

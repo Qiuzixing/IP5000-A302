@@ -104,7 +104,11 @@ default: env_chk
 	@mkdir -p $(BUILD_DIR)/$(TARGET_FOLDER_NAME)
 	@mkdir -p $(BUILD_DIR)/$(TARGET_FOLDER_NAME)/rootfs_addon
 	@mkdir -p $(IMAGES_DIR)/$(TARGET_FOLDER_NAME)
+	@make tool
 	@for i in $(BUILD_DIRS); do echo "$$i Build...";make default -C $$i || exit 1;done
+
+tool: env_chk
+	@make -C $(X86_APP_DIR)/pkg
 
 bootldr: env_chk
 	@for i in $(BOOTLOADER_DIR); do echo "$$i Build...";make default -C $$i || exit 1;done
