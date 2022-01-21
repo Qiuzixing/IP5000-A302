@@ -352,7 +352,7 @@ export default {
     },
     handleMulticast (msg) {
       const data = msg.split(' ')[1].split(',')
-      this.multicastAddress = data[0]
+      // this.multicastAddress = data[0]
       this.ttl = parseInt(data[1])
     },
     save: debounce(function () {
@@ -377,7 +377,7 @@ export default {
     setIpCastingMode () {
       this.$socket.sendMsg('#KDS-METHOD ' + this.castMode)
       if (this.castMode === '2') {
-        this.$socket.sendMsg(`#KDS-MULTICAST ${this.multicastAddress},${this.ttl}`)
+        this.$socket.sendMsg(`#KDS-MULTICAST 225.225.0.10,${this.ttl}`)
       }
     },
     setTcpUDP () {
