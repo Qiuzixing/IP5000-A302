@@ -449,7 +449,12 @@ bool CWeb::Start(ConfInfoParam * p_webparam,string Server_mode)
 
 	//pStart_Mode = Server_Start_Mode_all;
 	//printf("pStart_Mode = %d\n", pStart_Mode);
-	ctx = ServerStart(&options,pStart_Mode,NULL);
+	string strCertPaswd  = "";
+    if(!COperation::GetCertPasswd(strCertPaswd))
+    {
+        strCertPaswd = "";
+    }
+	ctx = ServerStart(&options,pStart_Mode,(void *)strCertPaswd.c_str());
 	if(NULL == ctx)
 	{
 		return false;
@@ -1246,7 +1251,14 @@ int CWeb::DeviceStatusHandle(struct mg_connection *conn, void *cbdata)
     fp = popen("cat /proc/uptime", "r");
     if(fp != NULL)
     {
-        fgets(szResData, sizeof(szResData), fp);
+        if(fgets(szResData, sizeof(szResData), fp) == NULL)
+        {
+            BC_INFO_LOG("DeviceStatusHandle fgets failed!");
+            send_http_error_rsp(conn);
+
+            fclose(fp);
+            return 1;
+        }
         BC_INFO_LOG("DeviceStatusHandle get data is [%s]", szResData);
 
         string strResult = "";

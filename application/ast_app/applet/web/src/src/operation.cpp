@@ -461,6 +461,32 @@ bool COperation::VerifyPassword(char *i_pUsername, char *i_pPasswd)
     }
 }
 
+bool COperation::GetCertPasswd(string &o_strPasswd)
+{
+    string strCertInfo = "";
+    if(FileToString("/data/configs/kds-7/secure/https_setting.json", strCertInfo) > 0)
+    {
+        Json::Value json;
+        Json::Reader reader;
+
+        if(!reader.parse(strCertInfo, json))
+        {
+            BC_INFO_LOG("GetCertPasswd json parse failed");
+            return false;
+        }
+
+        o_strPasswd = json["https_setting"]["private_key_password"].asString();
+    }
+    else
+    {
+        BC_INFO_LOG("GetCertPasswd get json failed!");
+        return false;
+    }
+
+    return true;
+}
+
+
 int COperation::JudgePasswdEncrypt(char *username, char *passwd)
 {
     FILE* pf = fopen("/etc/passwd", "r");

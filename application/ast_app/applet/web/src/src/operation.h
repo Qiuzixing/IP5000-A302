@@ -53,6 +53,7 @@ public:
     static int AssertDirExists(const char *i_pDir);
     static bool SetWebSecurityMode(const char *i_pMode);
     static bool SetCertificate(const char *i_pCert);
+    static bool GetCertPasswd(string &o_strPasswd);
 
     // 文件传输
     static bool UpdateEdidFile(const char *i_pFilePath);

@@ -148,6 +148,18 @@ DH * get_dh2236()
 #endif
 
 #ifndef TEST_WITHOUT_SSL
+#include <openssl/bn.h>
+#include <openssl/conf.h>
+#include <openssl/crypto.h>
+#include <openssl/dh.h>
+#include <openssl/engine.h>
+#include <openssl/err.h>
+#include <openssl/opensslv.h>
+#include <openssl/pem.h>
+#include <openssl/ssl.h>
+#include <openssl/tls1.h>
+#include <openssl/x509.h>
+
 static int init_ssl(void *ssl_context, void *user_data)
 {
 	/* Add application specific SSL initialization �����ض���Ӧ�ó����SSL��ʼ��*/
@@ -171,6 +183,11 @@ static int init_ssl(void *ssl_context, void *user_data)
 
 	BC_INFO_LOG("ECDH ciphers initialized");
 #else
+    if(user_data != NULL && strlen((const char *)user_data) != 0)
+    {
+        BC_INFO_LOG("https cert passwd is [%s]", (const char *)user_data);
+        SSL_CTX_set_default_passwd_cb_userdata(ctx, user_data);
+    }
 	BC_INFO_LOG("ssl_ctx_st = [%p]",ctx);
 #endif
 	return 0;
