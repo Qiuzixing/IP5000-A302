@@ -806,69 +806,61 @@ void MainWidget::moveOsdMeun(int position)
     int xpos = 0;
     int ypos = 0;
 
-    if(g_nScreenWidth >= ACADEMY_4K)
+    switch (position)
     {
-        xpos = (g_nframebufferWidth-m_osdMeun->width())/2;
-        ypos = (g_nframebufferHeight-m_osdMeun->height())/2;
-    }
-    else
-    {
-        switch (position)
+        case CENTER:
         {
-            case CENTER:
-            {
-                xpos = (g_nframebufferWidth-m_osdMeun->width())/2;
-                ypos = (g_nframebufferHeight-m_osdMeun->height())/2;
-                break;
-            }
-            case TOP_LEFT:
-            {
-                xpos = OSD_XPOS;
-                ypos = OSD_YPOS;
-                break;
-            }
-            case TOP_MID:
-            {
-                xpos = (g_nframebufferWidth-m_osdMeun->width())/2;
-                ypos = OSD_YPOS;
-                break;
-            }
-            case TOP_RIGTH:
-            {
-                xpos = g_nframebufferWidth-m_osdMeun->width() - OSD_XPOS;
-                ypos = OSD_YPOS;
-                break;
-            }
-            case BOTTOM_LEFT:
-            {
-                xpos = OSD_XPOS;
-                ypos = g_nframebufferHeight-m_osdMeun->height() - OSD_YPOS;
-                break;
-            }
-            case BOTTOM_MID:
-            {
-                xpos = (g_nframebufferWidth-m_osdMeun->width())/2;
-                ypos = g_nframebufferHeight-m_osdMeun->height()- OSD_YPOS;
-                break;
-            }
-            case BOTTOM_RIGHT:
-            {
-                xpos = g_nframebufferWidth-m_osdMeun->width() - OSD_XPOS;
-                ypos = g_nframebufferHeight-m_osdMeun->height() - OSD_YPOS;
-                break;
-            }
-            case LEFT_MID:
-            {
-                xpos = OSD_XPOS;
-                ypos = (g_nframebufferHeight-m_osdMeun->height())/2;
-                break;
-            }
-            case RIGHT_MID:
-            {
-                xpos = g_nframebufferWidth-m_osdMeun->width() - OSD_XPOS;
-                ypos = (g_nframebufferHeight-m_osdMeun->height())/2;
-                break;
-            }
+            xpos = (g_nframebufferWidth-m_osdMeun->width())/2;
+            ypos = (g_nframebufferHeight-m_osdMeun->height())/2;
+            break;
+        }
+        case TOP_LEFT:
+        {
+            xpos = OSD_XPOS;
+            ypos = OSD_YPOS;
+            break;
+        }
+        case TOP_MID:
+        {
+            xpos = (g_nframebufferWidth-m_osdMeun->width())/2;
+            ypos = OSD_YPOS;
+            break;
+        }
+        case TOP_RIGTH:
+        {
+            xpos = g_nframebufferWidth-m_osdMeun->width() - OSD_XPOS;
+            ypos = OSD_YPOS;
+            break;
+        }
+        case BOTTOM_LEFT:
+        {
+            xpos = OSD_XPOS;
+            ypos = g_nframebufferHeight-m_osdMeun->height() - OSD_YPOS;
+            break;
+        }
+        case BOTTOM_MID:
+        {
+            xpos = (g_nframebufferWidth-m_osdMeun->width())/2;
+            ypos = g_nframebufferHeight-m_osdMeun->height()- OSD_YPOS;
+            break;
+        }
+        case BOTTOM_RIGHT:
+        {
+            xpos = g_nframebufferWidth-m_osdMeun->width() - OSD_XPOS;
+            ypos = g_nframebufferHeight-m_osdMeun->height() - OSD_YPOS;
+            break;
+        }
+        case LEFT_MID:
+        {
+            xpos = OSD_XPOS;
+            ypos = (g_nframebufferHeight-m_osdMeun->height())/2;
+            break;
+        }
+        case RIGHT_MID:
+        {
+            xpos = g_nframebufferWidth-m_osdMeun->width() - OSD_XPOS;
+            ypos = (g_nframebufferHeight-m_osdMeun->height())/2;
+            break;
         }
     }
 
