@@ -2875,6 +2875,18 @@ handle_e_key()
 			send_key_info 5
 			p3k_notify button::right
 		;;
+		e_key_up_[0-9]*)
+			if [ "$MODEL_NUMBER" = 'WP-DEC7' ];then
+				return
+			fi
+			send_key_info 6
+		;;
+		e_key_down_[0-9]*)
+			if [ "$MODEL_NUMBER" = 'WP-DEC7' ];then
+				return
+			fi
+			send_key_info 7
+		;;
 		*)
 		;;
 	esac
