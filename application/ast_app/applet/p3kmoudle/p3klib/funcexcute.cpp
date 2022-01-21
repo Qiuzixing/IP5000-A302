@@ -5360,8 +5360,8 @@ int EX_GetConnectionList(char info[][MAX_SIGNALE_LEN],int num)
 		if(0 == strcasecmp(strFLAG,"01"))
 		{
 			int iLocalport = hexToDec(strlocalPORT);
-			if(i >= 100)
-				break; 
+			if(i > 64)
+				break;
 			if(iLocalport == 80 || iLocalport == 443 || iLocalport == g_network_info.tcp_port || iLocalport == g_gateway_info.rs232_port)
 			{
 				char strDecIP[16] = "";
@@ -5840,14 +5840,9 @@ int EX_NTFYPhraser(Notify_S *s_NTFYInfo,char *tmpparam)
     }
     if(s_NTFYInfo->NCmd == NTFY_CON_LIST)
     {
-        char connectionlist[100][MAX_SIGNALE_LEN] = {0};
+        char connectionlist[64][MAX_SIGNALE_LEN] = {0};
     	int i = 0;
     	int ret = EX_GetConnectionList(&connectionlist[0],10);
-    	if(ret > 10)
-    	{
-    		DBG_WarnMsg("P3K_GetConnectionList num=%d over 10\n",ret);
-    		ret =10;
-    	}
     	for(i = 0;i < ret ;i++)
     	{
     		printf(" ret = %d ,sig=%s\n",ret,connectionlist[i]);

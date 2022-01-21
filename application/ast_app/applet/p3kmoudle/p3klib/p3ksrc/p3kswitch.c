@@ -5690,8 +5690,8 @@ static int P3K_GetConnectionList(char *reqparam, char *respParam, char *userdata
 	//~nn@CONNECTION-LIST [ip_string,port_type,client_port,device_port],...<CR><LF>
 	DBG_InfoMsg("P3K_GetConnectionList\n");
 	int ret = 0;
-	char connectionlist[100][MAX_SIGNALE_LEN] = {0};
-	char tmpparam[MAX_PARAM_LEN] = {0};
+	char connectionlist[64][MAX_SIGNALE_LEN] = {0};
+	char tmpparam[4096] = {0};
 	int i = 0;
 	ret = EX_GetConnectionList(&connectionlist[0], 10);
 	if (ret < 0)
@@ -5700,11 +5700,6 @@ static int P3K_GetConnectionList(char *reqparam, char *respParam, char *userdata
 		strcpy(userdata, "error");
 		DBG_ErrMsg("EX_GetConnectionList err\n");
 		return -1;
-	}
-	if (ret > 10)
-	{
-		DBG_WarnMsg("P3K_GetConnectionList num=%d over 10\n", ret);
-		ret = 10;
 	}
 	for (i = 0; i < ret; i++)
 	{
