@@ -5635,7 +5635,13 @@ static int P3K_SetAudMute(char *reqparam, char *respParam, char *userdata)
 		strcpy(userdata, "error");
 		return -1;
 	}
-
+	sMute.state =  P3K_CheckStateType(str[1]);
+	if(sMute.state == -10)
+	{
+		ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);
+		strcpy(userdata, "error");
+		return -1;
+	}
 	s32Ret = EX_SetVidMute(&sMute);
 	if (s32Ret < 0)
 	{
