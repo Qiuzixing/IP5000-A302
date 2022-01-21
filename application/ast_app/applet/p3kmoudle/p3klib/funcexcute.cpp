@@ -5839,6 +5839,8 @@ int EX_NTFYPhraser(Notify_S *s_NTFYInfo,char *tmpparam)
 int EX_TESTMODE()
 {
     buttonbool = 1;
+
+	system("echo 1 > /sys/devices/platform/cec/cec_test");
     return EX_NO_ERR;
 }
 
@@ -5950,6 +5952,7 @@ const char* strHelpCmd[] = {
 	"SIGNALS-LIST?",
 	"SN?",
 	"STANDBY-VERSION?",
+	"TEST-MODE",
 	"TIME",
 	"TIME?",
 	"TIME-LOC",
