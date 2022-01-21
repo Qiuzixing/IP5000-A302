@@ -35,23 +35,33 @@
                      style="width: 140px"
                      v-model="ipInfo0[0]">
               <span class="range-alert"
-                    v-if="ipInfo0Error"
+                    v-if="ipInfo0Error === 2"
                     style="top:36px;white-space: nowrap;">Please enter a valid address</span>
             </div>
           </th>
           <th>
-            <input type="text"
-                   :disabled="ipMode0 === '1'"
-                   class="setting-text"
-                   style="width: 140px"
-                   v-model="ipInfo0[1]">
+            <div style="position:relative;">
+              <input type="text"
+                     :disabled="ipMode0 === '1'"
+                     class="setting-text"
+                     style="width: 140px"
+                     v-model="ipInfo0[1]">
+              <span class="range-alert"
+                    v-if="ipInfo0Error === 1"
+                    style="top:36px;white-space: nowrap;">Please enter a valid address</span>
+            </div>
           </th>
           <th>
-            <input type="text"
-                   :disabled="ipMode0 === '1'"
-                   class="setting-text"
-                   style="width: 140px"
-                   v-model="ipInfo0[2]">
+            <div style="position:relative;">
+              <input type="text"
+                     :disabled="ipMode0 === '1'"
+                     class="setting-text"
+                     style="width: 140px"
+                     v-model="ipInfo0[2]">
+              <span class="range-alert"
+                    v-if="ipInfo0Error === 3"
+                    style="top:36px;white-space: nowrap;">Please enter a valid address</span>
+            </div>
           </th>
         </tr>
         <tr>
@@ -89,23 +99,33 @@
                      class="setting-text"
                      v-model="ipInfo1[0]">
               <span class="range-alert"
-                    v-if="ipInfo1Error && !(this.configPort0 === '0' && !this.p3k802Q)"
+                    v-if="ipInfo1Error ===2 && !(this.configPort0 === '0' && !this.p3k802Q)"
                     style="top:36px;white-space: nowrap;">Please enter a valid address</span>
             </div>
           </th>
           <th>
-            <input type="text"
-                   :disabled="ipMode1 === '1' || (configPort0 === '0' && !p3k802Q)"
-                   class="setting-text"
-                   style="width: 140px"
-                   v-model="ipInfo1[1]">
+            <div style="position: relative;">
+              <input type="text"
+                     :disabled="ipMode1 === '1' || (configPort0 === '0' && !p3k802Q)"
+                     class="setting-text"
+                     style="width: 140px"
+                     v-model="ipInfo1[1]">
+              <span class="range-alert"
+                    v-if="ipInfo1Error ===1 && !(this.configPort0 === '0' && !this.p3k802Q)"
+                    style="top:36px;white-space: nowrap;">Please enter a valid address</span>
+            </div>
           </th>
           <th>
+            <div style="position: relative;">
             <input type="text"
                    :disabled="ipMode1 === '1' || (configPort0 === '0' && !p3k802Q)"
                    class="setting-text"
                    style="width: 140px"
                    v-model="ipInfo1[2]">
+              <span class="range-alert"
+                    v-if="ipInfo1Error === 3 && !(this.configPort0 === '0' && !this.p3k802Q)"
+                    style="top:36px;white-space: nowrap;">Please enter a valid address</span>
+            </div>
           </th>
         </tr>
         <tr v-if="this.$global.deviceType === 1">
@@ -231,8 +251,8 @@ export default {
       danteTag2: 2,
       p3k802Q: false,
       dante802Q: false,
-      ipInfo0Error: false,
-      ipInfo1Error: false,
+      ipInfo0Error: 0,
+      ipInfo1Error: 0,
       setIpFlag: false
     }
   },
@@ -381,22 +401,34 @@ export default {
       }
     },
     validIP () {
+      this.ipInfo0Error = 0
+      this.ipInfo1Error = 0
       if (this.ipMode0 !== '1') {
-        this.ipInfo0Error = !this.isValidIP(this.ipInfo0[0], this.ipInfo0[1], this.ipInfo0[2])
-        if (this.ipInfo0Error) {
+        this.ipInfo0Error = this.isValidIP(this.ipInfo0[0], this.ipInfo0[1], this.ipInfo0[2])
+        if (this.ipInfo0Error === 4) {
+          alert('The IP address of Eth0 cannot be the same as the gateway address')
+        }
+        if (this.ipInfo0Error === 5) {
+          alert('The gateway address of Eth0 is not at the same network(subnet), which is defined on basis of IP address and mask address.')
+        }
+        if (this.ipInfo0Error !== 0) {
           return false
         }
       }
       if (!(this.configPort0 === '0' && !this.p3k802Q)) {
         if (this.ipMode1 !== '1') {
-          this.ipInfo1Error = !this.isValidIP(this.ipInfo1[0], this.ipInfo1[1], this.ipInfo1[2])
-          if (this.ipInfo1Error) {
+          this.ipInfo1Error = this.isValidIP(this.ipInfo1[0], this.ipInfo1[1], this.ipInfo1[2])
+          if (this.ipInfo1Error === 4) {
+            alert('The IP address of Eth1 cannot be the same as the gateway address')
+          }
+          if (this.ipInfo1Error === 5) {
+            alert('The gateway address of Eth1 is not at the same network(subnet), which is defined on basis of IP address and mask address.')
+          }
+          if (this.ipInfo1Error !== 0) {
             return false
           }
         }
       }
-      this.ipInfo0Error = false
-      this.ipInfo1Error = false
       return true
     },
     isValidIP (ipAddr, netmask, gateway) {

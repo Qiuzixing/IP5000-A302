@@ -14,18 +14,18 @@
           <span class="setting-title">New Password</span>
           <input type="password"
                  v-model="newPwd"
-                 maxLength="16"
+                 maxLength="24"
                  class="setting-text">
           <button class="btn btn-plain-primary"
                   style="margin-left: 25px;"
                   @click="setPassword">CHANGE
           </button>
-          <span v-if="pwdError" class="range-alert" style="top: 36px; white-space: nowrap;">Alphanumeric and characters within length of 4 to 16 characters, spaces not allowed</span>
+          <span v-if="pwdError" class="range-alert" style="top: 36px; white-space: nowrap;">Alphanumeric and characters within length of 1 to 24 characters, spaces not allowed</span>
         </div>
         <div class="setting" style="position: relative;">
           <span class="setting-title">Confirm Password</span>
           <input type="password"
-                 maxLength="16"
+                 maxLength="24"
                  v-model="confirmPwd"
                  class="setting-text">
           <span v-if="diffPwdError" class="range-alert" style="top: 36px; white-space: nowrap;">New password and confirm password do not match</span>
@@ -165,7 +165,7 @@ export default {
       }
     },
     isPwd (name) {
-      return /^[A-Za-z0-9][A-Za-z0-9\-_]{3}[A-Za-z0-9\-_]{0,12}$/.test(name)
+      return /^[\x21-\x7e]{1,24}$/.test(name)
     },
     verifyPwd () {
       if (!this.isPwd(this.securityPwd)) {

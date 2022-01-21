@@ -1,22 +1,25 @@
 function checkLanSettings (ip, mask, gateway) {
-  if (ip === gateway) {
-    return false
-  }
   if (!isValidSubnetMask(mask)) {
     // alert('局域网子网掩码无效')
-    return false
+    return 1
   }
-
   if (!isValidIpAddress(ip) || isBroadcastIp(ip, mask)) {
     // alert('局域网IP无效')
-    return false
+    return 2
+  }
+
+  if (!isIp4addr(gateway)) {
+    return 3
+  }
+  if (ip === gateway) {
+    return 4
   }
   if (!isValidIpAddressNetwork(ip, mask, gateway)) {
     // alert('局域网IP无效1111')
-    return false
+    return 5
   }
 
-  return true
+  return 0
 }
 
 function isValidSubnetMask (mask) {
@@ -83,7 +86,6 @@ function getRightMostOneBitPos (num) {
 }
 
 function isValidIpAddress (address) {
-
   const ipParts = address.split('/')
   if (ipParts.length > 2) return false
   if (ipParts.length === 2) {
@@ -185,7 +187,6 @@ function isValidIpAddressNetwork (ipAddr, netmask, gateway) {
     if (ipArr[3] & ~maskArr[3] === 0 || ipArr[3] & ~maskArr[3] === 255) {
       return false
     }
-
     if (!((((ipArr[0]) & (maskArr[0])) === ((gatewayArr[0]) & (maskArr[0]))) &&
       (((ipArr[1]) & (maskArr[1])) === ((gatewayArr[1]) & (maskArr[1]))) &&
       (((ipArr[2]) & (maskArr[2])) === ((gatewayArr[2]) & (maskArr[2]))) &&
@@ -204,10 +205,11 @@ function isValidIpAddressNetwork (ipAddr, netmask, gateway) {
     return false
   }
 
-  function isIp4addr (ip) {
-    const reg = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
-    return reg.test(ip)
-  }
+}
+
+function isIp4addr (ip) {
+  const reg = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
+  return reg.test(ip)
 }
 
 export default checkLanSettings
