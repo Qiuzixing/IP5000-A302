@@ -3084,7 +3084,7 @@ int EX_SetVideoWallSetupInfo(int id,VideoWallSetupInfo_S *info)
 			{
 				ast_send_event(0xFFFFFFFF,"e_vw_rotate_5");
 			}
-			else if(info->rotation == ROTATION_90)
+			else if(info->rotation == ROTATION_0)
 			{
 				ast_send_event(0xFFFFFFFF,"e_vw_rotate_0");
 			}
