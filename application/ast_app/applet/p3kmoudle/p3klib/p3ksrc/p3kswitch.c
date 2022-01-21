@@ -150,7 +150,10 @@ int checkgateway(char *ip,char *mask,char *gateway)
 	sscanf(ip, "%u.%u.%u.%u", &ipstr[0], &ipstr[1], &ipstr[2], &ipstr[3]);
 	sscanf(mask, "%u.%u.%u.%u", &maskstr[0], &maskstr[1], &maskstr[2], &maskstr[3]);
 	sscanf(gateway, "%u.%u.%u.%u", &gatewaystr[0], &gatewaystr[1], &gatewaystr[2], &gatewaystr[3]);
-
+	if((gatewaystr[0] == 0) && (gatewaystr[1] == 0) && (gatewaystr[2] == 0) && (gatewaystr[3] == 0))
+	{
+		return 0;
+	}
 	for(i = 0; i < 3; i++)
 	{
 		if((ipstr[i] & maskstr[i]) == (gatewaystr[i] & maskstr[i]))
@@ -5862,6 +5865,12 @@ static int P3K_SetAudOutput(char *reqparam, char *respParam, char *userdata)
 	sscanf(reqparam, "[%s", aStr1);
 	memcpy(aStr2, aStr1, (strlen(aStr1) - 1));
 	count = P3K_PhraserParam(aStr2, strlen(aStr2), str);
+	if(count < 0)
+	{
+		ERR_MSG(ERR_PROTOCOL_SYNTAX, reqparam, respParam);
+		strcpy(userdata, "error");
+		return -1;
+	}
 	s32Ret = EX_SetVidOutput(str, count);
 	if (s32Ret < 0)
 	{
@@ -6846,11 +6855,18 @@ static int P3K_NTFY_PROC(char *reqparam, char *respParam, char *userdata)
 	char CMD[24] = "";
 	Notify_S s_NTFYInfo = {0};
 	int u32ret = 0;
-	char tmpparam[MAX_PARAM_LEN] = {0};
+	char tmpparam[4096] = {0};
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] = {0};
 	// char strParam[MAX_PARAM_COUNT][MAX_PARAM_LEN] ={0};
 
 	s_NTFYInfo.iParamNum = P3K_PhraserNTFYParam(reqparam, strlen(reqparam), str);
+	if(s_NTFYInfo.iParamNum > 18)
+	{
+		char tmpdata[24] = {0};
+		sprintf(tmpdata, "ERR %03d", ERR_PARAMETER_OUT_OF_RANGE);
+		strcpy(userdata, tmpdata);
+		return 0;
+	}
 	memcpy(CMD, str[0], strlen(str[0]));
 	s_NTFYInfo.NCmd = P3K_CheckNTFYCMD(CMD);
 	if (s_NTFYInfo.NCmd == -10)

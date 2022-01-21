@@ -254,7 +254,7 @@ typedef struct   _NTFY_S
 {
      NTFYCmd_E NCmd;  //.............参数类型
      int iParamNum;  //..............参数个数
-     char strParam[10][256];  //.....参数
+     char strParam[16][32];  //.....参数
 }Notify_S;
 
 
