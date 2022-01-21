@@ -3526,41 +3526,47 @@ int EX_GetVideoImageScaleMode(int *mode,char*res)
 }
 int EX_GetVideoViewReslotion(int mode, int index, int nativeFlag,int * res)
 {
-	int a = 254;
-
-	// Capture Windows: [1280]X[1024] [75]Hz
-
-	char* cmd1 = "cat /sys/devices/platform/videoip/timing_info | sed -rn 's#^.*Capture Windows:(.*)Hz.*$#\\1#gp'";
-	char* cmd2 = "cat /sys/devices/platform/videoip/timing_info | sed -rn 's#^.*Scan Mode: (.*).*$#\\1#gp'";
-	char buf1[64] = "";
-	char buf2[64] = "";
-
-	mysystem(cmd1,buf1,64);
-	mysystem(cmd2,buf2,64);
-
-	if(strcmp(" [1920]X[2160] [60]",buf1) == 0)
+	if(g_video_info.scale_mode == 0)
 	{
-		strcpy(buf1, " [3840]X[2160] [60]");
-	}
+		int a = 254;
 
-	if(strcmp("Progressive",buf2) == 0)
-		sprintf(buf1,"%s [P]",buf1);
-	else
-		sprintf(buf1,"%s [I]",buf1);
+		// Capture Windows: [1280]X[1024] [75]Hz
+		char* cmd1 = "cat /sys/devices/platform/videoip/timing_info | sed -rn 's#^.*Capture Windows:(.*)Hz.*$#\\1#gp'";
+		char* cmd2 = "cat /sys/devices/platform/videoip/timing_info | sed -rn 's#^.*Scan Mode: (.*).*$#\\1#gp'";
+		char buf1[64] = "";
+		char buf2[64] = "";
 
-	DBG_InfoMsg("EX_GetVideoViewReslotion %s\n",buf1);
+		mysystem(cmd1,buf1,64);
+		mysystem(cmd2,buf2,64);
 
-	for(int i = 0; i <= 76; i++)
-	{
-		//printf("index: %d, res: %s\n",i,strGetResolution[i]);
-		if(strstr(buf1,strGetResolution[i]) != 0)
+		if(strcmp(" [1920]X[2160] [60]",buf1) == 0)
 		{
-			a = i;
-			break;
+			strcpy(buf1, " [3840]X[2160] [60]");
 		}
-	}
 
-	*res = a;
+		if(strcmp("Progressive",buf2) == 0)
+			sprintf(buf1,"%s [P]",buf1);
+		else
+			sprintf(buf1,"%s [I]",buf1);
+
+		DBG_InfoMsg("EX_GetVideoViewReslotion %s\n",buf1);
+
+		for(int i = 0; i <= 76; i++)
+		{
+			//printf("index: %d, res: %s\n",i,strGetResolution[i]);
+			if(strstr(buf1,strGetResolution[i]) != 0)
+			{
+				a = i;
+				break;
+			}
+		}
+
+		*res = a;
+	}
+	else
+	{
+		*res  = g_video_info.res_type;
+	}
 
 	return EX_NO_ERR;
 }
