@@ -417,6 +417,11 @@ static int IPE5000_UNLOCK_MENU()
         printf("recv_button_init() fail - [%s:%d]\n", __func__, __LINE__);
         return -1;
     }
+	if (run_recv_butoon_event() != 0)
+	{
+		printf("run_recv_butoon_event fail\n");
+		return -1;
+	}
 	
 	CH_NUM_SELECT_E();
 	
@@ -425,6 +430,8 @@ static int IPE5000_UNLOCK_MENU()
 
 static int IPE5000_LOCK_MENU()
 {
+	system("pkill -9 recv_button_event");
+
 	char show_buf[20] = {0};
 	char current_id[20] = {0};
 	char last_id[20] = {0};
@@ -692,7 +699,7 @@ static int DEV_STATUS_E()
 // 1.1 DEV STATUS -> LAN SHOW
 static int LAN_STATUS_E(int interface_id)
 {
-    char addr[15] = {0}, mask[15] = {0}, gateway[15] = {0};
+    char addr[16] = {0}, mask[16] = {0}, gateway[16] = {0};
     GET_IP(interface_id, addr, mask, gateway);
     //printf("addr:[%s]\n", addr);
     
@@ -1382,12 +1389,18 @@ static int CH_NUM_SELECT_E()
                     if (i == 2)
                     {
                         if (channel_id[0] == '0' && channel_id[1] == '0')
-                        channel_id[i] = '1';
+                        {
+                        	channel_id[i] = '1';
+                        }
+						else
+						{
+							channel_id[i] = '0';
+						}
                     }
-                    else
-                    {
-                        channel_id[i] = '0';
-                    }
+                  	else
+                  	{
+                    	channel_id[i] = '0';
+                  	}
                 }
 				
                 show_a_char(2, 64+i*8, channel_id[i], 1, 1);

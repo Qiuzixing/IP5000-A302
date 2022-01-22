@@ -2830,7 +2830,7 @@ handle_e_key()
 			if [ "$MODEL_NUMBER" = 'WP-DEC7' ];then
 				return
 			fi
-			send_key_info 1
+			#send_key_info 1
 			p3k_notify button::enter
 		;;
 		e_key_up_pressed)
@@ -2844,7 +2844,7 @@ handle_e_key()
 				./wp_dec7_key_timer.sh $LED_DISPLAY_CH_SELECT_V &
 				return
 			fi
-			send_key_info 2
+			#send_key_info 2
 			p3k_notify button::up
 		;;
 		e_key_down_pressed)
@@ -2858,34 +2858,34 @@ handle_e_key()
 				./wp_dec7_key_timer.sh $LED_DISPLAY_CH_SELECT_V &
 				return
 			fi
-			send_key_info 3
+			#send_key_info 3
 			p3k_notify button::down
 		;;
 		e_key_left_pressed)
 			if [ "$MODEL_NUMBER" = 'WP-DEC7' ];then
 				return
 			fi
-			send_key_info 4
+			#send_key_info 4
 			p3k_notify button::left
 		;;
 		e_key_right_pressed)
 			if [ "$MODEL_NUMBER" = 'WP-DEC7' ];then
 				return
 			fi
-			send_key_info 5
+			#send_key_info 5
 			p3k_notify button::right
 		;;
 		e_key_up_[0-9]*)
 			if [ "$MODEL_NUMBER" = 'WP-DEC7' ];then
 				return
 			fi
-			send_key_info 6
+			#send_key_info 6
 		;;
 		e_key_down_[0-9]*)
 			if [ "$MODEL_NUMBER" = 'WP-DEC7' ];then
 				return
 			fi
-			send_key_info 7
+			#send_key_info 7
 		;;
 		*)
 		;;

@@ -433,6 +433,11 @@ static int IPE5000P_UNLOCK_MENU()
         printf("recv_button_init() fail - [%s:%d]\n", __func__, __LINE__);
         return -1;
     }
+	if (run_recv_butoon_event() != 0)
+	{
+		printf("run_recv_butoon_event fail\n");
+		return -1;
+	}
 
 	CH_NUM_SELECT_P();
 	
@@ -441,6 +446,8 @@ static int IPE5000P_UNLOCK_MENU()
 
 static int IPE5000P_LOCK_MENU()
 {
+	system("pkill -9 recv_button_event");
+	
 	char show_buf[20] = {0};
 	char current_id[20] = {0};
 	char last_id[20] = {0};
@@ -707,7 +714,7 @@ static int DEV_STATUS_P()
 // 1.1 DEV STATUS -> LAN SHOW
 static int LAN_STATUS_P(int interface_id)
 {
-    char addr[15] = {0}, mask[15] = {0}, gateway[15] = {0};
+    char addr[16] = {0}, mask[16] = {0}, gateway[16] = {0};
     GET_IP(interface_id, addr, mask, gateway);
 
     clear_whole_screen();

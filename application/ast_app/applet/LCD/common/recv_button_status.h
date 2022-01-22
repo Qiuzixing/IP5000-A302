@@ -21,7 +21,7 @@ enum
 
 int recv_button_init();
 int recv_button_status();
-
+int run_recv_butoon_event();
 
 #endif
 

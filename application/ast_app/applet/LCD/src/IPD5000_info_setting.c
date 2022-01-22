@@ -360,6 +360,11 @@ static int IPD5000_UNLOCK_MENU()
         printf("recv_button_init() fail - [%s:%d]\n", __func__, __LINE__);
         return -1;
     }
+	if (run_recv_butoon_event() != 0)
+	{
+		printf("run_recv_butoon_event fail\n");
+		return -1;
+	}
 	
 	CH_NUM_SELECT_D();
 	
@@ -368,6 +373,8 @@ static int IPD5000_UNLOCK_MENU()
 
 static int IPD5000_LOCK_MENU()
 {
+	system("pkill -9 recv_button_event");
+	
 	int last_id = -1;
 	int current_id = -1;
 	char show_buf[20] = {0};
@@ -375,7 +382,7 @@ static int IPD5000_LOCK_MENU()
 	last_id = current_id = GET_CHANNEL_ID();
 	
 	channel_id_convert_to_string(current_id, channel_id);
-	sprintf(show_buf, "CH %s", current_id);
+	sprintf(show_buf, "CH %s", channel_id);
 	
 	clear_whole_screen();
 	show_strings(2, 40, show_buf, strlen(show_buf), 1);
@@ -389,7 +396,8 @@ static int IPD5000_LOCK_MENU()
 		{
 			last_id = current_id;
 			channel_id_convert_to_string(current_id, channel_id);
-
+			sprintf(show_buf, "CH %s", channel_id);
+			
 			show_strings(2, 64, channel_id, strlen(channel_id), 1);
 		}
 		
@@ -639,7 +647,7 @@ static int DEV_STATUS_D()
 // 1.1 DEV STATUS -> LAN SHOW
 static int LAN_STATUS_D(int interface_id)
 {
-    char addr[15] = {0}, mask[15] = {0}, gateway[15] = {0};
+    char addr[16] = {0}, mask[16] = {0}, gateway[16] = {0};
     GET_IP(interface_id, addr, mask, gateway);
 
     clear_whole_screen();

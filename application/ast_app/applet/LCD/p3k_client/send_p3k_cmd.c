@@ -405,7 +405,7 @@ static int send_cmd_common(char *cmd, char *head, char *param, char *content)
     return 0;
 }
 
-static int split_string(char *src, char *splite_chr, char buf[6][15], int *recv_num)
+static int split_string(char *src, char *splite_chr, char buf[6][16], int *recv_num)
 {
     int i = 0;
     char *substr = NULL;
@@ -429,7 +429,7 @@ static int  fill_ip_become_15_byte(char *str, char *dest)
     char tmp[4] = "000";
     char splite_chr[2] = ".";
     char buf1[LITTLE_SIZE] = {0};
-    char buf[6][15] = {{0},{0},{0},{0},{0},{0}};
+    char buf[6][16] = {{0},{0},{0},{0},{0},{0}};
 
     split_string(str, splite_chr, buf, &num);
 
@@ -463,7 +463,7 @@ int GET_IP(int NET_ID, char *IP, char *MASK, char *GATEWAY)
 
     int i;
     int num = 0;
-    char ip_info[6][15] = {{0},{0},{0},{0},{0},{0}};
+    char ip_info[6][16] = {{0},{0},{0},{0},{0},{0}};
 
     printf("recv_buf:[%s]\n", recv_buf);
 	if (strlen(recv_buf) == 0)

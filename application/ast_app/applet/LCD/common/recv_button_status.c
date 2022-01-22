@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <pthread.h>
+#include <unistd.h>
+#include <sys/types.h>
+
 
 #include "msg_queue.h"
 #include "udp_socket.h"
@@ -22,7 +25,7 @@ int recv_button_init()
 		return -1;
 	}
 
-	err = udp_bind(udp_socket, "127.0.0.1", 10200);
+	err = udp_bind(udp_socket, "127.0.0.1", 10201);
 	if (err == -1)
     {
         printf("udp_bind fail \n");
@@ -73,7 +76,8 @@ int recv_button_status()
 	        return -1;
 	    }
 	    pthread_mutex_unlock(&g_lock);
-	    
+
+		printf("event:[%d]\n", msg.mtext[0]);
 	    return msg.mtext[0];
 	}
 	else if(err == -1) //error: err = -1
@@ -87,5 +91,28 @@ int recv_button_status()
 	
 }
 
+
+int run_recv_butoon_event()
+{
+	int err = -1;
+	pid_t pid = fork();
+	if(pid < 0)
+	{
+		perror("fork fail:");
+		return -1;
+	}
+	if(pid == 0)
+	{
+		system("pkill -9 recv_button_event");
+		
+		err = execl("/usr/local/bin/recv_button_event", "recv_button_event", NULL);
+		if (err == -1)
+		{
+			perror("run recv_button_event fail: ");
+			return -1;
+		}
+	}
+	return 0;
+}
 
 

@@ -45,7 +45,6 @@ int main(int argc, char *argv[])
         }
         
     }
-    
     else if (strcmp(argv[1], "IPE5000") == 0)
     {
         if (IPE5000_SHOW_INIT(argv[2]) == -1)
@@ -55,7 +54,6 @@ int main(int argc, char *argv[])
         }
         
     }
-        
     else if (strcmp(argv[1], "IPE5000P") == 0)
     {
         if (IPE5000P_SHOW_INIT(argv[2]) == -1)

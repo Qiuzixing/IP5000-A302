@@ -82,7 +82,7 @@ int send_event(int fd, char *addr, int port)
 {
 	int err = -1;
 	
-	char send_buf[20] = "HELLO";
+	char send_buf[20] = "MSG ARRIVED";
 	int count = 0;
 
 	
