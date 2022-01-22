@@ -358,7 +358,7 @@ typedef struct _IRMessageInfo_S
 {
 	int ir_index;
 	int irId;
-	char cmdName[16];
+	char cmdName[32];
 	int repeat;
 	int totalPacket;
 	int packId;

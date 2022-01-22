@@ -1000,7 +1000,7 @@ static int P3K_PhraserIRParam(char *param, int len, char str[][256], char irstr[
 				tmpLen = tmpdata1 - datahead;
 				tailLen = strlen(param) - tmpLen;
 				memcpy(irstr, tmpdata1, tailLen);
-				return 0;
+				return i;
 			}
 			if (len >= tmpdata - param + 1)
 			{
@@ -1014,9 +1014,13 @@ static int P3K_PhraserIRParam(char *param, int len, char str[][256], char irstr[
 		}
 	}
 	if (strlen(tmpdata1) > MAX_PARAM_LEN)
+	{
 		return -2;
+	}
 	if (strlen(tmpdata1) == 0)
+	{
 		return -1;
+	}
 	if (i == 5)
 	{
 		memcpy(str[i], tmpdata1, strlen(tmpdata1));
@@ -2608,6 +2612,10 @@ static int P3K_SendIRMsg(char *reqparam, char *respParam, char *userdata)
 		strcpy(userdata, "error");
 		return 0;
 	}
+
+	if(strcmp(str[0],"*") == 0)
+		strcpy(str[0],"1");
+
 	if ((isnum(str[0]) == -1) || (isnum(str[1]) == -1) || (isnum(str[3]) == -1) || (isnum(str[4]) == -1) || (isnum(str[5]) == -1))
 	{
 		ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);

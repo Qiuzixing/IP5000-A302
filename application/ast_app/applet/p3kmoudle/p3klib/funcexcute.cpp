@@ -3695,32 +3695,127 @@ int EX_GetCECGateWayMode(void)
 	return mode;
 }
 
+IRMessageInfo_S g_IRIfo;
+
 int EX_SendIRmessage(IRMessageInfo_S*info)
 {
 	DBG_InfoMsg("EX_SendIRmessage cmdname =%s cmdcomment =%s\n",info->cmdName,info->cmdComent);
-	/*
+
+	DBG_InfoMsg("EX_SendIRmessage info->ir_index =%d info->repeat =%d info->irId=%d info->totalPacket=%d info->packId=%d\n",info->ir_index,info->repeat,info->irId,info->totalPacket,info->packId);
+
 	if((g_gateway_info.ir_mode == OFF)||(g_gateway_info.ir_direction == DIRECTION_IN))
 	{
 		DBG_ErrMsg("SendIR Err! g_gateway_info.ir_mode = %d, g_gateway_info.ir_direction = %d\n",g_gateway_info.ir_mode,g_gateway_info.ir_direction);
 		return EX_MODE_ERR;
 	}
 
-	char sCmd[512] = "";
-
-	if(strspn(info->cmdComent, "0123456789abcdefABCDEF")!=strlen(info->cmdComent))
+	if(info->ir_index != 1)
 	{
-		DBG_WarnMsg("IR cmd Err %s\n",info->cmdComent);
+		DBG_ErrMsg("IR cmd index %d error\n",info->ir_index);
 		return EX_PARAM_ERR;
 	}
 
-	sprintf(sCmd,"irs");
-	int len = strlen(info->cmdComent) /4;
-	for(int i=0;i<len;i++)
-		sprintf(sCmd,"%s %c%c%c%c",sCmd,info->cmdComent[4*i],info->cmdComent[4*i+1],info->cmdComent[4*i+2],info->cmdComent[4*i+3]);
+	if((info->repeat < 1) || (info->repeat > 50))
+	{
+		DBG_ErrMsg("IR cmd repeat %d error\n",info->repeat);
+		return EX_PARAM_ERR;
+	}
 
-	system(sCmd);
-	*/
-	//DBG_InfoMsg("system %s\n",sCmd);
+	if((g_IRIfo.irId != info->irId)
+		||(strcmp(g_IRIfo.cmdName,info->cmdName) != 0)
+		||(info->packId == 1)
+		||(g_IRIfo.totalPacket != info->totalPacket)
+		||(g_IRIfo.repeat != info->repeat))
+	{
+		DBG_WarnMsg("IR cmd New Start ...\n");
+		memset(&g_IRIfo,0,sizeof(IRMessageInfo_S));
+	}
+
+	if(info->packId > info->totalPacket)
+	{
+		DBG_ErrMsg("IR cmd info->packId:%d > info.totalPacket:%d\n",info->packId,info->totalPacket);
+		memset(&g_IRIfo,0,sizeof(IRMessageInfo_S));
+		return EX_PARAM_ERR;
+	}
+
+	if(info->packId != (g_IRIfo.packId+1))
+	{
+		DBG_ErrMsg("IR cmd packId:%d Err last Id:%d\n",info->packId,g_IRIfo.packId);
+		memset(&g_IRIfo,0,sizeof(IRMessageInfo_S));
+		return EX_PARAM_ERR;
+	}
+
+	if(strlen(info->cmdComent) == 0)
+	{
+		DBG_ErrMsg("IR cmd is empty\n");
+		memset(&g_IRIfo,0,sizeof(IRMessageInfo_S));
+		return EX_PARAM_ERR;
+	}
+
+	if(strspn(info->cmdComent, "0123456789abcdefABCDEF,")!=strlen(info->cmdComent))
+	{
+		DBG_ErrMsg("IR cmd Err %s\n",info->cmdComent);
+		memset(&g_IRIfo,0,sizeof(IRMessageInfo_S));
+		return EX_PARAM_ERR;
+	}
+
+	g_IRIfo.irId = info->irId;
+	strcpy(g_IRIfo.cmdName,info->cmdName);
+	g_IRIfo.totalPacket = info->totalPacket;
+	g_IRIfo.repeat = info->repeat;
+	g_IRIfo.packId = info->packId;
+
+	//parse
+	while(strlen(info->cmdComent) > 0)
+	{
+		char tmp_param[8]="";
+
+		//printf("111111 %s \n",info->cmdComent);
+
+		int ncount  = sscanf(info->cmdComent,"%[^,],%s",tmp_param,info->cmdComent);
+
+		//printf("222222 %s %s %d\n",tmp_param,info->cmdComent,ncount);
+
+		int tmp_len = strlen(tmp_param);
+		if((tmp_len<1)||(tmp_len>4))
+		{
+			DBG_ErrMsg("IR cmd Err %s\n",tmp_param);
+			memset(&g_IRIfo,0,sizeof(IRMessageInfo_S));
+			return EX_PARAM_ERR;
+		}
+
+		if((strlen(info->cmdComent)+tmp_len)>4096)
+		{
+			DBG_ErrMsg("IR cmd length too long\n");
+			memset(&g_IRIfo,0,sizeof(IRMessageInfo_S));
+			return EX_PARAM_ERR;
+		}
+		else if(strlen(info->cmdComent) >= 1)
+			sprintf(g_IRIfo.cmdComent,"%s %s",g_IRIfo.cmdComent,tmp_param);
+		else
+			sprintf(g_IRIfo.cmdComent,"%s",tmp_param);
+
+		//printf("g_IRIfo.cmdComent %s\n",g_IRIfo.cmdComent);
+
+		if(ncount <= 1)
+			break;
+
+	}
+
+	if(info->totalPacket == info->packId)
+	{
+		char sCmd[4096+4] = "";
+
+		sprintf(sCmd,"irs %s",g_IRIfo.cmdComent);
+
+		for(int i = 0;i<info->repeat;i++)
+		{
+			DBG_InfoMsg("%s %d\n",sCmd,i);
+			system(sCmd);
+		}
+
+		memset(&g_IRIfo,0,sizeof(IRMessageInfo_S));
+	}
 
 	return EX_NO_ERR;
 }
@@ -4486,7 +4581,7 @@ int EX_SetNetPort(char* portType,int portNumber)
         if(portNumber == g_network_info.udp_port)
         {
             printf("new port == old port err\n");
-            return EX_NO_ERR;
+            return EX_MODE_ERR;
         }
         int old_port = g_network_info.udp_port;
         Cfg_Set_Net_Port(Net_UDP,portNumber);
@@ -4747,7 +4842,7 @@ int EX_SetLockFP(int lockFlag)
 	if(lockFlag == g_device_info.fp_lock)
 	{
 		DBG_WarnMsg(" !!! Mode para\n");
-		return EX_MODE_ERR;
+		return EX_NO_ERR;
 	}
 
 	if((lockFlag == 0)||(lockFlag == 1))
