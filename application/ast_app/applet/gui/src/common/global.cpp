@@ -42,10 +42,13 @@ int CFileMutex::Init()
 
 void CFileMutex::Lock()
 {
+    int count = 0;
     while(flock(fileno(m_fp), LOCK_EX) == -1)
     {
         usleep(100 * 1000);
-        continue;
+        count ++;
+        if(count >= 50)
+            break;
     }
 
     qDebug("LOCK FINISHED");

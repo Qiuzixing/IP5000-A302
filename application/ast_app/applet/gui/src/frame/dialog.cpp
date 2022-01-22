@@ -18,6 +18,7 @@
  */
 #include "dialog.h"
 #include "ui_dialog.h"
+#include "common/global.h"
 
 Dialog::Dialog(QWidget *parent) :
     QDialog(parent, Qt::CustomizeWindowHint | Qt::FramelessWindowHint),
@@ -832,6 +833,25 @@ void Dialog::updateGUI()
             }
         }
 
+        if(!QString(guiActionInfo.ub.show_info.picture_name).contains("default") || !g_bDeviceSleepMode)
+        {
+            if(!g_bDeviceSleepMode)
+            {
+                picture_name.clear();
+                picture_name.append("/share/ ");
+                if(!g_bDeviceInfoDisplay)
+                {
+                    infoL->setVisible(false);
+                    infoC->setVisible(false);
+                    infoR->setVisible(false);
+                }
+                this->repaint();
+            }
+            // 设置overlay触发时屏蔽
+            qDebug() << "updateGUI::NO ACTION";
+            return ;
+        }
+
 		/* always check show_text setting for necessary ifnormation display */
 		if (guiActionInfo.action_type == ACTION_GUI_SHOW_PICTURE) {
 			if (guiActionInfo.ub.show_info.show_text == GUI_SHOW_TEXT) {
@@ -857,6 +877,26 @@ void Dialog::updateGUI()
     }
     else if(guiActionInfo.action_type == ACTION_GUI_SHOW_PICTURE)
     {
+        if(!QString(guiActionInfo.ub.show_info.picture_name).contains("default") || !g_bDeviceSleepMode)
+        {
+            if(!g_bDeviceSleepMode)
+            {
+                picture_name.clear();
+                picture_name.append("/share/ ");
+                if(!g_bDeviceInfoDisplay)
+                {
+                    infoL->setVisible(false);
+                    infoC->setVisible(false);
+                    infoR->setVisible(false);
+                }
+                this->repaint();
+            }
+
+            // 设置overlay触发时屏蔽
+            qDebug() << "updateGUI::NO ACTION";
+            return ;
+        }
+
         if(guiActionInfo.ub.show_info.show_text == GUI_SHOW_TEXT)
         {
             // GUI sleep
@@ -893,7 +933,21 @@ void Dialog::setSleepPicture(char *path)
     picture_name.clear();
     picture_name.append(path);
     qDebug() << "setSleepPicture::Qt GUI picture_name=" << picture_name;
-    update();
+
+    this->repaint();
+}
+
+void Dialog::setSleepGUIHide(char *path)
+{
+    infoL->setVisible(false);
+    infoC->setVisible(false);
+    infoR->setVisible(false);
+
+    picture_name.clear();
+    picture_name.append(path);
+    qDebug() << "setSleepPicture::Qt GUI picture_name=" << picture_name;
+
+    this->repaint();
 }
 
 QLabel* Dialog::getDeviceInfo()

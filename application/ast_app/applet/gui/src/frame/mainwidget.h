@@ -83,7 +83,7 @@ public slots:
 
     void parseOverlayText();
     void parseOverlayImage();
-    void updateOsdMeun();
+    void updateOsdMenuData();
     void updateChannelList();
 
     void slotUpdateDeviceInfo(QLabel *info);
@@ -92,6 +92,8 @@ public slots:
 
     void slotShowImageOverlay();
     void slotShowTextOverlay();
+
+    void moveDisplayArea();
 
 protected:
     virtual void keyPressEvent(QKeyEvent *e);
@@ -105,6 +107,8 @@ private:
     void initOverlay();
     void initPanelStack();
     void initDeviceInfo();
+
+    void hideOsdAndInfo();
 
 private:
     QStackedWidget  *m_panelStack;
@@ -127,6 +131,8 @@ private:
     QTimer getInfoTimer;
     QTimer DeviceInfoTimer;
 
+    bool m_bInfoCmdHide;
+
     QFileSystemWatcher *watch;
 
     int m_Transparency; // 透明度
@@ -141,6 +147,8 @@ private:
 
     QTcpSocket *m_tcpSocket;
     bool m_bKvmMode;
+    bool m_bMoveMeunFlag;
+    bool m_bMoveInfoFlag;
 
     int m_nVideoWall_H;
     int m_nVideoWall_V;

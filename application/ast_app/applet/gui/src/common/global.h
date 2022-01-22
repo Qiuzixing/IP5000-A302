@@ -6,6 +6,7 @@
 
 extern bool g_bDeviceSleepMode; //  设备工作状态  TRUE：休眠  FALSE： 正常
 extern bool g_bOSDMeunDisplay;  // 菜单的显示状态 TRUE:显示 FALSE:隐藏
+extern bool g_bDeviceInfoDisplay; // INFO的显示状态 TRUE:显示 FALSE:隐藏
 extern int g_nChannelId;
 extern int g_Transparency;
 

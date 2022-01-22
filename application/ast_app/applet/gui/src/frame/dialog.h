@@ -91,6 +91,7 @@ public:
     void setSelectedNode(QString);
     void setSleepPicture(char *path);
     void setDeviceInfoStatus(bool status){m_bDeviceInfoDispaly = status;}
+    void setSleepGUIHide(char *path);
     QLabel* getDeviceInfo();
 
 signals:
