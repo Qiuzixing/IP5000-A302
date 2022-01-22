@@ -129,7 +129,7 @@
       </div>
       <div class="setting" v-if="this.$global.deviceType">
         <span class="setting-title">Device Information Timeout(min)</span>
-        <el-input-number v-model="osdConfig.timeout_sec" style="margin-right: 15px;"
+        <el-input-number v-model="osdJson.device_info.timeout" style="margin-right: 15px;"
                          controls-position="right"
                          :max="60"
                          :min="0"></el-input-number>(0 for never)
@@ -307,7 +307,11 @@ export default {
         name: '',
         id: ''
       },
-      osdJson: {},
+      osdJson: {
+        device_info: {
+          timeout: 2
+        }
+      },
       channelError: false,
       channelErrorMsg: ''
     }

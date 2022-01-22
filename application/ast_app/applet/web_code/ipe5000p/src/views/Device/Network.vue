@@ -438,6 +438,9 @@ export default {
       this.$socket.sendMsg('#RESET')
       this.dialogVisibleReset = false
       sessionStorage.removeItem('login')
+      setTimeout(() => {
+        this.$msg.successAlert('Network configuration changed, please reopen the web page with the new network settings.', 8000)
+      }, 1000)
     }
   }
 }
