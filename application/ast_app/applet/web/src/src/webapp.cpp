@@ -702,6 +702,25 @@ int CWeb::SecureHttpsSetHanndle(struct mg_connection *conn, void *cbdata)
 
     if(SaveSecureFile(conn, SECURE_HTTPS_JSON_FILE, &tHttpsInfo))
     {
+        if(!tHttpsInfo.jsonData[STR_HTTPS_SET][JSON_HTTPS_CERT].empty())
+        {
+            strFile += tHttpsInfo.jsonData[STR_HTTPS_SET][JSON_HTTPS_CERT].asCString();
+        }
+        else
+        {
+            send_http_error_rsp(conn);
+            return 1;
+        }
+
+        if(!COperation::CheckCertFile(strFile.c_str(), tHttpsInfo.jsonData[STR_HTTPS_SET][JSON_HTTPS_PASSWD].asCString()))
+        {
+            BC_INFO_LOG("SecureHttpsSetHanndle caheck cert error");
+            send_http_error_rsp(conn);
+
+            ::remove(strFile.c_str());
+            return 1;
+        }
+
         // https启动配置
         string strHttps = "http";
         if(tHttpsInfo.jsonData[STR_HTTPS_SET][JSON_HTTPS_MODE].asString() == "on")
@@ -714,13 +733,9 @@ int CWeb::SecureHttpsSetHanndle(struct mg_connection *conn, void *cbdata)
             BC_INFO_LOG("SetWebSecurityMode failed!");
         }
 
-        if(!tHttpsInfo.jsonData[STR_HTTPS_SET][JSON_HTTPS_CERT].empty())
+        if(!COperation::SetCertificate(strFile.c_str()))
         {
-            strFile += tHttpsInfo.jsonData[STR_HTTPS_SET][JSON_HTTPS_CERT].asCString();
-            if(!COperation::SetCertificate(strFile.c_str()))
-            {
-                BC_INFO_LOG("SetCertificate failed!");
-            }
+            BC_INFO_LOG("SetCertificate failed!");
         }
 
         Json::FastWriter fastwiter;

@@ -486,6 +486,58 @@ bool COperation::GetCertPasswd(string &o_strPasswd)
     return true;
 }
 
+#include <openssl/err.h>
+#include <openssl/ssl.h>
+
+bool COperation::CheckCertFile(const char *i_pCertFile, const char *i_pPasswd)
+{
+    bool bRes = false;
+
+    if(i_pCertFile == NULL && strlen(i_pCertFile) == 0)
+    {
+        return bRes;
+    }
+
+    SSL_CTX *ctx;
+    ctx = SSL_CTX_new(SSLv23_server_method());
+    if(ctx == NULL)
+    {
+        BC_INFO_LOG("CheckCertFile ssl init failed!");
+        return false;
+    }
+
+    do
+    {
+        if (SSL_CTX_use_certificate_file(ctx, i_pCertFile, 1) == 0)
+        {
+            BC_INFO_LOG("CheckCertFile SSL_CTX_use_certificate_file failed!");
+            break;
+        }
+
+        if(i_pPasswd != NULL && strlen(i_pPasswd) != 0)
+        {
+            SSL_CTX_set_default_passwd_cb_userdata(ctx, (void *)i_pPasswd);
+        }
+
+        if(SSL_CTX_use_PrivateKey_file(ctx, i_pCertFile, 1) == 0)
+        {
+            BC_INFO_LOG("CheckCertFile SSL_CTX_use_PrivateKey_file failed");
+            break;
+        }
+
+        if(SSL_CTX_check_private_key(ctx) == 0)
+        {
+            BC_INFO_LOG("CheckCertFile SSL_CTX_check_private_key failed");
+            break;
+        }
+
+        bRes = true;
+    }while(0);
+
+    SSL_CTX_free(ctx);
+    return bRes;
+}
+
 
 int COperation::JudgePasswdEncrypt(char *username, char *passwd)
 {

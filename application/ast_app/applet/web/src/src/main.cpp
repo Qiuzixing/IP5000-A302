@@ -151,6 +151,16 @@ int main(int argc, char *argv[])
     // 启动日志
     BCLog_Init(p_webparam.log_confpath);
 
+    // check cert file
+    string steCertPasswd = "";
+    COperation::GetCertPasswd(steCertPasswd);
+    if(!COperation::CheckCertFile(p_webparam.web_cermpath.c_str(), steCertPasswd.c_str()))
+    {
+        BC_ERROR_LOG("CheckCertFile failed!");
+        p_webparam.web_startmode.clear();
+        p_webparam.web_startmode = "http";
+    }
+
     // mjpegstream
     pthread_t mjpegThread;
 	pthread_attr_t  s_tThreadAttr;
