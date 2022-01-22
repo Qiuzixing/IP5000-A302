@@ -140,7 +140,7 @@ private:
     static CCond s_p3kcond;
     static int s_p3kSocket;
     static struct mg_context * ctx;
-    static P3kStatus s_p3kStatus;
+    static int s_p3kStatus;
 
     static CMutex s_HandleMutex;
     static CMutex s_AliveStreamMutex;

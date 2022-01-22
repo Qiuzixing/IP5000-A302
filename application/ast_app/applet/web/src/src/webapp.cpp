@@ -84,7 +84,7 @@
 
 CMutex CWeb::s_p3kmutex;
 CCond  CWeb::s_p3kcond;
-P3kStatus CWeb::s_p3kStatus;
+int CWeb::s_p3kStatus = 0;
 struct mg_context * CWeb::ctx = NULL;
 int CWeb::s_p3kSocket = -1;
 
@@ -1221,7 +1221,8 @@ int CWeb::JsonDataHandle(struct mg_connection *conn, void *cbdata)
         else
         {
             CMutexLocker locker(&s_p3kmutex);
-            if(s_p3kSocket < 0)
+            if((s_p3kSocket < 0)
+                || (s_p3kStatus != 1))
             {
                 BC_INFO_LOG("p3k socket error");
                 return 1;
@@ -1925,18 +1926,13 @@ void *CWeb::MjpegStreamThread(void *param)
     return NULL;
 }
 
-void CWeb::P3kStatusInit()
-{
-    s_p3kStatus.p3k_conn = NULL;
-    s_p3kStatus.p3k_writeok = false;
-    s_p3kStatus.p3k_start = 1;
-}
 
 void CWeb::P3kWebsocketHandle(struct mg_connection *conn, char *data, size_t len)
 {
     CMutexLocker locker(&s_p3kmutex);
     BC_INFO_LOG("websocket get data is <%s>", data);
-    if(s_p3kSocket < 0)
+    if((s_p3kSocket < 0)
+        || (s_p3kStatus != 1))
     {
         BC_INFO_LOG("p3k socket error");
         return;
@@ -1972,7 +1968,6 @@ void CWeb::P3kWebsocketHandle(struct mg_connection *conn, char *data, size_t len
 
 bool CWeb::P3kConnect()
 {
-    CMutexLocker locker(&s_p3kmutex);
     int nret;
 	struct sockaddr_in tServerAddr;
     struct sockaddr_in tClientAddr;
@@ -2045,42 +2040,47 @@ void *CWeb::P3kCommunicationThread(void *arg)
 	int maxfd = -1;
 	fd_set Readfds;
 
-	// 创建套接字
-	while(!P3kConnect())
     {
-        sleep(1);
-    }
+        CMutexLocker locker(&s_p3kmutex);
+    	// 创建套接字
+    	while(!P3kConnect())
+        {
+            sleep(1);
+        }
 
-	// 初始化p3k通信
-	char aFlag[KEY_VALUE_SIZE] = {0};
-	char aRecv[KEY_VALUE_SIZE] = {0};
+    	// 初始化p3k通信
+    	char aFlag[KEY_VALUE_SIZE] = {0};
+    	char aRecv[KEY_VALUE_SIZE] = {0};
 
-    strncpy(aFlag, "#\r", strlen("#\r"));
-    int len = write(s_p3kSocket, aFlag, strlen(aFlag));
-    if(len < 0)
-    {
-        BC_INFO_LOG("p3k init write faild");
-        close(s_p3kSocket);
-        return NULL;
-    }
+        strncpy(aFlag, "#\r", strlen("#\r"));
+        int len = write(s_p3kSocket, aFlag, strlen(aFlag));
+        if(len < 0)
+        {
+            BC_INFO_LOG("p3k init write faild");
+            close(s_p3kSocket);
+            return NULL;
+        }
 
-    len = read(s_p3kSocket, aRecv, KEY_VALUE_SIZE);
-    if(len < 0)
-    {
-        BC_INFO_LOG("p3k init read faild");
-        close(s_p3kSocket);
-        return NULL;
+        len = read(s_p3kSocket, aRecv, KEY_VALUE_SIZE);
+        if(len < 0)
+        {
+            BC_INFO_LOG("p3k init read faild");
+            close(s_p3kSocket);
+            return NULL;
+        }
+        else
+    	{
+    	    BC_INFO_LOG("aRecv is <%s>", aRecv);
+    		if(strncmp(aRecv, "~01@ OK\r", strlen("~01@ OK\r")) != 0)
+    		{
+    			BC_INFO_LOG("p3k init is check failed");
+    	    	close(s_p3kSocket);
+    	        return NULL;
+    		}
+
+            s_p3kStatus = 1;
+    	}
     }
-    else
-	{
-	    BC_INFO_LOG("aRecv is <%s>", aRecv);
-		if(strncmp(aRecv, "~01@ OK\r", strlen("~01@ OK\r")) != 0)
-		{
-			BC_INFO_LOG("p3k init is check failed");
-	    	close(s_p3kSocket);
-	        return NULL;
-		}
-	}
 
     while(1)
     {
@@ -2145,18 +2145,20 @@ void *CWeb::P3kCommunicationThread(void *arg)
             }
     	}
 
-        while(!P3kConnect())
         {
             CMutexLocker locker(&s_p3kmutex);
-            close(s_p3kSocket);
-            s_p3kSocket = -1;
-
-            sleep(1);
-            count++;
-            if(count > 2)
+            while(!P3kConnect())
             {
-                BC_ERROR_LOG("reconnect failed!");
-                return NULL;
+                close(s_p3kSocket);
+                s_p3kSocket = -1;
+
+                sleep(1);
+                count++;
+                if(count > 2)
+                {
+                    BC_ERROR_LOG("reconnect failed!");
+                    return NULL;
+                }
             }
         }
     }

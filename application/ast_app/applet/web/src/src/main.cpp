@@ -145,9 +145,6 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-    // 初始化p3k状态
-    CWeb::P3kStatusInit();
-
     // 启动日志
     BCLog_Init(p_webparam.log_confpath);
 
