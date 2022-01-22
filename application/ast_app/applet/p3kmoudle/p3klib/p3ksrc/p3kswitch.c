@@ -7116,6 +7116,7 @@ int P3K_SilmpleReqCmdProcess(P3K_SimpleCmdInfo_S *cmdreq, P3K_SimpleCmdInfo_S *c
 		{"P3K-NOTIFY", P3K_NTFY_PROC, -2},
 		{"TEST-MODE", P3K_TESTMODE, 0},
 		{"IR-SND", P3K_SendIRMsg, -2},
+		{"HELP", P3K_HELP, 0},
 		{NULL, NULL}};
 	printf("<<<<<<recv==%s %s\n", cmdreq->command, cmdreq->param);
 	if (cmdreq == NULL || cmdresp == NULL)
