@@ -21,6 +21,7 @@ audio_setting="/data/configs/kds-7/audio/audio_setting.json"
 rx_tcp_port='8888'
 analog_out_volum='87'
 execute_once_flag='on'
+ipe5000p_audio_lan_flag='off'
 stop_all_service()
 {
 	## A7 TBD
@@ -116,7 +117,19 @@ _do_start_srv()
 		fi
 	fi
 	if [ "$NO_I2S" = 'n' ]; then
-		ipc @a_lm_set s ae_start:$CH_SELECT_A
+		case "$MODEL_NUMBER" in
+			KDS-EN7 | WP-SW2-EN7)
+				ipc @a_lm_set s ae_start:$CH_SELECT_A
+			;;
+			KDS-SW3-EN7)
+				if [ "$ipe5000p_audio_lan_flag" = 'off' ];then
+					ipc @a_lm_set s ae_start:$CH_SELECT_A
+					ipe5000p_audio_lan_flag='on'
+				fi
+			;;
+			*)
+			;;
+		esac
 	fi
 	if [ "$NO_IR" = 'n' ]; then
 		ipc @r_lm_set s re_start:$CH_SELECT_R
@@ -1576,7 +1589,29 @@ handle_e_p3k_audio_src()
 
 	shift 2
 	_switch_input="$1"
-
+	echo "_dst_1=$_dst_1"
+	echo "_dst_2=$_dst_2"
+	echo "_dst_3=$_dst_3"
+	if [ $MODEL_NUMBER = 'KDS-SW3-EN7' ];then
+		if [ $_switch_input = 'analog' ];then
+			if [[ $_dst_1 = 'lan' ]] || [[ $_dst_2 = 'lan' ]] || [[ $_dst_3 = 'lan' ]];then
+				if [ $ipe5000p_audio_lan_flag = 'off' ];then
+					ipc @a_lm_set s ae_start:$CH_SELECT_A
+					ipe5000p_audio_lan_flag='on'
+				fi
+			else
+				if [ $ipe5000p_audio_lan_flag = 'on' ];then
+					ipc @a_lm_set s ae_stop
+					ipe5000p_audio_lan_flag='off'
+				fi
+			fi
+		else
+			if [ $ipe5000p_audio_lan_flag = 'off' ];then
+				ipc @a_lm_set s ae_start:$CH_SELECT_A
+				ipe5000p_audio_lan_flag='on'
+			fi
+		fi
+	fi
 	if [ $_switch_input = 'no' ];then
 		echo 0 > /sys/devices/platform/1500_i2s/analog_in_vol
 	else
@@ -1603,11 +1638,6 @@ handle_e_p3k_audio_src()
 handle_e_p3k_audio_dst()
 {
 	echo "handle_e_p3k_audio_dst."
-	local _dst_num
-	local _dst_1
-	local _dst_2
-	local _dst_3
-	local _dst_4
 
 	#e_p3k_switch_in::switch_input
 	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
@@ -3121,6 +3151,20 @@ init_param_from_p3k_cfg()
 		P3KCFG_ANALOG_DIR=`jq -r '.audio_setting.analog_direction' $audio_setting`
 		if echo "$P3KCFG_ANALOG_DIR" | grep -q "null" ; then
 			P3KCFG_ANALOG_DIR='in'
+		fi
+		
+		if [ "$MODEL_NUMBER" = 'KDS-SW3-EN7' ];then
+			P3KCFG_SOURCE_SELECT=`jq -r '.audio_setting.source_select' $audio_setting`
+			if echo "$P3KCFG_SOURCE_SELECT" | grep -q "null" ; then
+				P3KCFG_SOURCE_SELECT='hdmi'
+			fi
+
+			if [ "$P3KCFG_SOURCE_SELECT" = 'analog' ];then
+				P3KCFG_DESTION_LAN=`jq -r '.audio_setting.destination_select' $audio_setting | grep lan -c`
+				if [ $P3KCFG_DESTION_LAN -eq 0 ];then
+					ipe5000p_audio_lan_flag='on'
+				fi
+			fi 
 		fi
 	else
 		P3KCFG_ANALOG_DIR='in'
