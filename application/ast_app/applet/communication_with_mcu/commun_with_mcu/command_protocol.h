@@ -60,7 +60,7 @@ extern "C" {
  *ENABLE: 保证先发的命令，先传输。
  *DISABLE: 不保证命令顺序，串口利用率高。
  */
-#define CMD_SEND_MODE_FIFO_EN  0
+#define CMD_SEND_MODE_FIFO_EN  1
 #define CMD_SEND_TIME_GAP_MS  40  /*每次发送命令的时间间隔*/
 #define CMD_SEND_TIME_REPEAT_MS  400  /*FIFO模式下无作用*/
 
