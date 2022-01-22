@@ -367,13 +367,20 @@ export default {
       this.uploadProgress = 100
       this.$socket.sendMsg('#UPGRADE ')
     },
-    uploadError () {
+    uploadError (err) {
+      this.showProgress = false
       this.$refs.upload.clearFiles()
-      alert('Upload failed, please try again')
+      setTimeout(() => {
+        if (err?.message.search('406') !== -1) {
+          alert('Invalid File')
+        } else {
+          alert('Upload failed, please try again')
+        }
+      }, 200)
     },
     beforeUpload (file) {
-      if (!file.name.endsWith('.bin')) {
-        alert('Please choose the correct file')
+      if (!file.name.endsWith('.bin') && file.size > 1024 * 1024 * 16) {
+        alert('Please choose the correct file!')
         return false
       }
       this.uploadProgress = 0
