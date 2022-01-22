@@ -5861,18 +5861,24 @@ static int P3K_SetAudOutput(char *reqparam, char *respParam, char *userdata)
 	char aStr1[64] = {0};
 	char aStr2[64] = {0};
 	char tmpparam[MAX_PARAM_LEN] = {0};
-	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] = {0};
-
-	sscanf(reqparam, "[%s", aStr1);
-	memcpy(aStr2, aStr1, (strlen(aStr1) - 1));
-	count = P3K_PhraserParam(aStr2, strlen(aStr2), str);
-/*	if(count < 0)
+	char str[16][MAX_PARAM_LEN] = {0};
+    if(strlen(reqparam) == 0)
 	{
-		ERR_MSG(ERR_PROTOCOL_SYNTAX, reqparam, respParam);
-		strcpy(userdata, "error");
-		return -1;
 	}
-*/	s32Ret = EX_SetVidOutput(str, count);
+	else
+	{
+        sscanf(reqparam, "[%s", aStr1);
+		memcpy(aStr2, aStr1, (strlen(aStr1) - 1));
+		count = P3K_PhraserParam(aStr2, strlen(aStr2), str);
+		if(count < 0)
+		{
+			ERR_MSG(ERR_PROTOCOL_SYNTAX, reqparam, respParam);
+			strcpy(userdata, "error");
+			return -1;
+		}
+	}
+	
+	s32Ret = EX_SetVidOutput(str, count);
 	if (s32Ret < 0)
 	{
 		EX_ERR_MSG(s32Ret, reqparam, respParam);
