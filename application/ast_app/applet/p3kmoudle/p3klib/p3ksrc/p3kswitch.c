@@ -2086,6 +2086,12 @@ static int P3K_SetChannleSelection(char *reqparam, char *respParam, char *userda
 		return -1;
 	}
 	sSelect.ch_id = atoi(str[count - 1]);
+	if ((sSelect.ch_id < 1) || (chn > sSelect.ch_id))
+	{
+		ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);
+		strcpy(userdata, "error");
+		return -1;
+	}
 	sSelect.i_signalnum = count - 1;
 	s32Ret = EX_SetDecoderAVChannelId(&sSelect);
 	if (s32Ret < 0)
