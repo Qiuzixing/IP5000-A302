@@ -662,6 +662,18 @@ void Dialog::readMsgD()
        // hideOsdMeun();
        return;
    }
+   else if(str.compare("START_WORKING") == 0)
+   {
+       qDebug() << "--VIDEO WORKING--";
+       emit sigStartWorking(true);
+       return;
+   }
+   else if(str.compare("STOP_WORKING") == 0)
+   {
+       qDebug() << "--VIDEO STOP WORKING--";
+       emit sigStartWorking(false);
+       return;
+   }
 
 	dbgMsg(QString("d.constData: %1").arg(d.constData()));
 	dbgMsg(QString("d.size: %1").arg(d.size()));
@@ -833,7 +845,7 @@ void Dialog::updateGUI()
             }
         }
 
-        if(!QString(guiActionInfo.ub.show_info.picture_name).contains("default") || !g_bDeviceSleepMode)
+        if(!QString(guiActionInfo.ub.show_info.picture_name).contains("default"))
         {
             if(!g_bDeviceSleepMode)
             {
@@ -877,7 +889,7 @@ void Dialog::updateGUI()
     }
     else if(guiActionInfo.action_type == ACTION_GUI_SHOW_PICTURE)
     {
-        if(!QString(guiActionInfo.ub.show_info.picture_name).contains("default") || !g_bDeviceSleepMode)
+        if(!QString(guiActionInfo.ub.show_info.picture_name).contains("default"))
         {
             if(!g_bDeviceSleepMode)
             {

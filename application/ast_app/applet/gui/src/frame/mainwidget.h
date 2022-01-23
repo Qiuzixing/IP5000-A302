@@ -157,7 +157,6 @@ private:
     int m_nVideoWall_R;
 
     QReadWriteLock m_lock;
-    QGraphicsOpacityEffect *m_opacityEffect;
 };
 
 #endif // MAINWIDGET_H

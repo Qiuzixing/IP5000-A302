@@ -45,6 +45,9 @@
 
 #define I_WEB_PIPE          "/tmp/overlay_f"
 
+#define CMD_TIMING          "cat /sys/devices/platform/videoip/timing_info"
+#define CMD_SCREEN          "cat /sys/devices/platform/display/screen"
+
 #define ACADEMY_4K          3656
 
 using namespace std;
@@ -101,6 +104,9 @@ MainWidget::MainWidget(QWidget *parent) : QWidget(parent)
     //    m_sleepPanel->setGuideImage("./orderCut.png");
     //    startSleepMode(m_sleepPanel);
 
+    //  初始化透明画布
+    m_background = new OSDLabel(TRANS_BACKGROUND,300,300,this);
+
     // 处理p3k命令
     UdpRecv = UdpRecvThread::getInstance();
     UdpRecv->start();
@@ -110,7 +116,7 @@ MainWidget::MainWidget(QWidget *parent) : QWidget(parent)
     QTimer::singleShot(2000,this,SLOT(slotShowOverlay()));
 
     connect(&getInfoTimer,SIGNAL(timeout()),this,SLOT(getResolutionFromTiming()));
-    this->getInfoTimer.start(2000);
+    this->getInfoTimer.start(1000);
 }
 
 MainWidget::~MainWidget()
@@ -234,6 +240,7 @@ void MainWidget::setDeviceInfoDispaly(bool status)
         {
             // 互斥OSD、OVERLAY
 //            hideOsdMeun(false);
+            m_osdMeun->parseMeunJson(MENUINFO_PATH);
             m_osdMeun->setVisible(false);
             m_osdMeun->repaint();
             g_bOSDMeunDisplay = false;
@@ -280,16 +287,16 @@ void MainWidget::showDeviceInfo()
 
     if(!m_osdMeun->getDeviceInfoDisplayStatus())
     {
+
         int timeout = m_osdMeun->getDeviceInfoTimerout();
         qDebug() << "timeout:" << ypos;
 
         DeviceInfoTimer.start(timeout);
     }
 
-    if(m_background != NULL)
+    if(m_background)
     {
-        delete m_background;
-        m_background = NULL;
+        m_background->setVisible(false);
     }
 }
 
@@ -393,7 +400,6 @@ void MainWidget::syncConfig(QString path)
     {
         // osd.json发生改变
         qDebug("OSD.JSON Change!");
-
         qDebug() << "g_bOSDMeunDisplay:" << g_bOSDMeunDisplay;
         if(g_bOSDMeunDisplay)
         {
@@ -462,15 +468,18 @@ void MainWidget::updateChannelList()
 
 void MainWidget::getResolutionFromTiming()
 {
-    QString strCmd = "cat /sys/devices/platform/videoip/timing_info";
     QProcess p;
-    p.start("bash", QStringList() <<"-c" << strCmd);
+    p.start("bash", QStringList() <<"-c" << CMD_TIMING);
     p.waitForFinished();
     QString strResult = p.readAllStandardOutput();
 
-    //qDebug() << "MainWidget::strResult:" << strResult;
+    p.start("bash", QStringList() <<"-c" << CMD_SCREEN);
+    p.waitForFinished();
+    QString strResultScreeenInfo = p.readAllStandardOutput();
 
-    if(strResult.contains("Timing Table:"))
+    // qDebug() << "MainWidget::strResult:" << strResult;
+
+    if(strResult.contains("Timing Table:") && strResultScreeenInfo.contains("decode"))
     {
         // 解析输出源的分辨率应用到OSD
          QString startStr = "Timing Table:";
@@ -521,18 +530,18 @@ void MainWidget::getResolutionFromTiming()
                  qDebug() << "getResolutionFromTiming:hideOsdMeun_1";
                  hideOsdMeun(false);
                  slotHideOverlay();
-                 update();
+                 this->repaint();
 
-                 QTimer::singleShot(2000,this,SLOT(slotDelayReinit()));
+                 QTimer::singleShot(1000,this,SLOT(slotDelayReinit()));
             }
         }
     }
-    else if(strResult.startsWith("Not"))
+    else if(strResult.startsWith("Not") && strResultScreeenInfo.contains("message"))
     {
-        g_bDeviceSleepMode = true;
-
         if(g_nScreenWidth != g_nframebufferWidth)
         {
+            g_bDeviceSleepMode = true;
+
             getInfoTimer.stop();
             float wScale = static_cast<float> (g_nframebufferWidth) / g_nStdScreenWidth;
             float hScale = static_cast<float> (g_nframebufferHeight) / g_nStdScreenHeight;
@@ -546,9 +555,9 @@ void MainWidget::getResolutionFromTiming()
             qDebug() << "getResolutionFromTiming:hideOsdMeun_2";
             hideOsdMeun(false);
             slotHideOverlay();
-            update();
+            this->repaint();
 
-            QTimer::singleShot(8000,this,SLOT(slotDelayReinit()));
+            QTimer::singleShot(1000,this,SLOT(slotDelayReinit()));
         }
     }
 }
@@ -558,7 +567,7 @@ void MainWidget::slotDelayReinit()
     destroyOsdAndOverlay();
     reInit();
 
-    getInfoTimer.start(2000);
+    getInfoTimer.start(1000);
 }
 
 void MainWidget::reInit()
@@ -709,9 +718,6 @@ void MainWidget::initOsdMeun()
 
 void MainWidget::initOverlay()
 {
-    m_opacityEffect = new QGraphicsOpacityEffect;
-//    m_opacityEffect->setOpacityMask(QBrush(QColor(0,0,0,0)));
-
     //上电解析overlay文件
     m_bFirst = true;
     parseOverlayJson("overlay1_setting.json");
@@ -760,8 +766,7 @@ void MainWidget::slotHideOverlay()
         m_imageOverlay->setVisible(false);
         m_imageOverlay->repaint();
     }
-
-    if(m_textOverlay != NULL)
+    else if(m_textOverlay != NULL)
     {
         m_textOverlay->setVisible(false);
         m_textOverlay->repaint();
@@ -845,19 +850,19 @@ void MainWidget::moveOsdMeun(int position)
         case BOTTOM_LEFT:
         {
             xpos = OSD_XPOS;
-            ypos = g_nframebufferHeight-m_osdMeun->height() - OSD_YPOS;
+            ypos = g_nframebufferHeight-m_osdMeun->height();
             break;
         }
         case BOTTOM_MID:
         {
             xpos = (g_nframebufferWidth-m_osdMeun->width())/2;
-            ypos = g_nframebufferHeight-m_osdMeun->height()- OSD_YPOS;
+            ypos = g_nframebufferHeight-m_osdMeun->height();
             break;
         }
         case BOTTOM_RIGHT:
         {
             xpos = g_nframebufferWidth-m_osdMeun->width() - OSD_XPOS;
-            ypos = g_nframebufferHeight-m_osdMeun->height() - OSD_YPOS;
+            ypos = g_nframebufferHeight-m_osdMeun->height();
             break;
         }
         case LEFT_MID:
@@ -1033,10 +1038,9 @@ void MainWidget::showOverlay(OSDLabel *overlay,int position)
      qDebug() << "m_Transparency" << m_Transparency;
      setTransparency(m_Transparency);
 
-     if(m_background != NULL)
+     if(m_background)
      {
-         delete m_background;
-         m_background = NULL;
+         m_background->setVisible(false);
      }
 
      // 非常显，启动定时器
@@ -1412,29 +1416,32 @@ void MainWidget::moveDisplayArea()
 {
     if(m_bMoveMeunFlag)
     {
-        qDebug() << "MOVE TRAN BACKGROUND";
+        qDebug() << "MOVE m_bMoveMeunFlag BACKGROUND";
         m_bMoveMeunFlag = false;
-        m_background = new OSDLabel(TRANS_BACKGROUND,300,300,this);
+//        m_background = new OSDLabel(TRANS_BACKGROUND,300,300,this);
         showOverlay(m_background,m_osdMeun->getShowPosition());
         return;
     }
 
     if(m_bMoveInfoFlag)
     {
+        qDebug() << "MOVE m_bMoveInfoFlag BACKGROUND";
         m_bMoveInfoFlag = false;
-        m_background = new OSDLabel(TRANS_BACKGROUND,300,300,this);
+//        m_background = new OSDLabel(TRANS_BACKGROUND,300,300,this);
         showOverlay(m_background,BOTTOM_RIGHT);
         return;
     }
 
     if(m_textOverlay == NULL)
     {
-        m_background = new OSDLabel(TRANS_BACKGROUND,300,300,this);
+        qDebug() << "MOVE m_textOverlay BACKGROUND";
+//        m_background = new OSDLabel(TRANS_BACKGROUND,300,300,this);
         showOverlay(m_background,m_imageOverlay->getShowPos());
     }
     else if(m_imageOverlay == NULL)
     {
-        m_background = new OSDLabel(TRANS_BACKGROUND,300,300,this);
+        qDebug() << "MOVE m_imageOverlay BACKGROUND";
+//        m_background = new OSDLabel(TRANS_BACKGROUND,300,300,this);
         showOverlay(m_background,m_textOverlay->getShowPos());
     }
 }

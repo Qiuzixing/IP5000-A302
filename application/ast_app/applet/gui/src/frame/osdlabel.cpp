@@ -75,7 +75,6 @@ OSDLabel::OSDLabel(const QString &imagePath,int width,int height,QWidget *parent
     imageLabel->setGeometry(imageRect);
 
     QPixmap fixpix = pix.scaled(widthR, heightR, Qt::KeepAspectRatio, Qt::SmoothTransformation); // 按比例缩放
-
     imageLabel->setPixmap(fixpix);
 
 //    QPixmap tmppix(pix.size());
