@@ -19,7 +19,6 @@ CFLAGS = -I ./src -I./common -I./p3k_client
 default:clean build_get_button build_lcd
 	mkdir -p $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 	cp -f $(LCD)  $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
-	cp -f $(SEND)  $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 
 build_lcd:$(OBJS)
 	$(CC) $^ -o $(LCD) $(LDFLAGS)
