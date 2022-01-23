@@ -20,7 +20,7 @@
                   style="margin-left: 25px;"
                   @click="setPassword">CHANGE
           </button>
-          <span v-if="pwdError" class="range-alert" style="top: 36px; white-space: nowrap;">Alphanumeric and characters within length of 1 to 24 characters, spaces not allowed</span>
+          <span v-if="pwdError" class="range-alert" style="top: 36px; white-space: nowrap;">Alphanumeric within 24 characters, spaces not allowed</span>
         </div>
         <div class="setting" style="position: relative;">
           <span class="setting-title">Confirm Password</span>

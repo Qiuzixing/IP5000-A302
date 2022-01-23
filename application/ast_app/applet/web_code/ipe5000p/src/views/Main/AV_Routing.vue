@@ -51,7 +51,7 @@
                 @click="setChannelName">APPLY</button>
         <span class="range-alert"
               v-if="channelNameError"
-              style="top:34px;white-space: nowrap;">Alphanumeric and characters within length of 1 to 24 characters, spaces not allowed</span>
+              style="top:34px;white-space: nowrap;">Alphanumeric, hyphen and underscore within 24 characters, hyphen and underscore can not at beginning or end</span>
       </div>
       <div class="setting" v-if="this.$global.deviceType !== 2">
         <span class="setting-title">Volume</span>
@@ -285,7 +285,7 @@ export default {
       this.$socket.sendMsg('#KDS-DEFINE-CHANNEL ' + (this.channel || 1))
     },
     isChannelName (name) {
-      return /^[a-zA-Z0-9][_\-a-zA-Z0-9]{0,23}$/.test(name)
+      return /^[a-zA-Z0-9]$|^[a-zA-Z0-9][\w-]{0,22}[a-zA-Z0-9]$/.test(name)
     },
     handleDirection (msg) {
       if (msg.search(/audio/i) !== -1) {

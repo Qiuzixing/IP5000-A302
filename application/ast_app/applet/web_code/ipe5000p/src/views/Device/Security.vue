@@ -83,7 +83,7 @@
                    v-model="mschap_username">
             <span class="range-alert"
                   v-if="mschapUsernameError"
-                  style="top:36px;white-space: nowrap;">Alphanumeric and characters within length of 1 to 24 characters, spaces not allowed</span>
+                  style="top:36px;white-space: nowrap;">Alphanumeric, hyphen and underscore within 24 characters, hyphen and underscore can not at beginning or end</span>
           </div>
           <div class="setting">
             <span class="setting-title"
@@ -112,7 +112,7 @@
                    v-model="tls_username">
             <span class="range-alert"
                   v-if="tls_usernameError"
-                  style="top:36px;white-space: nowrap;">Alphanumeric and characters within length of 1 to 24 characters, spaces not allowed</span>
+                  style="top:36px;white-space: nowrap;">Alphanumeric, hyphen and underscore within 24 characters, hyphen and underscore can not at beginning or end</span>
           </div>
           <div class="setting">
             <span class="setting-title"
@@ -362,7 +362,7 @@ export default {
       xhr.send(formData)
     },
     isValidName (name) {
-      return /^[a-zA-Z0-9][_\-a-zA-Z0-9]{0,23}$/.test(name)
+      return /^[a-zA-Z0-9]$|^[a-zA-Z0-9][\w-]{0,22}[a-zA-Z0-9]$/.test(name)
     }
   }
 }

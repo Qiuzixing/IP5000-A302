@@ -166,7 +166,7 @@
                  v-model="addChannel.name"
                  class="setting-text"/>
           <span
-            class="alert-error">Alphanumeric and characters within length of 1 to 24 characters, spaces not allowed.</span>
+            class="alert-error">Alphanumeric, hyphen and underscore within 24 characters, hyphen and underscore can not at beginning or end</span>
         </div>
       </div>
       <span v-if="idRulerError"
@@ -199,7 +199,7 @@
                  v-model="editObj.name"
                  class="setting-text"/>
           <span
-            class="alert-error">Alphanumeric and characters within length of 1 to 24 characters, spaces not allowed.</span>
+            class="alert-error">Alphanumeric, hyphen and underscore within 24 characters, hyphen and underscore can not at beginning or end</span>
         </div>
       </div>
       <span slot="footer"
@@ -474,7 +474,7 @@ export default {
       return id.match(/^[1-9][0-9]?[0-9]?$/)
     },
     isName (name) {
-      return /^[A-Za-z0-9][A-Za-z0-9\-_]{0,23}$/.test(name)
+      return /^[a-zA-Z0-9]$|^[a-zA-Z0-9][\w-]{0,22}[a-zA-Z0-9]$/.test(name)
     },
     setDisplayInfo (val) {
       this.$socket.sendMsg('#KDS-OSD-DISPLAY ' + val)
