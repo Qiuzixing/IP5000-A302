@@ -695,30 +695,31 @@ bool CWeb::SaveSecureFile(struct mg_connection *conn, const char *i_pJsonFile, T
 
 int CWeb::SecureHttpsSetHanndle(struct mg_connection *conn, void *cbdata)
 {
+    bool bRes = false;
     string strFile = DEFAULT_FILE_PATH;
     strFile += SECURE_HTTPS_PATH;
     strFile += "/";
     T_SecureInfo tHttpsInfo;
 
-    if(SaveSecureFile(conn, SECURE_HTTPS_JSON_FILE, &tHttpsInfo))
+    do
     {
-        if(!tHttpsInfo.jsonData[STR_HTTPS_SET][JSON_HTTPS_CERT].empty())
+        if(!SaveSecureFile(conn, SECURE_HTTPS_JSON_FILE, &tHttpsInfo))
         {
-            strFile += tHttpsInfo.jsonData[STR_HTTPS_SET][JSON_HTTPS_CERT].asCString();
-        }
-        else
-        {
-            send_http_error_rsp(conn);
-            return 1;
+            BC_INFO_LOG("SecureHttpsSetHanndle upload file error");
+            break;
         }
 
+        if(tHttpsInfo.jsonData[STR_HTTPS_SET][JSON_HTTPS_CERT].empty())
+        {
+            break;
+        }
+
+        strFile += tHttpsInfo.jsonData[STR_HTTPS_SET][JSON_HTTPS_CERT].asCString();
         if(!COperation::CheckCertFile(strFile.c_str(), tHttpsInfo.jsonData[STR_HTTPS_SET][JSON_HTTPS_PASSWD].asCString()))
         {
             BC_INFO_LOG("SecureHttpsSetHanndle caheck cert error");
-            send_http_error_rsp(conn);
-
             ::remove(strFile.c_str());
-            return 1;
+            break;
         }
 
         // https启动配置
@@ -731,11 +732,13 @@ int CWeb::SecureHttpsSetHanndle(struct mg_connection *conn, void *cbdata)
         if(!COperation::SetWebSecurityMode(strHttps.c_str()))
         {
             BC_INFO_LOG("SetWebSecurityMode failed!");
+            break;
         }
 
         if(!COperation::SetCertificate(strFile.c_str()))
         {
             BC_INFO_LOG("SetCertificate failed!");
+            break;
         }
 
         Json::FastWriter fastwiter;
@@ -743,14 +746,18 @@ int CWeb::SecureHttpsSetHanndle(struct mg_connection *conn, void *cbdata)
         strConfInfo = fastwiter.write(tHttpsInfo.jsonData);
         if(!COperation::SetJsonFile(strConfInfo.c_str(), SECURE_HTTPS_JSON_FILE))
         {
-            send_http_error_rsp(conn);
-            return 1;
+            break;
         }
 
         BC_INFO_LOG("SecureHttpsSetHanndle upload file OK");
+        bRes = true;
+    }while(0);
+
+    if(bRes)
+    {
         send_http_ok_rsp(conn);
 
-		// reboot
+        // reboot
         if(My_System("reboot") < 0)
         {
             BC_INFO_LOG("SecureHttpsSetHanndle reboot failed!");
@@ -758,8 +765,18 @@ int CWeb::SecureHttpsSetHanndle(struct mg_connection *conn, void *cbdata)
     }
     else
     {
-        BC_INFO_LOG("SecureHttpsSetHanndle upload file error");
-        send_http_error_rsp(conn);
+        string strResInfo = "";
+        Json::Value root;
+        root["result"] = "Invalid File";
+        Json::FastWriter fastwiter;
+        strResInfo = fastwiter.write(root);
+
+        mg_send_status(conn, 406);
+        mg_printf(conn, "%s",
+								"Cache-Control: no-cache\r\n"
+								"Connection: close\r\n"
+								"Content-Type: application/json;charset=utf-8\r\n\r\n");
+	    mg_printf(conn,"%s", strResInfo.c_str());
     }
 
     return 1;
