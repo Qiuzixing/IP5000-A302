@@ -300,120 +300,120 @@ info_param down_up_respond_D(int count, info_param param, const char* showwing_s
 
 static int channel_id_convert_to_string(int current_id, char *channel_id)
 {
-	if (current_id < 0)
-	{
-		strcpy(channel_id, "000");
-		return -1;
-	}
-		
-	if ( current_id >= 0 && current_id < 10 )
-	{
-		sprintf(channel_id, "00%d", current_id);
-	}
-	else if ( current_id >= 10 && current_id < 100)
-	{
-		sprintf(channel_id, "0%d", current_id);
-	}
-	else if (current_id >= 100 && current_id < 1000)
-	{
-		sprintf(channel_id, "%d", current_id);
-	}
+    if (current_id < 0)
+    {
+        strcpy(channel_id, "000");
+        return -1;
+    }
+        
+    if ( current_id >= 0 && current_id < 10 )
+    {
+        sprintf(channel_id, "00%d", current_id);
+    }
+    else if ( current_id >= 10 && current_id < 100)
+    {
+        sprintf(channel_id, "0%d", current_id);
+    }
+    else if (current_id >= 100 && current_id < 1000)
+    {
+        sprintf(channel_id, "%d", current_id);
+    }
     else
     {
-		strcpy(channel_id, "999");
-	}
+        strcpy(channel_id, "999");
+    }
 
-	return 0;
+    return 0;
 }
 
 
 int IPD5000_SHOW_INIT(char *status)
 {
-	printf("this is IPD5000\n");
+    printf("this is IPD5000\n");
     init_p3k_client("127.0.0.1", 6001);
-	
-	if (strcmp(status, "unlock") == 0)
-	{
-		if (IPD5000_UNLOCK_MENU() != 0)
-		{
-			return -1;
-		}
-	}
-	else if(strcmp(status, "lock") == 0)
-	{
-		if (IPD5000_LOCK_MENU() != 0)
-		{
-			return -1;
-		}
-	}
-	
-	deinit_p3k_client();
-	
-	return 0;
+    
+    if (strcmp(status, "unlock") == 0)
+    {
+        if (IPD5000_UNLOCK_MENU() != 0)
+        {
+            return -1;
+        }
+    }
+    else if(strcmp(status, "lock") == 0)
+    {
+        if (IPD5000_LOCK_MENU() != 0)
+        {
+            return -1;
+        }
+    }
+    
+    deinit_p3k_client();
+    
+    return 0;
 }
 
 static int IPD5000_UNLOCK_MENU()
 {
 
-	if (recv_button_init() != 0)
+    if (recv_button_init() != 0)
     {
         printf("recv_button_init() fail - [%s:%d]\n", __func__, __LINE__);
         return -1;
     }
-	if (run_recv_butoon_event() != 0)
-	{
-		printf("run_recv_butoon_event fail\n");
-		return -1;
-	}
-	
-	CH_NUM_SELECT_D();
-	
-	return 0;
+    if (run_recv_butoon_event() != 0)
+    {
+        printf("run_recv_butoon_event fail\n");
+        return -1;
+    }
+    
+    CH_NUM_SELECT_D();
+    
+    return 0;
 }
 
 static int IPD5000_LOCK_MENU()
 {
-	system("pkill -9 recv_button_event");
-	
-	int last_id = -1;
-	int current_id = -1;
-	char show_buf[20] = {0};
-	char channel_id[20] = {0};
-	last_id = current_id = GET_CHANNEL_ID();
-	
-	channel_id_convert_to_string(current_id, channel_id);
-	sprintf(show_buf, "CH %s", channel_id);
-	
-	clear_whole_screen();
-	show_strings(2, 40, show_buf, strlen(show_buf), 1);
-	show_strings(4, 40, "LOCKED", strlen("LOCKED"), 1);
-	
-	while(1)
-	{
-		current_id = GET_CHANNEL_ID();
+    system("pkill -9 recv_button_event");
+    
+    int last_id = -1;
+    int current_id = -1;
+    char show_buf[20] = {0};
+    char channel_id[20] = {0};
+    last_id = current_id = GET_CHANNEL_ID();
+    
+    channel_id_convert_to_string(current_id, channel_id);
+    sprintf(show_buf, "CH %s", channel_id);
+    
+    clear_whole_screen();
+    show_strings(2, 40, show_buf, strlen(show_buf), 1);
+    show_strings(4, 40, "LOCKED", strlen("LOCKED"), 1);
+    
+    while(1)
+    {
+        current_id = GET_CHANNEL_ID();
 
-		if (current_id != last_id)
-		{
-			last_id = current_id;
-			channel_id_convert_to_string(current_id, channel_id);
-			sprintf(show_buf, "CH %s", channel_id);
-			
-			show_strings(2, 64, channel_id, strlen(channel_id), 1);
-		}
-		
-		sleep(5);
-	}
+        if (current_id != last_id)
+        {
+            last_id = current_id;
+            channel_id_convert_to_string(current_id, channel_id);
+            sprintf(show_buf, "CH %s", channel_id);
+            
+            show_strings(2, 64, channel_id, strlen(channel_id), 1);
+        }
+        
+        sleep(5);
+    }
 
-	return 0;
+    return 0;
 }
 
 
 // The first level: 1. MAIN MENU
 static int IPD5000_MAIN_MENU_SHOW(void)
 {
-	memset (CH_LIST_D, 0 ,sizeof(CH_LIST_D));
+    memset (CH_LIST_D, 0 ,sizeof(CH_LIST_D));
     CH_TATOL_NUM_D = Decode_Get_Chenel_List(CH_LIST_D);
-	
+    
     u8 count = sizeof(MAIN_MENU_LIST_D)/(sizeof(char*));
     int p = 4; 
     int y = 8;
@@ -438,12 +438,12 @@ static int IPD5000_MAIN_MENU_SHOW(void)
 
         switch (key)
         {
-        	case FAULT:
-        	{
-        		clear_whole_screen();
-        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
-				exit(-1);
-			}
+            case FAULT:
+            {
+                clear_whole_screen();
+                show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+                exit(-1);
+            }
             case UP_KEY:
             case DOWN_KEY:
             {
@@ -459,8 +459,8 @@ static int IPD5000_MAIN_MENU_SHOW(void)
                     {
                         if (SHOW_TIMEOUT == DEV_STATUS_D())
                         {
-							return SHOW_TIMEOUT;
-						}
+                            return SHOW_TIMEOUT;
+                        }
                         break;
                     }
                     
@@ -468,8 +468,8 @@ static int IPD5000_MAIN_MENU_SHOW(void)
                     {
                         if (SHOW_TIMEOUT == DEV_INFO_D())
                         {
-							return SHOW_TIMEOUT;
-						}
+                            return SHOW_TIMEOUT;
+                        }
                         break;
                     }
                     
@@ -477,8 +477,8 @@ static int IPD5000_MAIN_MENU_SHOW(void)
                     {
                         if (SHOW_TIMEOUT == DEV_SETTINGS_D())
                         {
-							return SHOW_TIMEOUT;
-						}
+                            return SHOW_TIMEOUT;
+                        }
                         break;
                     }
     
@@ -509,13 +509,13 @@ static int IPD5000_MAIN_MENU_SHOW(void)
             {   
                 return 0;
             }
-			case TIMEOUT:
-			{
-				return SHOW_TIMEOUT;
-			}
+            case TIMEOUT:
+            {
+                return SHOW_TIMEOUT;
+            }
         }
     }
-	
+    
 }
 
 // the second level: 2.1 DEV STATUS
@@ -546,12 +546,12 @@ static int DEV_STATUS_D()
 
         switch (key)
         {
-        	case FAULT:
-        	{
-        		clear_whole_screen();
-        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
-				exit(-1);
-			}
+            case FAULT:
+            {
+                clear_whole_screen();
+                show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+                exit(-1);
+            }
             case UP_KEY:
             case DOWN_KEY:
             {
@@ -567,43 +567,43 @@ static int DEV_STATUS_D()
                     {
                         if (SHOW_TIMEOUT == LAN_STATUS_D(LAN1_ID_D))
                         {
-							return SHOW_TIMEOUT;
-						}
+                            return SHOW_TIMEOUT;
+                        }
                         break;
                     }
                     
                     if (DEV_STATUS_SHOWWING_D[param.x/2] == DEV_STATUS_LIST_D[2]) // LAN1 STATUS 
                     {
                         if (SHOW_TIMEOUT == LAN_STATUS_D(LAN2_ID_D))
-						{
-							return SHOW_TIMEOUT;
-						}
+                        {
+                            return SHOW_TIMEOUT;
+                        }
                         break;
                     }
                     
                     if (DEV_STATUS_SHOWWING_D[param.x/2] == DEV_STATUS_LIST_D[3]) // HDMI STATUS
                     {
                         if (SHOW_TIMEOUT == HDMI_STATUS_D())
-						{
-							return SHOW_TIMEOUT;
-						}
+                        {
+                            return SHOW_TIMEOUT;
+                        }
                         break;
                     }
     
                     if (DEV_STATUS_SHOWWING_D[param.x/2] == DEV_STATUS_LIST_D[4]) // CHANNEL SEL
                     {
                         if (SHOW_TIMEOUT == CHANNEL_SHOW_D())
-						{
-							return SHOW_TIMEOUT;
-						}
+                        {
+                            return SHOW_TIMEOUT;
+                        }
                         break;
                     }
                     if (DEV_STATUS_SHOWWING_D[param.x/2] == DEV_STATUS_LIST_D[5]) // TEMPERATURE
                     {
                         if (SHOW_TIMEOUT == TEMPERATURE_D())
-						{
-							return SHOW_TIMEOUT;
-						}
+                        {
+                            return SHOW_TIMEOUT;
+                        }
                         break;
                     }
                     
@@ -635,10 +635,10 @@ static int DEV_STATUS_D()
             {   
                 return 0;
             }
-			case TIMEOUT:
-			{
-				return SHOW_TIMEOUT;
-			}
+            case TIMEOUT:
+            {
+                return SHOW_TIMEOUT;
+            }
         }
     }
     
@@ -667,20 +667,20 @@ static int LAN_STATUS_D(int interface_id)
         
         switch (key)
         {
-        	case FAULT:
-        	{
-        		clear_whole_screen();
-        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
-				exit(-1);
-			}
+            case FAULT:
+            {
+                clear_whole_screen();
+                show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+                exit(-1);
+            }
             case LEFT_KEY: 
-			{ 
+            { 
                 return 0;
             }
-			case TIMEOUT:
-			{
-				return SHOW_TIMEOUT;
-			}
+            case TIMEOUT:
+            {
+                return SHOW_TIMEOUT;
+            }
         }
     }
 }
@@ -709,7 +709,7 @@ static int HDMI_STATUS_D()
     clear_whole_screen();
     show_strings(0, y, HDMI_STATUS_LIST_D[0], strlen(HDMI_STATUS_LIST_D[0]) ,1); 
     show_menu_info_D(y, 1, HDMI_STATUS_SHOWWING_D, HDMI_STATUS_LIST_D, count>4 ? 3 : count-1);
-	
+    
     int key = 0;
     while (1)
     { 
@@ -717,20 +717,20 @@ static int HDMI_STATUS_D()
 
         switch (key)
         {
-        	case FAULT:
-        	{
-        		clear_whole_screen();
-        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
-				exit(-1);
-			}
+            case FAULT:
+            {
+                clear_whole_screen();
+                show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+                exit(-1);
+            }
             case LEFT_KEY:
             {
                 return 0;
             }
-			case TIMEOUT:
-			{
-				return SHOW_TIMEOUT;
-			}
+            case TIMEOUT:
+            {
+                return SHOW_TIMEOUT;
+            }
         }
     }
         
@@ -739,18 +739,18 @@ static int HDMI_STATUS_D()
 // 1.4 DEV STATUS -> CHANNEL SHOW
 static int CHANNEL_SHOW_D()
 {
-	int i = 0;
+    int i = 0;
     int id = -1;
     char buf[20] = {0};
     id = GET_CHANNEL_ID();
-	for (i = 0; i < CH_TATOL_NUM_D; i++)
-	{
-		if (CH_LIST_D[i].ch_id == id)
-		{
-			break;
-		}
-	}
-	
+    for (i = 0; i < CH_TATOL_NUM_D; i++)
+    {
+        if (CH_LIST_D[i].ch_id == id)
+        {
+            break;
+        }
+    }
+    
     clear_whole_screen();
     show_strings(0, 16, "CHANNEL SEL", strlen("CHANNEL SEL") ,1);
     show_strings(2, 16, CH_LIST_D[i].ch_name, strlen(CH_LIST_D[i].ch_name) ,1);
@@ -762,20 +762,20 @@ static int CHANNEL_SHOW_D()
 
         switch (key)
         {
-        	case FAULT:
-        	{
-        		clear_whole_screen();
-        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
-				exit(-1);
-			}
+            case FAULT:
+            {
+                clear_whole_screen();
+                show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+                exit(-1);
+            }
             case LEFT_KEY:
             {
                 return 0;
             }
-			case TIMEOUT:
-			{
-				return SHOW_TIMEOUT;
-			}
+            case TIMEOUT:
+            {
+                return SHOW_TIMEOUT;
+            }
         }
     }
 
@@ -802,20 +802,20 @@ static int TEMPERATURE_D()
 
         switch (key)
         {
-        	case FAULT:
-        	{
-        		clear_whole_screen();
-        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
-				exit(-1);
-			}
+            case FAULT:
+            {
+                clear_whole_screen();
+                show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+                exit(-1);
+            }
             case LEFT_KEY:
             {
                 return 0;
             }
-			case TIMEOUT:
-			{
-				return SHOW_TIMEOUT;
-			}
+            case TIMEOUT:
+            {
+                return SHOW_TIMEOUT;
+            }
         }
     }
     
@@ -855,19 +855,19 @@ static int DEV_INFO_D()
         switch (key)
         {
             case FAULT:
-        	{
-        		clear_whole_screen();
-        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
-				exit(-1);
-			}
+            {
+                clear_whole_screen();
+                show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+                exit(-1);
+            }
             case LEFT_KEY:  //返回上一级目录
             {
                 return 0;
             }
-			case TIMEOUT:
-			{
-				return SHOW_TIMEOUT;
-			}
+            case TIMEOUT:
+            {
+                return SHOW_TIMEOUT;
+            }
         }
     }
 }
@@ -901,12 +901,12 @@ static int DEV_SETTINGS_D()
 
         switch (key)
         {
-        	case FAULT:
-        	{
-        		clear_whole_screen();
-        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
-				exit(-1);
-			}
+            case FAULT:
+            {
+                clear_whole_screen();
+                show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+                exit(-1);
+            }
             case UP_KEY:
             case DOWN_KEY:
             {
@@ -921,27 +921,27 @@ static int DEV_SETTINGS_D()
                     if (DEV_SETTINGS_SHOWWING_D[param.x/2] == DEV_SETTINGS_LIST_D[1]) // INPUT SETTING 
                     {
                         if (SHOW_TIMEOUT == INPUT_SETTING_D())
-						{
-							return SHOW_TIMEOUT;
-						}
+                        {
+                            return SHOW_TIMEOUT;
+                        }
                         break;
                     }
                     
                     if (DEV_SETTINGS_SHOWWING_D[param.x/2] == DEV_SETTINGS_LIST_D[2]) // RESOL SETTING
                     {
                         if (SHOW_TIMEOUT == RESOL_SETTING_D())
-						{
-							return SHOW_TIMEOUT;
-						}
+                        {
+                            return SHOW_TIMEOUT;
+                        }
                         break;
                     }
     
                     if (DEV_SETTINGS_SHOWWING_D[param.x/2] == DEV_SETTINGS_LIST_D[3]) // CH SELECT
                     {
                         if (SHOW_TIMEOUT == CH_SELECT_D())
-						{
-							return SHOW_TIMEOUT;
-						}
+                        {
+                            return SHOW_TIMEOUT;
+                        }
                         break;
                     }
                     
@@ -973,10 +973,10 @@ static int DEV_SETTINGS_D()
             {   
                 return 0;
             }
-			case TIMEOUT:
-			{
-				return SHOW_TIMEOUT;
-			}
+            case TIMEOUT:
+            {
+                return SHOW_TIMEOUT;
+            }
         }
     }
 
@@ -991,7 +991,7 @@ static int INPUT_SETTING_D()
     err = GET_DECODE_VIDEO_INPUT(Type);
     if (err == -1)
         return -1;
-	
+    
     if (strcasestr(Type, "stream") != NULL)
     {
         type_i = 1;
@@ -1035,12 +1035,12 @@ static int INPUT_SETTING_D()
 
         switch (key)
         {
-        	case FAULT:
-        	{
-        		clear_whole_screen();
-        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
-				exit(-1);
-			}
+            case FAULT:
+            {
+                clear_whole_screen();
+                show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+                exit(-1);
+            }
             case DOWN_KEY:
             {
                 if (x == 2)
@@ -1081,10 +1081,10 @@ static int INPUT_SETTING_D()
             {
                 return 0;
             }
-			case TIMEOUT:
-			{
-				return SHOW_TIMEOUT;
-			}
+            case TIMEOUT:
+            {
+                return SHOW_TIMEOUT;
+            }
 
         }
 
@@ -1152,12 +1152,12 @@ static int RESOL_SETTING_D()
         key = recv_button_status();
         switch (key)
         {
-        	case FAULT:
-        	{
-        		clear_whole_screen();
-        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
-				exit(-1);
-			}
+            case FAULT:
+            {
+                clear_whole_screen();
+                show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+                exit(-1);
+            }
             case UP_KEY:
             case DOWN_KEY:
             {
@@ -1187,10 +1187,10 @@ static int RESOL_SETTING_D()
             {
                 return 0;
             }
-			case TIMEOUT:
-			{
-				return SHOW_TIMEOUT;
-			}
+            case TIMEOUT:
+            {
+                return SHOW_TIMEOUT;
+            }
             
         }
 
@@ -1200,27 +1200,27 @@ static int RESOL_SETTING_D()
 
 static int SHOW_WHICH_GROUP(int current_group, int total_count, int active_offset)
 {
-	int num  = 0;
+    int num  = 0;
     int temp_x = 2;
-	clear_three_line();
-	//把 active_id 那一组全部显示
-	for (num = 0; num < 3; num++)
+    clear_three_line();
+    //把 active_id 那一组全部显示
+    for (num = 0; num < 3; num++)
     {
         if ((current_group*3 + num) > total_count - 1)    //是否还有内容显示
         {
-			break;
-		}
+            break;
+        }
         else
         {
-			show_strings(temp_x, 16, CH_LIST_D[current_group*3+num].ch_name, strlen(CH_LIST_D[current_group*3+num].ch_name), 1);
-			if (current_group*3+num == active_offset)
-			{
-				show_a_star(temp_x);
-			}
-		}
+            show_strings(temp_x, 16, CH_LIST_D[current_group*3+num].ch_name, strlen(CH_LIST_D[current_group*3+num].ch_name), 1);
+            if (current_group*3+num == active_offset)
+            {
+                show_a_star(temp_x);
+            }
+        }
         temp_x += 2;
     }
-	return 0;
+    return 0;
 }
 
 /* 
@@ -1236,7 +1236,7 @@ line2 |  2 5 8 11 .....
 static int CH_SELECT_D()
 {
     int res = -1;
-	int i = 0;
+    int i = 0;
 
     res = file_is_changed_D(CHANNEL_MAP);
     if (res == 1)
@@ -1248,38 +1248,38 @@ static int CH_SELECT_D()
 
     int x = 2; 
     int y = 16;
-	
+    
     //要显示哪三个? 三三进行分组显示, 组号从0开始
     int last_group_num = count % 3;          //最后一组，有几个成员。
-	int total_group = count / 3;           
+    int total_group = count / 3;           
 
-	int active_id = -1;
+    int active_id = -1;
     active_id = GET_CHANNEL_ID();
 
-	//在CH_LIST_D找到这个active_id，判断在第几组 第几个
-	int offset = 0;
-	for (i = 0; i < CH_TATOL_NUM_D; i++)
-	{
-		if(CH_LIST_D[i].ch_id == active_id)
-		{
-			offset = i;
-			break;
-		}
-	}
+    //在CH_LIST_D找到这个active_id，判断在第几组 第几个
+    int offset = 0;
+    for (i = 0; i < CH_TATOL_NUM_D; i++)
+    {
+        if(CH_LIST_D[i].ch_id == active_id)
+        {
+            offset = i;
+            break;
+        }
+    }
 
-	
+    
     int current_group = 0;              //active_id在第几组，
     int current_num = 0;                //active_id在组内是第几个， 共1，2，3 三个
     
-	current_num = offset % 3;
-	current_group = offset / 3;
+    current_num = offset % 3;
+    current_group = offset / 3;
 
-	x = (current_num + 1) * 2;
+    x = (current_num + 1) * 2;
    
     clear_whole_screen();
     show_strings(0, y, "CH SELECT", strlen("CH SELECT"), 1);
-	SHOW_WHICH_GROUP(current_group, count, offset);
-	
+    SHOW_WHICH_GROUP(current_group, count, offset);
+    
     show_square_breakets(x);
     show_a_star(x);
 
@@ -1290,33 +1290,33 @@ static int CH_SELECT_D()
         key = recv_button_status();
         switch (key)
         {
-        	case FAULT:
-        	{
-        		clear_whole_screen();
-        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
-				exit(-1);
-			}
+            case FAULT:
+            {
+                clear_whole_screen();
+                show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+                exit(-1);
+            }
             case DOWN_KEY:
             {
                 if (x < 6)
                 {
-					//到了最后一页
-					if (current_group == total_group)
-					{
-						if (x >= last_group_num*2)
-						{
-							current_group = 0;  //跳到第一页
-							x = 2;
-							trace_offset = 0;
-							SHOW_WHICH_GROUP(current_group, count, offset);
-							show_square_breakets(x);
-							break;     //此时x正是指向最后一个，中括号就不能在往下移了
-						}
-						
-					}
-					
+                    //到了最后一页
+                    if (current_group == total_group)
+                    {
+                        if (x >= last_group_num*2)
+                        {
+                            current_group = 0;  //跳到第一页
+                            x = 2;
+                            trace_offset = 0;
+                            SHOW_WHICH_GROUP(current_group, count, offset);
+                            show_square_breakets(x);
+                            break;     //此时x正是指向最后一个，中括号就不能在往下移了
+                        }
+                        
+                    }
+                    
                     x+=2;
-					trace_offset++;
+                    trace_offset++;
                     show_square_breakets(x);
                 }
                 else // x = 6  翻页处理
@@ -1324,14 +1324,14 @@ static int CH_SELECT_D()
                     if (current_group < total_group) //后面还有组可以显示，
                     {
                         current_group++;
-						
+                        
                         SHOW_WHICH_GROUP(current_group, count, offset);
                         x = 2;
                         show_square_breakets(x);
-						trace_offset++;
+                        trace_offset++;
                     }
                 }
-				break;
+                break;
             }
 
             case UP_KEY:
@@ -1340,82 +1340,82 @@ static int CH_SELECT_D()
                 {
                     x -= 2;
                     show_square_breakets(x);
-					trace_offset--;
+                    trace_offset--;
                 }
                 else  // x == 2
                 {
                     if (current_group > 0) //向前还有页可翻
                     {
-                    	current_group--;
-						trace_offset -= 3;
+                        current_group--;
+                        trace_offset -= 3;
                     }
-					else
-					{
-						current_group = total_group;
-						trace_offset = count - (count%3);
-					}
-					SHOW_WHICH_GROUP(current_group, count, offset);
+                    else
+                    {
+                        current_group = total_group;
+                        trace_offset = count - (count%3);
+                    }
+                    SHOW_WHICH_GROUP(current_group, count, offset);
                     x = 2;
                     show_square_breakets(x);
                 }
-				break;
+                break;
             }
 
-			//Turn up  three pages at a time
-			case DOWN_CONTINUE_PRESS:
-			{
-				current_group += 3;
-				if (current_group > total_group)
-				{
-					current_group = current_group - total_group -1;
-				}
-				SHOW_WHICH_GROUP(current_group, count, offset);
+            //Turn up  three pages at a time
+            case DOWN_CONTINUE_PRESS:
+            {
+                current_group += 3;
+                if (current_group > total_group)
+                {
+                    current_group = current_group - total_group -1;
+                }
+                SHOW_WHICH_GROUP(current_group, count, offset);
                 x = 2;
                 show_square_breakets(x);
-				trace_offset = current_group*3;
+                trace_offset = current_group*3;
 
-				break;
-			}
+                break;
+            }
 
-			//Turn down  three pages at a time
-			case UP_CONTINUE_PRESS:
-			{
-				current_group -= 3;
-				if(current_group < 0)
-				{
-					current_group = total_group + current_group + 1;	
-				}
+            //Turn down  three pages at a time
+            case UP_CONTINUE_PRESS:
+            {
+                current_group -= 3;
+                if(current_group < 0)
+                {
+                    current_group = total_group + current_group + 1;    
+                }
 
-				SHOW_WHICH_GROUP(current_group, count, offset);
-				 x = 2;
+                SHOW_WHICH_GROUP(current_group, count, offset);
+                 x = 2;
                 show_square_breakets(x);
-				trace_offset = current_group*3;
-				
-				break;
-			}
-			
+                trace_offset = current_group*3;
+                
+                break;
+            }
+            
             case ENTER_KEY:
             case RIGHT_KEY:
             {
                 show_a_star(x);
                 
                 char buf[2] = {0};
-				
+                
                 sprintf(buf, "%d", CH_LIST_D[trace_offset].ch_id);
-				//printf("choose id is [%d], [%s]\n", CH_LIST_D[trace_offset].ch_id, CH_LIST_D[trace_offset].ch_name);
-                SET_CHANNEL_ID(buf);		
-				offset = trace_offset;
-				break;
+                //printf("choose id is [%d], [%s]\n", CH_LIST_D[trace_offset].ch_id, CH_LIST_D[trace_offset].ch_name);
+                SET_CHANNEL_ID(buf);        
+                offset = trace_offset;
+                break;
             }
-		
+        
             case LEFT_KEY:
             {
                 return 0;
             }
-			case TIMEOUT:
-			{
-				return SHOW_TIMEOUT;
-			}
+            case TIMEOUT:
+            {
+                return SHOW_TIMEOUT;
+            }
         }
     }
     return 0;
@@ -1426,15 +1426,15 @@ static int CH_NUM_SELECT_D()
     int x = 2; 
     int y = 16;
 
-	int last_id = -1, current_id = -1;
-	char show_buf[20] = {0};
-	char channel_id[20] = {0};
+    int last_id = -1, current_id = -1;
+    char show_buf[20] = {0};
+    char channel_id[20] = {0};
     current_id = GET_CHANNEL_ID();
-	last_id = current_id;
-	channel_id_convert_to_string(current_id, channel_id);
-	
+    last_id = current_id;
+    channel_id_convert_to_string(current_id, channel_id);
+    
     clear_whole_screen();
-	sprintf(show_buf, "CH %s", channel_id);
+    sprintf(show_buf, "CH %s", channel_id);
     show_strings(2, 40, show_buf, strlen(show_buf) ,1);
     show_a_char(2,  64, channel_id[0], 1, 1);
 
@@ -1443,15 +1443,15 @@ static int CH_NUM_SELECT_D()
     while (1)
     {
         key = recv_button_status();
-		
+        
         switch (key)
         {
-        	case FAULT:
-        	{
-        		clear_whole_screen();
-        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
-				exit(-1);
-			}
+            case FAULT:
+            {
+                clear_whole_screen();
+                show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+                exit(-1);
+            }
             case UP_KEY:
             {
                 if (channel_id[i] < '9')
@@ -1471,7 +1471,7 @@ static int CH_NUM_SELECT_D()
                     }
                 }
                 show_a_char(2, 64+i*8, channel_id[i], 1, 1);
-				SET_CHANNEL_ID(channel_id);
+                SET_CHANNEL_ID(channel_id);
                 break;
             }
             case DOWN_KEY:
@@ -1482,7 +1482,7 @@ static int CH_NUM_SELECT_D()
                     {
                         if (channel_id[i] > '1')
                         {
-                        	channel_id[i]--;
+                            channel_id[i]--;
                         }
                         else
                         {
@@ -1515,7 +1515,7 @@ static int CH_NUM_SELECT_D()
                 }
 
                 show_a_char(2, 64+i*8, channel_id[i], 1, 1);
-				SET_CHANNEL_ID(channel_id);
+                SET_CHANNEL_ID(channel_id);
                 break;
             }
             case RIGHT_KEY:
@@ -1531,7 +1531,7 @@ static int CH_NUM_SELECT_D()
                 }
 
                 show_a_char(2, 64+i*8, channel_id[i], 1, 1);
-				
+                
                 break;
             }
             case LEFT_KEY:
@@ -1547,43 +1547,43 @@ static int CH_NUM_SELECT_D()
                 }
 
                 show_a_char(2, 64+i*8, channel_id[i], 1, 1);
-				
+                
                 break;
             }
             case ENTER_KEY:
             {
-            	last_id = current_id;
-				IPD5000_MAIN_MENU_SHOW();
-				
-            	current_id = GET_CHANNEL_ID();
-				last_id = current_id;
-				channel_id_convert_to_string(current_id, channel_id);
-				sprintf(show_buf, "CH %s", channel_id);
-				
-				clear_whole_screen();
-		    	show_strings(2, 40, show_buf, strlen(show_buf) ,1);
-		    	show_a_char(2,  64, channel_id[0], 1, 1);
-				i = 0;
-				
-				break;
+                last_id = current_id;
+                IPD5000_MAIN_MENU_SHOW();
+                
+                current_id = GET_CHANNEL_ID();
+                last_id = current_id;
+                channel_id_convert_to_string(current_id, channel_id);
+                sprintf(show_buf, "CH %s", channel_id);
+                
+                clear_whole_screen();
+                show_strings(2, 40, show_buf, strlen(show_buf) ,1);
+                show_a_char(2,  64, channel_id[0], 1, 1);
+                i = 0;
+                
+                break;
             }
-			case TIMEOUT:
-			{
-				current_id = GET_CHANNEL_ID();
-				
-				if (current_id != last_id)
-				{
-					last_id = current_id;
-					
-					channel_id_convert_to_string(current_id, channel_id);
+            case TIMEOUT:
+            {
+                current_id = GET_CHANNEL_ID();
+                
+                if (current_id != last_id)
+                {
+                    last_id = current_id;
+                    
+                    channel_id_convert_to_string(current_id, channel_id);
 
-					sprintf(show_buf, "CH %s", channel_id);
-					clear_a_line(2);
-					show_strings(2, 40, show_buf, strlen(show_buf) ,1);
-    				show_a_char(2,  64+i*8, channel_id[i], 1, 1);
-				}
-				break;
-			}
+                    sprintf(show_buf, "CH %s", channel_id);
+                    clear_a_line(2);
+                    show_strings(2, 40, show_buf, strlen(show_buf) ,1);
+                    show_a_char(2,  64+i*8, channel_id[i], 1, 1);
+                }
+                break;
+            }
         }
     }
     return 0;
@@ -1623,15 +1623,15 @@ static int HDCP_SETTING_D()
         key = recv_button_status();
         switch (key)
         {
-        	case FAULT:
-        	{
-        		clear_whole_screen();
-        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
-				exit(-1);
-			}
+            case FAULT:
+            {
+                clear_whole_screen();
+                show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+                exit(-1);
+            }
             case DOWN_KEY:
             {
-            	star_x += 2;
+                star_x += 2;
                 if (star_x > 4)
                 {
                     star_x = 4;
@@ -1641,12 +1641,12 @@ static int HDCP_SETTING_D()
             }
             case UP_KEY:
             {
-				star_x -= 2;
+                star_x -= 2;
                 if (star_x < 2)
                 {
                     star_x = 2;
                 }
-				show_square_breakets(star_x);
+                show_square_breakets(star_x);
                 break;
             }
             

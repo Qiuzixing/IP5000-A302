@@ -184,128 +184,128 @@ int init_p3k_client(char *ip, int port)
 
 int deinit_p3k_client()
 {
-	tcp_client_deinit();
+    tcp_client_deinit();
 }
 
 #if 0
 int Decode_Get_Chenel_List(char *list[1000])
 {
-	int num = 0;
-	char ch[20] = {0};
-	char *ch1 = NULL;
-	
-	char buf[10] = {0};
-	FILE *fd = NULL;
-	fd = fopen(DECODE_CHANNEL_MAP, "r");
+    int num = 0;
+    char ch[20] = {0};
+    char *ch1 = NULL;
+    
+    char buf[10] = {0};
+    FILE *fd = NULL;
+    fd = fopen(DECODE_CHANNEL_MAP, "r");
     if (fd == NULL)
     {
         printf("fopen %s fail\n", DECODE_CHANNEL_MAP);
         return -1;
     }
-	while(!feof(fd))
-	{
-		fread(buf, 1, 1, fd);
-		if(buf[0] == 'n')
-		{
-			fread(buf, 1, 1, fd);
-			if (buf[0] == 'a')
-			{
-				memset(buf, 0, 5);
-				fread(buf, 1, 5, fd);
-				if(strcmp(buf, "me\":\"") == 0)
-				{
-					int i = 0;
-					//memset(ch, 0, sizeof(ch));
-					ch1 = (char*)malloc(20);
-					
-					while(1)
-					{
-						fread(buf, 1, 1, fd);
-						if (buf[0] == '\"' || i > 15)
-						{
-							break;
-						}
-						//ch[i] = buf[0];
-						ch1[i] = buf[0];
-						i++;
-					}
-					//ch[i] = '\0';
-					//strcpy(list[num], ch);
-					
-					ch1[i] = '\0';
-					list[num] = ch1;
-					num++;
-				}
-			}
-		}
-	}
-	return num;
+    while(!feof(fd))
+    {
+        fread(buf, 1, 1, fd);
+        if(buf[0] == 'n')
+        {
+            fread(buf, 1, 1, fd);
+            if (buf[0] == 'a')
+            {
+                memset(buf, 0, 5);
+                fread(buf, 1, 5, fd);
+                if(strcmp(buf, "me\":\"") == 0)
+                {
+                    int i = 0;
+                    //memset(ch, 0, sizeof(ch));
+                    ch1 = (char*)malloc(20);
+                    
+                    while(1)
+                    {
+                        fread(buf, 1, 1, fd);
+                        if (buf[0] == '\"' || i > 15)
+                        {
+                            break;
+                        }
+                        //ch[i] = buf[0];
+                        ch1[i] = buf[0];
+                        i++;
+                    }
+                    //ch[i] = '\0';
+                    //strcpy(list[num], ch);
+                    
+                    ch1[i] = '\0';
+                    list[num] = ch1;
+                    num++;
+                }
+            }
+        }
+    }
+    return num;
 }
 #endif
 
 int Decode_Get_Chenel_List(T_CH_MAP list[1000])
 {
-	int num = 0;
-	char ch[20] = {0};
-	char *ch1 = NULL;
+    int num = 0;
+    char ch[20] = {0};
+    char *ch1 = NULL;
 
-	char buf[10] = {0};
-	FILE *fd = NULL;
-	fd = fopen(DECODE_CHANNEL_MAP, "r");
-	if (fd == NULL)
-	{
-		printf("fopen %s fail\n", DECODE_CHANNEL_MAP);
-		return -1;
-	}
+    char buf[10] = {0};
+    FILE *fd = NULL;
+    fd = fopen(DECODE_CHANNEL_MAP, "r");
+    if (fd == NULL)
+    {
+        printf("fopen %s fail\n", DECODE_CHANNEL_MAP);
+        return -1;
+    }
 
-	int id = 0;
-	int i = 0;
-	while(!feof(fd))
-	{
-		fread(buf, 1, 1, fd);
-		if(buf[0] == 'i')
-		{
-			fread(buf, 1, 3, fd);
-			buf[3] = '\0';
-			if ( strcmp(buf, "d\":") == 0)
-			{
-				id = 0;
-				T_CH_MAP ch_member = {0, {0} };
-				while(1)
-				{
-					fread(buf, 1, 1, fd);
-					if (buf[0] == ',')
-					{
-						break;
-					}
-					id = id*10 + atoi(buf);
-				}
-				ch_member.ch_id = id;
-				fread(buf, 1, 8, fd);
-				buf[8] = '\0';
-				if (strcmp(buf, "\"name\":\"") == 0)
-				{
-					int n = 0;
-					while (1)
-					{
-						fread(buf, 1, 1, fd);
-						if (buf[0] == '\"' || n > 11)
-						{
-							break;
-						}
-						ch_member.ch_name[n] = buf[0];
-						n++;
-					}
-				}
-				list[num].ch_id = ch_member.ch_id;
-				strcpy(list[num].ch_name, ch_member.ch_name);
-				num++;
-			}
+    int id = 0;
+    int i = 0;
+    while(!feof(fd))
+    {
+        fread(buf, 1, 1, fd);
+        if(buf[0] == 'i')
+        {
+            fread(buf, 1, 3, fd);
+            buf[3] = '\0';
+            if ( strcmp(buf, "d\":") == 0)
+            {
+                id = 0;
+                T_CH_MAP ch_member = {0, {0} };
+                while(1)
+                {
+                    fread(buf, 1, 1, fd);
+                    if (buf[0] == ',')
+                    {
+                        break;
+                    }
+                    id = id*10 + atoi(buf);
+                }
+                ch_member.ch_id = id;
+                fread(buf, 1, 8, fd);
+                buf[8] = '\0';
+                if (strcmp(buf, "\"name\":\"") == 0)
+                {
+                    int n = 0;
+                    while (1)
+                    {
+                        fread(buf, 1, 1, fd);
+                        if (buf[0] == '\"' || n > 11)
+                        {
+                            break;
+                        }
+                        ch_member.ch_name[n] = buf[0];
+                        n++;
+                    }
+                }
+                list[num].ch_id = ch_member.ch_id;
+                strcpy(list[num].ch_name, ch_member.ch_name);
+                num++;
+            }
 
-		}
+        }
 
-	}
-	return num;
+    }
+    return num;
 }
 
 int get_specified_string_from_file(const char *file, char *channel_list[100]) 
@@ -368,7 +368,7 @@ int get_specified_string_from_file(const char *file, char *channel_list[100])
     return i;
 }
 
-static int send_cmd_common(char *cmd, char *head, char *param, char *content)
+static int old_send_cmd_common(char *cmd, char *head, char *param, char *content)
 {
     char mcmd[SIZE1] = {0};
     char recv_buf[SIZE1] = {0};
@@ -379,7 +379,7 @@ static int send_cmd_common(char *cmd, char *head, char *param, char *content)
         sprintf(mcmd, "%s%s", mcmd, param);
     }
     printf("send p3k cmd: %s\n", mcmd);
-    if (send_p3k_cmd_wait_rsp(mcmd, recv_buf, sizeof(recv_buf)))
+    if (old_send_p3k_cmd_wait_rsp(mcmd, recv_buf, sizeof(recv_buf)))
     {
         printf("send_p3k_cmd_wait_rsp fail\n");
         return -1;
@@ -404,6 +404,34 @@ static int send_cmd_common(char *cmd, char *head, char *param, char *content)
     }
     return 0;
 }
+
+static int send_cmd_common(char *cmd, char *head, char *param, char *content)
+{
+    char mcmd[SIZE1] = {0};
+    char recv_buf[SIZE1] = {0};
+    
+    sprintf(mcmd, "%s", cmd);
+    if (param != NULL)
+    {
+        sprintf(mcmd, "%s%s", mcmd, param);
+    }
+    printf("send p3k cmd: %s\n", mcmd);
+    if (send_p3k_cmd_wait_rsp(mcmd, recv_buf, sizeof(recv_buf), head, strlen(head)))
+    {
+        printf("send_p3k_cmd_wait_rsp fail\n");
+        return -1;
+    }
+    
+    printf("response: %s\n", recv_buf);
+
+    if (content != NULL)
+    {
+        strcpy(content, recv_buf);
+    }
+    
+    return 0;
+}
+
 
 static int split_string(char *src, char *splite_chr, char buf[6][16], int *recv_num)
 {
@@ -465,21 +493,20 @@ int GET_IP(int NET_ID, char *IP, char *MASK, char *GATEWAY)
     int num = 0;
     char ip_info[6][16] = {{0},{0},{0},{0},{0},{0}};
 
-    printf("recv_buf:[%s]\n", recv_buf);
-	if (strlen(recv_buf) == 0)
-	{
-		char buf[] = "000.000.000.000";
-		strcpy(IP, buf);
-		strcpy(MASK, buf);
-		strcpy(GATEWAY, buf);
-	}
-	else
-	{
-	    split_string(recv_buf, ",", ip_info, &num);
-	    fill_ip_become_15_byte(ip_info[0], IP);
-	    fill_ip_become_15_byte(ip_info[1], MASK);
-	    fill_ip_become_15_byte(ip_info[2], GATEWAY);
-	}
+    if (strlen(recv_buf) == 0)
+    {
+        char buf[] = "000.000.000.000";
+        strcpy(IP, buf);
+        strcpy(MASK, buf);
+        strcpy(GATEWAY, buf);
+    }
+    else
+    {
+        split_string(recv_buf, ",", ip_info, &num);
+        fill_ip_become_15_byte(ip_info[0], IP);
+        fill_ip_become_15_byte(ip_info[1], MASK);
+        fill_ip_become_15_byte(ip_info[2], GATEWAY);
+    }
     return 0;
 }
 
@@ -632,12 +659,12 @@ int GET_EDID(char *edid_type)
     }
     else if (strcasestr(recv_buf, "CUSTOM"))
     {
-    	str = strstr(recv_buf, "CUSTOM,");
-		if (str != NULL)
-		{
-			str += strlen("CUSTOM,");
-			strcpy(edid_type, str);
-		}
+        str = strstr(recv_buf, "CUSTOM,");
+        if (str != NULL)
+        {
+            str += strlen("CUSTOM,");
+            strcpy(edid_type, str);
+        }
     }
     
     
@@ -684,7 +711,7 @@ int GET_HDCP_MODE(char *mode)
     if (res == -1)
         return -1;
 
-	strcpy(mode, recv_buf);
+    strcpy(mode, recv_buf);
 
     return 0;
 }
@@ -821,7 +848,6 @@ int GET_CHANNEL_DEFINE(char *id)
     res = send_cmd_common(CHANNEL_DEFINE_GET_CMD, CHANNEL_DEFINE_RECV_HEAD, NULL, recv_buf);
     if (res == -1)
         return -1;
-
     int lenth = strlen(recv_buf);
     
     if (lenth < 3)
@@ -888,8 +914,8 @@ int GET_TEMPERATURE(char *temp)
     if (res == -1)
         return -1;
 
-	strcpy(temp, recv_buf);
-	//sprintf(temp, "%s %s", recv_buf, "C");
+    strcpy(temp, recv_buf);
+    //sprintf(temp, "%s %s", recv_buf, "C");
     
     return 0;
 }
@@ -898,20 +924,20 @@ int GET_FW_VERSION(char *FW_VER)
 {
     int res = 0;
     char recv_buf[LITTLE_SIZE] = {0};
-	char buf[LITTLE_SIZE] = {0};
+    char buf[LITTLE_SIZE] = {0};
     res = send_cmd_common(FW_VER_GET_CMD , FW_RECV_HEAD, NULL, recv_buf);
     if (res == -1)
         return -1;
 
-	sprintf(buf, "FW: %s", recv_buf);
-	if (strlen(buf) > 15)
-	{
-		strncpy(FW_VER, buf, 15);
-	}
-	else
-	{
-		strcpy(FW_VER, buf);
-	}
+    sprintf(buf, "FW: %s", recv_buf);
+    if (strlen(buf) > 15)
+    {
+        strncpy(FW_VER, buf, 15);
+    }
+    else
+    {
+        strcpy(FW_VER, buf);
+    }
     
     return 0;
 }
@@ -920,20 +946,20 @@ int GET_BL_VERSION(char *BL_VER)
 {
     int res = 0;
     char recv_buf[LITTLE_SIZE] = {0};
-	char buf[LITTLE_SIZE] = {0};
+    char buf[LITTLE_SIZE] = {0};
     res = send_cmd_common(BL_VER_GET_CMD, BL_RECV_HEAD, NULL, recv_buf);
     if (res == -1)
         return -1;
 
-	sprintf(buf, "BL: %s", recv_buf);
-	if (strlen(buf) > 15)
-	{
-		strncpy(BL_VER, buf, 15);
-	}
-	else
-	{
-		strcpy(BL_VER, buf);
-	}
+    sprintf(buf, "BL: %s", recv_buf);
+    if (strlen(buf) > 15)
+    {
+        strncpy(BL_VER, buf, 15);
+    }
+    else
+    {
+        strcpy(BL_VER, buf);
+    }
     
     return 0;
 }
@@ -942,20 +968,20 @@ int GET_HW_VERSION(char *HW_VER)
 {
     int res = 0;
     char recv_buf[LITTLE_SIZE] = {0};
-	char buf[LITTLE_SIZE] = {0};
+    char buf[LITTLE_SIZE] = {0};
     res = send_cmd_common(HW_VER_GET_CMD, HW_RECV_HEAD, NULL, recv_buf);
     if (res == -1)
         return -1;
 
-	sprintf(buf, "HW: %s", recv_buf);
-	if (strlen(buf) > 15)
-	{
-		strncpy(HW_VER, buf, 15);
-	}
-	else
-	{
-		strcpy(HW_VER, buf);
-	}
+    sprintf(buf, "HW: %s", recv_buf);
+    if (strlen(buf) > 15)
+    {
+        strncpy(HW_VER, buf, 15);
+    }
+    else
+    {
+        strcpy(HW_VER, buf);
+    }
     
     return 0;
 }

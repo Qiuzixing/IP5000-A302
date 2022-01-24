@@ -13,10 +13,11 @@ LCD=lcd_display
 OBJS += ./common/driver_i2c.o ./common/msg_queue.o  ./common/oled.o ./common/recv_button_status.o ./common/udp_socket.o  ./p3k_client/tcp_client.o ./p3k_client/send_p3k_cmd.o
 OBJS +=  main.o  ./src/IPE5000_info_setting.o  ./src/IPD5000_info_setting.o ./src/IPE5000P_info_setting.o
  
-LDFLAGS =
+LDFLAGS = -lpthread
 CFLAGS = -I ./src -I./common -I./p3k_client
 
 default:clean build_get_button build_lcd
+	chmod +x $(LCD)
 	mkdir -p $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 	cp -f $(LCD)  $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 

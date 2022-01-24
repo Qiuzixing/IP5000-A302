@@ -74,10 +74,10 @@ const char* INPUT_VIDEO_SOURCE_TYPE_P[] = {
 };
 
 char EDID_BUF_P[20][20] = {{0},{0},{0},{0},{0},{0},{0},{0},{0},{0},
-	                       {0},{0},{0},{0},{0},{0},{0},{0},{0},{0},};
+                           {0},{0},{0},{0},{0},{0},{0},{0},{0},{0},};
 
 const char *EDID_LIST_P[] = {"EDID SETTING", (const char *)EDID_BUF_P[0],(const char *)EDID_BUF_P[1],(const char *)EDID_BUF_P[2],(const char *)EDID_BUF_P[3],(const char *)EDID_BUF_P[4],
-	                                         (const char *)EDID_BUF_P[5],(const char *)EDID_BUF_P[6],(const char *)EDID_BUF_P[7],(const char *)EDID_BUF_P[8],(const char *)EDID_BUF_P[9],};
+                                             (const char *)EDID_BUF_P[5],(const char *)EDID_BUF_P[6],(const char *)EDID_BUF_P[7],(const char *)EDID_BUF_P[8],(const char *)EDID_BUF_P[9],};
 
 const char *HDCP_LIST_P[] = {"HDCP SETTING", "ON", "OFF"};
 
@@ -290,10 +290,10 @@ void show_menu_info_P(int y, u8 begin_elem, const char *dest[], const char *src[
     if (count == 0)
     {
         move_limit_P = 2;
-		for (i = 1; i < 4; i++)
-	    {
-	        dest[i] = blank_P;
-	    }
+        for (i = 1; i < 4; i++)
+        {
+            dest[i] = blank_P;
+        }
         return;
     }   
     for (i = 0; i < count; i++)
@@ -409,71 +409,71 @@ info_param down_up_respond_P(int count, info_param param, const char* showwing_s
 
 int IPE5000P_SHOW_INIT(char *status)
 {
-	printf("this is IPE5000P\n");
+    printf("this is IPE5000P\n");
     init_p3k_client("127.0.0.1", 6001);
-	
-	if (strcmp(status, "unlock") == 0)
-	{
-		IPE5000P_UNLOCK_MENU();
-	}
-	else if(strcmp(status, "lock") == 0)
-	{
-		IPE5000P_LOCK_MENU();
-	}
+    
+    if (strcmp(status, "unlock") == 0)
+    {
+        IPE5000P_UNLOCK_MENU();
+    }
+    else if(strcmp(status, "lock") == 0)
+    {
+        IPE5000P_LOCK_MENU();
+    }
 
-	deinit_p3k_client();
-	return 0;
+    deinit_p3k_client();
+    return 0;
 }
 
 static int IPE5000P_UNLOCK_MENU()
 {
 
-	if (recv_button_init() != 0)
+    if (recv_button_init() != 0)
     {
         printf("recv_button_init() fail - [%s:%d]\n", __func__, __LINE__);
         return -1;
     }
-	if (run_recv_butoon_event() != 0)
-	{
-		printf("run_recv_butoon_event fail\n");
-		return -1;
-	}
+    if (run_recv_butoon_event() != 0)
+    {
+        printf("run_recv_butoon_event fail\n");
+        return -1;
+    }
 
-	CH_NUM_SELECT_P();
-	
-	return 0;
+    CH_NUM_SELECT_P();
+    
+    return 0;
 }
 
 static int IPE5000P_LOCK_MENU()
 {
-	system("pkill -9 recv_button_event");
-	
-	char show_buf[20] = {0};
-	char current_id[20] = {0};
-	char last_id[20] = {0};
-	
-	GET_CHANNEL_DEFINE(current_id);
-	strcpy(last_id, current_id);
-	sprintf(show_buf, "CH %s", current_id);
-	
-	clear_whole_screen();
-	show_strings(2, 40, show_buf, strlen(show_buf), 1);
-	show_strings(4, 40, "LOCKED", strlen("LOCKED"), 1);
-	
-	while(1)
-	{
-		GET_CHANNEL_DEFINE(current_id);
-		
-		if (strcmp(last_id, current_id) != 0)
-		{	
-			strcpy(last_id, current_id);
-			show_strings(2, 64, current_id, strlen(current_id), 1);
-		}
-		
-		sleep(5);
-	}
+    system("pkill -9 recv_button_event");
+    
+    char show_buf[20] = {0};
+    char current_id[20] = {0};
+    char last_id[20] = {0};
+    
+    GET_CHANNEL_DEFINE(current_id);
+    strcpy(last_id, current_id);
+    sprintf(show_buf, "CH %s", current_id);
+    
+    clear_whole_screen();
+    show_strings(2, 40, show_buf, strlen(show_buf), 1);
+    show_strings(4, 40, "LOCKED", strlen("LOCKED"), 1);
+    
+    while(1)
+    {
+        GET_CHANNEL_DEFINE(current_id);
+        
+        if (strcmp(last_id, current_id) != 0)
+        {   
+            strcpy(last_id, current_id);
+            show_strings(2, 64, current_id, strlen(current_id), 1);
+        }
+        
+        sleep(5);
+    }
 
-	return 0;
+    return 0;
 }
 
 
@@ -505,12 +505,12 @@ static int IPE5000P_MAIN_MENU_SHOW(void)
 
         switch (key)
         {
-        	case FAULT:
-        	{
-        		clear_whole_screen();
-        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
-				exit(-1);
-			}
+            case FAULT:
+            {
+                clear_whole_screen();
+                show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+                exit(-1);
+            }
             case UP_KEY:
             case DOWN_KEY:
             {
@@ -526,26 +526,26 @@ static int IPE5000P_MAIN_MENU_SHOW(void)
                     {
                         if (SHOW_TIMEOUT == DEV_STATUS_P())
                         {
-							return SHOW_TIMEOUT;
-						}
+                            return SHOW_TIMEOUT;
+                        }
                         break;
                     }
                     
                     if (MAIN_MENU_SHOWWING_P[param.x/2] == MAIN_MENU_LIST_P[2]) // DEV INFO
                     {
                         if (SHOW_TIMEOUT == DEV_INFO_P())
-						{
-							return SHOW_TIMEOUT;
-						}
+                        {
+                            return SHOW_TIMEOUT;
+                        }
                         break;
                     }
                     
                     if (MAIN_MENU_SHOWWING_P[param.x/2] == MAIN_MENU_LIST_P[3]) // DEV SETTINGS
                     {
                         if (SHOW_TIMEOUT == DEV_SETTINGS_P())
-						{
-							return SHOW_TIMEOUT;
-						}
+                        {
+                            return SHOW_TIMEOUT;
+                        }
                         break;
                     }
     
@@ -576,11 +576,11 @@ static int IPE5000P_MAIN_MENU_SHOW(void)
             {   
                 return 0;
             }
-			case TIMEOUT:
-			{
-				return SHOW_TIMEOUT;
-			}
-			
+            case TIMEOUT:
+            {
+                return SHOW_TIMEOUT;
+            }
+            
         }
     }
 }
@@ -613,12 +613,12 @@ static int DEV_STATUS_P()
 
         switch (key)
         {
-        	case FAULT:
-        	{
-        		clear_whole_screen();
-        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
-				exit(-1);
-			}
+            case FAULT:
+            {
+                clear_whole_screen();
+                show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+                exit(-1);
+            }
             case UP_KEY:
             case DOWN_KEY:
             {
@@ -633,44 +633,44 @@ static int DEV_STATUS_P()
                     if (DEV_STATUS_SHOWWING_P[param.x/2] == DEV_STATUS_LIST_P[1]) // LAN1 STATUS 
                     {
                         if (SHOW_TIMEOUT == LAN_STATUS_P(LAN1_ID_P))
-						{
-							return SHOW_TIMEOUT;
-						}
+                        {
+                            return SHOW_TIMEOUT;
+                        }
                         break;
                     }
                     
                     if (DEV_STATUS_SHOWWING_P[param.x/2] == DEV_STATUS_LIST_P[2]) // LAN1 STATUS 
                     {
                         if (SHOW_TIMEOUT == LAN_STATUS_P(LAN2_ID_P))
-						{
-							return SHOW_TIMEOUT;
-						}
+                        {
+                            return SHOW_TIMEOUT;
+                        }
                         break;
                     }
                     
                     if (DEV_STATUS_SHOWWING_P[param.x/2] == DEV_STATUS_LIST_P[3]) // HDMI STATUS
                     {
                         if (SHOW_TIMEOUT == HDMI_STATUS_P())
-						{
-							return SHOW_TIMEOUT;
-						}
+                        {
+                            return SHOW_TIMEOUT;
+                        }
                         break;
                     }
     
                     if (DEV_STATUS_SHOWWING_P[param.x/2] == DEV_STATUS_LIST_P[4]) // CHANNEL SEL
                     {
                         if (SHOW_TIMEOUT == CH_DEFINE_P())
-						{
-							return SHOW_TIMEOUT;
-						}
+                        {
+                            return SHOW_TIMEOUT;
+                        }
                         break;
                     }
                     if (DEV_STATUS_SHOWWING_P[param.x/2] == DEV_STATUS_LIST_P[5]) // TEMPERATURE
                     {
                         if (SHOW_TIMEOUT == TEMPERATURE_P())
-						{
-							return SHOW_TIMEOUT;
-						}
+                        {
+                            return SHOW_TIMEOUT;
+                        }
                         break;
                     }
                     
@@ -702,10 +702,10 @@ static int DEV_STATUS_P()
             {   
                 return 0;
             }
-			case TIMEOUT:
-			{
-				return SHOW_TIMEOUT;
-			}
+            case TIMEOUT:
+            {
+                return SHOW_TIMEOUT;
+            }
         }
     }
     
@@ -734,20 +734,20 @@ static int LAN_STATUS_P(int interface_id)
         
         switch (key)
         {
-        	case FAULT:
-        	{
-        		clear_whole_screen();
-        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
-				exit(-1);
-			}
+            case FAULT:
+            {
+                clear_whole_screen();
+                show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+                exit(-1);
+            }
             case LEFT_KEY: 
             {  
                 return 0;
             }
-			case TIMEOUT:
-			{
-				return SHOW_TIMEOUT;
-			}
+            case TIMEOUT:
+            {
+                return SHOW_TIMEOUT;
+            }
         }
     }
 }
@@ -784,20 +784,20 @@ static int HDMI_STATUS_P()
 
         switch (key)
         {
-        	case FAULT:
-        	{
-        		clear_whole_screen();
-        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
-				exit(-1);
-			}
+            case FAULT:
+            {
+                clear_whole_screen();
+                show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+                exit(-1);
+            }
             case LEFT_KEY:
             {
                 return 0;
             }
-			case TIMEOUT:
-			{
-				return SHOW_TIMEOUT;
-			}
+            case TIMEOUT:
+            {
+                return SHOW_TIMEOUT;
+            }
         }
     }
         
@@ -821,20 +821,20 @@ static int CH_DEFINE_P()
         
         switch (key)
         {
-        	case FAULT:
-        	{
-        		clear_whole_screen();
-        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
-				exit(-1);
-			}
+            case FAULT:
+            {
+                clear_whole_screen();
+                show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+                exit(-1);
+            }
             case LEFT_KEY:
             {
                 return 0;
             }
-			case TIMEOUT:
-			{
-				return SHOW_TIMEOUT;
-			}
+            case TIMEOUT:
+            {
+                return SHOW_TIMEOUT;
+            }
         }
     }
 
@@ -861,20 +861,20 @@ static int TEMPERATURE_P()
 
         switch (key)
         {
-        	case FAULT:
-        	{
-        		clear_whole_screen();
-        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
-				exit(-1);
-			}
+            case FAULT:
+            {
+                clear_whole_screen();
+                show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+                exit(-1);
+            }
             case LEFT_KEY:
             {
                 return 0;
             }
-			case TIMEOUT:
-			{
-				return SHOW_TIMEOUT;
-			}
+            case TIMEOUT:
+            {
+                return SHOW_TIMEOUT;
+            }
         }
     }
     
@@ -912,20 +912,20 @@ static int DEV_INFO_P()
         key = recv_button_status();
         switch (key)
         {
-        	case FAULT:
-        	{
-        		clear_whole_screen();
-        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
-				exit(-1);
-			}
+            case FAULT:
+            {
+                clear_whole_screen();
+                show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+                exit(-1);
+            }
             case LEFT_KEY:  //返回上一级目录
             {
                 return 0;
             }
-			case TIMEOUT:
-			{
-				return SHOW_TIMEOUT;
-			}
+            case TIMEOUT:
+            {
+                return SHOW_TIMEOUT;
+            }
         }
     }
 }
@@ -959,12 +959,12 @@ static int DEV_SETTINGS_P()
 
         switch (key)
         {
-        	case FAULT:
-        	{
-        		clear_whole_screen();
-        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
-				exit(-1);
-			}
+            case FAULT:
+            {
+                clear_whole_screen();
+                show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+                exit(-1);
+            }
             case UP_KEY:
             case DOWN_KEY:
             {
@@ -980,35 +980,35 @@ static int DEV_SETTINGS_P()
                     {
                         if (SHOW_TIMEOUT == INPUT_SETTING_P())
                         {
-							return SHOW_TIMEOUT;
-						}
+                            return SHOW_TIMEOUT;
+                        }
                         break;
                     }
                     
                     if (DEV_SETTINGS_SHOWWING_P[param.x/2] == DEV_SETTINGS_LIST_P[2]) // EDID SETTING 
                     {
                         if (SHOW_TIMEOUT == EDID_SETTING_P())
-						{
-							return SHOW_TIMEOUT;
-						}
+                        {
+                            return SHOW_TIMEOUT;
+                        }
                         break;
                     }
                     
                     if (DEV_SETTINGS_SHOWWING_P[param.x/2] == DEV_SETTINGS_LIST_P[3]) // HDCP SETTING
                     {
                         if (SHOW_TIMEOUT == HDCP_SETTING_P())
-						{
-							return SHOW_TIMEOUT;
-						}
+                        {
+                            return SHOW_TIMEOUT;
+                        }
                         break;
                     }
     
                     if (DEV_SETTINGS_SHOWWING_P[param.x/2] == DEV_SETTINGS_LIST_P[4]) // CH DEFINE
                     {
                         if (SHOW_TIMEOUT == CH_SELECT_P())
-						{
-							return SHOW_TIMEOUT;
-						}
+                        {
+                            return SHOW_TIMEOUT;
+                        }
                         break;
                     }
                     
@@ -1040,10 +1040,10 @@ static int DEV_SETTINGS_P()
             {   
                 return 0;
             }
-			case TIMEOUT:
-			{
-				return SHOW_TIMEOUT;
-			}
+            case TIMEOUT:
+            {
+                return SHOW_TIMEOUT;
+            }
         }
     }
 
@@ -1100,13 +1100,13 @@ static int INPUT_SETTING_P()
 
         switch (key)
         {
-        	case FAULT:
-        	{
-        		clear_whole_screen();
-        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
-				exit(-1);
-				
-			}
+            case FAULT:
+            {
+                clear_whole_screen();
+                show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+                exit(-1);
+                
+            }
             case DOWN_KEY:  
             case UP_KEY:
             {
@@ -1126,10 +1126,10 @@ static int INPUT_SETTING_P()
             {   
                 return 0;
             }
-			case TIMEOUT:
-			{
-				return SHOW_TIMEOUT;
-			}
+            case TIMEOUT:
+            {
+                return SHOW_TIMEOUT;
+            }
         }
 
     }
@@ -1141,10 +1141,10 @@ static int EDID_SETTING_P()
 {
     char buf[20] = {0};
     u8 count = GET_EDID_LIST(EDID_BUF_P) + 1;
-	
+    
     GET_EDID(buf);
 
-	
+    
     int p = 4;
     int y = 16; //有*要显示
     int x = 2; //方括号位置
@@ -1160,21 +1160,21 @@ static int EDID_SETTING_P()
     show_strings(0, y, EDID_LIST_P[0], strlen(EDID_LIST_P[0]), 1); 
     show_menu_info_P(y, 1, EDID_SHOWWING_P, EDID_LIST_P, count>4? 3 : count-1);
     show_square_breakets(x);
-	
+    
     int i = 0;
-	for (i = 1; i < 4; i++)
+    for (i = 1; i < 4; i++)
     {   
-		if (strcasecmp(buf, "passthru") == 0)
-		{
+        if (strcasecmp(buf, "passthru") == 0)
+        {
 
-		}
-		else
-		{
-	        if ( EDID_SHOWWING_P[i][0] == buf[0])
-	        {
-	            show_a_star(2*i);
-	        }
-		}
+        }
+        else
+        {
+            if ( EDID_SHOWWING_P[i][0] == buf[0])
+            {
+                show_a_star(2*i);
+            }
+        }
     }
 
     int key = 0; 
@@ -1183,12 +1183,12 @@ static int EDID_SETTING_P()
         key = recv_button_status();
         switch (key)
         {
-        	case FAULT:
-        	{
-        		clear_whole_screen();
-        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
-				exit(-1);
-			}
+            case FAULT:
+            {
+                clear_whole_screen();
+                show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+                exit(-1);
+            }
             case DOWN_KEY:
             case UP_KEY:
             {
@@ -1215,11 +1215,11 @@ static int EDID_SETTING_P()
             {
                 return 0;
             }
-			
-			case TIMEOUT:
-			{
-				return SHOW_TIMEOUT;
-			}
+            
+            case TIMEOUT:
+            {
+                return SHOW_TIMEOUT;
+            }
         }
     }
     
@@ -1265,15 +1265,15 @@ static int HDCP_SETTING_P()
         key = recv_button_status();
         switch (key)
         {
-        	case FAULT:
-        	{
-        		clear_whole_screen();
-        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
-				exit(-1);
-			}
+            case FAULT:
+            {
+                clear_whole_screen();
+                show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+                exit(-1);
+            }
             case DOWN_KEY:
             {
-            	star_x += 2;
+                star_x += 2;
                 if (star_x > 4)
                 {
                     star_x = 4;
@@ -1283,12 +1283,12 @@ static int HDCP_SETTING_P()
             }
             case UP_KEY:
             {
-				star_x -= 2;
+                star_x -= 2;
                 if (star_x < 2)
                 {
                     star_x = 2;
                 }
-				show_square_breakets(star_x);
+                show_square_breakets(star_x);
                 break;
             }
             
@@ -1314,10 +1314,10 @@ static int HDCP_SETTING_P()
                 return 0;
             }
 
-			case TIMEOUT:
-			{
-				return SHOW_TIMEOUT;
-			}
+            case TIMEOUT:
+            {
+                return SHOW_TIMEOUT;
+            }
         }
     }   
 }
@@ -1326,11 +1326,11 @@ static int CH_SELECT_P()
 {   
     int x = 2; 
     int y = 16;
-	char show_buf[20] = {0};
+    char show_buf[20] = {0};
     char channel_id[20] = {0};
     GET_CHANNEL_DEFINE(channel_id);
 
-	sprintf(show_buf, "CH %s", channel_id);
+    sprintf(show_buf, "CH %s", channel_id);
     clear_whole_screen();
     show_strings(0, 16, "CH DEFINE", strlen("CH DEFINE") ,1);
     show_strings(2, 16, show_buf, strlen(show_buf) ,1);
@@ -1343,12 +1343,12 @@ static int CH_SELECT_P()
         key = recv_button_status();
         switch (key)
         {
-        	case FAULT:
-        	{
-        		clear_whole_screen();
-        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
-				exit(-1);
-			}
+            case FAULT:
+            {
+                clear_whole_screen();
+                show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+                exit(-1);
+            }
             case UP_KEY:
             {
                 if (channel_id[i] < '9')
@@ -1449,10 +1449,10 @@ static int CH_SELECT_P()
                 SET_CHANNEL_DEFINE(channel_id);
                 return 0;
             }
-			case TIMEOUT:
-			{
-				return SHOW_TIMEOUT;
-			}
+            case TIMEOUT:
+            {
+                return SHOW_TIMEOUT;
+            }
         }
     }
     return 0;
@@ -1463,16 +1463,16 @@ static int CH_NUM_SELECT_P()
     int x = 2; 
     int y = 16;
 
-	char show_buf[20] = {0};
-	char last_id[20] = {0};
-	char channel_id[20] = {0};
+    char show_buf[20] = {0};
+    char last_id[20] = {0};
+    char channel_id[20] = {0};
     GET_CHANNEL_DEFINE(channel_id);
-	strcpy(last_id, channel_id);
+    strcpy(last_id, channel_id);
 
-	sprintf(show_buf, "CH %s", channel_id);	
+    sprintf(show_buf, "CH %s", channel_id); 
     clear_whole_screen();
     show_strings(2, 40, show_buf, strlen(show_buf) ,1);
-    show_a_char(2,  64, channel_id[0], 1, 1);
+    //show_a_char(2,  64, channel_id[0], 1, 1);
 
     int i = 0;
     int key = 0;
@@ -1481,12 +1481,13 @@ static int CH_NUM_SELECT_P()
         key = recv_button_status();
         switch (key)
         {
-        	case FAULT:
-        	{
-        		clear_whole_screen();
-        		show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
-				exit(-1);
-			}
+            case FAULT:
+            {
+                clear_whole_screen();
+                show_strings(2, 0, "GET KEY FAIL", strlen("GET KEY FAIL"), 1);
+                exit(-1);
+            }
+            #if 0
             case UP_KEY:
             {
                 if (channel_id[i] < '9')
@@ -1505,9 +1506,9 @@ static int CH_NUM_SELECT_P()
                         channel_id[i] = '0';
                     }
                 }
-				
+                
                 show_a_char(2, 64+i*8, channel_id[i], 1, 1);
-				SET_CHANNEL_DEFINE(channel_id);
+                SET_CHANNEL_DEFINE(channel_id);
                 break;
             }
             case DOWN_KEY:
@@ -1551,7 +1552,7 @@ static int CH_NUM_SELECT_P()
                 }
 
                 show_a_char(2, 64+i*8, channel_id[i], 1, 1);
-				SET_CHANNEL_DEFINE(channel_id);
+                SET_CHANNEL_DEFINE(channel_id);
                 break;
             }
             case RIGHT_KEY:
@@ -1567,7 +1568,7 @@ static int CH_NUM_SELECT_P()
                 }
 
                 show_a_char(2, 64+i*8, channel_id[i], 1, 1);
-				
+                
                 break;
             }
             case LEFT_KEY:
@@ -1583,42 +1584,44 @@ static int CH_NUM_SELECT_P()
                 }
 
                 show_a_char(2, 64+i*8, channel_id[i], 1, 1);
-				
+                
                 break;
                 
             }
+            #endif
+            
             case ENTER_KEY:
             {
-            	strcpy(last_id, channel_id);
-				IPE5000P_MAIN_MENU_SHOW();
-				
-				GET_CHANNEL_DEFINE(channel_id);
-				strcpy(last_id, channel_id);
-				sprintf(show_buf, "CH %s", channel_id);
-				
-				clear_whole_screen();
-			    show_strings(2, 40, show_buf, strlen(show_buf) ,1);
-			   	show_a_char(2,  64, channel_id[0], 1, 1);
-				i = 0;
-				
-				break;
+                strcpy(last_id, channel_id);
+                IPE5000P_MAIN_MENU_SHOW();
+                
+                GET_CHANNEL_DEFINE(channel_id);
+                strcpy(last_id, channel_id);
+                sprintf(show_buf, "CH %s", channel_id);
+                
+                clear_whole_screen();
+                show_strings(2, 40, show_buf, strlen(show_buf) ,1);
+                //show_a_char(2,  64, channel_id[0], 1, 1);
+                i = 0;
+                
+                break;
             }
 
-			case TIMEOUT:
-			{
-				GET_CHANNEL_DEFINE(channel_id);
-				if (strcmp(last_id, channel_id) != 0)
-				{
-					strcpy(last_id, channel_id);
-					
-					sprintf(show_buf, "CH %s", channel_id);
-					clear_a_line(2);
-			    	show_strings(2, 40, show_buf, strlen(show_buf) ,1);
-			   		show_a_char(2,  64+i*8, channel_id[i], 1, 1);
-				}
+            case TIMEOUT:
+            {
+                GET_CHANNEL_DEFINE(channel_id);
+                if (strcmp(last_id, channel_id) != 0)
+                {
+                    strcpy(last_id, channel_id);
+                    
+                    sprintf(show_buf, "CH %s", channel_id);
+                    clear_a_line(2);
+                    show_strings(2, 40, show_buf, strlen(show_buf) ,1);
+                    //show_a_char(2,  64+i*8, channel_id[i], 1, 1);
+                }
 
-				break;
-			}
+                break;
+            }
 
         }
     }

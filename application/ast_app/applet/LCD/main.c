@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
         if (IPD5000_SHOW_INIT(argv[2]) == -1)
         {
             printf("IPD5000 SHOW fail\n");
-			return -1;
+            return -1;
         }
         
     }
@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
         if (IPE5000_SHOW_INIT(argv[2]) == -1)
         {
             printf("IPE5000 SHOW fail\n");
-			return -1;
+            return -1;
         }
         
     }
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
         if (IPE5000P_SHOW_INIT(argv[2]) == -1)
         {
             printf("IPE5000P SHOW fail\n");
-			return -1;
+            return -1;
         }
     }
     
