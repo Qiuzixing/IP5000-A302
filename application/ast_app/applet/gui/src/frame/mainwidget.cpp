@@ -106,6 +106,7 @@ MainWidget::MainWidget(QWidget *parent) : QWidget(parent)
 
     //  初始化透明画布
     m_background = new OSDLabel(TRANS_BACKGROUND,300,300,this);
+    m_background->setVisible(false);
 
     // 处理p3k命令
     UdpRecv = UdpRecvThread::getInstance();
