@@ -2086,7 +2086,7 @@ static int P3K_SetChannleSelection(char *reqparam, char *respParam, char *userda
 		return -1;
 	}
 	sSelect.ch_id = atoi(str[count - 1]);
-	if ((sSelect.ch_id < 1) || (chn > sSelect.ch_id))
+	if ((sSelect.ch_id < 1) || (sSelect.ch_id > 999))
 	{
 		ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);
 		strcpy(userdata, "error");
