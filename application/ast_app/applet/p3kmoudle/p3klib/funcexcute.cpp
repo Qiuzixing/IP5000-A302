@@ -4841,11 +4841,11 @@ int EX_SetLockFP(int lockFlag)
 {
 	DBG_InfoMsg("EX_SetLockFP %d\n",lockFlag);
 
-	// if(lockFlag == g_device_info.fp_lock)
-	// {
-	// 	DBG_WarnMsg(" !!! Mode para\n");
-	// 	return EX_NO_ERR;
-	// }
+	if(lockFlag == g_device_info.fp_lock)
+	{
+		DBG_WarnMsg(" !!! Mode para\n");
+		return EX_NO_ERR;
+	}
 
 	if((lockFlag == 0)||(lockFlag == 1))
 	{
