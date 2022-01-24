@@ -358,7 +358,7 @@ export default {
       }, 200)
     },
     beforeUpload (file) {
-      if (!file.name.endsWith('.bin') && file.size > 1024 * 1024 * 16) {
+      if (!(file.name.endsWith('.bin') && file.size < 1024 * 1024 * 16)) {
         alert('Please choose the correct file!')
         return false
       }
