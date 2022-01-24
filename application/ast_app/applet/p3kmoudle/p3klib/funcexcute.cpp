@@ -923,7 +923,12 @@ int EX_SetEDIDMode(EdidInfo_S *info)
 	else if(info->mode == CUSTOM)
 	{
 		if((info->index >=0)&&(info->index <=(MAX_EDID-1)))
-			sprintf(sCmd,"e_p3k_video_edid_custom::%d",info->index);
+		{
+			if(Cfg_Check_EDID(info->index) ==0)
+				sprintf(sCmd,"e_p3k_video_edid_custom::%d",info->index);
+			else
+				return EX_PARAM_ERR;
+		}
 		else
 		{
 			DBG_WarnMsg(" !!! Error Param \n");
@@ -1062,6 +1067,12 @@ int EX_SetActiveEDID(int input_ID,int index_ID )
 	}
 
 	if(index_ID > (MAX_EDID-1))
+	{
+		DBG_WarnMsg("index_ID > (MAX_EDID-1)\n");
+		return EX_PARAM_ERR;
+	}
+
+	if(Cfg_Check_EDID(index_ID) < 0)
 	{
 		DBG_WarnMsg("index_ID > (MAX_EDID-1)\n");
 		return EX_PARAM_ERR;

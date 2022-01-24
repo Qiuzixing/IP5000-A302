@@ -5093,7 +5093,7 @@ static int P3K_SetEDIDMode(char *reqparam, char *respParam, char *userdata)
 {
 	//#EDID-MODE   Input_id, Mode, Index<CR>
 	//~nn@#EDID-MODE   Input_id, Mode, Index<CR><LF>
-	DBG_InfoMsg("P3K_SetEDIDMode\n");
+	DBG_InfoMsg("P3K_SetEDIDMode %s\n",reqparam);
 	int count = 0;
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] = {0};
 	int s32Ret = 0;
@@ -5125,7 +5125,16 @@ static int P3K_SetEDIDMode(char *reqparam, char *respParam, char *userdata)
 		tmpInfo.index = atoi(str[2]);
 	}
 	else
-		tmpInfo.index = 0;
+	{
+		if(tmpInfo.mode == CUSTOM)
+		{
+			ERR_MSG(ERR_PROTOCOL_SYNTAX, reqparam, respParam);
+			strcpy(userdata, "error");
+			return -1;
+		}
+		else
+			tmpInfo.index = -1;
+	}
 	s32Ret = EX_SetEDIDMode(&tmpInfo);
 	if (s32Ret < 0)
 	{

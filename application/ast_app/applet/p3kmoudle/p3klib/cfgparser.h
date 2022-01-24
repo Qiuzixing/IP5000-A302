@@ -394,11 +394,11 @@ typedef struct   _EDID_Info
 
 typedef struct   _Version_Info
 {
-	char file_version[16];
+	char file_version[32];
 	char model[64];
-	char fw_version[16];
-	char hw_version[16];
-	char standby_version[16];
+	char fw_version[32];
+	char hw_version[32];
+	char standby_version[32];
 	char build_time[32];
 	char upg_time[32];
 }Version_Info;
@@ -630,7 +630,7 @@ int Cfg_Get_EDID_Mode(EdidModeType_E* mode, int* idx);
 int Cfg_Set_EDID_Active(int idx);
 int Cfg_Get_EDID_Active(int* idx);
 int Cfg_Get_EDID_List(char info[][MAX_EDID_LEN],int num);
-
+int Cfg_Check_EDID(int num);
 
 
 int Cfg_Set_Dev_HostName(int id, char* name);

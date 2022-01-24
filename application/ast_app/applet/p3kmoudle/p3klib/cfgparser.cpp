@@ -6874,6 +6874,66 @@ int Cfg_Get_OSD_Diaplay(State_E* mode)
 	return 0;
 }
 
+int Cfg_Check_EDID(int num)
+{
+	DBG_InfoMsg("Cfg_Check_EDID\n");
+
+#ifdef CONFIG_P3K_CLIENT
+	DBG_WarnMsg("This is Decoder\n");
+	return 0;
+#endif
+
+	char path[128] = "";
+	sprintf(path,"%s%s%s",CONF_PATH,g_module,EDID_LIST_FILE);
+
+	//Read	Log cfg
+	Json::Reader reader;
+	Json::Value root1;
+	char pBuf[1024] = "";
+	FILE *fp;
+	fp = fopen(path, "r");
+	if (fp == NULL) {
+		DBG_ErrMsg("ERROR! can't open %s\n",path);
+		return -1;
+	}
+
+	if (flock(fileno(fp), LOCK_EX)) {
+		DBG_ErrMsg("%s lock failed\n",path);
+		fclose(fp);
+		return -1;
+	}
+
+	fread(pBuf,1,sizeof(pBuf),fp);
+	flock(fileno(fp), LOCK_UN);
+	fclose(fp);
+
+	if(reader.parse(pBuf, root1))
+	{
+		if(!root1[JSON_EDID_LIST].empty())
+		{
+			Json::Value& root = root1[JSON_EDID_LIST];
+			char idx[4];
+			sprintf(idx,"%d",num);
+			if(!root[idx].empty())
+			{
+				string name = root[idx].asString();
+				if(name.size()> 0)
+				{
+					printf("Cfg_Check_EDID info[%d]: %s\n",num,name.c_str());
+					return 0;
+				}
+			}
+			else
+				return -1;
+		}
+		else
+			return -1;
+	}
+
+	return -1;
+}
+
+
 int Cfg_Get_EDID_List(char info[][MAX_EDID_LEN],int num)
 {
 	DBG_InfoMsg("Cfg_Get_EDID_List\n");
