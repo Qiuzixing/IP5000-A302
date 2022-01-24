@@ -4962,7 +4962,7 @@ int EX_SetTimeAndDate(char*weekDay,char*date,char*hms)
 		struct timeval set_tv;
 		time_t timep;
 
-		sscanf(date,"%d-%d-%d",&mon,&day,&year);
+		sscanf(date,"%d-%d-%d",&day,&mon,&year);
 		sscanf(hms,"%d:%d:%d",&hh,&mm,&ss);
 
 		set_tm.tm_year 	= year - 1900;
@@ -4980,6 +4980,7 @@ int EX_SetTimeAndDate(char*weekDay,char*date,char*hms)
 		if(settimeofday(&set_tv,(struct timezone*)0) < 0)
 		{
 			printf("set time error");
+			return EX_PARAM_ERR;
 		}
 	}
 	else
@@ -5009,7 +5010,7 @@ int EX_GetTimeAndDate(char*weekDay,char*date,char*hms)
 	ptime = localtime(&secTime);
 
 	sprintf(weekDay,"%s",str[ptime->tm_wday]);
-	sprintf(date,"%02d-%02d-%04d",ptime->tm_mon+1,ptime->tm_mday,ptime->tm_year+1900);
+	sprintf(date,"%02d-%02d-%04d",ptime->tm_mday,ptime->tm_mon+1,ptime->tm_year+1900);
 	sprintf(hms,"%02d:%02d:%02d",ptime->tm_hour,ptime->tm_min,ptime->tm_sec);
 	return EX_NO_ERR;
 }

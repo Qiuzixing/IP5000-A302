@@ -4424,7 +4424,7 @@ static int P3K_SetTime(char *reqparam, char *respParam, char *userdata)
 
 	if (strcasecmp(str[0], "SUN") == 0 || strcasecmp(str[0], "MON") == 0 || strcasecmp(str[0], "TUE") == 0 || strcasecmp(str[0], "WED") == 0 || strcasecmp(str[0], "THU") == 0 || strcasecmp(str[0], "FRI") == 0 || strcasecmp(str[0], "SAT") == 0)
 	{
-		sprintf(pdate, "%s", str[0]);
+		sprintf(pweekDay, "%s", str[0]);
 	}
 	else
 	{
@@ -4439,7 +4439,7 @@ static int P3K_SetTime(char *reqparam, char *respParam, char *userdata)
 		strcpy(userdata, "error");
 		return -1;
 	}
-	sprintf(pweekDay, "%s", str[1]);
+	sprintf(pdate, "%s", str[1]);
 	int timeret = is_valid_time(str[2]);
 	if (timeret == -1)
 	{
