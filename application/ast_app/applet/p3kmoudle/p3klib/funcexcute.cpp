@@ -3246,10 +3246,24 @@ int EX_GetDecoderAVChannelId(ChSelect_S * id)
 	//DBG_InfoMsg(">>%d\n",id->signal);
 	printf(">>>>>%d\n",id->signal[id->i_signalnum-1]);
     id->ch_id = 1;
-	char* cmd1 = "astparam g ch_select_v";
+	char sCmd[64] = "";
+
+	if(id->signal[0] == SIGNAL_VIDEO)
+		sprintf(sCmd,"astparam g ch_select_v");
+	else if(id->signal[0] == SIGNAL_USB)
+		sprintf(sCmd,"astparam g ch_select_u");
+	else if(id->signal[0] == SIGNAL_AUDIO)
+		sprintf(sCmd,"astparam g ch_select_a");
+	else if(id->signal[0] == SIGNAL_IR)
+		sprintf(sCmd,"astparam g ch_select_r");
+	else if(id->signal[0] == SIGNAL_RS232)
+		sprintf(sCmd,"astparam g ch_select_s");
+	else if(id->signal[0] == SIGNAL_CEC)
+		sprintf(sCmd,"astparam g ch_select_c");
+
 	char buf1[64] = "";
 
-	mysystem(cmd1,buf1,64);
+	mysystem(sCmd,buf1,64);
 
 	if(strstr(buf1,"not defined") != 0)
 	{
