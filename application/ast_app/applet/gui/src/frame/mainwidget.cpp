@@ -247,12 +247,23 @@ void MainWidget::setDeviceInfoDispaly(bool status)
             g_bOSDMeunDisplay = false;
             slotHideOverlay();
 
-            m_bMoveInfoFlag = true;
-            QTimer::singleShot(100,this,SLOT(moveDisplayArea()));
+            if(!g_bDeviceInfoDisplay)
+            {
+                m_bMoveInfoFlag = true;
+                QTimer::singleShot(100,this,SLOT(moveDisplayArea()));
 
-//            m_sleepPanel->setDeviceInfoStatus(true);
-
-            QTimer::singleShot(500,this,SLOT(showDeviceInfo()));
+                QTimer::singleShot(500,this,SLOT(showDeviceInfo()));
+            }
+            else
+            {
+                // 如果已经在显示则只去刷新定时器,避免频繁重复绘制
+                if(!m_osdMeun->getDeviceInfoDisplayStatus())
+                {
+                    DeviceInfoTimer.stop();
+                    int timeout = m_osdMeun->getDeviceInfoTimerout();
+                    DeviceInfoTimer.start(timeout);
+                }
+            }
         }
     }
     else

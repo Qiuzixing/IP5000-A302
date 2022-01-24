@@ -558,12 +558,10 @@ void OSDMeun::parseMeunJson(QString jsonpath)
         if(EnabledStr.compare("on") == 0)
         {
             m_displayConfig = true;
-            g_bDeviceInfoDisplay = true;
         }
         else if(EnabledStr.compare("off") == 0)
         {
             m_displayConfig = false;
-            g_bDeviceInfoDisplay = false;
         }
 
         cout << "size:" << size << endl;
