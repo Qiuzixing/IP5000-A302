@@ -509,12 +509,12 @@ void * P3K_UdpInsideServer()
 			}
             memset(dstdata,0,sizeof(dstdata));
 			//×é°ü
-			tmplen = P3K_SimpleRespCmdBurstification(&respCmdInfo, dstdata);
+			tmplen = P3K_SimpleRespCmdBurstification(&respCmdInfo, dstdata, userDefine);
 			//·¢ËÍÊý¾Ý
-			if(memcmp(userDefine,"err",strlen("err")))
-            {
-                Sendtoclient(dstdata,tmplen,1000);
-            }         
+			if (strncasecmp(userDefine, "err", strlen("err")))
+			{
+				Sendtoclient(dstdata, tmplen, 1000);
+			}
 		}
         else
         {
@@ -527,6 +527,14 @@ void * P3K_UdpInsideServer()
 
 int is_int(char *str)
 {
+	if(str == NULL)
+	{
+		return 0;
+	}
+	if(strlen(str) == 0)
+	{
+		return 2;
+	}
     int len = strlen(str);
     int i = 0;
 
@@ -538,6 +546,29 @@ int is_int(char *str)
     return 1;
 }
 
+static int LOG_Tail_Resp(P3KMsgQueueMember_S *cmdreq, char *ErrNum)
+{
+	int tmplen = 0;
+	char dstdata[MAX_PARAM_LEN] = {0};
+	P3K_SimpleCmdInfo_S respCmdInfo;
+	P3KReqistMsg_S *registMsg = NULL;
+
+	memset(dstdata, 0, sizeof(dstdata));
+	strcpy(respCmdInfo.command, cmdreq->cmdinfo.command);
+	strcpy(respCmdInfo.param, ErrNum);
+	tmplen = P3K_SimpleRespCmdBurstification(&respCmdInfo, dstdata, respCmdInfo.param);
+	if(tmplen < 0)
+        {
+		DBG_ErrMsg("P3K_SimpleRespCmdBurstification ERROR!\n");
+        }
+	registMsg = P3K_GetReqistMsgByID(cmdreq->handleId);
+	if (registMsg)
+	{
+		registMsg->sendMsg(cmdreq->handleId, dstdata, tmplen, 0);
+	}
+	return 0;
+}
+
 static int P3K_GetLOGTail(P3KMsgQueueMember_S *cmdreq)
 {
 	FILE *fp;
@@ -545,6 +576,7 @@ static int P3K_GetLOGTail(P3KMsgQueueMember_S *cmdreq)
 	int tmplen = 0;
 	int loglen = 0;
 	int lognum = 1;
+	int isfile = 0;
 	char logdata[1024] = "";
 	char retlog[2048] = "";
 	char dstdata[2048] = {0};
@@ -557,34 +589,27 @@ static int P3K_GetLOGTail(P3KMsgQueueMember_S *cmdreq)
 	if (isret == 0)
 	{
 		DBG_ErrMsg("ERROR! param is not num\n");
-		memset(dstdata, 0, sizeof(dstdata));
-		strcpy(respCmdInfo.command, cmdreq->cmdinfo.command);
-		strcpy(respCmdInfo.param, "ERR 001");
-		tmplen = P3K_SimpleRespCmdBurstification(&respCmdInfo, dstdata);
-		registMsg = P3K_GetReqistMsgByID(cmdreq->handleId);
-		if (registMsg)
-		{
-			registMsg->sendMsg(cmdreq->handleId, dstdata, tmplen, 0);
-		}
-		return 0;
+		return LOG_Tail_Resp(cmdreq, "ERR 001");
 	}
-	loglen = atoi(cmdreq->cmdinfo.param);
+	else if(isret == 2)
+	{
+		loglen = 10;
+	}
+	else
+	{
+		loglen = atoi(cmdreq->cmdinfo.param);
+	}
+	isfile = access("/var/log/messages",0);
+	if(isfile != 0)
+	{
+		DBG_ErrMsg("popen ERROR! can't open /var/log/messages\n");
+		return LOG_Tail_Resp(cmdreq, "ERR 012");
+	}
 	sprintf(sysstr, "tail -n %d /var/log/messages", loglen);
 	if ((fp = popen(sysstr, "r")) == NULL)
 	{
-		DBG_ErrMsg("ERROR! can't open /var/log/messages\n");
-		memset(dstdata, 0, sizeof(dstdata));
-		strcpy(respCmdInfo.command, cmdreq->cmdinfo.command);
-		strcpy(respCmdInfo.param, "ERR 012");
-		tmplen = P3K_SimpleRespCmdBurstification(&respCmdInfo, dstdata);
-		registMsg = P3K_GetReqistMsgByID(cmdreq->handleId);
-		if (registMsg)
-		{
-			registMsg->sendMsg(cmdreq->handleId, dstdata, tmplen, 0);
-		}
-		fclose(fp);
-		fp = NULL;
-		return 0;
+		DBG_ErrMsg("popen ERROR! can't open /var/log/messages\n");
+		return LOG_Tail_Resp(cmdreq, "ERR 012");
 	}
 	while (fgets(logdata, 1024, fp) != NULL)
 	{
@@ -592,7 +617,11 @@ static int P3K_GetLOGTail(P3KMsgQueueMember_S *cmdreq)
 		strcpy(respCmdInfo.command, cmdreq->cmdinfo.command);
 		sprintf(retlog, "%d Line content #%d %s", loglen, lognum, logdata);
 		strcpy(respCmdInfo.param, retlog);
-		tmplen = P3K_SimpleRespCmdBurstification(&respCmdInfo, dstdata);
+		tmplen = P3K_SimpleRespCmdBurstification(&respCmdInfo, dstdata, "");
+		if(tmplen < 0)
+		{
+			DBG_ErrMsg("P3K_SimpleRespCmdBurstification ERROR!\n");
+		}
 		registMsg = P3K_GetReqistMsgByID(cmdreq->handleId);
 		if (registMsg)
 		{
@@ -600,7 +629,7 @@ static int P3K_GetLOGTail(P3KMsgQueueMember_S *cmdreq)
 		}
 		lognum++;
 	}
-	fclose(fp);
+	pclose(fp);
 	fp = NULL;
 	return 0;
 }
@@ -684,7 +713,7 @@ static void * P3K_DataExcuteProc(void*arg)
             ParseMsgSetOrGet(&respCmdInfo,aSetOrGet);
 			memset(dstdata,0,sizeof(dstdata));
 			//×é°ü
-			tmplen = P3K_SimpleRespCmdBurstification(&respCmdInfo, dstdata);
+			tmplen = P3K_SimpleRespCmdBurstification(&respCmdInfo, dstdata, userDefine);
 			//·¢ËÍÊý¾Ý
             //printf("Get\n");
             registMsg = P3K_GetReqistMsgByID(pmsg.handleId);
@@ -697,7 +726,8 @@ static void * P3K_DataExcuteProc(void*arg)
     				registMsg->sendMsg(pmsg.handleId,userDefine,strlen(userDefine),0);
     			}
     		}
-            if(!memcmp(aSetOrGet,aEndFlag,strlen(aEndFlag)) || (!strcasecmp(respCmdInfo.command,"LOGIN")) || (!strcasecmp(userDefine,"error")))
+			if (!memcmp(aSetOrGet, aEndFlag, strlen(aEndFlag)) || (!strcasecmp(respCmdInfo.command, "LOGIN")) || (!strcasecmp(userDefine, "error")) \
+			    || (!strcasecmp(respCmdInfo.command, "KDS-CFG-MODIFY")))
             {
             }
             else{

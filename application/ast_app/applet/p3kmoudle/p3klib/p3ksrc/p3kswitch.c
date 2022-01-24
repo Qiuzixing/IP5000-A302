@@ -6893,7 +6893,7 @@ static int P3K_NTFY_PROC(char *reqparam, char *respParam, char *userdata)
 	if(s_NTFYInfo.iParamNum > 18)
 	{
 		char tmpdata[24] = {0};
-		sprintf(tmpdata, "ERR %03d", ERR_PARAMETER_OUT_OF_RANGE);
+		sprintf(tmpdata, "ERR %03d", ERR_PROTOCOL_SYNTAX);
 		strcpy(userdata, tmpdata);
 		return 0;
 	}

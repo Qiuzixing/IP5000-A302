@@ -36,7 +36,7 @@ dstdata  :p3k字符串
 返回值
 返回字符串长度
 *************************/
-int P3K_SimpleRespCmdBurstification(P3K_SimpleCmdInfo_S *cmd,char *dstdata);
+int P3K_SimpleRespCmdBurstification(P3K_SimpleCmdInfo_S *cmd,char *dstdata, char *userDefine);
 
 int P3K_SimpleReqCmdBurstification(P3K_SimpleCmdInfo_S *cmd,char *dstdata);
 

@@ -45,21 +45,28 @@ int P3K_HandleSharkResp(char*data)
 	return 0;
 }
 
-int P3K_SimpleRespCmdBurstification(P3K_SimpleCmdInfo_S *cmd,char *dstdata)
+int P3K_SimpleRespCmdBurstification(P3K_SimpleCmdInfo_S *cmd,char *dstdata, char *userDefine)
 {
-	char tmpdata[4096] ={0};
+	char tmpdata[MAX_PARAM_LEN] ={0};
 	int tmplen = 0;
 	if(dstdata == NULL || cmd == NULL)
 	{
 		return -1;
 	}
-	memset(tmpdata,0,4096);
+	memset(tmpdata,0,MAX_PARAM_LEN);
 	char * tmp = &cmd->command[strlen(cmd->command)-1];
 	char * endl = "?";
 	if(!memcmp(tmp,endl,strlen(endl)))
 	{
-		char newcmd[32] = {0};
-		memcpy(newcmd,cmd->command,strlen(cmd->command)-1);
+		char newcmd[MAX_COMMANDNAME_LEN + 1] = {0};
+		if(0 == strncasecmp(userDefine, "err", strlen("err")))
+		{
+			memcpy(newcmd,cmd->command,strlen(cmd->command));
+		}
+		else
+		{
+            memcpy(newcmd,cmd->command,strlen(cmd->command)-1);
+		}
 		memset(cmd->command,0,sizeof(cmd->command));
 		memcpy(cmd->command,newcmd,strlen(newcmd));
 	}
