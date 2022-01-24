@@ -12,7 +12,7 @@ TARGET_FOLDER_NAME=$(TARGET)-$(CONFIG)
 
 cc=$(CROSS_COMPILE)gcc
 
-cflags=-O3 -g	\
+cflags=-O3	\
 		-I ./dante_example_code\
 		-I ./dante_example_code/common\
 		-I ./dante_example_code/common/audinate\
@@ -36,8 +36,14 @@ build : communication_with_mcu ipc_server_listen_one
 	cp -f communication_with_mcu $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 	mkdir -p $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/share/ip5000_a30/
 	mkdir -p $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/share/ipe5000w_a30/
-	cp -f ./IP5000*.bin $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/share/ip5000_a30/
-	cp -f ./IPE5000W*.bin $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/share/ipe5000w_a30/
+#	cp -f ./IP5000*.bin $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/share/ip5000_a30/
+#	cp -f ./IPE5000W*.bin $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/share/ipe5000w_a30/
+	@if [ $(BUILD_TYPE) = 'host' ]; then\
+		cp -f ./IP5000*.bin $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/share/ip5000_a30/;	\
+		cp -f ./IPE5000W*.bin $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/share/ipe5000w_a30/;	\
+	else\
+		cp -f ./IP5000*.bin $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/share/ip5000_a30/;	\
+	fi
 	cp -f ipc_server_listen_one $(AST_SDK_ROOT)/build/$(TARGET_FOLDER_NAME)/rootfs_addon/usr/local/bin/
 
 communication_with_mcu : gb_commun_with_mcu.o uds_ipc.o ipc.o set_hdcp_status.o create_socket.o\

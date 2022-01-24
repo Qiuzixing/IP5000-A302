@@ -6,6 +6,7 @@ endif
 NAME = libjsoncpp
 
 CFLAGS +=  -Wall -fPIC 
+CFLAGS += -O2
 
 CFLAGS += 	-I ./include
 			
