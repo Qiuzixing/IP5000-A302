@@ -98,7 +98,7 @@ stop_v_auto_turn_off_timer() {
 # v_auto_turn_on_timer.sh $LM_LINK_ON_TIMEOUT
 echo "#!/bin/sh
 echo \"sleeping \$((\$1)) seconds\"
-if [ \$((\$1)) -ge 0 ]; then
+if [ \$((\$1)) -gt 0 ]; then
 	sleep \$((\$1))
 	ast_send_event -1 e_v_auto_turn_on_time_up
 fi
