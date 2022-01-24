@@ -1989,9 +1989,15 @@ handle_e_p3k_upgrade()
 	fi
 	# rm fw.tar.gz
 	if [ -x flash.sh ]; then
-		./flash.sh
-		sleep 5 # wait client query result
-		reboot
+		if ./flash.sh; then
+			sleep 5 # wait client query result
+			astparam misc s stb_ver $FW_VER
+			reboot
+		else
+			if cat /www/fw_status.txt | grep -qv "err"; then
+				echo "err,0,2" > "/www/fw_status.txt"
+			fi
+		fi
 	else
 		echo "err,0,2" > "/www/fw_status.txt"
 	fi

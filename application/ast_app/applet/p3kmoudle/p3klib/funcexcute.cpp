@@ -1463,6 +1463,8 @@ int EX_GetStandbyTimeOut(void)
 	return iTime;
 }
 
+static int rolling_back = 0;
+
 int EX_SetRollback(char * type)
 {
 	char * aOk = "ok";
@@ -1470,11 +1472,22 @@ int EX_SetRollback(char * type)
 
 	char cmd[64] = "";
 
-	char* cmd1 = "astparam misc g cursys";
+	if (rolling_back)
+	{
+		DBG_WarnMsg("EX_SetRollback already in doing\n");
+		return EX_MODE_ERR;
+	}
+	char* cmd1 = "astparam misc g stb_ver";
 	char buf1[64] = "";
-
 	mysystem(cmd1,buf1,64);
+	if(strstr(buf1,"not defined") != 0)
+	{
+		DBG_WarnMsg("stb_ver not defined\n");
+		return EX_MODE_ERR;
+	}
 
+	char* cmd2 = "astparam misc g cursys";
+	mysystem(cmd2,buf1,64);
 	if(strstr(buf1,"not defined") != 0)
 	{
 		DBG_WarnMsg("EX_SetRollback not defined\n");
@@ -1483,21 +1496,21 @@ int EX_SetRollback(char * type)
 	else if(strstr(buf1,"a") != 0)
 	{
 		strcpy(g_version_info.standby_version,g_version_info.fw_version);
-		sprintf(cmd, "astparam misc s stb_ver %s",g_version_info.standby_version);
+		sprintf(cmd, "astparam misc s stb_ver %s",g_version_info.fw_version);
 		system(cmd);
+		system("astparam misc s cursys b");
 
 		Cfg_Update_Version();
-		system("astparam misc s cursys b");
 //		system("reboot");
 	}
 	else if(strstr(buf1,"b") != 0)
 	{
 		strcpy(g_version_info.standby_version,g_version_info.fw_version);
-		sprintf(cmd, "astparam misc s stb_ver %s",g_version_info.standby_version);
+		sprintf(cmd, "astparam misc s stb_ver %s",g_version_info.fw_version);
 		system(cmd);
+		system("astparam misc s cursys a");
 
 		Cfg_Update_Version();
-		system("astparam misc s cursys a");
 //		system("reboot");
 	}
 	else
@@ -1506,7 +1519,7 @@ int EX_SetRollback(char * type)
 	}
 
 	ast_send_event(0xFFFFFFFF,"e_p3k_reset");
-
+	rolling_back = 1;
 	return EX_NO_ERR;
 }
 
@@ -4754,7 +4767,7 @@ int EX_Upgrade(void)
 {
 
 //	Cfg_Set_UPG_Info();
-	strcpy(g_version_info.standby_version,g_version_info.fw_version);
+	// strcpy(g_version_info.standby_version,g_version_info.fw_version);
 
 	time_t secTime;
 	struct tm *ptime =NULL;
@@ -4778,7 +4791,9 @@ int EX_Upgrade(void)
 	system(cmd);
 
 	memset(cmd,0,64);
-	sprintf(cmd, "astparam misc s stb_ver %s",g_version_info.standby_version);
+	g_version_info.standby_version[0] = '\0'; 
+	// 20220124 Erase stb_ver, write only when upgrade done.
+	sprintf(cmd, "astparam misc s stb_ver");
 	system(cmd);
 
 	Cfg_Update_Version();

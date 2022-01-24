@@ -1529,17 +1529,16 @@ int Cfg_Init_Version(void)
 		secTime = atol(time);
 
 	ptime = localtime(&secTime);
-	sprintf(g_version_info.upg_time,"%02d-%02d-%04d,%02d:%02d:%02d",ptime->tm_mon+1,ptime->tm_mday,ptime->tm_year+1900,ptime->tm_hour,ptime->tm_min,ptime->tm_sec);
+	sprintf(g_version_info.upg_time,"%02d-%02d-%04d,%02d:%02d:%02d",ptime->tm_mday,ptime->tm_mon+1,ptime->tm_year+1900,ptime->tm_hour,ptime->tm_min,ptime->tm_sec);
 
 	char stb_ver[64] = "";
 	mysystem("astparam misc g stb_ver",stb_ver,64);
 	if(strstr(stb_ver,"not defined") != 0)
-		strcpy(g_version_info.standby_version,g_version_info.fw_version);
+		strcpy(g_version_info.standby_version,"N/A");
 	else
-		strcpy(g_version_info.standby_version,stb_ver);
+		strncpy(g_version_info.standby_version, stb_ver, sizeof(g_version_info.standby_version) - 1);
 
 //	sprintf(g_version_info.upg_time,"01-01-2020,00:00:00");
-
 
 	//Check version cfg
 	int nAccessRet = Cfg_Check_File(path);
@@ -1551,12 +1550,11 @@ int Cfg_Init_Version(void)
 		Cfg_Update(VERSION_INFO);
 		return 0;
 	}
-
 	if(g_bCfg == 1)
 	{
 		return 0;
 	}
-
+#if 0 // Never never read from version back, just update it or create it.
 	//Read  version cfg
 	Json::Reader reader;
 	Json::Value root1;
@@ -1605,7 +1603,7 @@ int Cfg_Init_Version(void)
 	flock(fileno(fp), LOCK_UN);
 
 	fclose(fp);
-
+#endif
 	Cfg_Update(VERSION_INFO);
 	return 0;
 }

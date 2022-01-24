@@ -3037,6 +3037,7 @@ handle_e_p3k_upgrade()
 	if [ -x flash.sh ]; then
 		if ./flash.sh; then
 			sleep 5 # wait client query result
+			astparam misc s stb_ver $FW_VER
 			reboot
 		else
 			if cat /www/fw_status.txt | grep -qv "err"; then
