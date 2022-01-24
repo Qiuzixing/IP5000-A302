@@ -5739,7 +5739,7 @@ static int P3K_GetStandbyVersion(char *reqparam, char *respParam, char *userdata
 	//~nn@STANDBY-VERSION?  standby_version<CR><LF>
 	DBG_InfoMsg("P3K_GetStandbyVersion\n");
 	int s32Ret = 0;
-	char aVersion[24] = {0};
+	char aVersion[32] = {0};
 	char tmpparam[MAX_PARAM_LEN] = {0};
 
 	s32Ret = EX_GetStandbyVersion(aVersion);
@@ -5762,7 +5762,7 @@ static int P3K_GetHWVersion(char *reqparam, char *respParam, char *userdata)
 	//~nn@HW-VERSION hardware_version<CR><LF>
 	DBG_InfoMsg("P3K_GetHWVersion\n");
 	int s32Ret = 0;
-	char aVersion[24] = {0};
+	char aVersion[32] = {0};
 	char tmpparam[MAX_PARAM_LEN] = {0};
 
 	s32Ret = EX_GetHWVersion(aVersion);

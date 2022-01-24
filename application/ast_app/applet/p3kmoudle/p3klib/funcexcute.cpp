@@ -2112,7 +2112,7 @@ int EX_GetHWVersion(char * date)
 
 	if(date != NULL)
 	{
-		GetBoardInfo(BOARD_HW_VERSION, date, 24);
+		GetBoardInfo(BOARD_HW_VERSION, date, 32);
 	}
 	return EX_NO_ERR;
 }

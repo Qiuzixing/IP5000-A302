@@ -1512,8 +1512,8 @@ int Cfg_Init_Version(void)
 
 	//GetBoardInfo(BOARD_MODEL, g_version_info.model, 64);
 	Cfg_InitModule();
-	GetBoardInfo(BOARD_HW_VERSION, g_version_info.hw_version, 16);
-	GetBoardInfo(BOARD_FW_VERSION, g_version_info.fw_version, 16);
+	GetBoardInfo(BOARD_HW_VERSION, g_version_info.hw_version, 32);
+	GetBoardInfo(BOARD_FW_VERSION, g_version_info.fw_version, 32);
 	GetBoardInfo(BOARD_BUILD_DATE, g_version_info.build_time, 16);
 
 	sprintf(g_version_info.file_version,"1.0.0");
