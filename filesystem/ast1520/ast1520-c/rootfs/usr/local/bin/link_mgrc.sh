@@ -3146,7 +3146,7 @@ handle_e_p3k_net_dante_hostname()
 	echo "handle_e_p3k_net_dante_hostname."
 }
 
-init_p3k_net_vlan()
+init_vlan_set_rtl_chip()
 {
 	echo "init_p3k_net_vlan"
 	local _media_control_vlan='0'
@@ -3154,7 +3154,7 @@ init_p3k_net_vlan()
 	local _service_control_vlan='0'
 	local _service_dante_vlan='0'
 
-	local _control_vlan_tag='0'
+	_control_vlan_tag='0'
 
 	if [ $P3KCFG_CONTROL_DAISY_CHAIN = 'on' ];then
 		return
@@ -3192,6 +3192,13 @@ init_p3k_net_vlan()
 
 
 	handle_e_p3k_vlan_set_rtl_chip e_p3k_net_vlan_set_rtl_chip::"$_media_control_vlan":"$_media_dante_vlan":"$_service_control_vlan":"$_service_dante_vlan"
+}
+
+init_p3k_net_vlan()
+{
+	if [ $P3KCFG_CONTROL_DAISY_CHAIN = 'on' ];then
+		return
+	fi
 
 	case "$_control_vlan_tag" in
 		0)
@@ -4304,7 +4311,7 @@ init_info_file
 #init_p3k_cfg_file
 init_param_from_p3k_cfg
 init_json_cfg_path
-
+init_vlan_set_rtl_chip
 # $AST_PLATFORM = ast1500cv4 or ptv1500cv2 or pce1500cv3
 echo ""
 echo "#### platform info:$AST_PLATFORM ####"

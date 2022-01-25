@@ -2172,7 +2172,7 @@ handle_e_p3k_download_fw_start()
 	control_board_led_status
 }
 
-init_p3k_net_vlan()
+init_vlan_set_rtl_chip()
 {
 	echo "init_p3k_net_vlan"
 	local _media_control_vlan='0'
@@ -2180,7 +2180,7 @@ init_p3k_net_vlan()
 	local _service_control_vlan='0'
 	local _service_dante_vlan='0'
 
-	local _control_vlan_tag='0'
+	_control_vlan_tag='0'
 
 	case "$P3KCFG_CONTROL_PORT" in
 		eth0)
@@ -2245,7 +2245,10 @@ init_p3k_net_vlan()
 	esac
 
 	handle_e_p3k_vlan_set_rtl_chip e_p3k_net_vlan_set_rtl_chip::"$_media_control_vlan":"$_media_dante_vlan":"$_service_control_vlan":"$_service_dante_vlan"
+}
 
+init_p3k_net_vlan()
+{
 	case "$_control_vlan_tag" in
 		0)
 			echo "init_p3k_net_vlan control no vlan"
@@ -3322,7 +3325,7 @@ init_info_file
 #init_p3k_cfg_file
 init_param_from_p3k_cfg
 init_json_cfg_path
-
+init_vlan_set_rtl_chip
 # $AST_PLATFORM = ast1500hv4 or ptv1500hv2 or pce1500hv3
 echo ""
 echo "#### platform info:$AST_PLATFORM ####"
