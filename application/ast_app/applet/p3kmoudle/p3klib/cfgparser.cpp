@@ -1554,7 +1554,7 @@ int Cfg_Init_Version(void)
 	{
 		return 0;
 	}
-#if 0 // Never never read from version back, just update it or create it.
+#if 1 // Never never read from version back, just update it or create it.
 	//Read  version cfg
 	Json::Reader reader;
 	Json::Value root1;
@@ -1592,12 +1592,12 @@ int Cfg_Init_Version(void)
 				string info = root[JSON_VER_UPG_TIME].asString();
 				sprintf(g_version_info.upg_time,info.c_str());
 			}
-			if(!root[JSON_VER_STB_VERSION].empty())
+/*			if(!root[JSON_VER_STB_VERSION].empty())
 			{
 				string info = root[JSON_VER_STB_VERSION].asString();
 				sprintf(g_version_info.standby_version,info.c_str());
 			}
-		}
+*/		}
 	}
 
 	flock(fileno(fp), LOCK_UN);

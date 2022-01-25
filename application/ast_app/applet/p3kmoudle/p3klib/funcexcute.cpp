@@ -4784,7 +4784,7 @@ int EX_Upgrade(void)
 
 	ptime = localtime(&secTime);
 
-	sprintf(g_version_info.upg_time,"%02d-%02d-%04d,%02d:%02d:%02d",ptime->tm_mon+1,ptime->tm_mday,ptime->tm_year+1900,ptime->tm_hour,ptime->tm_min,ptime->tm_sec);
+	sprintf(g_version_info.upg_time,"%02d-%02d-%04d,%02d:%02d:%02d",ptime->tm_mday,ptime->tm_mon+1,ptime->tm_year+1900,ptime->tm_hour,ptime->tm_min,ptime->tm_sec);
 
 	char cmd[64] = "";
 	sprintf(cmd, "astparam misc s upg_time %d",(int)secTime);
