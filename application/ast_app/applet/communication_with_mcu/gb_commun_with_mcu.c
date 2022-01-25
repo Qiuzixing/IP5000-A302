@@ -30,7 +30,9 @@
 #include "./commun_with_mcu/command.h"
 #include "gb_commun_with_mcu.h"
 #include "./audio_switch/auto_swtich_socket.h"
+#ifdef ENABLE_DANTE
 #include "./dante_example_code/dante_cmd/dante_cmd_packet.h"
+#endif
 #include "./audio_switch/audio_switch_cmd.h"
 
 #define mymin(a, b) (a > b ? b : a)
@@ -763,6 +765,7 @@ void do_handle_set_audio_insert_extract(uint16_t cmd,char *cmd_param)
 
 static void do_handle_uart_pass(uint16_t cmd,char *cmd_param)
 {
+#ifdef ENABLE_DANTE
     char *dante_cmd = strtok(cmd_param,":");
     int cmd_index = 0;
     int i = 0;
@@ -814,6 +817,7 @@ static void do_handle_uart_pass(uint16_t cmd,char *cmd_param)
     }
     APP_Comm_Send(CMD_UART_PASSTHROUGH, (U8*)uart_pass, dante_cmd_len + 4);
     free(uart_pass);
+#endif
 }
 
 static void do_handle_set_hdmi_mute(uint16_t cmd,char *cmd_param)

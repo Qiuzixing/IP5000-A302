@@ -20,7 +20,9 @@
 #include "../ipc.h"
 #include "../gb_commun_with_mcu.h"
 #include "../audio_switch/auto_swtich_socket.h"
+#ifdef ENABLE_DANTE
 #include "../dante_example_code/app/example/example_rx_uhip.h"
+#endif
 #include "../set_hdcp_status.h"
 #include "../create_socket.h"
 #include "../audio_switch/audio_switch_cmd.h"
@@ -635,6 +637,7 @@ int APP_Comm_Recv(CmdProtocolParam * param)
             }
             break;
         case CMD_UART_PASSTHROUGH:
+#ifdef ENABLE_DANTE
             memcpy(dante_data_buf,(const char*)param->Data,param->DataLen);
             uart_data_len = (dante_data_buf[3]<<8 | dante_data_buf[2]);
             //the data start from the dante_data_buf[4]
@@ -654,6 +657,7 @@ int APP_Comm_Recv(CmdProtocolParam * param)
                 //
             }
             dante_state = UNKNOW_DANTE_STATUS;
+#endif
             break;
         case EVENT_HDMI_AUDIO_STATUS:
             memset(&ado_status, 0, sizeof(ado_status));
