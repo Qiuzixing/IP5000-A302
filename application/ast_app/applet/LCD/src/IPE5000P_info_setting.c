@@ -1360,7 +1360,13 @@ static int CH_SELECT_P()
                     if (i == 2)
                     {
                         if (channel_id[0] == '0' && channel_id[1] == '0')
-                        channel_id[i] = '1';
+                        {
+                            channel_id[i] = '1';
+                        }
+                        else
+                        {
+                            channel_id[i] = '0';
+						}
                     }
                     else
                     {
