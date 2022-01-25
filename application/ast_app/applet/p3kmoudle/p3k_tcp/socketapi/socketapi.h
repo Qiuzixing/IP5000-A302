@@ -50,8 +50,8 @@ int SOCKET_CreateTcpServer(SocketWorkInfo_S*serverhandle);
 int SOCKET_CreateTcp_NServer(SocketWorkInfo_S*serverhandle);
 
 
-int  SOCKET_DestroyTcpServer(SocketWorkInfo_S*serverhandle);
-
+int SOCKET_DestroyTcpServer(SocketWorkInfo_S*serverhandle);
+int SOCKET_DestroyInTcpServer(SocketWorkInfo_S *serverhandle);
 int SOCKET_TcpSendMessage(int sockfd,char *msg,int len);
 
 int SOCKET_Connect(char*ip,int port);

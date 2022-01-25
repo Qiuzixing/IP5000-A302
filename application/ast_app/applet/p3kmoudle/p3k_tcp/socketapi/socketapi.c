@@ -54,11 +54,12 @@ typedef struct _NetServerParam_S{
 
 char   g_InitIP[16] = "";
 static int bTsockFlag;
+static int bInTsockFlag;
 static int uTsockFlag;
 
-static  int GetSockInfo(int  socked, char *ipaddr,int *port)
+static  int GetSockInfo(int socked, char *ipaddr, int *port)
 {
-	struct sockaddr_in  sockAddr;
+	struct sockaddr_in sockAddr;
 	memset(&sockAddr, 0, sizeof(sockAddr));
 
 	socklen_t nSockAddrLen = sizeof(sockAddr);
@@ -82,8 +83,6 @@ static int CheckSelectExcept(fd_set *exceptfds,SocketList_S *sockInfo)
 	free(sockInfo);
 	return 0;
 }
-
-
 
 static int CheckSelectRead(fd_set *readfds,SocketList_S *head,SocketList_S *sockInfo,NetServerParam_S *param)
 {
@@ -125,7 +124,7 @@ static int CheckSelectRead(fd_set *readfds,SocketList_S *head,SocketList_S *sock
         int flag = fcntl(cliSockfd,F_GETFL);
 		flag |= O_NONBLOCK;
 		fcntl(cliSockfd,F_SETFL,flag);
-        
+
 		//snprintf(newnode->ip,16,"%s",inet_ntoa(client_addr.sin_addr));
 		list_add_tail(&(head->_list),&(newnode->_list));
 	}else if(SOCKETTYPE_ENUM_SUB == sockInfo->socketType){//���׽���
@@ -386,33 +385,272 @@ READ_ERROR:
 	}
 }
 
-int SOCKET_CreateTcp_NServer(SocketWorkInfo_S*serverhandle)
+static int CheckInSelectRead(fd_set *readfds, SocketList_S *head, SocketList_S *sockInfo, NetServerParam_S *param)
 {
-	pthread_t pthid;
+	static NetCliInfo_T cliInfo;
+	memset(&cliInfo, 0, sizeof(NetCliInfo_T));
+	NetCliInfo_T *cli = &cliInfo;
+	int cliSockfd = -1;
+	struct sockaddr_in client_addr;
+	SocketList_S *newnode = NULL;
+	socklen_t addr_len = sizeof(struct sockaddr_in);
+	int ret = -1;
+
+	fd_set readfd, errorfd;
+	int maxfd = 0;
+	int iret = 0;
+	struct timeval timeout = {0};
+	int timeOutCount;
+
+	if (0 == FD_ISSET(sockInfo->sockfd, readfds))
+	{
+		return -1;
+	}
+
+	if (SOCKETTYPE_ENUM_MAIN == sockInfo->socketType)
+	{ //主套接字
+		cliSockfd = accept(sockInfo->sockfd, (struct sockaddr *)&client_addr, &addr_len);
+		if (cliSockfd <= 0)
+		{
+			DBG_ErrMsg("accept err\n");
+			return -1;
+		}
+
+		newnode = (SocketList_S *)malloc(sizeof(SocketList_S));
+		if (NULL == newnode)
+		{
+			return -1;
+		}
+		newnode->sockfd = cliSockfd;
+		newnode->socketType = SOCKETTYPE_ENUM_SUB;
+		newnode->port = ntohs(client_addr.sin_port);
+		inet_ntop(AF_INET, (void *)(&client_addr.sin_addr.s_addr), newnode->ip, IP_ADRESS_LEN);
+
+		int flag = fcntl(cliSockfd, F_GETFL);
+		flag |= O_NONBLOCK;
+		fcntl(cliSockfd, F_SETFL, flag);
+
+		list_add_tail(&(head->_list), &(newnode->_list));
+	}
+	else if (SOCKETTYPE_ENUM_SUB == sockInfo->socketType)
+	{
+		memset(cli, 0, sizeof(NetCliInfo_T));
+		timeOutCount = 0;
+		while (bInTsockFlag == 1)
+		{
+			FD_ZERO(&readfd);
+			FD_ZERO(&errorfd);
+			FD_SET(sockInfo->sockfd, &readfd); //添加描述符
+			FD_SET(sockInfo->sockfd, &errorfd);
+			maxfd = sockInfo->sockfd;
+			timeout.tv_sec = 0;
+			timeout.tv_usec = 100000; //select函数会不断修改timeout的值，所以每次循环都应该重新赋值[windows不受此影响]
+			ret = select(maxfd + 1, &readfd, NULL, &errorfd, &timeout);
+			if (ret > 0)
+			{
+				if (0 == FD_ISSET(sockInfo->sockfd, &readfd))
+				{
+					goto READ_ERROR;
+				}
+				ret = recv(sockInfo->sockfd, cli->recvmsg + cli->recvLen, sizeof(cli->recvmsg) - cli->recvLen, 0); //获取网络消息
+				if (ret > 0)
+				{
+					//收到正确消息处理
+					memcpy(cli->fromIP, sockInfo->ip, IP_ADRESS_LEN);
+					cli->fromPort = sockInfo->port;
+					cli->recvLen += ret;
+					cli->recvSocket = sockInfo->sockfd;
+					GetSockInfo(cli->recvSocket, cli->recvIp, &(cli->recvPort));
+					{
+						struct timeval timeout = {0, 300 * 1000};
+						setsockopt(cli->recvSocket, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout, sizeof(struct timeval));
+
+						param->readcb(cli);
+						break;
+					}
+				}
+				else
+				{
+					//客户端主动关闭套接字或链接错误关闭套接字
+					//DF_DEBUG("clinet close socked,ret = %d",ret);
+					cli->recvSocket = sockInfo->sockfd;
+					char *closetcp = "close";
+					memcpy(cli->recvmsg, closetcp, strlen(closetcp));
+					param->readcb(cli);
+					DBG_ErrMsg("clinet close socked\n");
+					//sTimeOut
+					goto READ_ERROR;
+				}
+			}
+			else if (ret == 0)
+			{
+				timeOutCount++;
+				if (timeOutCount > 5)
+				{
+					goto READ_ERROR;
+				}
+				//DF_DEBUG("select time out");
+				continue;
+			}
+			else
+			{
+				//DF_DEBUG("select error");
+				goto READ_ERROR;
+			}
+			usleep(10 * 1000); //程序空跑 CPU不至于100%
+		}
+	}
+	return 0;
+READ_ERROR:
+	if (NULL != cli->usrdef)
+	{
+		free(cli->usrdef);
+	}
+
+//	free(cli);
+#if 1
+	list_remove(&(sockInfo->_list));
+	close(sockInfo->sockfd);
+	free(sockInfo);
+#endif
+	return 0;
+}
+
+void *InTcpServerThead(void *arg)
+{
+	SocketList_S *head = NULL;
+	SocketList_S *newnode = NULL;
+	NetServerParam_S *param = NULL;
+	struct listnode *node = NULL;
+	struct listnode *nextnode = NULL;
+	SocketList_S *sockInfo = NULL;
+
+	fd_set readfd, errorfd;
+	int maxfd = 0;
+	int ret = 0;
+	struct timeval timeout = {0};
+	DBG_InfoMsg("InTcpServerThead START\n");
+	prctl(PR_SET_NAME, (unsigned long)"InNetServerThead", 0, 0, 0);
+	if (NULL == arg)
+	{
+		return NULL;
+	}
+	param = (NetServerParam_S *)arg;
+	if (0 >= param->mainSockfd)
+	{
+		return NULL;
+	}
+	head = (SocketList_S *)malloc(sizeof(SocketList_S));
+	if (NULL == head)
+	{
+		close(param->mainSockfd);
+		return NULL;
+	}
+	memset(head, 0, sizeof(SocketList_S));
+	head->socketType = SOCKETTYPE_ENUM_NULL;
+	list_init(&(head->_list));
+	newnode = (SocketList_S *)malloc(sizeof(SocketList_S));
+	if (NULL == newnode)
+	{
+		free(head);
+		close(param->mainSockfd);
+		return NULL;
+	}
+
+	newnode->sockfd = param->mainSockfd;
+	newnode->socketType = SOCKETTYPE_ENUM_MAIN;
+	list_add_tail(&(head->_list), &(newnode->_list));
+	while (bInTsockFlag == 1)
+	{
+		FD_ZERO(&readfd);
+		FD_ZERO(&errorfd);
+		maxfd = -1;
+		list_for_each(node, &(head->_list))
+		{
+			sockInfo = (SocketList_S *)node_to_item(node, SocketList_S, _list);
+			FD_SET(sockInfo->sockfd, &readfd); //添加描述符
+			FD_SET(sockInfo->sockfd, &errorfd);
+			if (maxfd < sockInfo->sockfd)
+				maxfd = sockInfo->sockfd;
+		}
+		timeout.tv_sec = 1;
+		timeout.tv_usec = 5000000; //select函数会不断修改timeout的值，所以每次循环都应该重新赋值[windows不受此影响]
+		ret = select(maxfd + 1, &readfd, NULL, &errorfd, &timeout);
+		if (ret > 0)
+		{
+			nextnode = NULL;
+			for (node = head->_list.next; node != &(head->_list);)
+			{
+				sockInfo = (SocketList_S *)node_to_item(node, SocketList_S, _list);
+				if (0 >= sockInfo->sockfd)
+				{
+
+					continue;
+				}
+				nextnode = node->next;
+				if (!CheckSelectExcept(&errorfd, sockInfo))
+					;
+				else if (!CheckInSelectRead(&readfd, head, sockInfo, param))
+					;
+				node = nextnode;
+			}
+		}
+		else if (ret == 0)
+		{
+			//DF_DEBUG("Service Select Timeout");
+			continue;
+		}
+		else
+		{
+
+			list_for_each(node, &(head->_list))
+			{
+				sockInfo = (SocketList_S *)node_to_item(node, SocketList_S, _list);
+				struct stat tStat;
+				if (0 != fstat(sockInfo->sockfd, &tStat))
+				{
+					//DF_DEBUG("fstat %d error:%s\n", sockInfo->sockfd, strerror(errno));
+					if (param != NULL && param->closecb != NULL)
+					{
+						param->closecb(sockInfo->sockfd);
+					}
+					list_remove(&(sockInfo->_list));
+					close(sockInfo->sockfd);
+					free(sockInfo);
+					break;
+				}
+			}
+		}
+		usleep(20 * 1000); //程序空跑 CPU不至于100%
+	}
+}
+
+int SOCKET_CreateTcp_NServer(SocketWorkInfo_S *serverhandle)
+{
+	pthread_t pthidin;
 	NetServerParam_S *param;
-       bTsockFlag= 1;
+	bInTsockFlag = 1;
 
 	param = (NetServerParam_S *)malloc(sizeof(NetServerParam_S));
 	param->mainSockfd = Tcp_NServerSocketInit(serverhandle->serverport);
 	param->readcb = serverhandle->readcb;
 	param->closecb = serverhandle->closecb;
-	if(param->mainSockfd <= 0){
+	if (param->mainSockfd <= 0)
+	{
 		free(param);
 		return -1;
 	}
-	printf("--------P3K Inside TCP Start----------\n");
+	DBG_InfoMsg("--------P3K Inside TCP Start----------\n");
 	serverhandle->sockfd = param->mainSockfd;
 
-	pthread_attr_t  s_tThreadAttr;
-    pthread_attr_init(&s_tThreadAttr);
-    pthread_attr_setstacksize(&s_tThreadAttr, 512*1024);
-	pthread_create(&pthid, &s_tThreadAttr, TcpServerThead, (void *)param);
+	pthread_attr_t s_tThreadAttr;
+	pthread_attr_init(&s_tThreadAttr);
+	pthread_attr_setstacksize(&s_tThreadAttr, 512 * 1024);
+	pthread_create(&pthidin, &s_tThreadAttr, InTcpServerThead, (void *)param);
 
-	pthread_detach(pthid);
+	pthread_detach(pthidin);
 	return 0;
-
 }
-
 
 int SOCKET_CreateTcpServer(SocketWorkInfo_S*serverhandle)
 {
@@ -434,7 +672,7 @@ int SOCKET_CreateTcpServer(SocketWorkInfo_S*serverhandle)
     pthread_attr_init(&s_tThreadAttr);
     pthread_attr_setstacksize(&s_tThreadAttr, 512*1024);
 	pthread_create(&pthid, &s_tThreadAttr, TcpServerThead, (void *)param);
-        pthread_detach(pthid);
+    pthread_detach(pthid);
 	return 0;
 
 }
@@ -449,6 +687,19 @@ int  SOCKET_DestroyTcpServer(SocketWorkInfo_S*serverhandle)
 	serverhandle->sockfd = -1;
 	return 0;
 
+}
+
+int SOCKET_DestroyInTcpServer(SocketWorkInfo_S *serverhandle)
+{
+	bInTsockFlag= 0;
+
+	if(serverhandle->sockfd <= 0){
+		return 0;
+	}
+
+	close(serverhandle->sockfd);
+	serverhandle->sockfd = -1;
+	return 0;
 }
 
 static int  P3K_SelectHandleID(int iId,char * aIds)

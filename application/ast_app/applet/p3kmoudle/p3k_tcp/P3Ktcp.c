@@ -668,7 +668,7 @@ int Tcp_NetUnInit()
 {
 	Distory_TimeHead(sTimeOut);
 	SOCKET_DestroyTcpServer(Tcp_NetGetNetReristHandle());
-    SOCKET_DestroyTcpServer(Tcp_NetGetNetReristHandle1());
+    SOCKET_DestroyInTcpServer(Tcp_NetGetNetReristHandle1());
 	Tcp_P3KHandleListUnInit();
 	P3K_APIUnInit();
 	return 0;
