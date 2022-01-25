@@ -187,18 +187,18 @@ static unsigned long crc32(unsigned long crc, char *buf, unsigned int len)
 
 struct T_PKG_HDR
 {
-    int magic_number;   // 0xF0E1D2C3
-    int hdr_len;
-    int customer_id;
-    int product_id;
+    uint32_t magic_number;   // 0xF0E1D2C3
+    uint32_t hdr_len;
+    uint32_t customer_id;
+    uint32_t product_id;
     uint8_t ver_major;
     uint8_t ver_minor;
     uint8_t ver_revision;
     uint8_t ver_build;
-    int build_time;
-    int data_len;
-    int data_crc;
-    int hdr_crc;
+    uint32_t build_time;
+    uint32_t data_len;
+    uint32_t data_crc;
+    uint32_t hdr_crc;
 };
 
 #define _UPGRADE_DEBUG_ 1
@@ -208,7 +208,7 @@ void dump_hdr_info(struct T_PKG_HDR* pkg_hdr)
     fprintf(stdout, "package informations as below:\n"
             "====================\n"
             "magic_number = 0x%08x\n"
-            "hdr_len = 0x%d\n"
+            "hdr_len = 0x%u\n"
             "customer_id = 0x%08x\n"
             "product_id = 0x%08x\n"
             "ver_major = %u\n"
@@ -325,13 +325,13 @@ int extract_bin(const char *in_file_name, const char *out_file_name)
         return -2;
     }
 
-    const char *product_name[] = {
-        "UNKNOWN",     // 0
-        "KDS-EN7",     // 1
-        "KDS-SW3-EN7", // 2
-        "WP-SW2-EN7",  // 3
-        "KDS-DEC7",    // 4
-        "WP-DEC7"      // 5
+    const char *product_name[][2] = {
+        { "UNKNOWN",     "UNKNOWN"      }, // 0
+        { "KDS-EN7",     "KDS-SW3-EN7"  }, // 1
+        { "KDS-SW3-EN7", "KDS-EN7"      }, // 2
+        { "WP-SW2-EN7",  "WP-SW2-EN7"   }, // 3
+        { "KDS-DEC7",    "KDS-DEC7"     }, // 4
+        { "WP-DEC7"      "WP-DEC7"      }  // 5
     };
     if (pkg_hdr.product_id > 5)
     {
@@ -342,7 +342,11 @@ int extract_bin(const char *in_file_name, const char *out_file_name)
         fprintf(stderr, "\n");
         return -2;
     }
-    if (0 != strcasecmp(GetModelNumber(), product_name[pkg_hdr.product_id]))
+    if (
+        (0 != strcasecmp(GetModelNumber(), product_name[pkg_hdr.product_id][0]))
+        &&
+        (0 != strcasecmp(GetModelNumber(), product_name[pkg_hdr.product_id][1]))
+    )
     {
         fprintf(stderr, "ERROR: invalid file.");
         #if _UPGRADE_DEBUG_
