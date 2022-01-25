@@ -374,6 +374,18 @@ start_clm()
 
 	# start event loop
 	event_loop &
+
+	if [ $CEC_SEND_DIR = 'hdmi_in' ];then
+		echo 0 > /sys/devices/platform/cec/cec_report
+		if [ $UGP_FLAG = 'success' ];then
+			ipc @m_lm_set s cec_report:1
+		fi
+	elif [ $CEC_SEND_DIR = 'hdmi_out' ];then
+		echo 1 > /sys/devices/platform/cec/cec_report
+		if [ $UGP_FLAG = 'success' ];then
+			ipc @m_lm_set s cec_report:0
+		fi
+	fi
 }
 
 start_clm

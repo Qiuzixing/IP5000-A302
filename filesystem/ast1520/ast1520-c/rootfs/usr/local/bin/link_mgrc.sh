@@ -2921,13 +2921,17 @@ handle_e_p3k_ir()
 enable_hdmi_in_cec_report()
 {
 	echo 0 > /sys/devices/platform/cec/cec_report
-	ipc @m_lm_set s cec_report:1
+	if [ $UGP_FLAG = 'success' ];then
+		ipc @m_lm_set s cec_report:1
+	fi
 }
 
 enable_hdmi_out_cec_report()
 {
 	echo 1 > /sys/devices/platform/cec/cec_report
-	ipc @m_lm_set s cec_report:0
+	if [ $UGP_FLAG = 'success' ];then
+		ipc @m_lm_set s cec_report:0
+	fi
 }
 
 handle_ce_gw()
