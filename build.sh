@@ -16,9 +16,6 @@ build_IPE5000()
     make
 
     cat images/ast1520-h/version-h
-    mv images/ast1520-h/all.bin images/IPE5000-A30_${ver}.bin
-    mv images/ast1520-h/webfwh.bin images/IPE5000-A30_upgrade_${ver}.bin
-    rm -rf images/ast1520-h
 }
 
 build_IPD5000()
@@ -33,9 +30,6 @@ build_IPD5000()
     make
 
     cat images/ast1520-c/version-c
-    mv images/ast1520-c/allc.bin images/IPD5000-A30_${ver}.bin
-    mv images/ast1520-c/webfwc.bin images/IPD5000-A30_upgrade_${ver}.bin
-    rm -rf images/ast1520-c
 }
 
 if [ -z $* ] ; then
