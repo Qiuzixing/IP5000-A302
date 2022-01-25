@@ -4216,7 +4216,7 @@ int EX_AddComRoute(ComRouteInfo_S*info,int comId)
 		if(info->portNumber == g_network_info.tcp_port)
 		{
 			DBG_WarnMsg(" !!! Error para\n");
-			return EX_NO_ERR;
+			return EX_MODE_ERR;
 		}
 
 		Cfg_Set_GW_COM_Add(info->portNumber);
@@ -4619,7 +4619,7 @@ int EX_SetNetPort(char* portType,int portNumber)
         if(portNumber == g_network_info.udp_port)
         {
             printf("new port == old port err\n");
-            return EX_MODE_ERR;
+            return EX_NO_ERR;
         }
         int old_port = g_network_info.udp_port;
         Cfg_Set_Net_Port(Net_UDP,portNumber);

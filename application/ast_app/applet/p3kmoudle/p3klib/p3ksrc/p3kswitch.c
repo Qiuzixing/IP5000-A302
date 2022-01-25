@@ -3085,9 +3085,12 @@ static int P3K_GetComRouteInfo(char *reqparam, char *respParam, char *userdata)
 		DBG_ErrMsg("EX_GetComRoute err\n");
 		return -1;
 	}
-	if (ret == 0) // enable
+	if (ret == 0)
 	{
-		sprintf(respParam, "1,%d,%d,%d,%d", info.portType, info.portNumber, info.rePlay, info.HeartTimeout);
+		if(info.portNumber == 0) //disable
+			memset(respParam,0,sizeof(respParam));
+		else
+			sprintf(respParam, "1,%d,%d,%d,%d", info.portType, info.portNumber, info.rePlay, info.HeartTimeout);
 	}
 
 	return 0;
@@ -6225,14 +6228,14 @@ static int P3K_SetMulticastStatus(char *reqparam, char *respParam, char *userdat
 	char str[MAX_PARAM_COUNT][MAX_PARAM_LEN] = {0};
 
 	count = P3K_PhraserParam(reqparam, strlen(reqparam), str);
-	int isip = checkisIp(str[0]);
+/*	int isip = checkisIp(str[0]);
 	if (isip == -1)
 	{
 		ERR_MSG(ERR_PROTOCOL_SYNTAX, reqparam, respParam);
 		strcpy(userdata, "error");
 		return -1;
 	}
-	memcpy(ip, str[0], strlen(str[0]));
+*/	memcpy(ip, str[0], strlen(str[0]));
 	if (isnum(str[1]) == -1)
 	{
 		ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);
