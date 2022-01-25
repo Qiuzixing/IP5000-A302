@@ -662,18 +662,6 @@ void Dialog::readMsgD()
        // hideOsdMeun();
        return;
    }
-   else if(str.compare("START_WORKING") == 0)
-   {
-       qDebug() << "--VIDEO WORKING--";
-       emit sigStartWorking(true);
-       return;
-   }
-   else if(str.compare("STOP_WORKING") == 0)
-   {
-       qDebug() << "--VIDEO STOP WORKING--";
-       emit sigStartWorking(false);
-       return;
-   }
 
 	dbgMsg(QString("d.constData: %1").arg(d.constData()));
 	dbgMsg(QString("d.size: %1").arg(d.size()));
@@ -869,7 +857,7 @@ void Dialog::updateGUI()
 			if (guiActionInfo.ub.show_info.show_text == GUI_SHOW_TEXT) {
 
                 // GUI sleep
-                emit sigStartSleepMode();
+                // emit sigStartSleepMode();
                 qDebug() << "updateGUI::INFO_R_SHOW";
 
 				infoL->setVisible(true);
@@ -912,7 +900,7 @@ void Dialog::updateGUI()
         if(guiActionInfo.ub.show_info.show_text == GUI_SHOW_TEXT)
         {
             // GUI sleep
-            emit sigStartSleepMode();
+            // emit sigStartSleepMode();
 
             qDebug() << "updateGUI::INFO_R_SHOW";
 

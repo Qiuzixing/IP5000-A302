@@ -45,6 +45,9 @@
 
 #define I_WEB_PIPE          "/tmp/overlay_f"
 
+#define CMD_START_KM        "e e_start_kmoip"
+#define CMD_STOP_KM         "e e_stop_kmoip"
+
 #define CMD_TIMING          "cat /sys/devices/platform/videoip/timing_info"
 #define CMD_SCREEN          "cat /sys/devices/platform/display/screen"
 
@@ -240,17 +243,14 @@ void MainWidget::setDeviceInfoDispaly(bool status)
         if(!g_bDeviceSleepMode)
         {
             // 互斥OSD、OVERLAY
-//            hideOsdMeun(false);
             m_osdMeun->parseMeunJson(MENUINFO_PATH);
-            m_osdMeun->setVisible(false);
-            m_osdMeun->repaint();
-            g_bOSDMeunDisplay = false;
+            hideOsdMeun(false);
             slotHideOverlay();
 
             if(!g_bDeviceInfoDisplay)
             {
                 m_bMoveInfoFlag = true;
-                QTimer::singleShot(100,this,SLOT(moveDisplayArea()));
+                QTimer::singleShot(200,this,SLOT(moveDisplayArea()));
 
                 QTimer::singleShot(500,this,SLOT(showDeviceInfo()));
             }
@@ -299,10 +299,10 @@ void MainWidget::showDeviceInfo()
 
     if(!m_osdMeun->getDeviceInfoDisplayStatus())
     {
-
         int timeout = m_osdMeun->getDeviceInfoTimerout();
         qDebug() << "timeout:" << ypos;
 
+        DeviceInfoTimer.stop();
         DeviceInfoTimer.start(timeout);
     }
 
@@ -320,6 +320,7 @@ void MainWidget::slotHideDeviceInfo(bool isStartOverlay)
 
     DeviceInfoTimer.stop();
     m_deviceInfo->setVisible(false);
+    m_deviceInfo->repaint();
     g_bDeviceInfoDisplay = false;
 
     if(isStartOverlay)
@@ -328,6 +329,15 @@ void MainWidget::slotHideDeviceInfo(bool isStartOverlay)
         {
             // 非常显状态下隐藏后询问OVERLAY是否显示
             QTimer::singleShot(500,this,SLOT(showLongDisplay()));
+        }
+        else
+        {
+            // 常显状态下被命令关闭后询问OVERLAY是否显示
+            m_osdMeun->parseMeunJson(MENUINFO_PATH);
+            if(!m_osdMeun->getdisplayConfig())
+            {
+                QTimer::singleShot(500,this,SLOT(showLongDisplay()));
+            }
         }
     }
 }
@@ -344,40 +354,24 @@ void MainWidget::keyPressEvent(QKeyEvent *e)
 
 void MainWidget::getKMControl()
 {
-    QString strCmd = "e e_stop_kmoip";
-    QProcess *p = new QProcess();
-    p->start("bash", QStringList() <<"-c" << strCmd);
-    if(p->waitForFinished())
+    QProcess p;
+    p.start("bash", QStringList() <<"-c" << CMD_STOP_KM);
+    if(p.waitForFinished())
     {
         m_bKvmMode = false;
-        delete p;
         qDebug() << "getKMControl finished";
     }
-
-    // 显示光标
-//    this->setCursor(Qt::ArrowCursor);
-//#ifdef Q_OS_LINUX
-//    QWSServer::setCursorVisible(true);
-//#endif
 }
 
 void MainWidget::freeKMControl()
 {
-    QString strCmd = "e e_start_kmoip";
-    QProcess *p = new QProcess();
-    p->start("bash", QStringList() <<"-c" << strCmd);
-    if(p->waitForFinished())
+    QProcess p;
+    p.start("bash", QStringList() <<"-c" << CMD_START_KM);
+    if(p.waitForFinished())
     {
         m_bKvmMode = true;
-        delete p;
         qDebug() << "freeKMControl finished";
     }
-
-    // 隐藏光标
-//    this->setCursor(Qt::BlankCursor);
-//#ifdef Q_OS_LINUX
-//    QWSServer::setCursorVisible(false);
-//#endif
 }
 
 void MainWidget::paintEvent(QPaintEvent *event)
@@ -416,14 +410,14 @@ void MainWidget::syncConfig(QString path)
         if(g_bOSDMeunDisplay)
         {
             // Display依靠P3K不能依靠配置文件，会导致上电后直接显示OSD菜单
-            m_osdMeun->setVisible(false);
-            m_osdMeun->repaint();
+            hideOsdMeun(false);
+
             updateOsdMenuData();
 
             if(!g_bDeviceSleepMode)
             {
                 m_bMoveMeunFlag = true;
-                QTimer::singleShot(100,this,SLOT(moveDisplayArea()));
+                QTimer::singleShot(200,this,SLOT(moveDisplayArea()));
             }
 
             QTimer::singleShot(500,this,SLOT(showOsdMeun()));
@@ -540,9 +534,11 @@ void MainWidget::getResolutionFromTiming()
                  this->setFixedSize(g_nScreenWidth,g_nScreenHeight);
 
                  qDebug() << "getResolutionFromTiming:hideOsdMeun_1";
+                 m_deviceInfo->setVisible(false);
+                 g_bDeviceInfoDisplay = false;
+
                  hideOsdMeun(false);
                  slotHideOverlay();
-                 this->repaint();
 
                  QTimer::singleShot(1000,this,SLOT(slotDelayReinit()));
             }
@@ -565,9 +561,11 @@ void MainWidget::getResolutionFromTiming()
             this->setFixedSize(g_nScreenWidth,g_nScreenHeight);
 
             qDebug() << "getResolutionFromTiming:hideOsdMeun_2";
+            m_deviceInfo->setVisible(false);
+            g_bDeviceInfoDisplay = false;
+
             hideOsdMeun(false);
             slotHideOverlay();
-            this->repaint();
 
             QTimer::singleShot(1000,this,SLOT(slotDelayReinit()));
         }
@@ -585,8 +583,8 @@ void MainWidget::slotDelayReinit()
 void MainWidget::reInit()
 {
     initOsdMeun();
-    initOverlay();
     initDeviceInfo();
+    initOverlay();
     update();
 }
 
@@ -613,10 +611,9 @@ void MainWidget::destroyOsdAndOverlay()
 
 void MainWidget::handleKvmMsg(bool enable)
 {
-    // 如果OSD已经在显示则不处理后面的热键信息，这里要从km_usb.json获取超时时间
+    // 如果OSD已经在显示则不处理后面的热键信息
     if(!enable)
     {
-        g_bOSDMeunDisplay = true;
         m_bKvmMode = false;
 
         // hide overlay & deviceInfo
@@ -633,7 +630,7 @@ void MainWidget::handleKvmMsg(bool enable)
         if(!g_bDeviceSleepMode)
         {
             m_bMoveMeunFlag = true;
-            QTimer::singleShot(100,this,SLOT(moveDisplayArea()));
+            QTimer::singleShot(200,this,SLOT(moveDisplayArea()));
         }
 
         QTimer::singleShot(500,this,SLOT(showOsdMeun()));
@@ -668,7 +665,7 @@ void MainWidget::slotUpdateDeviceInfo(QLabel *info)
 
 void MainWidget::startSleepMode()
 {
-    g_bDeviceSleepMode = true;
+  //  g_bDeviceSleepMode = true;
 }
 
 void MainWidget::switchOSDMeun()
@@ -730,6 +727,22 @@ void MainWidget::initOsdMeun()
 
 void MainWidget::initOverlay()
 {
+    n_bFirstInfo = false;
+    if(m_osdMeun->getDeviceInfoDisplayStatus() && m_osdMeun->getdisplayConfig())
+    {
+        showDeviceInfo();
+        n_bFirstInfo = true;
+    }
+    else
+    {
+        if(DeviceInfoTimer.isActive())
+        {
+            showDeviceInfo();
+            n_bFirstInfo = true;
+        }
+
+    }
+
     //上电解析overlay文件
     m_bFirst = true;
     parseOverlayJson("overlay1_setting.json");
@@ -739,7 +752,9 @@ void MainWidget::initOverlay()
         return;
 
     parseOverlayJson("overlay2_setting.json");
+
     m_bFirst = false;
+    n_bFirstInfo = false;
 }
 
 void MainWidget::initDeviceInfo()
@@ -790,25 +805,20 @@ void MainWidget::hideOsdMeun(bool isStartOverlay)
 {
     if(m_osdMeun == NULL)
         return;
-
-    qDebug() << "main_0_4_1";
     qDebug() << "Meun Hide";
-    m_osdMeun->move(-this->width(),(this->height() - m_osdMeun->height())/2);
+
+    // 关闭定时器
+    m_osdMeun->stopTimer();
     m_osdMeun->setVisible(false);
     m_osdMeun->repaint();
-
-    qDebug() << "main_0_4_1_2";
+    g_bOSDMeunDisplay = false;
 
     // 隐藏菜单后释放KM
     freeKMControl();
 
-    g_bOSDMeunDisplay = false;
-
     // 隐藏OSD菜单时，继续显示常显Overlay
     if(isStartOverlay)
         QTimer::singleShot(400,this,SLOT(showLongDisplay()));
-
-    m_osdMeun->setdisplayStatus(false);
 }
 
 void MainWidget::showOsdMeun()
@@ -817,6 +827,7 @@ void MainWidget::showOsdMeun()
         return;
 
     m_osdMeun->setVisible(true);
+    g_bOSDMeunDisplay = true;
 
     getKMControl();
 
@@ -825,7 +836,6 @@ void MainWidget::showOsdMeun()
     m_osdMeun->raise();
 
     moveOsdMeun(m_osdMeun->getShowPosition());
-    m_osdMeun->setdisplayStatus(true);
 }
 
 void MainWidget::moveOsdMeun(int position)
@@ -899,6 +909,10 @@ void MainWidget::moveOsdMeun(int position)
     // 移动到指定位置
     moveFramebuffer(position);
     setTransparency(20);
+
+    qDebug() << "m_osdMeun::width:" << m_osdMeun->width()
+             << "m_osdMeun::height:" << m_osdMeun->height()
+             << "g_fScaleScreen:" << g_fScaleScreen;
 
     m_osdMeun->startTimer();
 }
@@ -975,71 +989,62 @@ void MainWidget::showOverlay(OSDLabel *overlay,int position)
      text->adjustSize();
      text->setVisible(true);
 
-     if(/*g_nScreenWidth >= ACADEMY_4K*/0)
+     switch (position)
      {
-         xpos = (g_nframebufferWidth-text->width())/2;
-         ypos = (g_nframebufferHeight-text->height())/2;
-     }
-     else
-     {
-         switch (position)
+         case CENTER:
          {
-             case CENTER:
-             {
-                 xpos = (g_nframebufferWidth-text->width())/2;
-                 ypos = (g_nframebufferHeight-text->height())/2;
-                 break;
-             }
-             case TOP_LEFT:
-             {
-                 xpos = OSD_XPOS;
-                 ypos = OSD_YPOS;
-                 break;
-             }
-             case TOP_MID:
-             {
-                 xpos = (g_nframebufferWidth-text->width())/2;
-                 ypos = OSD_YPOS;
-                 break;
-             }
-             case TOP_RIGTH:
-             {
-                 xpos = g_nframebufferWidth-text->width() - OSD_XPOS;
-                 ypos = OSD_YPOS;
-                 break;
-             }
-             case BOTTOM_LEFT:
-             {
-                 xpos = OSD_XPOS;
-                 ypos = g_nframebufferHeight-text->height() - OSD_YPOS;
-                 break;
-             }
-             case BOTTOM_MID:
-             {
-                 xpos = (g_nframebufferWidth-text->width())/2;
-                 ypos = g_nframebufferHeight-text->height()- OSD_YPOS;
-                 break;
-             }
-             case BOTTOM_RIGHT:
-             {
-                 xpos = g_nframebufferWidth-text->width() - OSD_XPOS;
-                 ypos = g_nframebufferHeight-text->height() - OSD_YPOS;
-                 break;
-             }
-             case LEFT_MID:
-             {
-                 xpos = OSD_XPOS;
-                 ypos = (g_nframebufferHeight-text->height())/2;
-                 break;
-             }
-             case RIGHT_MID:
-             {
-                 xpos = g_nframebufferWidth-text->width() - OSD_XPOS;
-                 ypos = (g_nframebufferHeight-text->height())/2;
-                 break;
-             }
+             xpos = (g_nframebufferWidth-text->width())/2;
+             ypos = (g_nframebufferHeight-text->height())/2;
+             break;
          }
-
+         case TOP_LEFT:
+         {
+             xpos = OSD_XPOS;
+             ypos = OSD_YPOS;
+             break;
+         }
+         case TOP_MID:
+         {
+             xpos = (g_nframebufferWidth-text->width())/2;
+             ypos = OSD_YPOS;
+             break;
+         }
+         case TOP_RIGTH:
+         {
+             xpos = g_nframebufferWidth-text->width() - OSD_XPOS;
+             ypos = OSD_YPOS;
+             break;
+         }
+         case BOTTOM_LEFT:
+         {
+             xpos = OSD_XPOS;
+             ypos = g_nframebufferHeight-text->height() - OSD_YPOS;
+             break;
+         }
+         case BOTTOM_MID:
+         {
+             xpos = (g_nframebufferWidth-text->width())/2;
+             ypos = g_nframebufferHeight-text->height()- OSD_YPOS;
+             break;
+         }
+         case BOTTOM_RIGHT:
+         {
+             xpos = g_nframebufferWidth-text->width() - OSD_XPOS;
+             ypos = g_nframebufferHeight-text->height() - OSD_YPOS;
+             break;
+         }
+         case LEFT_MID:
+         {
+             xpos = OSD_XPOS;
+             ypos = (g_nframebufferHeight-text->height())/2;
+             break;
+         }
+         case RIGHT_MID:
+         {
+             xpos = g_nframebufferWidth-text->width() - OSD_XPOS;
+             ypos = (g_nframebufferHeight-text->height())/2;
+             break;
+         }
      }
 
      qDebug() << "xpos:" << xpos;
@@ -1072,11 +1077,10 @@ void MainWidget::moveFramebuffer(int align)
 {
     QString Cmdstr = QString("ast_send_event -1 \"e_osd_position::%1::0::0\"").arg(align);
     qDebug() << "move Cmdstr:" <<Cmdstr;
-    QProcess *p = new QProcess();
-    p->start("bash", QStringList() <<"-c" << Cmdstr);
-    if(p->waitForFinished())
+    QProcess p;
+    p.start("bash", QStringList() <<"-c" << Cmdstr);
+    if(p.waitForFinished())
     {
-        delete p;
         qDebug() << "move frame buffer finished";
     }
 }
@@ -1088,45 +1092,12 @@ void MainWidget::setTransparency(int Transparency)
 
     QString Cmdstr = QString("ast_send_event -1 \"e_osd_on_pic::0::9999::%1::1::n:: ::0\"").arg(Transparency);
     qDebug() << "setTransparency Cmdstr:" <<Cmdstr;
-    QProcess *p = new QProcess();
-    p->start("bash", QStringList() <<"-c" << Cmdstr);
-    if(p->waitForFinished())
+    QProcess p;
+    p.start("bash", QStringList() <<"-c" << Cmdstr);
+    if(p.waitForFinished())
     {
-        delete p;
         qDebug() << "setTransparency finished";
     }
-}
-
-int MainWidget::parseKMJsonGetTimeout()
-{
-    Json::Reader reader;
-    Json::Value root;
-
-    int Timeout = 6; // 默认6分钟
-
-    // 加锁
-    m_lock.lockForRead();
-
-    ifstream in(KM_USB_PATH,ios::binary);
-
-    if(!in.is_open())
-    {
-        qDebug() << "open KM_USB.json failed";
-        return Timeout * 60;
-    }
-
-    if(reader.parse(in,root))
-    {
-        Timeout = root["usb_kvm_config"]["kvm_timeout_sec"].asInt();
-    }
-
-    in.close();
-    // 解锁
-    m_lock.unlock();
-
-    qDebug() << "Timeout_kvm:" << Timeout;
-
-    return Timeout * 60;
 }
 
 void MainWidget::parseOverlayJson(QString jsonpath)
@@ -1204,7 +1175,8 @@ void MainWidget::parseOverlayJson(QString jsonpath)
                     {
                         if(m_imageOverlay != NULL)
                         {
-                            m_imageOverlay->hide();
+                            m_imageOverlay->setVisible(false);
+
                             delete m_imageOverlay;
                             m_imageOverlay = NULL;
                         }
@@ -1232,6 +1204,8 @@ void MainWidget::parseOverlayJson(QString jsonpath)
                     // 释放前一个内存
                     if(m_imageOverlay != NULL)
                     {
+                        m_imageOverlay->setVisible(false);
+
                         delete m_imageOverlay;
                         m_imageOverlay = NULL;
                     }
@@ -1258,7 +1232,8 @@ void MainWidget::parseOverlayJson(QString jsonpath)
                     // 互斥
                     if(m_textOverlay != NULL)
                     {
-                        m_textOverlay->hide();
+                        m_textOverlay->setVisible(false);
+
                         delete m_textOverlay;
                         m_textOverlay= NULL;
                     }
@@ -1269,7 +1244,9 @@ void MainWidget::parseOverlayJson(QString jsonpath)
                         if(m_overlayStatus && (m_CmdOuttime == 0))
                         {
                             m_bFirst = false;
-                            showOverlay(m_imageOverlay,showPos);
+
+                            if(!n_bFirstInfo)
+                                showOverlay(m_imageOverlay,showPos);
                         }
                     }
                     else
@@ -1280,7 +1257,7 @@ void MainWidget::parseOverlayJson(QString jsonpath)
                             hideOsdAndInfo();
                             if(!g_bDeviceSleepMode)
                             {
-                                QTimer::singleShot(100,this,SLOT(moveDisplayArea()));
+                                QTimer::singleShot(200,this,SLOT(moveDisplayArea()));
                             }
 
                             QTimer::singleShot(500,this,SLOT(slotShowImageOverlay()));
@@ -1294,7 +1271,8 @@ void MainWidget::parseOverlayJson(QString jsonpath)
                     {
                         if(m_textOverlay != NULL)
                         {
-                            m_textOverlay->hide();
+                            m_textOverlay->setVisible(false);
+
                             delete m_textOverlay;
                             m_textOverlay = NULL;
                         }
@@ -1356,6 +1334,8 @@ void MainWidget::parseOverlayJson(QString jsonpath)
 
                     if(m_textOverlay != NULL)
                     {
+                        m_textOverlay->setVisible(false);
+
                         delete m_textOverlay;
                         m_textOverlay = NULL;
                     }
@@ -1381,7 +1361,8 @@ void MainWidget::parseOverlayJson(QString jsonpath)
                     // 互斥
                     if(m_imageOverlay != NULL)
                     {
-                        m_imageOverlay->hide();
+                        m_imageOverlay->setVisible(false);
+
                         delete  m_imageOverlay;
                         m_imageOverlay = NULL;
                     }
@@ -1392,7 +1373,9 @@ void MainWidget::parseOverlayJson(QString jsonpath)
                         if(m_overlayStatus && (m_CmdOuttime == 0))
                         {
                             m_bFirst = false;
-                            showOverlay(m_textOverlay,showPos);
+
+                            if(!n_bFirstInfo)
+                                showOverlay(m_textOverlay,showPos);
                         }
                     }
                     else
@@ -1403,7 +1386,7 @@ void MainWidget::parseOverlayJson(QString jsonpath)
                             hideOsdAndInfo();
                             if(!g_bDeviceSleepMode)
                             {
-                                QTimer::singleShot(100,this,SLOT(moveDisplayArea()));
+                                QTimer::singleShot(200,this,SLOT(moveDisplayArea()));
                             }
                             QTimer::singleShot(500,this,SLOT(slotShowTextOverlay()));
                             //showOverlay(m_textOverlay,showPos);
@@ -1430,7 +1413,6 @@ void MainWidget::moveDisplayArea()
     {
         qDebug() << "MOVE m_bMoveMeunFlag BACKGROUND";
         m_bMoveMeunFlag = false;
-//        m_background = new OSDLabel(TRANS_BACKGROUND,300,300,this);
         showOverlay(m_background,m_osdMeun->getShowPosition());
         return;
     }
@@ -1439,7 +1421,6 @@ void MainWidget::moveDisplayArea()
     {
         qDebug() << "MOVE m_bMoveInfoFlag BACKGROUND";
         m_bMoveInfoFlag = false;
-//        m_background = new OSDLabel(TRANS_BACKGROUND,300,300,this);
         showOverlay(m_background,BOTTOM_RIGHT);
         return;
     }
@@ -1447,13 +1428,11 @@ void MainWidget::moveDisplayArea()
     if(m_textOverlay == NULL)
     {
         qDebug() << "MOVE m_textOverlay BACKGROUND";
-//        m_background = new OSDLabel(TRANS_BACKGROUND,300,300,this);
         showOverlay(m_background,m_imageOverlay->getShowPos());
     }
     else if(m_imageOverlay == NULL)
     {
         qDebug() << "MOVE m_imageOverlay BACKGROUND";
-//        m_background = new OSDLabel(TRANS_BACKGROUND,300,300,this);
         showOverlay(m_background,m_textOverlay->getShowPos());
     }
 }

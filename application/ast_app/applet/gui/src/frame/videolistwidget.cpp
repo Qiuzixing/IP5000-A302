@@ -34,17 +34,12 @@ OSDMeun::OSDMeun(QWidget *parent)
     :QWidget(parent)
     ,m_currentPage(1)
     ,m_onSreachMode(false)
-    ,m_displayStatus(false)
     ,m_displayConfig(false)
     ,m_needSelected (false)
     ,m_bInfoLongDisplay(false)
     ,m_pageChannels(5)
     ,m_deviceTimeout(10)
 {
-//    QGraphicsOpacityEffect *opacityEffect=new QGraphicsOpacityEffect;
-//    this->setGraphicsEffect(opacityEffect);
-//    opacityEffect->setOpacity(0.9);
-
     // 解析菜单参数
     parseMeunJson(MENUINFO_PATH);
 
@@ -250,6 +245,7 @@ void OSDMeun::initLayout()
     m_inputEdit = new QLineEdit(this);
     m_inputEdit->setFixedSize(160 * g_fScaleScreen,g_nButtonHeight * g_fScaleScreen);
     m_inputEdit->setFocus();
+    m_inputEdit->setStyleSheet("QLineEdit{color:white;}");
 
     m_listWidget = new QListWidget(this);
     m_listWidget->setStyleSheet("QListWidget{outline:0px;}");
@@ -401,7 +397,7 @@ void OSDMeun::setCompleter(const QString &text)
 
 QString OSDMeun::omittedString(QString i_str ,QString o_str)
 {
-    qDebug() << "i_str.length():" <<i_str.length() << "i_str:" << i_str;
+    //qDebug() << "i_str.length():" <<i_str.length() << "i_str:" << i_str;
     if(i_str.length() <= 8)
     {
         o_str = i_str;
@@ -527,7 +523,7 @@ void OSDMeun::parseMeunJson(QString jsonpath)
     char input[filesize];
     memset(input,0,filesize);
     in.read(input,filesize);
-    std::cout << "in_str:" << input << std::endl;
+    // std::cout << "in_str:" << input << std::endl;
 
     std::string input_str = input;
     if(reader.parse(input_str,root))

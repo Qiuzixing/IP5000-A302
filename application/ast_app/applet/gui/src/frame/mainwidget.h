@@ -77,8 +77,6 @@ public slots:
     void onRecvData(QByteArray data);
     void parseCmdResult(QByteArray datagram);
 
-    int parseKMJsonGetTimeout();
-
     void parseOverlayJson(QString jsonpath);
 
     void parseOverlayText();
@@ -139,6 +137,7 @@ private:
     int m_CmdOuttime;
     bool m_overlayStatus;
 
+    bool n_bFirstInfo;
     bool m_bFirst;
     bool m_isSnedQueryCmd;
 

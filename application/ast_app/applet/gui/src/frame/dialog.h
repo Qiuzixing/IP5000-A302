@@ -97,7 +97,6 @@ public:
 signals:
     void sigStartSleepMode();
     void sigStartKVM(bool enable);
-    void sigStartWorking(bool enable);
     void sigUpdateDeviceInfo(QLabel* info);
 
 protected:

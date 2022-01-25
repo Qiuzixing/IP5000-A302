@@ -33,6 +33,7 @@ public:
     void startTimer();
     void stopTimer();
     void setoverTime(int msec = DEFAULET_TINEOUT){m_overTime = msec;}
+    int setRGB(int color){if(color < 5)return 5;return color;}
 
     void setLongDisplay(bool status){ m_bLongDisplay = status;}
     bool isLongDisplay(){return m_bLongDisplay;}

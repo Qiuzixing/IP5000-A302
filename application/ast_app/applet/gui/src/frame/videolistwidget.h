@@ -37,7 +37,6 @@ public:
 
     int getCurrentPage(){return m_currentPage;}
     int getShowPosition(){return m_showPosition;}
-    int getdisplayStatus(){return m_displayStatus;}
     int getdisplayConfig(){return m_displayConfig;}
     int getDeviceInfoTimerout(){return m_deviceTimeout;}
     bool getDeviceInfoDisplayStatus() {return m_bInfoLongDisplay;}
@@ -57,7 +56,6 @@ public:
     void setListWidgetHeight();
     void setMeunFont();
     void setButtonFont();
-    int  setdisplayStatus(bool cfg){m_displayStatus = cfg;}
 
     void hideSettingPage();
     void setChannelLocation(int id);
@@ -125,7 +123,6 @@ private:
     int m_totalPage;
     int m_maxChannels;
     int m_channelID;
-    bool m_displayStatus;
     bool m_displayConfig;
     int m_deviceTimeout;
 

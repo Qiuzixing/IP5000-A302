@@ -40,6 +40,10 @@ OSDLabel::OSDLabel(const QString& text, quint8 fontSize, quint32 fontColor, QWid
     int b = (fontColor) & 0xff;
     if (!a) a = 0xff;
 
+    r = setRGB(r);
+    g = setRGB(g);
+    b = setRGB(b);
+
     m_coverBrush = QColor(0, 0, 0, 0);
 
     qDebug() << "g_Transparency:" << g_Transparency;
@@ -65,6 +69,8 @@ OSDLabel::OSDLabel(const QString &imagePath,int width,int height,QWidget *parent
     int widthR = pix.width() * g_fScaleScreen;
     int heightR = pix.height() * g_fScaleScreen;
 
+    qDebug() << "widthR:" << widthR << "heightR:" << heightR << "g_fScaleScreen:" << g_fScaleScreen;
+
     // image
     QRect imageRect;
     imageRect.setX(0);
@@ -76,24 +82,6 @@ OSDLabel::OSDLabel(const QString &imagePath,int width,int height,QWidget *parent
 
     QPixmap fixpix = pix.scaled(widthR, heightR, Qt::KeepAspectRatio, Qt::SmoothTransformation); // 按比例缩放
     imageLabel->setPixmap(fixpix);
-
-//    QPixmap tmppix(pix.size());
-//    tmppix.fill(Qt::transparent);
-//    QPainter p(&tmppix);
-
-//    m_coverBrush = QColor(255, 255, 255,255);//  背景
-
-//    p.fillRect(0, 0, this->width(), this->height(), m_coverBrush);
-//    p.setCompositionMode(QPainter::CompositionMode_Source);
-//    p.drawPixmap(0, 0, pix);
-//    //200表示透明度，数值0表示完全透明，数值255表示不透明
-//    p.setCompositionMode(QPainter::CompositionMode_DestinationIn);
-//    p.fillRect(tmppix.rect(), QColor(0,0,0,255));
-//    p.end();
-
-//    imageLabel->setPixmap(tmppix);
-//    imageLabel->setScaledContents(true);
-//    imageLabel->setVisible(true);
 
     connect(&displayerTimer,SIGNAL(timeout()),this,SLOT(overTimer()));
 }
