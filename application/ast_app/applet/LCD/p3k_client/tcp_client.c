@@ -37,7 +37,7 @@ void* Entry(void *arg)
     char *begin_str = NULL;
     char *end_str = NULL;
     
-    while(!thread_stop)
+    while(thread_stop == 0)
     {
         FD_ZERO(&rfds);
         FD_SET(sock_fd, &rfds);
@@ -82,13 +82,17 @@ void* Entry(void *arg)
             }
             else
             {
+                if (had_send_cmd == 1)
+                {
+                    pthread_cond_signal(&cond);
+                }
                 printf("recv fail\n");
             }
             
         }
         else if (err == 0)  //timeout
         {
-            if (had_send_cmd)
+            if (had_send_cmd == 1)
             {               
                 printf("recv %s timeout\n", p3k_cmd_head);
                 pthread_cond_signal(&cond);
@@ -97,7 +101,7 @@ void* Entry(void *arg)
         else //error
         {
             printf("select fail\n");
-            if (had_send_cmd)
+            if (had_send_cmd == 1)
             {
                 pthread_cond_signal(&cond);
             }

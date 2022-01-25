@@ -73,6 +73,7 @@ int recv_button_status()
         if (err == -1)
         {
             printf("msg_recv_state fail");
+			pthread_mutex_unlock(&g_lock);
             return -1;
         }
         pthread_mutex_unlock(&g_lock);
