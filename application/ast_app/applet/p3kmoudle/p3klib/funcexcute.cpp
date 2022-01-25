@@ -3806,7 +3806,7 @@ int EX_SendIRmessage(IRMessageInfo_S*info)
 	//parse
 	while(strlen(info->cmdComent) > 0)
 	{
-		char tmp_param[8]="";
+		char tmp_param[4096]="";
 
 		//printf("111111 %s \n",info->cmdComent);
 
@@ -4940,16 +4940,31 @@ int EX_SetBeacon(int portNumber,int status,int rateSecond)
 int EX_GetBeaconInfo(int portNumber,BeaconInfo_S*info)
 {
     char ip_buf[32] = "";
-	GetIPInfo(1,ip_buf,NULL);
 
-    //ip_buf,g_network_info.udp_port,g_network_info.tcp_port,g_device_info.mac_addr,g_version_info.model
-	info->portNumber = portNumber;
-	info->tcpPort = g_network_info.tcp_port;
-	info->udpPort = g_network_info.udp_port;
-	strcpy(info->deviceMod,g_version_info.model);
-    strcpy(info->deviceName,g_device_info.hostname);
-	strcpy(info->ipAddr,ip_buf);
-	strcpy(info->macAddr,g_device_info.mac_addr);
+	if((portNumber != 0)&&(portNumber != 1))
+	{
+		DBG_WarnMsg(" !!! Error Para \n");
+		return EX_PARAM_ERR;
+	}
+
+    if(portNumber == g_init_control_port)
+    {
+		GetIPInfo(1,ip_buf,NULL);
+
+	    //ip_buf,g_network_info.udp_port,g_network_info.tcp_port,g_device_info.mac_addr,g_version_info.model
+		info->portNumber = portNumber;
+		info->tcpPort = g_network_info.tcp_port;
+		info->udpPort = g_network_info.udp_port;
+		strcpy(info->deviceMod,g_version_info.model);
+	    strcpy(info->deviceName,g_device_info.hostname);
+		strcpy(info->ipAddr,ip_buf);
+		strcpy(info->macAddr,g_device_info.mac_addr);
+    }
+	else
+	{
+		DBG_WarnMsg(" !!! Error Mode \n");
+		return EX_MODE_ERR;
+	}
 
 	return EX_NO_ERR;
 }
@@ -5786,7 +5801,13 @@ void * Beacon_cb(void * fd)
 
 int EX_Beacon(int iPort_Id,int iStatus,int iTime)
 {
-    if(iPort_Id == 1)
+	if((iPort_Id != 0)&&(iPort_Id != 1))
+	{
+		DBG_WarnMsg(" !!! Error Param \n");
+		return EX_PARAM_ERR;
+	}
+
+    if(iPort_Id == g_init_control_port)
     {
 
         if(iStatus == 1)
@@ -5817,6 +5838,12 @@ int EX_Beacon(int iPort_Id,int iStatus,int iTime)
 			return EX_PARAM_ERR;
 		}
     }
+	else
+	{
+		DBG_WarnMsg(" !!! Error Mode \n");
+		return EX_MODE_ERR;
+	}
+
     if(1 <= iTime && iTime <= 1800)
     {
         g_network_info.beacon_time = iTime;
@@ -5909,7 +5936,7 @@ int EX_GetBeaconConf(char *muticastIP,int *port)
 
 int EX_GetBeacon(int *iPort_Id,int *iStatus,int *iTime)
 {
-    *iPort_Id = 1;
+    *iPort_Id = g_init_control_port;
     if(g_network_info.beacon_en == ON)
     {
         *iStatus = 1;
