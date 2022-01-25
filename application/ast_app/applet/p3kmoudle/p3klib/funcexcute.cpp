@@ -4632,14 +4632,15 @@ int EX_SetNetPort(char* portType,int portNumber)
     	if(bind(sock_fd,(struct sockaddr*)&myaddr,sizeof(myaddr))<0)
     		perror("bind");
 
-		char ip_buf[32] = "";
+		//char ip_buf[32] = "";
 
-		GetIPInfo(1,ip_buf,NULL);
+		//GetIPInfo(1,ip_buf,NULL);
 
     	struct sockaddr_in addr;// ipv4濂楁帴瀛楀湴鍧€缁撴瀯浣?
     	addr.sin_family =AF_INET;
     	addr.sin_port = htons(old_port);
-    	inet_pton(AF_INET,ip_buf,&addr.sin_addr.s_addr); //服务器的ip
+    	//inet_pton(AF_INET,ip_buf,&addr.sin_addr.s_addr); //服务器的ip
+    	addr.sin_addr.s_addr = 0;
     	struct sockaddr_in server_addr;
     	socklen_t len = sizeof(server_addr);
         char buf[24] = "udp_port_change";
