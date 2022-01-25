@@ -62,19 +62,52 @@
             </div>
           </v-collapse>
           <v-collapse title="Text settings">
-            <div class="overlay-setting">
+            <div class="overlay-setting" v-if="textInfo.objects[0].size === 'small'">
               <span class="overlay-title">Text</span>
-              <div class="overlay-setting-item">
+              <div class="overlay-setting-item" style="position: relative;">
                 <input type="text"
+                       maxLength="70"
                        style="width: 100%;"
                        class="setting-text"
+                       @input="checkTextLength"
                        v-model="textInfo.objects[0].caption">
+                <span class="range-alert"
+                      v-if="disableTextBtn"
+                      style="top:36px;white-space: nowrap;">Up to 70 characters for Small size</span>
+              </div>
+            </div>
+            <div class="overlay-setting" v-if="textInfo.objects[0].size === 'medium'">
+              <span class="overlay-title">Text</span>
+              <div class="overlay-setting-item" style="position: relative;">
+                <input type="text"
+                       style="width: 100%;"
+                       maxLength="50"
+                       @input="checkTextLength"
+                       class="setting-text"
+                       v-model="textInfo.objects[0].caption">
+                <span class="range-alert"
+                      v-if="disableTextBtn"
+                      style="top:36px;white-space: nowrap;">Up to 50 characters for Medium size</span>
+              </div>
+            </div>
+            <div class="overlay-setting" v-if="textInfo.objects[0].size === 'large'">
+              <span class="overlay-title">Text</span>
+              <div class="overlay-setting-item" style="position: relative;">
+                <input type="text"
+                       maxLength="25"
+                       style="width: 100%;"
+                       @input="checkTextLength"
+                       class="setting-text"
+                       v-model="textInfo.objects[0].caption">
+                <span class="range-alert"
+                      v-if="disableTextBtn"
+                      style="top:36px;white-space: nowrap;">Up to 25 characters for Large size</span>
               </div>
             </div>
             <div class="overlay-setting">
               <span class="overlay-title">Size</span>
               <div class="fontSize.val">
-                <el-select v-model="textInfo.objects[0].size">
+                <el-select v-model="textInfo.objects[0].size" @change="checkTextLength">
                   <el-option
                     v-for="item in fontSize.param"
                     :key="item.value"
@@ -135,12 +168,11 @@
             </div>
           </v-collapse>
         </div>
-
       </div>
     </div>
-
     <footer>
       <button class="btn btn-primary"
+              :disabled="disableTextBtn"
               @click="save">SAVE
       </button>
     </footer>
@@ -259,7 +291,8 @@ export default {
           }
         ]
       },
-      color: '#FFFFFF'
+      color: '#FFFFFF',
+      disableTextBtn: false
     }
   },
   created () {
@@ -387,6 +420,14 @@ export default {
         }
         xhr.send(formData)
       }
+    },
+    checkTextLength () {
+      const lenRuler = {
+        'small': 70,
+        medium: 50,
+        'large': 25
+      }
+      this.disableTextBtn = this.textInfo.objects[0].caption.length > lenRuler[this.textInfo.objects[0].size]
     }
   }
 }
