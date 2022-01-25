@@ -30,6 +30,17 @@ int P3K_OtherChanges(char *info)
 	return ret;
 }
 
+char rightmask[31][16] = {
+	"0.0.0.0","128.0.0.0","192.0.0.0","224.0.0.0","240.0.0.0",
+	"248.0.0.0","252.0.0.0","254.0.0.0","255.0.0.0",
+	"255.128.0.0","255.192.0.0","255.224.0.0","255.240.0",
+	"255.248.0.0","255.252.0.0","255.254.0.0","255.255.0.0",
+	"255.255.128.0","255.255.192.0","255.255.224.0","255.255.240.0",
+	"255.255.248.0","255.255.252.0","255.255.254.0","255.255.255.0",
+	"255.255.255.128","255.255.255.192","255.255.255.224","255.255.255.240",
+	"255.255.255.248","255.255.255.252"
+	};
+
 char *rtrim(char *str)
 {
     if ((str == NULL) || (*str == '\0'))
@@ -115,9 +126,9 @@ static int checkisIp(char *IP)
 	int ip2 = atoi(str[1]);
 	int ip3 = atoi(str[2]);
 	int ip4 = atoi(str[3]);
-	if (0 < ip1 && ip1 <= 255 && 0 <= ip2 && ip2 <= 255 && 0 <= ip3 && ip3 <= 255 && 0 < ip4 && ip4 < 255)
+	if (0 < ip1 && ip1 <= 255 && 0 <= ip2 && ip2 <= 255 && 0 <= ip3 && ip3 <= 255 && 0 <= ip4 && ip4 <= 255)
 	{
-		if ((ip1 == 127) || (ip1 > 223))
+		if ((ip1 == 127) || (ip1 == 255 && ip2 == 255 && ip3 == 255 && ip4 == 255) || (ip1 > 223))
 			return -1;
 	}
 	else
@@ -129,15 +140,16 @@ static int checkisIp(char *IP)
 
 int IsSubnetMask(char *subnet)
 {
-	unsigned int b = 0;
-	unsigned int i = 0;
-	unsigned int n[4] = {0};
-	sscanf(subnet, "%u.%u.%u.%u", &n[3], &n[2], &n[1], &n[0]);
-	for (i = 0; i < 4; ++i)
-		b += n[i] << (i * 8);
-	b = ~b + 1;
-	if ((b & (b - 1)) == 0)
-		return 1;
+	int i = 0;
+
+	for (i = 0; i < 31; i++)
+	{
+		if (strcmp(subnet, rightmask[i]) == 0)
+		{
+			return 1;
+		}
+	}
+
 	return 0;
 }
 
@@ -154,8 +166,17 @@ int checkgateway(char *ip,char *mask,char *gateway)
 	{
 		return 0;
 	}
+	int ret = checkisIp(gateway);
+	if(ret == -1)
+	{
+		return -1;
+	}
 	for(i = 0; i < 3; i++)
 	{
+		if(gatewaystr[i] > 255)
+		{
+			return -1;
+		}
 		if((ipstr[i] & maskstr[i]) == (gatewaystr[i] & maskstr[i]))
 		{
 
@@ -1040,7 +1061,7 @@ static int P3K_GetPortInfo(char *param, PortInfo_S *info, int num)
 
 	count = P3K_PhraserWithSeparator('.', param, strlen(param), str);
 	if (count != num)
-		return -3;
+		return -1;
 
 	info->direction = P3K_CheckPortDirection(str[0]);
 	if (info->direction == -10)
@@ -1082,7 +1103,7 @@ static int P3K_GetPortSInfo(char *param, PortInfo_S *info, int num, int paramnum
 	count = P3K_PhraserWithSeparator('.', param, strlen(param), str);
 	if (count != paramnum)
 	{
-		return -3;
+		return -1;
 	}
 
 	info[num].direction = P3K_CheckPortDirection(str[0]);
@@ -3510,7 +3531,7 @@ static int P3K_SetNetConf(char *reqparam, char *respParam, char *userdata)
 	//~nn@NET-CONFIG netw_id,net_ip,net_mask,gateway<CR><LF>
 	DBG_InfoMsg("P3K_SetNetConf\n");
 	int s32Ret = 0;
-	int netId;
+	int netId = 0;
 	int ret = 0;
 	NetWorkInfo_S netInfo = {0};
 	int count = 0;
@@ -4818,7 +4839,7 @@ static int P3K_GetAudioInfo(char *param, AudioInfo_S *info, int num)
 
 	count = P3K_PhraserWithSeparator('.', param, strlen(param), str);
 	if (count != num)
-		return -3;
+		return -1;
 
 	info->direction = P3K_CheckPortDirection(str[0]);
 	if (info->direction == -10)
@@ -4932,7 +4953,7 @@ static int P3K_GetAudioSInfo(char *param, AudioInfo_S *info, int num, int paramn
 
 	int count = P3K_PhraserWithSeparator('.', param, strlen(param), str);
 	if (count != paramnum)
-		return -3;
+		return -1;
 
 	info[num].direction = P3K_CheckPortDirection(str[0]);
 	if (info[num].direction == -10)
@@ -5605,7 +5626,7 @@ static int P3K_SetMuteInfo(char *param, MuteInfo_S *info, int num)
 	if (count != 5)
 	{
 		printf("-1\n");
-		return -3;
+		return -1;
 	}
 	if (isnum(str[2]) == -1 || isnum(str[4]) == -1)
 	{
