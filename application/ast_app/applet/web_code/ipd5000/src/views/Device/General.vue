@@ -65,6 +65,7 @@
         <input type="file"
                ref="uploadConfig"
                style="display:none;"
+               accept="application/gzip"
                @change="browseConfig">
         <span v-if="uploadComplete"
               style="font-size:20px;margin-left:15px;color:#67c23a;"><i class="el-icon-circle-check"></i></span>
@@ -107,6 +108,7 @@
         <span style="width: 180px;">{{ standbyVer }}</span>
         <button class="btn btn-plain-primary"
                 style="margin-left: 15px;"
+                :disabled="!standbyVer.trim()"
                 @click="rollBack">ROLLBACK
         </button>
       </div>
@@ -329,7 +331,7 @@ export default {
       this.upgradeTime = msg.split(' ')[1]
     },
     handleStandbyVer (msg) {
-      this.standbyVer = msg.split(' ')[1]
+      this.standbyVer = msg.split(' ')[1] || ''
     },
     handleVersion (msg) {
       this.version = msg.split(' ')[1]
@@ -379,10 +381,15 @@ export default {
       }, 200)
     },
     beforeUpload (file) {
-      if (!(file.name.endsWith('.bin') && file.size < 1024 * 1024 * 16)) {
+      if (!file.name.endsWith('.bin')) {
         alert('Please choose the correct file!')
         return false
       }
+      if (file.size > 1024 * 1024 * 16) {
+        alert('Maximum file size should be less than 16MB')
+        return false
+      }
+
       this.uploadProgress = 0
       this.upgradeProgress = 0
       this.isUpgrade = false
@@ -427,6 +434,17 @@ export default {
     browseConfig () {
       const file = this.$refs.uploadConfig.files[0]
       if (file) {
+        if (file.type !== 'application/gzip') {
+          this.$refs.uploadConfig.value = ''
+          alert('Please choose the correct file!')
+          this.$refs.uploadConfig.value = ''
+          return
+        }
+        if (file.size > 1024 * 1024) {
+          this.$refs.uploadConfig.value = ''
+          alert('Maximum file size should be less than 1MB')
+          return
+        }
         const xhr = new XMLHttpRequest()
         const formData = new FormData()
         formData.append('file', file)

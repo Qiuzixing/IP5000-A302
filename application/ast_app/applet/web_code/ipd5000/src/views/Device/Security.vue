@@ -48,13 +48,16 @@
                    v-model="httpPrivatePwd">
           </div>
         </div>
-        <button class="btn btn-primary"
-                style="margin-left: 30px"
-                @click="setHTTPS">APPLY & REBOOT
-        </button>
-        <p class="error"
-           style="margin-left: 30px;"
-           v-if="notHttpsFile">{{ httpsErrorAlert }}</p>
+        <div class="apply-module">
+          <button class="btn btn-primary"
+                  style="margin-left: 30px"
+                  @click="setHTTPS">APPLY & REBOOT
+          </button>
+          <p class="error"
+             style="margin-left: 30px;"
+             v-if="notHttpsFile">{{ httpsErrorAlert }}</p>
+        </div>
+
       </div>
     </div>
     <div class="setting-model">
@@ -175,13 +178,16 @@
                    v-model="tls_private_password">
           </div>
         </div>
-        <button class="btn btn-primary"
-                style="margin-left: 30px"
-                @click="set8021x">APPLY
-        </button>
-        <p class="error"
-           style="margin-left: 30px;"
-           v-if="server8021error">{{ server8021Alert }}</p>
+        <div class="apply-module">
+          <button class="btn btn-primary"
+                  style="margin-left: 30px"
+                  @click="set8021x">APPLY
+          </button>
+          <p class="error"
+             style="margin-left: 30px;"
+             v-if="server8021error">{{ server8021Alert }}</p>
+        </div>
+
       </div>
     </div>
   </div>
@@ -232,6 +238,7 @@ export default {
           if (msg.data.https_setting) {
             this.httpsServer = msg.data.https_setting.mode
             this.https = msg.data.https_setting.method
+            this.httpsFileName = msg.data.https_setting.certificate_file_name?.split('/').pop() || ''
           }
         })
     },
@@ -244,16 +251,20 @@ export default {
           if (msg.data.ieee802_1x_setting) {
             this.server8021x = msg.data.ieee802_1x_setting.mode
             this.security801 = msg.data.ieee802_1x_setting.default_authentication || 'eap_mschap'
+            this.tls_ca_certificate = msg.data.ieee802_1x_setting.eap_tls_setting?.tls_ca_certificate?.split('/').pop() || ''
+            this.tls_client_certificate = msg.data.ieee802_1x_setting.eap_tls_setting?.tls_client_certificate?.split('/').pop() || ''
+            this.tls_private_key = msg.data.ieee802_1x_setting.eap_tls_setting?.tls_private_key?.split('/').pop() || ''
           }
         })
     },
     setHTTPS () {
+      this.notHttpsFile = false
       const formData = new FormData()
       formData.append('mode', this.httpsServer)
       if (this.httpsServer === 'on') {
         formData.append('method', this.https)
         if (this.https === 'out') {
-          if (!this.httpsFileName) {
+          if (!this.$refs.https.files[0]) {
             this.httpsErrorAlert = 'Please select file'
             this.notHttpsFile = true
             return
@@ -267,13 +278,17 @@ export default {
           formData.append('password', this.httpPrivatePwd)
         }
       }
-      this.notHttpsFile = false
       const xhr = new XMLHttpRequest()
       xhr.open('POST', '/security/https')
       xhr.onload = oevent => {
         if (xhr.status === 200) {
-          this.httpsFileName = ''
+          // this.httpsFileName = ''
           this.httpPrivatePwd = ''
+          sessionStorage.removeItem('login')
+          this.$msg.successAlert('HTTPS configuration changed, please reopen the web page', 8000)
+        } else if (xhr.status === 406) {
+          this.httpsErrorAlert = 'Invalid password or file'
+          this.notHttpsFile = true
         }
       }
       xhr.send(formData)
@@ -283,7 +298,21 @@ export default {
       this.$refs[ref].click()
     },
     httpsFileChange (event) {
-      this.httpsFileName = event.target.files[0]?.name || ''
+      const file = event.target.files[0]
+      this.httpsFileName = file
+      if (file) {
+        if (file.size > 10 * 1024) {
+          this.httpsErrorAlert = 'Maximum file size should be less than 20KB'
+          this.notHttpsFile = true
+          event.target.value = ''
+          this.httpsFileName = ''
+          return
+        }
+        this.notHttpsFile = false
+        this.httpsFileName = file.name
+      } else {
+        this.httpsFileName = ''
+      }
     },
     serve8021FileChange (event, attr) {
       this[attr] = event.target.files[0]?.name || ''
@@ -316,17 +345,17 @@ export default {
             this.server8021error = true
             return
           }
-          if (!this.tls_ca_certificate) {
+          if (!this.$refs.tls_ca_certificate.files[0]) {
             this.server8021Alert = 'Please select CA certificate file'
             this.server8021error = true
             return
           }
-          if (!this.tls_client_certificate) {
+          if (!this.$refs.tls_client_certificate.files[0]) {
             this.server8021Alert = 'Please select client certificate file'
             this.server8021error = true
             return
           }
-          if (!this.tls_private_key) {
+          if (!this.$refs.tls_private_key.files[0]) {
             this.server8021Alert = 'Please select private key file'
             this.server8021error = true
             return
@@ -350,9 +379,9 @@ export default {
       xhr.open('POST', '/security/802_1x')
       xhr.onload = oevent => {
         if (xhr.status === 200) {
-          this.mschap_username = ''
+          // this.mschap_username = ''
           this.mschap_password = ''
-          this.tls_username = ''
+          // this.tls_username = ''
           this.tls_ca_certificate = ''
           this.tls_client_certificate = ''
           this.tls_private_key = ''
@@ -381,5 +410,8 @@ export default {
   color: #d50000;
   font-size: 12px;
   font-family: "open sans bold";
+}
+.apply-module{
+  display: flex
 }
 </style>

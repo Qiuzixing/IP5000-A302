@@ -181,15 +181,16 @@
       <h3 class="setting-model-title">TCP/UDP Management</h3>
       <div class="setting">
         <span class="setting-title">TCP Port</span>
-        <el-input-number v-model="tcp"
-                         controls-position="right"
-                         :max="5099"
-                         :min="5000"></el-input-number>
+        <div style="position: relative">
+          <el-input-number v-model="tcp"
+                           controls-position="right"
+                           :max="5099"
+                           :min="5000"></el-input-number>
+          <span class="range-alert"
+                v-if="portUse"
+                style="top:36px;white-space: nowrap;">Port already in use</span>
+        </div>
       </div>
-      <!--      <div class="setting">-->
-      <!--        <span class="setting-title">Service TCP Ports</span>-->
-      <!--        <el-input-number v-model="serverTcpPort" controls-position="right" :max="5099" :min="5000"></el-input-number>-->
-      <!--      </div>-->
       <div class="setting">
         <span class="setting-title">UDP Port</span>
         <el-input-number v-model="udp"
@@ -241,9 +242,9 @@ export default {
       configPort0: '0',
       configPort1: '0',
       danteTag: '',
-      tcp: '5000',
+      tcp: 5000,
       serverTcpPort: '5001',
-      udp: '50000',
+      udp: 50000,
       castMode: '1',
       multicastAddress: '0,0,0,0',
       ttl: 64,
@@ -253,7 +254,9 @@ export default {
       dante802Q: false,
       ipInfo0Error: 0,
       ipInfo1Error: 0,
-      setIpFlag: false
+      setIpFlag: false,
+      rs232Port: 0,
+      portUse: false
     }
   },
   created () {
@@ -268,6 +271,7 @@ export default {
     this.$socket.sendMsg('#KDS-MULTICAST? ')
     this.$socket.sendMsg('#ETH-PORT? TCP')
     this.$socket.sendMsg('#ETH-PORT? UDP')
+    this.$socket.sendMsg('#COM-ROUTE? *')
     if (this.$global.deviceType === 1) {
       this.$socket.sendMsg('#KDS-GW-ETH? 1')
       this.$socket.sendMsg('#KDS-VLAN-TAG? 1')
@@ -297,6 +301,10 @@ export default {
       }
       if (msg.search(/@KDS-MULTICAST /i) !== -1) {
         this.handleMulticast(msg)
+        return
+      }
+      if (msg.search(/@COM-ROUTE /i) !== -1) {
+        this.handleRs232Gateway(msg)
         return
       }
       if (msg.search(/@ETH-PORT /i) !== -1) {
@@ -344,8 +352,10 @@ export default {
       this['configPort' + data[0]] = data[1]
     },
     handleETHPort (msg) {
-      const data = msg.toLowerCase().split(' ')[1].split(',')
-      this[data[0]] = parseInt(data[1])
+      if (msg.search(/err/gi) === -1) {
+        const data = msg.toLowerCase().split(' ')[1].split(',')
+        this[data[0]] = parseInt(data[1])
+      }
     },
     handleIpCastMode (msg) {
       this.castMode = msg.split(' ')[1]
@@ -356,12 +366,16 @@ export default {
       this.ttl = parseInt(data[1])
     },
     save: debounce(function () {
-      if (this.validIP()) {
-        this.setPortConfig()
-        this.setIpCastingMode()
-        this.setTcpUDP()
-        this.setIp()
+      this.portUse = false
+      if(!this.validIP()) return
+      if (this.tcp == this.rs232Port) {
+        this.portUse = true
+        return
       }
+      this.setPortConfig()
+      this.setIpCastingMode()
+      this.setTcpUDP()
+      this.setIp()
     }, 2000, {
       leading: true,
       trailing: true
@@ -439,8 +453,15 @@ export default {
       this.dialogVisibleReset = false
       sessionStorage.removeItem('login')
       setTimeout(() => {
-        this.$msg.successAlert('Network configuration changed, please reopen the web page with the new network settings.', 8000)
+        this.$msg.successAlert('Network configuration changed, please reopen the web page with the new network settings', 8000)
       }, 1000)
+    },
+    handleRs232Gateway (msg) {
+      const data = msg.split(' ')
+      if (data[1].length > 0) {
+        const arr = data[1].split(',')
+        this.rs232Port = parseInt(arr[2])
+      }
     }
   }
 }

@@ -71,11 +71,16 @@
       </div>
       <div class="setting">
         <span class="setting-title">Gateway Port</span>
-        <el-input-number :disabled="!rs232GW"
-                         v-model="rs232Port"
-                         controls-position="right"
-                         :max="65535"
-                         :min="5000"></el-input-number>
+        <div style="position: relative">
+          <el-input-number :disabled="!rs232GW"
+                           v-model="rs232Port"
+                           controls-position="right"
+                           :max="65535"
+                           :min="5000"></el-input-number>
+          <span class="range-alert"
+                v-if="portUse"
+                style="top:36px;white-space: nowrap;">Port already in use</span>
+        </div>
       </div>
       <div class="setting">
         <span class="setting-title">Baud Rate </span>
@@ -246,12 +251,14 @@ export default {
         7: 'Timeout',
         8: 'Error'
       },
-      rs232Port: 5000,
+      rs232Port: 5001,
       irDirection: 'in',
       rs232GW: false,
       irGW: '0',
       hexError: false,
-      saveFlag: false
+      saveFlag: false,
+      tcp: 0,
+      portUse: false
     }
   },
   created () {
@@ -260,9 +267,7 @@ export default {
     this.$socket.sendMsg('#UART? 1')
     this.$socket.sendMsg('#PORT-DIRECTION? both.ir.1.ir')
     this.$socket.sendMsg('#COM-ROUTE? *')
-    // if (this.$global.deviceType !== 2) {
-    //   this.$socket.sendMsg('#KDS-IR-GW? ')
-    // }
+    this.$socket.sendMsg('#ETH-PORT? TCP')
   },
   methods: {
     handleMsg (msg) {
@@ -270,10 +275,6 @@ export default {
         this.handleCECPort(msg)
         return
       }
-      // if (msg.search(/@CEC-SND /i) !== -1) {
-      //   this.handleCECResponse(msg)
-      //   return
-      // }
       if (msg.search(/@UART /i) !== -1) {
         this.handleRS232Param(msg)
         return
@@ -284,6 +285,10 @@ export default {
       }
       if (msg.search(/@KDS-IR-GW /i) !== -1) {
         this.handleIRGateway(msg)
+        return
+      }
+      if (msg.search(/@ETH-PORT /i) !== -1) {
+        this.handleETHPort(msg)
         return
       }
       if (msg.search(/@CEC-NTFY /i) !== -1) {
@@ -350,7 +355,12 @@ export default {
       }
     },
     saveBaudRate () {
+      this.portUse = false
       if (this.rs232GW) {
+        if (this.tcp == this.rs232Port) {
+          this.portUse = true
+          return
+        }
         this.$socket.sendMsg(`#COM-ROUTE-ADD 1,1,${this.rs232Port},1,1`)
       }
       this.saveFlag = true
@@ -367,7 +377,12 @@ export default {
       }
     },
     setRs232GW (isOpen) {
+      this.portUse = false
       if (isOpen) {
+        if (this.tcp == this.rs232Port) {
+          this.portUse = true
+          return
+        }
         this.$socket.sendMsg(`#COM-ROUTE-ADD 1,1,${this.rs232Port},1,1`)
       } else {
         this.$socket.sendMsg('#COM-ROUTE-REMOVE 1')
@@ -381,6 +396,12 @@ export default {
     },
     setIRGateway (ctrl) {
       this.$socket.sendMsg(`#KDS-IR-GW ${ctrl}`)
+    },
+    handleETHPort (msg) {
+      if (msg.search(/err/gi) === -1) {
+        const data = msg.toLowerCase().split(' ')[1].split(',')
+        this[data[0]] = parseInt(data[1])
+      }
     }
   }
 }
