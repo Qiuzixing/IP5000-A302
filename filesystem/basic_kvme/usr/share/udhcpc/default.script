@@ -37,6 +37,8 @@ fi
 					done
 					if [ $NETWORK_CARD = 'eth0' ];then
 						/usr/local/bin/ast_send_event -1 "e_ip_got::$ip"
+					else
+						/usr/local/bin/ast_send_event -1 "e_sec_ip_got"
 					fi
 					lmparam s MY_NETMASK $subnet
 					lmparam s MY_GATEWAYIP $i

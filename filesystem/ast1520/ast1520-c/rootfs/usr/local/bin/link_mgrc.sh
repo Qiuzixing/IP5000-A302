@@ -669,6 +669,7 @@ handle_e_sys_ip_chg()
 	fi
 
 	ulmparam s MY_IP $MY_IP
+	update_smb_name
 	ast_send_event -1 e_reconnect
 
 	set_igmp_leave_force
@@ -1197,6 +1198,7 @@ handle_e_chg_hostname()
 	echo "${MODEL_NUMBER}-${HOSTNAME_ID}" > /etc/device_name
 	echo $HOSTNAME > /etc/hostname
 	hostname -F /etc/hostname
+	update_smb_name
 
 	#/sbin/avahi-daemon -D
 	update_node_info HOSTNAME $HOSTNAME
@@ -1574,6 +1576,7 @@ handle_e_ip_got()
 		echo "${MODEL_NUMBER}-${HOSTNAME_ID}" > /etc/device_name
 		echo $HOSTNAME > /etc/hostname
 		hostname -F /etc/hostname
+		update_smb_name
 
 		mknod /dev/videoip c 250 0
 
@@ -1623,6 +1626,11 @@ handle_e_ip_got()
 	fi
 
 	set_igmp_report
+}
+
+handle_e_sec_ip_got()
+{
+	update_smb_name
 }
 
 handle_e_button_remote_ctrl()

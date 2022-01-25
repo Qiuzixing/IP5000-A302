@@ -4121,6 +4121,16 @@ init_info_file() {
 	echo "}" >> /etc/board_info.json
 }
 
+update_smb_name() {
+	pkill -9 nmbd
+	echo "[global]" > /usr/local/samba/lib/smb.conf
+	echo "workgroup = workgroup" >> /usr/local/samba/lib/smb.conf
+	echo "netbios name = $HOSTNAME" >> /usr/local/samba/lib/smb.conf
+	INTERFACES=$(ifconfig | grep inet | grep -v "127.0.0.1" | awk -F ':' '{print $2 " " $4}' | awk '{print $1"/"$3}' | tr "\n" "|")
+	echo "interfaces = $INTERFACES" >> /usr/local/samba/lib/smb.conf
+	/usr/local/samba/bin/nmbd -D
+}
+
 init_p3k_cfg_file() {
 	echo "init_p3k_cfg_file"
 

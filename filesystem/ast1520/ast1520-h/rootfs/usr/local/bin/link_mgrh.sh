@@ -391,6 +391,7 @@ handle_e_sys_ip_chg()
 	fi
 
 	ulmparam s RELOAD_KMOIP 1
+	update_smb_name
 	ast_send_event -1 e_reconnect
 
 	set_igmp_leave_force
@@ -523,6 +524,7 @@ _chg_hostname()
 	echo "${MODEL_NUMBER}-${_HOSTNAME_ID}" > /etc/device_name
 	echo $HOSTNAME > /etc/hostname
 	hostname -F /etc/hostname
+	update_smb_name
 
 	#/sbin/avahi-daemon -D 2>/dev/null
 
@@ -752,6 +754,7 @@ handle_e_ip_got()
 		echo "${MODEL_NUMBER}-${HOSTNAME_ID}" > /etc/device_name
 		echo $HOSTNAME > /etc/hostname
 		hostname -F /etc/hostname
+		update_smb_name
 
 		route add -net 224.0.0.0 netmask 240.0.0.0 dev eth0
 		# Force IGMP version to Version 2
@@ -790,6 +793,11 @@ handle_e_ip_got()
 	fi
 
 	set_igmp_report
+}
+
+handle_e_sec_ip_got()
+{
+	update_smb_name
 }
 
 handle_e_debug()

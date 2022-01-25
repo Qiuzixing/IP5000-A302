@@ -44,6 +44,7 @@ if [ -x /bin/ip -o -x /sbin/ip ] ; then
                 /usr/local/bin/ast_send_event -1 "e_ip_got::$3"
             else
                 ip addr add "$3"/16 brd 169.254.255.255 label "$2:avahi" scope link dev "$2"
+                /usr/local/bin/ast_send_event -1 "e_sec_ip_got"
             fi
             
             #/usr/local/bin/astparam s asthostip "$3"
