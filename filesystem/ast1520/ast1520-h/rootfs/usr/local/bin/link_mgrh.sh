@@ -21,7 +21,8 @@ audio_setting="/data/configs/kds-7/audio/audio_setting.json"
 rx_tcp_port='8888'
 analog_out_volum='87'
 execute_once_flag='on'
-ipe5000p_audio_lan_flag='off'
+ipe5000p_audio_lan_flag='on'
+ipe5000p_audio_lan_mute_flag='unmute'
 stop_all_service()
 {
 	## A7 TBD
@@ -122,9 +123,8 @@ _do_start_srv()
 				ipc @a_lm_set s ae_start:$CH_SELECT_A
 			;;
 			KDS-SW3-EN7)
-				if [ "$ipe5000p_audio_lan_flag" = 'off' ];then
+				if [ "$ipe5000p_audio_lan_mute_flag" = 'unmute' ];then
 					ipc @a_lm_set s ae_start:$CH_SELECT_A
-					ipe5000p_audio_lan_flag='on'
 				fi
 			;;
 			*)
@@ -1598,17 +1598,20 @@ handle_e_p3k_audio_src()
 				if [ $ipe5000p_audio_lan_flag = 'off' ];then
 					ipc @a_lm_set s ae_start:$CH_SELECT_A
 					ipe5000p_audio_lan_flag='on'
+					ipe5000p_audio_lan_mute_flag='unmute'
 				fi
 			else
 				if [ $ipe5000p_audio_lan_flag = 'on' ];then
 					ipc @a_lm_set s ae_stop
 					ipe5000p_audio_lan_flag='off'
+					ipe5000p_audio_lan_mute_flag='mute'
 				fi
 			fi
 		else
 			if [ $ipe5000p_audio_lan_flag = 'off' ];then
 				ipc @a_lm_set s ae_start:$CH_SELECT_A
 				ipe5000p_audio_lan_flag='on'
+				ipe5000p_audio_lan_mute_flag='unmute'
 			fi
 		fi
 	fi
@@ -3168,7 +3171,8 @@ init_param_from_p3k_cfg()
 			if [ "$P3KCFG_SOURCE_SELECT" = 'analog' ];then
 				P3KCFG_DESTION_LAN=`jq -r '.audio_setting.destination_select' $audio_setting | grep lan -c`
 				if [ $P3KCFG_DESTION_LAN -eq 0 ];then
-					ipe5000p_audio_lan_flag='on'
+					ipe5000p_audio_lan_mute_flag='mute'
+					ipe5000p_audio_lan_flag='off'
 				fi
 			fi 
 		fi
