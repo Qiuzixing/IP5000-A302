@@ -71,7 +71,7 @@
       <p>Do you want to proceed?</p>
       <p><span style="font-family: 'open sans semiblold';margin-right: 15px;">Current password</span>
         <input type="password"
-               maxLength="16"
+               maxLength="24"
                v-model="securityPwd"
                class="setting-text"></p>
       <p style="margin: 5px 0;color: #D50000;"
