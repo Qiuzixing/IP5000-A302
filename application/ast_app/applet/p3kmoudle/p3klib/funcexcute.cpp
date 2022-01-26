@@ -6035,9 +6035,11 @@ int EX_TESTMODE()
 const char* strHelpCmd[] = {
 	"#",
 	"BEACON-EN",
+	"BEACON-EN?",
 	"BEACON-INFO?",
 	"BUILD-DATE?",
 	"CEC-GW-PORT-ACTIVE",
+	"CEC-GW-PORT-ACTIVE?",
 	"CEC-NTFY",
 	"CEC-SND",
 	"COM-ROUTE?",
@@ -6071,7 +6073,7 @@ const char* strHelpCmd[] = {
 	"HW-TEMP?",
 	"HW-VERSION?",
 	"IDV",
-//	"IR-SND",
+	"IR-SND",
 	"KDS-ACTION",
 	"KDS-ACTION?",
 	"KDS-AUD",
@@ -6094,6 +6096,7 @@ const char* strHelpCmd[] = {
 	"KDS-METHOD",
 	"KDS-METHOD?",
 	"KDS-MULTICAST",
+	"KDS-MULTICAST?",
 #ifdef CONFIG_P3K_CLIENT
 	"KDS-OSD-DISPLAY",
 	"KDS-OSD-DISPLAY?",
@@ -6114,6 +6117,7 @@ const char* strHelpCmd[] = {
 	"LOCK-FP",
 	"LOCK-FP?",
 	"LOG-ACTION",
+	"LOG-ACTION?",
 	"LOGIN",
 	"LOGIN?",
 	"LOGOUT",
@@ -6166,6 +6170,10 @@ const char* strHelpCmd[] = {
 #ifdef CONFIG_P3K_HOST
 	"X-AV-SW-MODE",
 	"X-AV-SW-MODE?",
+#endif
+	"X-MUTE",
+	"X-MUTE?",
+#ifdef CONFIG_P3K_HOST
 	"X-PRIORITY",
 	"X-PRIORITY?",
 #endif

@@ -467,6 +467,7 @@ typedef enum _BoardInfoType_E
 #define EX_CMD_ERR 	 	-1			//ERR_COMMAND_NOT_AVAILABLE,
 #define EX_PARAM_ERR 	-2			//ERR_PARAMETER_OUT_OF_RANGE,
 #define EX_MODE_ERR		-3			//ERR_WRONG_MODE,
+#define EX_FILE_ERR		-4			//ERR_FS_FILE_NOT_EXISTS
 
 int GetBoardInfo(BoardInfoType_E type, char* info, unsigned int size);
 
