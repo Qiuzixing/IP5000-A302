@@ -82,7 +82,7 @@ REFOBJS += \
 	./dante_example_code/common/audinate/strcasecmp.o\
 	./dante_example_code/common/audinate/dante_common_util.o
 
-OBJ += dante_cmd_packet.o example_uhip_main.o example_rx_uhip.o example_rx_ddp.o example_tx_uhip.o example_tx_ddp.o example_tx_pb.o example_uhip_common.o rx_timer.o tx_timer.o timer_common.o uart_transport.o \
+OBJS += dante_cmd_packet.o example_uhip_main.o example_rx_uhip.o example_rx_ddp.o example_tx_uhip.o example_tx_ddp.o example_tx_pb.o example_uhip_common.o rx_timer.o tx_timer.o timer_common.o uart_transport.o \
 	aardvark.o uhip_packet_read.o  uhip_util.o uhip_packet_write.o cobs.o frame.o ddp_packet_read.o ddp_util_opcode.o ddp_audio_write_client.o ddp_network_read_client.o ddp_routing_read_client.o \
 	ddp_routing_write_client.o ddp_clocking_util.o ddp_clocking_read_client.o ddp_local_read_client.o ddp_clocking_write_client.o routing_support.o ddp_util.o ddp_packet_write.o ddp_routing.o \
 	ddp_network_write_client.o ddp_device_write_client.o ddp_shared.o ddp_device_read_client.o ddp_audio_read_client.o strcasecmp.o dante_common_util.o 
