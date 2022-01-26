@@ -795,6 +795,12 @@ int EX_SetAudAnalogGainDir(AudioInfo_S*info,char * gain)
 
 	if(info->portFormat == PORT_IR)
 	{
+		if(info->signal != SIGNAL_IR)
+		{
+			DBG_WarnMsg(" !!! Error Param \n");
+			return EX_PARAM_ERR;
+		}
+
 		if((!strcmp(gain,"IN"))||(!strcmp(gain,"in")))
 		{
 			sprintf(sCmd,"e_p3k_ir_dir::in");
@@ -814,6 +820,12 @@ int EX_SetAudAnalogGainDir(AudioInfo_S*info,char * gain)
 	}
 	else if(info->portFormat == PORT_ANALOG_AUDIO)
 	{
+		if(info->signal != SIGNAL_AUDIO)
+		{
+			DBG_WarnMsg(" !!! Error Param \n");
+			return EX_PARAM_ERR;
+		}
+
 		if((!strcmp(gain,"IN"))||(!strcmp(gain,"in")))
 		{
 			sprintf(sCmd,"e_p3k_audio_dir::in");
@@ -927,7 +939,7 @@ int EX_SetEDIDMode(EdidInfo_S *info)
 			if(Cfg_Check_EDID(info->index) ==0)
 				sprintf(sCmd,"e_p3k_video_edid_custom::%d",info->index);
 			else
-				return EX_PARAM_ERR;
+				return EX_FILE_ERR;
 		}
 		else
 		{
@@ -1028,6 +1040,12 @@ int EX_RemoveEDID(int comID)
 		return EX_PARAM_ERR;
 	}
 
+	if(Cfg_Check_EDID(comID) < 0)
+	{
+		DBG_WarnMsg("index_ID is not exist\n");
+		return EX_FILE_ERR;
+	}
+
 	if(comID < g_edid_info.active_id)
 		g_edid_info.active_id = g_edid_info.active_id -1;
 
@@ -1048,18 +1066,6 @@ int EX_SetActiveEDID(int input_ID,int index_ID )
 	DBG_InfoMsg(">>EX_SetActiveEDID %d,%d \n",input_ID,index_ID);
 
 #ifdef CONFIG_P3K_HOST
-	if(g_edid_info.lock_mode == ON)
-	{
-		DBG_WarnMsg(">>>>>>>g_edid_info.lock_mode == ON\n");
-		return EX_MODE_ERR;
-	}
-
-	if(g_edid_info.edid_mode != CUSTOM)
-	{
-		DBG_WarnMsg(">>>>>>>g_edid_info.edid_mode != CUSTOM\n");
-		return EX_MODE_ERR;
-	}
-
 	if(input_ID != 1)
 	{
 		DBG_WarnMsg("input_ID != 1\n");
@@ -1072,10 +1078,22 @@ int EX_SetActiveEDID(int input_ID,int index_ID )
 		return EX_PARAM_ERR;
 	}
 
+	if(g_edid_info.lock_mode == ON)
+	{
+		DBG_WarnMsg(">>>>>>>g_edid_info.lock_mode == ON\n");
+		return EX_MODE_ERR;
+	}
+
+	if(g_edid_info.edid_mode != CUSTOM)
+	{
+		DBG_WarnMsg(">>>>>>>g_edid_info.edid_mode != CUSTOM\n");
+		return EX_MODE_ERR;
+	}
+
 	if(Cfg_Check_EDID(index_ID) < 0)
 	{
-		DBG_WarnMsg("index_ID > (MAX_EDID-1)\n");
-		return EX_PARAM_ERR;
+		DBG_WarnMsg("index_ID is not exist\n");
+		return EX_FILE_ERR;
 	}
 
 	char sCmd[64] = "";
@@ -1097,18 +1115,6 @@ int EX_SetEDIDNetSrc(int input_ID,char*macAddr )
 	DBG_InfoMsg(">>EX_SetEDIDNetSrc id=%d mac=%s \n",input_ID,macAddr);
 
 #ifdef CONFIG_P3K_HOST
-	if(g_edid_info.lock_mode == ON)
-	{
-		DBG_WarnMsg(">>>>>>>g_edid_info.lock_mode == ON\n");
-		return EX_MODE_ERR;
-	}
-
-	if(g_edid_info.edid_mode != PASSTHRU)
-	{
-		DBG_WarnMsg(">>>>>>>g_edid_info.edid_mode != PASSTHRU\n");
-		return EX_MODE_ERR;
-	}
-
 	if(strlen(macAddr) <= 0)
 	{
 		DBG_WarnMsg(">>>>>>>strlen(macAddr) <= 0\n");
@@ -1119,6 +1125,18 @@ int EX_SetEDIDNetSrc(int input_ID,char*macAddr )
 	{
 		DBG_WarnMsg("input_ID != 1\n");
 		return EX_PARAM_ERR;
+	}
+
+	if(g_edid_info.lock_mode == ON)
+	{
+		DBG_WarnMsg(">>>>>>>g_edid_info.lock_mode == ON\n");
+		return EX_MODE_ERR;
+	}
+
+	if(g_edid_info.edid_mode != PASSTHRU)
+	{
+		DBG_WarnMsg(">>>>>>>g_edid_info.edid_mode != PASSTHRU\n");
+		return EX_MODE_ERR;
 	}
 
 	char sCmd[64] = "";
@@ -1203,12 +1221,12 @@ int EX_SetVidMute(MuteInfo_S * mute )
 	{
 		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
 		{
-			if(mute->direction != DIRECTION_IN)
+/*			if(mute->direction != DIRECTION_IN)
 			{
 				DBG_ErrMsg("parameter error\n");
 				return EX_PARAM_ERR;
 			}
-
+*/
 			if((mute->portIndex != 1)&&(mute->portIndex != 2))
 			{
 				DBG_ErrMsg("parameter error\n");
@@ -1218,12 +1236,12 @@ int EX_SetVidMute(MuteInfo_S * mute )
 		else if((strcmp(g_version_info.model,IPE_MODULE) == 0)
 			||(strcmp(g_version_info.model,IPE_W_MODULE) == 0))
 		{
-			if(mute->direction != DIRECTION_IN)
+/*			if(mute->direction != DIRECTION_IN)
 			{
 				DBG_ErrMsg("parameter error\n");
 				return EX_PARAM_ERR;
 			}
-
+*/
 			if(mute->portIndex != 1)
 			{
 				DBG_ErrMsg("parameter error\n");
@@ -1233,12 +1251,12 @@ int EX_SetVidMute(MuteInfo_S * mute )
 		else if((strcmp(g_version_info.model,IPD_MODULE) == 0)
 			||(strcmp(g_version_info.model,IPD_W_MODULE) == 0))
 		{
-			if(mute->direction != DIRECTION_OUT)
+/*			if(mute->direction != DIRECTION_OUT)
 			{
 				DBG_ErrMsg("parameter error\n");
 				return EX_PARAM_ERR;
 			}
-
+*/
 			if(mute->portIndex != 1)
 			{
 				DBG_ErrMsg("parameter error\n");
@@ -1254,7 +1272,7 @@ int EX_SetVidMute(MuteInfo_S * mute )
 			return EX_PARAM_ERR;
 		}
 
-		if((strcmp(g_version_info.model,IPD_MODULE) == 0)
+/*		if((strcmp(g_version_info.model,IPD_MODULE) == 0)
 			||(strcmp(g_version_info.model,IPD_W_MODULE) == 0))
 		{
 			if(mute->direction != DIRECTION_OUT)
@@ -1279,7 +1297,7 @@ int EX_SetVidMute(MuteInfo_S * mute )
 				return EX_PARAM_ERR;
 			}
 		}
-	}
+*/	}
 	else if(mute->portFormat == PORT_DANTE)
 	{
 		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
@@ -1301,12 +1319,12 @@ int EX_SetVidMute(MuteInfo_S * mute )
 		if((strcmp(g_version_info.model,IPD_MODULE) == 0)
 			||(strcmp(g_version_info.model,IPD_W_MODULE) == 0))
 		{
-			if(mute->direction != DIRECTION_IN)
+/*			if(mute->direction != DIRECTION_IN)
 			{
 				DBG_ErrMsg("parameter error\n");
 				return EX_PARAM_ERR;
 			}
-
+*/
 			if(mute->portIndex != 1)
 			{
 				DBG_ErrMsg("parameter error\n");
@@ -1315,12 +1333,12 @@ int EX_SetVidMute(MuteInfo_S * mute )
 		}
 		else
 		{
-			if(mute->direction != DIRECTION_OUT)
+/*			if(mute->direction != DIRECTION_OUT)
 			{
 				DBG_ErrMsg("parameter error\n");
 				return EX_PARAM_ERR;
 			}
-
+*/
 			if(mute->portIndex != 1)
 			{
 				DBG_ErrMsg("parameter error\n");
@@ -1332,12 +1350,12 @@ int EX_SetVidMute(MuteInfo_S * mute )
 	{
 		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
 		{
-			if(mute->direction != DIRECTION_IN)
+/*			if(mute->direction != DIRECTION_IN)
 			{
 				DBG_ErrMsg("parameter error\n");
 				return EX_PARAM_ERR;
 			}
-
+*/
 			if(mute->portIndex != 3)
 			{
 				DBG_ErrMsg("parameter error\n");
@@ -1346,12 +1364,12 @@ int EX_SetVidMute(MuteInfo_S * mute )
 		}
 		else if(strcmp(g_version_info.model,IPE_W_MODULE) == 0)
 		{
-			if(mute->direction != DIRECTION_IN)
+/*			if(mute->direction != DIRECTION_IN)
 			{
 				DBG_ErrMsg("parameter error\n");
 				return EX_PARAM_ERR;
 			}
-
+*/
 			if(mute->portIndex != 2)
 			{
 				DBG_ErrMsg("parameter error\n");
@@ -1527,6 +1545,13 @@ int EX_SetRollback(char * type)
 int EX_SetIRGateway(int  iIr_mode)
 {
 	DBG_InfoMsg("Tr gw mode = %d\n",iIr_mode);
+
+	if((iIr_mode != 0)&&(iIr_mode != 1))
+	{
+		DBG_WarnMsg(" !!! Error Param \n");
+		return EX_PARAM_ERR;
+	}
+
 	Cfg_Set_GW_IR_Mode((State_E)iIr_mode);
 
 	return EX_NO_ERR;
@@ -1541,6 +1566,12 @@ int EX_GetIRGateway(void)
 
 int EX_SetMulticastStatus(char * ip,int ttl )
 {
+	if((ttl < 1)||(ttl > 255))
+	{
+		DBG_WarnMsg(" !!! Error Param \n");
+		return EX_PARAM_ERR;
+	}
+
 	Cfg_Set_Net_Multicast("0.0.0.0",ttl);
 	char sCmd[64] = "";
 	sprintf(sCmd,"e_set_ttl::%d",ttl);
@@ -1572,7 +1603,7 @@ int EX_GetPassword(char * login_level, char * ologin_Pass)
 
 	if(0 == strcmp(login_level,admin))
 	{
-		DBG_InfoMsg("name=%s\n",login_level);
+		DBG_InfoMsg("name=%s,password=%s\n",login_level,g_user_info.password);
 		strcpy(ologin_Pass,g_user_info.password);
 		return EX_NO_ERR;
 	}
@@ -1812,12 +1843,12 @@ int EX_GetVidMute(MuteInfo_S * mute)
 	{
 		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
 		{
-			if(mute->direction != DIRECTION_IN)
+/*			if(mute->direction != DIRECTION_IN)
 			{
 				DBG_ErrMsg("parameter error\n");
 				return EX_PARAM_ERR;
 			}
-
+*/
 			if((mute->portIndex != 1)&&(mute->portIndex != 2))
 			{
 				DBG_ErrMsg("parameter error\n");
@@ -1827,12 +1858,12 @@ int EX_GetVidMute(MuteInfo_S * mute)
 		else if((strcmp(g_version_info.model,IPE_MODULE) == 0)
 			||(strcmp(g_version_info.model,IPE_W_MODULE) == 0))
 		{
-			if(mute->direction != DIRECTION_IN)
+/*			if(mute->direction != DIRECTION_IN)
 			{
 				DBG_ErrMsg("parameter error\n");
 				return EX_PARAM_ERR;
 			}
-
+*/
 			if(mute->portIndex != 1)
 			{
 				DBG_ErrMsg("parameter error\n");
@@ -1842,12 +1873,12 @@ int EX_GetVidMute(MuteInfo_S * mute)
 		else if((strcmp(g_version_info.model,IPD_MODULE) == 0)
 			||(strcmp(g_version_info.model,IPD_W_MODULE) == 0))
 		{
-			if(mute->direction != DIRECTION_OUT)
+/*			if(mute->direction != DIRECTION_OUT)
 			{
 				DBG_ErrMsg("parameter error\n");
 				return EX_PARAM_ERR;
 			}
-
+*/
 			if(mute->portIndex != 1)
 			{
 				DBG_ErrMsg("parameter error\n");
@@ -1862,6 +1893,7 @@ int EX_GetVidMute(MuteInfo_S * mute)
 			DBG_ErrMsg("parameter error\n");
 			return EX_PARAM_ERR;
 		}
+		/*
 
 		if((strcmp(g_version_info.model,IPD_MODULE) == 0)
 			||(strcmp(g_version_info.model,IPD_W_MODULE) == 0))
@@ -1888,7 +1920,7 @@ int EX_GetVidMute(MuteInfo_S * mute)
 				return EX_PARAM_ERR;
 			}
 		}
-	}
+*/	}
 	else if(mute->portFormat == PORT_DANTE)
 	{
 		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
@@ -1910,12 +1942,12 @@ int EX_GetVidMute(MuteInfo_S * mute)
 		if((strcmp(g_version_info.model,IPD_MODULE) == 0)
 			||(strcmp(g_version_info.model,IPD_W_MODULE) == 0))
 		{
-			if(mute->direction != DIRECTION_IN)
+/*			if(mute->direction != DIRECTION_IN)
 			{
 				DBG_ErrMsg("parameter error\n");
 				return EX_PARAM_ERR;
 			}
-
+*/
 			if(mute->portIndex != 1)
 			{
 				DBG_ErrMsg("parameter error\n");
@@ -1924,12 +1956,12 @@ int EX_GetVidMute(MuteInfo_S * mute)
 		}
 		else
 		{
-			if(mute->direction != DIRECTION_OUT)
+/*			if(mute->direction != DIRECTION_OUT)
 			{
 				DBG_ErrMsg("parameter error\n");
 				return EX_PARAM_ERR;
 			}
-
+*/
 			if(mute->portIndex != 1)
 			{
 				DBG_ErrMsg("parameter error\n");
@@ -1941,12 +1973,12 @@ int EX_GetVidMute(MuteInfo_S * mute)
 	{
 		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
 		{
-			if(mute->direction != DIRECTION_IN)
+/*			if(mute->direction != DIRECTION_IN)
 			{
 				DBG_ErrMsg("parameter error\n");
 				return EX_PARAM_ERR;
 			}
-
+*/
 			if(mute->portIndex != 3)
 			{
 				DBG_ErrMsg("parameter error\n");
@@ -1955,12 +1987,12 @@ int EX_GetVidMute(MuteInfo_S * mute)
 		}
 		else if(strcmp(g_version_info.model,IPE_W_MODULE) == 0)
 		{
-			if(mute->direction != DIRECTION_IN)
+/*			if(mute->direction != DIRECTION_IN)
 			{
 				DBG_ErrMsg("parameter error\n");
 				return EX_PARAM_ERR;
 			}
-
+*/
 			if(mute->portIndex != 2)
 			{
 				DBG_ErrMsg("parameter error\n");
@@ -1986,6 +2018,11 @@ int EX_GetVidMute(MuteInfo_S * mute)
 
 int EX_SetVidOutput(char info[][MAX_PARAM_LEN],int count )
 {
+#ifdef CONFIG_P3K_CLIENT
+	DBG_WarnMsg(" !!! This is Decoder\n");
+	return EX_CMD_ERR;
+#endif
+
 	char sCmd[128] = "";
 	int num = 0;
 	for(num = 0;num < count;num ++)
@@ -2502,8 +2539,27 @@ int EX_SetAutoSwitchPriority(AudioInfo_S * info,AudioInfo_S * gain,int count)
 
 	int port[4] = {255,255,255,255};
 	char sCmd[128] = "";
+
+	if(gain[0].direction != DIRECTION_OUT)
+	{
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
+	}
+
+	if(IsPortValid(gain[0].direction, gain[0].portFormat, gain[0].portIndex, gain[0].signal, 1) == EX_PARAM_ERR)
+	{
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
+	}
+
 	if(gain[0].signal == SIGNAL_VIDEO)
 	{
+		if((gain[0].portFormat != PORT_HDMI)&&(gain[0].portFormat != PORT_STREAM))
+		{
+			DBG_WarnMsg(" !!! Error para\n");
+			return EX_PARAM_ERR;
+		}
+
 		if(strcmp(g_version_info.model,IPE_MODULE) == 0)
 		{
 			DBG_WarnMsg("!!!Error Cmd\n");
@@ -2515,6 +2571,12 @@ int EX_SetAutoSwitchPriority(AudioInfo_S * info,AudioInfo_S * gain,int count)
 		for(int i = 1;i < count;i++)
 		{
 			if(IsPortValid(gain[i].direction, gain[i].portFormat, gain[i].portIndex, gain[i].signal, 1) == EX_PARAM_ERR)
+			{
+				DBG_WarnMsg(" !!! Error para\n");
+				return EX_PARAM_ERR;
+			}
+
+			if(gain[i].direction != DIRECTION_IN)
 			{
 				DBG_WarnMsg(" !!! Error para\n");
 				return EX_PARAM_ERR;
@@ -2566,15 +2628,23 @@ int EX_SetAutoSwitchPriority(AudioInfo_S * info,AudioInfo_S * gain,int count)
 				{
 					return EX_PARAM_ERR;
 				}
-
-
 			}
+
 			sprintf(sCmd,"%s::HDMI%d",sCmd,gain[i].portIndex);
 			port[i] = gain[i].portIndex;
 		}
 	}
 	else if(gain[0].signal == SIGNAL_AUDIO)
 	{
+		if((gain[0].portFormat != PORT_HDMI)
+			&&(gain[0].portFormat != PORT_STREAM)
+			&&(gain[0].portFormat != PORT_DANTE)
+			&&(gain[0].portFormat != PORT_ANALOG_AUDIO))
+		{
+			DBG_WarnMsg(" !!! Error para\n");
+			return EX_PARAM_ERR;
+		}
+
 		sprintf(sCmd,"e_p3k_audio_pri");
 		int jjj = 1;
 
@@ -2583,6 +2653,12 @@ int EX_SetAutoSwitchPriority(AudioInfo_S * info,AudioInfo_S * gain,int count)
 			if(IsPortValid(gain[i].direction, gain[i].portFormat, gain[i].portIndex, gain[i].signal, 1) == EX_PARAM_ERR)
 			{
 				DBG_WarnMsg("IsPortValid\n");
+				return EX_PARAM_ERR;
+			}
+
+			if(gain[i].direction != DIRECTION_IN)
+			{
+				DBG_WarnMsg(" !!! Error para\n");
 				return EX_PARAM_ERR;
 			}
 
@@ -2926,6 +3002,12 @@ int EX_SetEDIDLockStatus(int index,int lock)
 int EX_GetEDIDLockStatus(int index,int *lock)
 {
 #ifdef CONFIG_P3K_HOST
+	if(index != 1)
+	{
+		DBG_WarnMsg(" !!!parameter Error\n");
+		return EX_PARAM_ERR;
+	}
+
 	State_E tmp_lock;
 	Cfg_Get_EDID_Lock(&tmp_lock);
 
@@ -2941,6 +3023,12 @@ int EX_SetHDCPMode(int index,HDCPMode_E mode)
 {
 	DBG_InfoMsg("EX_SetHDCPMode index=%d mode=%d\n",index,mode);
 #ifdef CONFIG_P3K_HOST
+	if(index != 1)
+	{
+		DBG_WarnMsg(" !!! Error Param \n");
+		return EX_PARAM_ERR;
+	}
+
 	char sCmd[64] = "";
 
 	if((mode == HDCP_OFF)||(mode == HDCP_ON)/*||(mode == HDCP_MIRROR)*/)
@@ -2965,6 +3053,12 @@ int EX_SetHDCPMode(int index,HDCPMode_E mode)
 int EX_GetHDCPMode(int index,HDCPMode_E *mode)
 {
 #ifdef CONFIG_P3K_HOST
+	if(index != 1)
+	{
+		DBG_WarnMsg(" !!! Error Param \n");
+		return EX_PARAM_ERR;
+	}
+
 	State_E tmp_mode;
 	Cfg_Get_AV_HDCP(index, &tmp_mode);
 
@@ -3564,7 +3658,34 @@ int EX_GetVideoImageScaleMode(int *mode,char*res)
 }
 int EX_GetVideoViewReslotion(int mode, int index, int nativeFlag,int * res)
 {
-	if(g_video_info.scale_mode == 0)
+	if((mode != 1)&&(mode != 0))
+	{
+		DBG_WarnMsg(" !!!parameter Error\n");
+		return EX_PARAM_ERR;
+	}
+
+	if(index != 1)
+	{
+		DBG_WarnMsg(" !!!parameter Error\n");
+		return EX_PARAM_ERR;
+	}
+
+	if((nativeFlag != 1)&&(nativeFlag != 0))
+	{
+		DBG_WarnMsg(" !!!parameter Error\n");
+		return EX_PARAM_ERR;
+	}
+
+	char buf[64] = "";
+
+	mysystem("cat /sys/devices/platform/videoip/timing_info", buf, 64);
+
+	if(strstr(buf,"Not Available") != 0)
+	{
+		DBG_WarnMsg("Video Not Available\n");
+		*res = 0;//no signal
+	}
+	else if(g_video_info.scale_mode == 0)
 	{
 		int a = 254;
 
@@ -3576,6 +3697,12 @@ int EX_GetVideoViewReslotion(int mode, int index, int nativeFlag,int * res)
 
 		mysystem(cmd1,buf1,64);
 		mysystem(cmd2,buf2,64);
+
+		if(strstr(buf,"Not Available") != 0)
+		{
+			DBG_WarnMsg("Video Not Available\n");
+			a = 0;
+		}
 
 		if(strcmp(" [1920]X[2160] [60]",buf1) == 0)
 		{
@@ -4161,6 +4288,12 @@ int EX_SetUartConf(UartMessageInfo_S*conf)
 		}
 
 		if((conf->stopBitsMode < 1)||(conf->stopBitsMode > 2))
+		{
+			DBG_WarnMsg(" !!! Error para\n");
+			return EX_PARAM_ERR;
+		}
+
+		if(conf->serialType != 0) // 485
 		{
 			DBG_WarnMsg(" !!! Error para\n");
 			return EX_PARAM_ERR;
@@ -4792,7 +4925,7 @@ int EX_Upgrade(void)
 	system(cmd);
 
 	memset(cmd,0,64);
-	g_version_info.standby_version[0] = '\0'; 
+	g_version_info.standby_version[0] = '\0';
 	// 20220124 Erase stb_ver, write only when upgrade done.
 	sprintf(cmd, "astparam misc s stb_ver");
 	system(cmd);
@@ -5076,7 +5209,8 @@ int EX_SetTimeZero(int tz,int timingMethod)
 {
 	DBG_InfoMsg("EX_SetTimeZero tz = %d,timingMethod = %d\n",tz,timingMethod);
 
-	if((tz >= -12)&&(tz <= 12))
+	if(((tz >= -12)&&(tz <= 12))
+		&&((timingMethod == 0)||(timingMethod == 1)))
 	{
 		Cfg_Set_Time_Loc(tz,timingMethod);
 	}
@@ -5097,6 +5231,13 @@ int EX_GetTimeZero(int *tz,int *timingMethod)
 int EX_SetTimeSyncInfo(TimeSyncConf_S*syncInfo)
 {
 	DBG_InfoMsg("EX_SetTimeSyncInfo server =%s\n",syncInfo->serverIp);
+
+	if((syncInfo->syncInerval < 0)||(syncInfo->syncInerval > 23))
+	{
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
+	}
+
 	Cfg_Set_Time_Srv(*syncInfo);
 
 	if(syncInfo->enable == 0)
@@ -5115,7 +5256,7 @@ int EX_SetTimeSyncInfo(TimeSyncConf_S*syncInfo)
 		DBG_WarnMsg(" !!! Error para\n");
 		return EX_PARAM_ERR;
 	}
-	return EX_NO_ERR;
+	return 2;//EX_NO_ERR;
 }
 int EX_GetTimeSyncInfo(TimeSyncConf_S*syncInfo)
 {
@@ -5125,11 +5266,11 @@ int EX_GetTimeSyncInfo(TimeSyncConf_S*syncInfo)
 int EX_GetSignalList(char info[][MAX_SIGNALE_LEN],int num)
 {
 	int tmpnum = 0;
-	char *str ="in.hdmi.1.audio.1";
+/*	char *str ="in.hdmi.1.audio.1";
 	char *str1= "out.hdmi.1.video.1";
 	memcpy(info[0],str,strlen(str));
 	memcpy(info[1],str1,strlen(str1));
-
+*/
 	char buf[64] = "";
 
 #ifdef CONFIG_P3K_HOST
@@ -5673,7 +5814,12 @@ int EX_SetLogEvent(int action,int period)
 		return EX_PARAM_ERR;
 	}
 
-	if(period == 2)
+	if(period == 1)
+	{
+		//keep current
+		period = g_log_info.period;
+	}
+	else if(period == 2)
 		sprintf(sCmd,"%s::daily",sCmd);
 	else if(period == 3)
 		sprintf(sCmd,"%s::weekly",sCmd);
@@ -6136,7 +6282,7 @@ const char* strHelpCmd[] = {
 	"PASS?",
 	"PORT-DIRECTION",
 	"PORT-DIRECTION?",
-	"PORT-LIST?",
+	"PORTS-LIST?",
 	"RESET",
 	"ROLLBACK",
 	"SECUR",
@@ -6173,7 +6319,7 @@ const char* strHelpCmd[] = {
 #endif
 	"X-MUTE",
 	"X-MUTE?",
-#ifdef CONFIG_P3K_HOST
+ #ifdef CONFIG_P3K_HOST
 	"X-PRIORITY",
 	"X-PRIORITY?",
 #endif
