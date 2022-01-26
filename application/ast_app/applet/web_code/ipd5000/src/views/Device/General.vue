@@ -434,10 +434,9 @@ export default {
     browseConfig () {
       const file = this.$refs.uploadConfig.files[0]
       if (file) {
-        if (file.type !== 'application/gzip') {
+        if (!file.name.endsWith('tar.gz')) {
           this.$refs.uploadConfig.value = ''
           alert('Please choose the correct file!')
-          this.$refs.uploadConfig.value = ''
           return
         }
         if (file.size > 1024 * 1024 * 4) {
