@@ -14,7 +14,7 @@ cc=$(CROSS_COMPILE)gcc
 
 cflags=-O3
 ifeq ($(BUILD_TYPE), host)
-cflags += -D ENABLE_DANTE \
+cflags += -DENABLE_DANTE \
 		-I ./dante_example_code\
 		-I ./dante_example_code/common\
 		-I ./dante_example_code/common/audinate\
