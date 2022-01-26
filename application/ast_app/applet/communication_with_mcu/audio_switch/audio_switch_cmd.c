@@ -230,12 +230,16 @@ static void hdmi_in_xxx_out()
     char analog_out[] = "1:8:1";
     char ast1520_out[] = "2:15:0:35:1";
     set_gsv_insert_audio(NO_INSERT);
+    set_hdmi_mute(MUTE);
     int flag = 0;
     int i = 0;
     for(i = 0;i <= AUDIO_OUT_TYPE_NUM;i++)
     {
         switch(audio_inout_info.audio_out[i])
         {
+            case AUDIO_OUT_HDMI:
+                set_hdmi_mute(UNMUTE);
+                break;
             case AUDIO_OUT_DANTE:
                 do_handle_set_gpio_val(cmd,dante_out);
                 mute_control(DANTE_MUTE,UNMUTE);
