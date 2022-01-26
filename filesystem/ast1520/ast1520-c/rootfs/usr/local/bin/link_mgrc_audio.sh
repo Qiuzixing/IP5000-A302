@@ -368,7 +368,11 @@ handle_ae_start()
 	A_CH_SELECT="$1"
 	A_MULTICAST_IP='0.0.0.0'
 
-	to_s_search $A_SESSION_ID $A_CH_SELECT
+	if [ "$A_CH_SELECT" = "0000" ]; then
+		to_s_idle
+	else
+		to_s_search $A_SESSION_ID $A_CH_SELECT
+	fi
 }
 
 handle_ae_stop()

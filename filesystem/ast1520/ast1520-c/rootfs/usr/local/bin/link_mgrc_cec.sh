@@ -350,7 +350,11 @@ handle_ce_start()
 	C_CH_SELECT="$1"
 	C_MULTICAST_IP='0.0.0.0'
 
-	to_s_search $C_SESSION_ID $C_CH_SELECT
+	if [ "$C_CH_SELECT" = "0000" ]; then
+		to_s_idle
+	else
+		to_s_search $C_SESSION_ID $C_CH_SELECT
+	fi
 }
 
 handle_ce_stop()

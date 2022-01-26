@@ -340,7 +340,11 @@ handle_pe_start()
 	# get channel param
 	P_CH_SELECT="$1"
 	P_MULTICAST_IP='0.0.0.0'
-	to_s_search $P_SESSION_ID $P_CH_SELECT
+	if [ "$P_CH_SELECT" = "0000" ]; then
+		to_s_idle
+	else
+		to_s_search $P_SESSION_ID $P_CH_SELECT
+	fi
 }
 
 handle_pe_stop()

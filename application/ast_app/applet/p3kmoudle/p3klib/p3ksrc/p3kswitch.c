@@ -2139,7 +2139,11 @@ static int P3K_SetChannleSelection(char *reqparam, char *respParam, char *userda
 		return -1;
 	}
 	sSelect.ch_id = atoi(str[count - 1]);
+#ifdef CONFIG_P3K_CLIENT	// Sid 20220127 Support client set as 0 for stop working for each feature.
+	if ((sSelect.ch_id < 0) || (sSelect.ch_id > 999))
+#else
 	if ((sSelect.ch_id < 1) || (sSelect.ch_id > 999))
+#endif
 	{
 		ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);
 		strcpy(userdata, "error");

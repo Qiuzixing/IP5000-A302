@@ -957,7 +957,7 @@ foolproof_ch_select()
 					# good
 				;;
 				*)
-					echo "0001"
+					echo "0000"
 					echo "ERROR: CH_SELECT ($_ch_select) is not in 0000~9999 format" >&2
 					return
 				;;
@@ -970,7 +970,7 @@ foolproof_ch_select()
 			if [[ $_ch_select =~ ^[0-9][0-9][0-9][0-9]$ ]]; then
 				echo "$_ch_select"
 			else
-				echo "0001"
+				echo "0000"
 				echo "ERROR: CH_SELECT ($_ch_select) is not a number" >&2
 			fi
 		;;

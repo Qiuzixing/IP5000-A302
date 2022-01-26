@@ -519,7 +519,11 @@ handle_ue_start()
 	U_CH_SELECT="$1"
 	U_MULTICAST_IP='0.0.0.0'
 
-	to_s_search $U_SESSION_ID $U_CH_SELECT
+	if [ "$U_CH_SELECT" = "0000" ]; then
+		to_s_idle
+	else
+		to_s_search $U_SESSION_ID $U_CH_SELECT
+	fi
 }
 
 handle_ue_stop()

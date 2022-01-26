@@ -368,7 +368,13 @@ do_restart()
 	V_CH_SELECT="$1"
 	V_MULTICAST_IP='0.0.0.0'
 
-	to_s_search $V_SESSION_ID $V_CH_SELECT
+	if [ "$V_CH_SELECT" = "0000" ]; then
+		to_s_idle
+		stop_link_off_timer
+		ast_send_event -1 e_link_off_time_up
+	else
+		to_s_search $V_SESSION_ID $V_CH_SELECT
+	fi
 }
 
 handle_ve_toggle_video_profile()

@@ -495,7 +495,11 @@ handle_se_start()
 		S_CH_SELECT="$1"
 		S_MULTICAST_IP='0.0.0.0'
 
-		to_s_search $S_SESSION_ID $S_CH_SELECT
+		if [ "$S_CH_SELECT" = "0000" ]; then
+			to_s_idle
+		else
+			to_s_search $S_SESSION_ID $S_CH_SELECT
+		fi
 	fi
 }
 
