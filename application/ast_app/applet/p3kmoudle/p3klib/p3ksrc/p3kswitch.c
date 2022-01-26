@@ -2781,6 +2781,12 @@ static int P3K_SetXROUTEMatch(char *reqparam, char *respParam, char *userdata)
 		/*char * aTmp = "";
 		memcpy(aTmp,str[count - 2],strlen(str[count - 2]));
 		memset(str[count - 2],0,sizeof(str[count - 2]));*/
+		if(strncmp(str[0], "[", (strlen("["))) != 0 || strncmp((str[count - 2] + strlen(str[count - 2]) - 1), "]", (strlen("]"))) != 0)
+		{
+			ERR_MSG(ERR_PROTOCOL_SYNTAX, reqparam, respParam);
+			strcpy(userdata, "error");
+			return -1;
+		}
 		memcpy(str[count - 2], str[count - 2], (strlen(str[count - 2]) - 1));
 		int i = 0;
 		int sret = 0;
@@ -5003,6 +5009,12 @@ static int P3K_SetAutoSwitchPriority(char *reqparam, char *respParam, char *user
 			ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);
 		else
 			ERR_MSG(ERR_PROTOCOL_SYNTAX, reqparam, respParam);
+		strcpy(userdata, "error");
+		return -1;
+	}
+	if(strncmp(str[1], "[", (strlen("["))) != 0 || strncmp((str[count - 1] + strlen(str[count - 1]) - 1), "]", (strlen("]"))) != 0)
+	{
+		ERR_MSG(ERR_PROTOCOL_SYNTAX, reqparam, respParam);
 		strcpy(userdata, "error");
 		return -1;
 	}
