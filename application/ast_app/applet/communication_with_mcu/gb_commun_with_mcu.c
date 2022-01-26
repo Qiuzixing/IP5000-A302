@@ -71,6 +71,7 @@ uint8_t auto_av_report_flag = CLOSE_REPROT;
 uint8_t current_play_port = HDMIRX1;
 uint8_t cec_report_flag = CLOSE_REPROT;
 uint8_t mute_flag = UNMUTE;
+uint8_t audio_out_enable = 0;
 audo_switch_usb_struct audo_switch_usb = {USB_Unknown,0,0};
 
 const ipc_cmd_struct ipc_cmd_list[] =
@@ -113,6 +114,7 @@ const ipc_cmd_struct ipc_cmd_list[] =
         //audio_autoswitch
         {IPC_AUDIO_IN,                  "audio_in",                 sizeof("audio_in"),             0,                                  SEND_CMD},
         {IPC_AUDIO_OUT,                 "audio_out",                sizeof("audio_out"),            0,                                  SEND_CMD},
+        {IPC_AUDIO_OUT_ENABLE,          "audio_out_enable",         sizeof("audio_out_enable"),     0,                                  SEND_CMD},
         //cec command
         {IPC_CEC_SEND,                  "cec_send",                 sizeof("cec_send"),             CMD_SEND_CECMESSAGE,                SEND_CMD},
         {IPC_CEC_CMD_REPORT,            "cec_report",               sizeof("cec_report"),           0,                                  SEND_CMD},
@@ -894,9 +896,25 @@ static void do_handle_audio_out(char *cmd_param)
         audio_out_type = strtok(NULL,":");
     }
     audio_inout_info.audio_out[i] = AUDIO_OUT_NULL;
-    if(auto_av_report_flag == OPEN_REPROT && audio_inout_info.audio_in != AUDIO_IN_NULL)
+    if(auto_av_report_flag == OPEN_REPROT && audio_inout_info.audio_in != AUDIO_IN_NULL && audio_out_enable == 1)
     {
-        //handle_audio();
+        handle_audio();
+    }
+}
+
+static void do_handle_audio_out_enable(char *cmd_param)
+{
+    char *flag = strtok(cmd_param,":");
+    if(flag != NULL)
+    {
+        if(atoi(flag) == 1)
+        {
+            audio_out_enable = 1;
+        }
+        else
+        {
+            audio_out_enable = 0;
+        }
     }
 }
 
@@ -1088,6 +1106,9 @@ static void do_handle_ipc_cmd(int index,char *cmd_param)
         break;
     case IPC_AUDIO_OUT:
         do_handle_audio_out(cmd_param);
+        break;
+    case IPC_AUDIO_OUT_ENABLE:
+        do_handle_audio_out_enable(cmd_param);
         break;
     //cec command
     case IPC_CEC_SEND:

@@ -1495,10 +1495,30 @@ static ssize_t store_gen_lock(struct device *dev, struct device_attribute *attr,
 }
 static DEVICE_ATTR(gen_lock, (S_IRUGO | S_IWUSR), show_gen_lock, store_gen_lock);
 #endif
+static int stop_flag = 0;
+
+static ssize_t show_stop(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	int num = 0;
+	if(stop_flag == 1)
+	{
+		num += snprintf(buf + num, PAGE_SIZE - num, "1");
+	}
+	else
+	{
+		num += snprintf(buf + num, PAGE_SIZE - num, "0");
+	}
+
+	return num;
+}
 
 static ssize_t store_stop(struct device *dev, struct device_attribute *attr,
 		const char *buf, size_t count)
 {
+	int c;
+	c = sscanf(buf, "%d", &stop_flag);
+	if(stop_flag == 1)
+	{
 	down(&i2s_user_lock);
 #ifdef CONFIG_ARCH_AST1500_CLIENT
 	i2s_stop_client();
@@ -1509,10 +1529,12 @@ static ssize_t store_stop(struct device *dev, struct device_attribute *attr,
 	up(&i2s_user_lock);
 	//A7 removed
 	//ast_notify_user("e_i2s_stopped");
+	}
+
 
 	return count;
 }
-static DEVICE_ATTR(stop, S_IWUSR, NULL, store_stop);
+static DEVICE_ATTR(stop, (S_IRUGO | S_IWUSR), show_stop, store_stop);
 
 static struct attribute *dev_attrs[] = {
 	&dev_attr_unlink.attr,

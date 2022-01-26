@@ -154,7 +154,26 @@ static void set_gsv_insert_audio(insert_value value)
     }
 }
 
-static void analog_in_xxx_out()
+static void stop_i2s_driver(void)
+{
+    int fd = open(I2S_STOP_DRIVER, O_RDWR);
+    if (fd < 0)
+    {
+        printf("open %s error:%s", I2S_STOP_DRIVER,strerror(errno));
+        return;
+    }
+    int ret = write(fd, "1", 1);
+    if (1 != ret)
+    {
+        printf("write %s error:%s\n", I2S_STOP_DRIVER,strerror(errno));
+        close(fd);
+        return;
+    }
+
+    close(fd);
+}
+
+static void analog_in_xxx_out(void)
 {
     uint16_t cmd = CMD_GPIO_SET_VAL;
     char dante_out[] = "2:11:1:12:0";
@@ -162,6 +181,7 @@ static void analog_in_xxx_out()
     char ast1520_out[] = "3:36:1:37:0:8:0";
     int i = 0;
     int flag = 0;
+    int out_lan_flag = 0;
     do_handle_set_gpio_val(cmd,ast1520_out);
     for(i = 0;i <= AUDIO_OUT_TYPE_NUM;i++)
     {
@@ -176,6 +196,7 @@ static void analog_in_xxx_out()
                 do_handle_set_gpio_val(cmd,hdmi_out);
                 break;
             case AUDIO_OUT_LAN:
+                out_lan_flag = 1;
                 set_gsv_insert_audio(INSERT);
                 //do_handle_set_gpio_val(cmd,ast1520_out);
                 break;
@@ -190,7 +211,10 @@ static void analog_in_xxx_out()
             break;
         }
     }
-
+    if(out_lan_flag == 0)
+    {
+        stop_i2s_driver();
+    }
     if(i != 0)
     {
         mute_control(ANALOG_IN_MUTE,UNMUTE); 

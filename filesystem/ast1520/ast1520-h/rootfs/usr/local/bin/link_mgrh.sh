@@ -21,7 +21,6 @@ audio_setting="/data/configs/kds-7/audio/audio_setting.json"
 rx_tcp_port='8888'
 analog_out_volum='87'
 execute_once_flag='on'
-ipe5000p_audio_lan_flag='on'
 ipe5000p_audio_lan_mute_flag='unmute'
 stop_all_service()
 {
@@ -1607,23 +1606,9 @@ handle_e_p3k_audio_src()
 	if [ $MODEL_NUMBER = 'KDS-SW3-EN7' ];then
 		if [ $_switch_input = 'analog' ];then
 			if [[ $_dst_1 = 'lan' ]] || [[ $_dst_2 = 'lan' ]] || [[ $_dst_3 = 'lan' ]];then
-				if [ $ipe5000p_audio_lan_flag = 'off' ];then
-					ipc @a_lm_set s ae_start:$CH_SELECT_A
-					ipe5000p_audio_lan_flag='on'
-					ipe5000p_audio_lan_mute_flag='unmute'
-				fi
-			else
-				if [ $ipe5000p_audio_lan_flag = 'on' ];then
-					ipc @a_lm_set s ae_stop
-					ipe5000p_audio_lan_flag='off'
-					ipe5000p_audio_lan_mute_flag='mute'
-				fi
-			fi
-		else
-			if [ $ipe5000p_audio_lan_flag = 'off' ];then
-				ipc @a_lm_set s ae_start:$CH_SELECT_A
-				ipe5000p_audio_lan_flag='on'
 				ipe5000p_audio_lan_mute_flag='unmute'
+			else
+				ipe5000p_audio_lan_mute_flag='mute'
 			fi
 		fi
 	fi
@@ -1658,11 +1643,21 @@ handle_e_p3k_audio_dst()
 	_IFS="$IFS";IFS=':';set -- $*;IFS="$_IFS"
 
 	shift 2
-	_dst_num="$1"
+	local _dst_num="$1"
 	_dst_1="$3"
 	_dst_2="$5"
 	_dst_3="$7"
 	_dst_4="$9"
+
+	if [ $MODEL_NUMBER = 'KDS-SW3-EN7' ];then
+		if [[ $_dst_1 = 'lan' ]] || [[ $_dst_2 = 'lan' ]] || [[ $_dst_3 = 'lan' ]] || [[ $_dst_4 = 'lan' ]];then
+			ipe5000p_audio_lan_mute_flag='unmute'
+			i2s_stop_flag=`cat /sys/devices/platform/1500_i2s/stop`
+			if [ $i2s_stop_flag -eq 1 ];then
+				ipc @a_lm_set s ae_start:$CH_SELECT_A
+			fi
+		fi
+	fi
 
 	case "$_dst_num" in
 		0)
@@ -1728,6 +1723,20 @@ handle_e_p3k_audio_mode()
 
 	echo "set p3k switch mode!!! $_switch_mode"
 	sconfig --audio-mode "$_switch_mode"
+	if [ $MODEL_NUMBER = 'KDS-SW3-EN7' ];then
+		case "$_switch_mode" in
+			FILO | priority)
+				ipc @m_lm_set s audio_out_enable:1
+			;;
+			manual)
+				ipc @m_lm_set s audio_out_enable:0
+			;;
+			*)
+				echo "error _switch_mode parameter"
+				return
+			;;
+		esac
+	fi
 }
 
 handle_e_p3k_audio_switch()
@@ -3187,7 +3196,6 @@ init_param_from_p3k_cfg()
 				P3KCFG_DESTION_LAN=`jq -r '.audio_setting.destination_select' $audio_setting | grep lan -c`
 				if [ $P3KCFG_DESTION_LAN -eq 0 ];then
 					ipe5000p_audio_lan_mute_flag='mute'
-					ipe5000p_audio_lan_flag='off'
 				fi
 			fi 
 		fi

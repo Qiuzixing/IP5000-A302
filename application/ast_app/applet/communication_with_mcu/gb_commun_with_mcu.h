@@ -124,6 +124,7 @@ typedef enum
     //audio_autoswitch
     IPC_AUDIO_IN,
     IPC_AUDIO_OUT,
+    IPC_AUDIO_OUT_ENABLE,
 
     //cec command
     IPC_CEC_SEND,
