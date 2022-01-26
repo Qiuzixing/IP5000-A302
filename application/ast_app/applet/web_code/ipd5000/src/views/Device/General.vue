@@ -440,9 +440,9 @@ export default {
           this.$refs.uploadConfig.value = ''
           return
         }
-        if (file.size > 1024 * 1024) {
+        if (file.size > 1024 * 1024 * 4) {
           this.$refs.uploadConfig.value = ''
-          alert('Maximum file size should be less than 1MB')
+          alert('Maximum file size should be less than 4MB')
           return
         }
         const xhr = new XMLHttpRequest()
