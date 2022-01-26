@@ -392,7 +392,11 @@ handle_e_sys_ip_chg()
 
 	ulmparam s RELOAD_KMOIP 1
 	update_smb_name
-	ast_send_event -1 e_reconnect
+	if [ "$P3KCFG_AV_ACTION" = 'play' ];then
+		ast_send_event -1 e_reconnect
+	else
+		to_s_idle
+	fi
 
 	set_igmp_leave_force
 }
