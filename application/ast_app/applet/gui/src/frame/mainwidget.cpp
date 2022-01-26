@@ -190,9 +190,17 @@ void MainWidget::onRecvData(QByteArray data)
         int mode = argList.at(2).toInt();
         qDebug() << "DeviceInfo_mode:" << mode;
         if(mode == 0)
+        {
             bshow = false;
-        else
+        }
+        else if(mode == 2)
+        {
             bshow = true;
+        }
+        else
+        {
+            return ;
+        }
 
          setDeviceInfoDispaly(bshow);
     }
@@ -262,6 +270,11 @@ void MainWidget::setDeviceInfoDispaly(bool status)
                     DeviceInfoTimer.stop();
                     int timeout = m_osdMeun->getDeviceInfoTimerout();
                     DeviceInfoTimer.start(timeout);
+                }
+                else
+                {
+                    // 常显，取消定时器；
+                    DeviceInfoTimer.stop();
                 }
             }
         }
@@ -592,18 +605,24 @@ void MainWidget::destroyOsdAndOverlay()
 {
     if(m_osdMeun != NULL)
     {
+        m_osdMeun->setVisible(false);
+
         delete m_osdMeun;
         m_osdMeun = NULL;
     }
 
     if(m_imageOverlay != NULL)
     {
+        m_imageOverlay->setVisible(false);
+
         delete m_imageOverlay;
         m_imageOverlay = NULL;
     }
 
     if(m_textOverlay != NULL)
     {
+        m_textOverlay->setVisible(false);
+
         delete  m_textOverlay;
         m_textOverlay = NULL;
     }
@@ -1428,12 +1447,14 @@ void MainWidget::moveDisplayArea()
     if(m_textOverlay == NULL)
     {
         qDebug() << "MOVE m_textOverlay BACKGROUND";
-        showOverlay(m_background,m_imageOverlay->getShowPos());
+        if(m_imageOverlay)
+            showOverlay(m_background,m_imageOverlay->getShowPos());
     }
     else if(m_imageOverlay == NULL)
     {
         qDebug() << "MOVE m_imageOverlay BACKGROUND";
-        showOverlay(m_background,m_textOverlay->getShowPos());
+        if(m_textOverlay)
+            showOverlay(m_background,m_textOverlay->getShowPos());
     }
 }
 

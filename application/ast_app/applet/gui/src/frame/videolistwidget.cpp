@@ -363,7 +363,7 @@ void OSDMeun::initConnect()
 
 void OSDMeun::setCompleter(const QString &text)
 {
-    qDebug() << "text:" << text;
+    //qDebug() << "text:" << text;
     updateTimer();
 
     m_onSreachMode = true;
@@ -374,13 +374,13 @@ void OSDMeun::setCompleter(const QString &text)
     // 如果完整的完成列表中的某个单词包含输入的文本，则加入要显示的完成列表串中
     foreach(QString word, m_channelList)
     {
-        qDebug() << "word:" << word;
+        //qDebug() << "word:" << word;
         if (word.contains(text, Qt::CaseInsensitive))
         {
             m_sreachList << word;
         }
     }
-    qDebug() << "words:" << m_sreachList;
+    //qDebug() << "words:" << m_sreachList;
 
     loadChannel(m_sreachList);
 
