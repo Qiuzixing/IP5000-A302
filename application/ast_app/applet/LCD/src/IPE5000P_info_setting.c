@@ -57,7 +57,7 @@ const char* DEV_INFO_LIST_P[] = {
 };
 
 const char* DEV_SETTINGS_LIST_P[] = {
-    "DEV SETTINGS", "INPUT SETTING", "EDID SETTING", "HDCP SETTING", "CH DEFINE",
+    "DEV SETTINGS", "INPUT", "EDID", "HDCP", "CH DEFINE",
 };
 // END LEVEL 2
 
@@ -70,20 +70,20 @@ const char* HDMI_STATUS_LIST_P[] = {
 };
 
 const char* INPUT_VIDEO_SOURCE_TYPE_P[] = {
-    "INPUT SETTING", "HDMI IN1", "HDMI IN2", "USB_C IN",
+    "INPUT", "HDMI IN1", "HDMI IN2", "USB_C IN",
 };
 
 char EDID_BUF_P[20][20] = {{0},{0},{0},{0},{0},{0},{0},{0},{0},{0},
                            {0},{0},{0},{0},{0},{0},{0},{0},{0},{0},};
 
-const char *EDID_LIST_P[] = {"EDID SETTING", (const char *)EDID_BUF_P[0],(const char *)EDID_BUF_P[1],(const char *)EDID_BUF_P[2],(const char *)EDID_BUF_P[3],(const char *)EDID_BUF_P[4],
+const char *EDID_LIST_P[] = {"EDID", (const char *)EDID_BUF_P[0],(const char *)EDID_BUF_P[1],(const char *)EDID_BUF_P[2],(const char *)EDID_BUF_P[3],(const char *)EDID_BUF_P[4],
                                              (const char *)EDID_BUF_P[5],(const char *)EDID_BUF_P[6],(const char *)EDID_BUF_P[7],(const char *)EDID_BUF_P[8],(const char *)EDID_BUF_P[9],};
 
-const char *HDCP_LIST_P[] = {"HDCP SETTING", "ON", "OFF"};
+const char *HDCP_LIST_P[] = {"HDCP", "ON", "OFF"};
 
 
 // END LEVEL 3
-const char* SAVE_VIDEO_SELECT_P[MIN_SIZE_P+1]    = {"CHANNEL SEL",}; 
+//const char* SAVE_VIDEO_SELECT_P[MIN_SIZE_P+1]    = {"CHANNEL SEL",}; 
 const char *VIDEO_IN_SHOWWING_P[4]               =    {NULL, NULL, NULL, NULL};
 
 //Records the string being displayed
@@ -470,7 +470,7 @@ static int IPE5000P_LOCK_MENU()
             show_strings(2, 64, current_id, strlen(current_id), 1);
         }
         
-        sleep(5);
+        sleep(2);
     }
 
     return 0;

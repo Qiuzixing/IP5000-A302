@@ -63,7 +63,7 @@ const char* DEV_INFO_LIST_D[] = {
 };
 
 const char* DEV_SETTINGS_LIST_D[] = {
-    "DEV SETTINGS", "INPUT SETTING",  "RESOL SETTING", "CH SELECT",
+    "DEV SETTINGS", "INPUT",  "RESOLUTION", "CH SELECT",
 };
 // END LEVEL 2
 
@@ -76,12 +76,12 @@ const char* HDMI_STATUS_LIST_D[] = {
 };
 
 const char* INPUT_VIDEO_SOURCE_TYPE_D[] = {
-    "INPUT SETTING", "STREAM IN", "HDMI IN",
+    "INPUT", "STREAM IN", "HDMI IN",
 };
 
 const char *HDCP_LIST_D[] = {"HDCP SETTING", "ON", "OFF"};
 
-const char* RESOL_SCALE_LIST_D[] = {"RESOL SETTING", "PASS THRU", "720p60", "1080p60", "1080p50", "2160p25", "2160p30"};
+const char* RESOL_SCALE_LIST_D[] = {"RESOLUTION", "PASS-THRU", "720P60", "1080P60", "1080P50", "2160P25", "2160P30"};
 const char* SCALE_MODE_D[] = {"0,0", "1,4" , "1,16", "1,31", "1,73", "1,74"};
 
 int CH_TATOL_NUM_D = 0;
@@ -400,8 +400,8 @@ static int IPD5000_LOCK_MENU()
             
             show_strings(2, 64, channel_id, strlen(channel_id), 1);
         }
-        
-        sleep(5);
+
+        sleep(2);
     }
 
     return 0;
@@ -1477,6 +1477,7 @@ static int CH_NUM_SELECT_D()
                     }
                 }
                 show_a_char(2, 64+i*8, channel_id[i], 1, 1);
+				
                 SET_CHANNEL_ID(channel_id);
                 break;
             }

@@ -55,7 +55,7 @@ const char* DEV_INFO_LIST_E[] = {
 };
 
 const char* DEV_SETTINGS_LIST_E[] = {
-    "DEV SETTINGS", "EDID SETTING", "HDCP SETTING", "CH DEFINE",
+    "DEV SETTINGS", "EDID", "HDCP", "CH DEFINE",
 };
 // END LEVEL 2
 
@@ -70,10 +70,10 @@ const char* HDMI_STATUS_LIST_E[] = {
 char EDID_BUF_E[20][20] = {{0},{0},{0},{0},{0},{0},{0},{0},{0},{0},
                            {0},{0},{0},{0},{0},{0},{0},{0},{0},{0},};
 
-const char *EDID_LIST_E[] = {"EDID SETTING", (const char *)EDID_BUF_E[0],(const char *)EDID_BUF_E[1],(const char *)EDID_BUF_E[2],(const char *)EDID_BUF_E[3],(const char *)EDID_BUF_E[4],
+const char *EDID_LIST_E[] = {"EDID", (const char *)EDID_BUF_E[0],(const char *)EDID_BUF_E[1],(const char *)EDID_BUF_E[2],(const char *)EDID_BUF_E[3],(const char *)EDID_BUF_E[4],
                                              (const char *)EDID_BUF_E[5],(const char *)EDID_BUF_E[6],(const char *)EDID_BUF_E[7],(const char *)EDID_BUF_E[8],(const char *)EDID_BUF_E[9],};
 
-const char *HDCP_LIST_E[] = {"HDCP SETTING", "ON", "OFF"};
+const char *HDCP_LIST_E[] = {"HDCP", "ON", "OFF"};
 
 // END LEVEL 3
 
@@ -454,7 +454,7 @@ static int IPE5000_LOCK_MENU()
             show_strings(2, 64, current_id, strlen(current_id), 1);
         }
         
-        sleep(5);
+        sleep(2);
     }
 
     return 0;

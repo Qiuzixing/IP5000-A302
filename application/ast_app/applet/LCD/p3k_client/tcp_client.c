@@ -59,10 +59,6 @@ void* Entry(void *arg)
                     begin_str = strstr(recv_buf, p3k_cmd_head);
                     if (begin_str == NULL)
                     {
-                        /*
-                            1.如果一直有消息来，但是没有相匹配的消息，要怎么办.
-                            2.p3k_cmd_head应该要清零。
-                        */
                         continue;
                     }
                     else
@@ -119,7 +115,7 @@ int send_p3k_cmd_wait_rsp(char *cmd, char *recv_buf, int recv_size, char *head, 
     int count;
     int err = -1;
     char buf[1024] = {0};
-    char send_buf[BUF_SIZE] = {0};
+    char send_buf[1024] = {0};
 
     if (recv_buf == NULL || head == NULL)
     {
@@ -136,7 +132,7 @@ int send_p3k_cmd_wait_rsp(char *cmd, char *recv_buf, int recv_size, char *head, 
     count = send(sock_fd, send_buf, strlen(send_buf), 0);
     if (count != strlen(send_buf))
     {
-        printf("send %s error, fact num:[%d], will num:[%lu] \n", cmd, count, strlen(send_buf));
+        printf("send %s error, send fact num:[%d], wish send num:[%lu] \n", cmd, count, strlen(send_buf));
         //pthread_mutex_unlock(&mutex);
         return -1;
     }
