@@ -85,6 +85,11 @@ static int EX_ERR_MSG(int i_Err, char *i_reqparam, char *o_respParam)
 		sprintf(tmpdata, "ERR %03d", ERR_WRONG_MODE);
 		memcpy(o_respParam, tmpdata, strlen(tmpdata));
 	}
+	else if (i_Err == -4)
+	{
+		sprintf(tmpdata, "ERR %03d", ERR_FS_FILE_NOT_EXISTS);
+		memcpy(o_respParam, tmpdata, strlen(tmpdata));
+	}
 	return 0;
 }
 
@@ -3314,6 +3319,7 @@ static int P3K_SetDNSName(char *reqparam, char *respParam, char *userdata)
 	if (strlen(str[1]) > 24 || strlen(str[1]) < 0 || str[1][0] == '-' || str[1][strlen(str[1]) - 1] == '-')
 	{
 		ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);
+		strcpy(userdata, "error");
 		return -1;
 	}
 	s32Ret = EX_SetDNSName(id, str[1]);
@@ -3359,11 +3365,6 @@ static int P3K_GetDNSName(char *reqparam, char *respParam, char *userdata)
 			return -1;
 		}
 		id = atoi(str[0]);
-		if (id != 0 && id != 1)
-		{
-			ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);
-			return -1;
-		}
 	}
 	else
 	{
@@ -5266,6 +5267,7 @@ static int P3K_AddEDID(char *reqparam, char *respParam, char *userdata)
 	if (strlen(str[1]) > 24 || strlen(str[1]) < 0 || str[1][0] == '-' || str[1][strlen(str[1])] == '-')
 	{
 		ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);
+		strcpy(userdata, "error");
 		return -1;
 	}
 	memcpy(edidname.name, str[1], strlen(str[1]));
