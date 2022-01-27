@@ -7,8 +7,8 @@
                         style="width: 180px;"
                         v-model="date"
                         type="date"
-                        value-format="MM-dd-yyyy"
-                        format="MM-dd-yyyy">
+                        value-format="dd-MM-yyyy"
+                        format="dd-MM-yyyy">
         </el-date-picker>
         <!--        <VueCtkDateTimePicker id="sys-date" color="#35ACF8" v-model="dateTime" format="MM/DD/YYYY" formatted="MM/DD/YYYY" :no-clear-button="true" :no-label="true" style="width: 160px;margin: 0" :only-date="true" />-->
       </div>
