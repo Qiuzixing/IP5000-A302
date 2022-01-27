@@ -4003,6 +4003,12 @@ int EX_SetRouteMatch(PortInfo_S*inPortInfo,PortInfo_S*matchPortInfo,int num)
 		return EX_PARAM_ERR;
 	}
 
+	if(IsPortValid(inPortInfo->direction, inPortInfo->portFormat, inPortInfo->portIndex, inPortInfo->signal, inPortInfo->index) == EX_PARAM_ERR)
+	{
+		DBG_WarnMsg(" !!! Error para\n");
+		return EX_PARAM_ERR;
+	}
+
 	if(matchPortInfo->signal == SIGNAL_VIDEO)
 	{
 		if(strcmp(g_version_info.model,IPE_P_MODULE) == 0)
