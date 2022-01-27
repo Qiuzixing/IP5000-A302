@@ -339,7 +339,7 @@ status_light_up()
 			a30_led_blink $BOARD_ON_R $NET_IP_FALLBACK_BLINK_ON $NET_IP_FALLBACK_BLINK_OFF
 		;;
 		5)
-			a30_led_on $BOARD_ON_R
+			a30_led_off $BOARD_ON_R
 			a30_led_on $BOARD_ON_G
 		;;
 		6)
