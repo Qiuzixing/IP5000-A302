@@ -3402,11 +3402,6 @@ static int P3K_GetDNSName(char *reqparam, char *respParam, char *userdata)
 			return -1;
 		}
 		id = atoi(str[0]);
-		if (id != 0 && id != 1)
-		{
-			ERR_MSG(ERR_PARAMETER_OUT_OF_RANGE, reqparam, respParam);
-			return -1;
-		}
 	}
 	else
 	{
