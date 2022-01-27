@@ -557,7 +557,6 @@ int Tcp_NetRecvMsg(NetCliInfo_T *cli)
 	}
 	else
 	{
-
 		int tmplen = 0;
 		char *tmpdata = cli->recvmsg;
 		char *tmpdata1 = cli->recvmsg;
@@ -565,21 +564,12 @@ int Tcp_NetRecvMsg(NetCliInfo_T *cli)
 		char retmsg[MAX_PARAM_LEN] = "";
 		char cmdmsg[MAX_PARAM_LEN] = "";
 		memcpy(cmdmsg, (tmpdata2 + 1), (strlen(cli->recvmsg) - 2));
-		tmpdata = strchr(cmdmsg, " ");
-		if (tmpdata == NULL)
+		tmpdata = strtok(cmdmsg, " ");
+		if(tmpdata != NULL)
 		{
-			sprintf(retmsg, "~01@%s ERR 004\r\n", cmdmsg);
+			sprintf(retmsg, "~01@%s ERR 004\r\n", tmpdata);
 			SOCKET_TcpSendMessage(cli->recvSocket, retmsg, strlen(retmsg));
 			DBG_WarnMsg(">>%s\n", retmsg);
-		}
-		else
-		{
-			tmplen = tmpdata - tmpdata1;
-			char cmd[MAX_COMMANDNAME_LEN] = "";
-			memcpy(cmd, (tmpdata1 + 1), (tmpdata - 1));
-			sprintf(retmsg, "~01@%s ERR 004\r\n", cmd);
-			SOCKET_TcpSendMessage(cli->recvSocket, retmsg, strlen(retmsg));
-			DBG_InfoMsg(">>%s\n", retmsg);
 		}
 	}
 
